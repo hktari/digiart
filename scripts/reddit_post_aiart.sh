@@ -1,45 +1,65 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Post to https://www.reddit.com/r/aiArt/ using an already-running Chrome
-# exposed on the default CDP port (9222) with valid Reddit cookies.
+# Reddit posting helper using an already-running Chrome exposed on CDP port 9222.
 #
-# Default behavior is SAFE: it prepares everything but does not click Post
-# unless --publish is passed.
+# SAFE DEFAULT:
+# - prepares the post but does not click Post unless --publish is passed
 #
-# Requirements:
-#   - agent-browser installed
-#   - Chrome/Chromium running with --remote-debugging-port=9222
-#   - valid Reddit login cookies already present in that browser
+# Supports:
+# - --mode link   (recommended for idea + landing/questionnaire posts)
+# - --mode text
+# - --mode image  (best-effort; Reddit's upload UI is custom and brittle)
 #
-# Example:
-#   scripts/reddit_post_aiart.sh \
-#     --title "My latest AI artwork" \
-#     --image /absolute/path/to/image.png \
-#     --body "Made with ..." \
-#     --flair Video
-#
-# Publish for real:
-#   scripts/reddit_post_aiart.sh ... --publish
+# Notes for r/aiArt specifically:
+# - flair is required
+# - subreddit rules mention no advertising/self-promotion and that AI projects need modmail approval
+# - use this script carefully for landing-page/questionnaire posts
 
 usage() {
   cat <<'EOF'
 Usage:
-  reddit_post_aiart.sh --title TEXT --image PATH [options]
+  reddit_post_aiart.sh --title TEXT [options]
 
 Required:
   --title TEXT           Post title
-  --image PATH           Absolute or relative path to image/video file
+
+Mode selection:
+  --mode MODE            One of: link, text, image. Default: link
+
+Mode-specific:
+  --url URL              Required for --mode link
+  --body TEXT            Optional body/caption text
+  --image PATH           Required for --mode image
 
 Optional:
-  --body TEXT            Optional body/caption text
-  --flair NAME           Flair name to choose. Default: Video
-                         Known examples on r/aiArt: Video, Music, Text, No flair
+  --flair NAME           Flair name to choose.
+                         Defaults:
+                           link/text -> Text
+                           image     -> Image - Other
   --port PORT            CDP port. Default: 9222
   --subreddit NAME       Default: aiArt
   --publish              Actually click the final Post button
   --verbose              Print extra progress info
   -h, --help             Show this help
+
+Examples:
+  reddit_post_aiart.sh \
+    --mode link \
+    --title "I built a tool for AI artists" \
+    --url "https://example.com" \
+    --body "Would love feedback from working artists."
+
+  reddit_post_aiart.sh \
+    --mode text \
+    --title "Question for AI artists" \
+    --body "I'm exploring ..."
+
+  reddit_post_aiart.sh \
+    --mode image \
+    --title "New piece" \
+    --image ./art.png \
+    --body "Made with ..."
 
 Behavior:
   By default this script stops right before the final submit and prints a message.
@@ -47,9 +67,11 @@ EOF
 }
 
 TITLE=""
+MODE="link"
+URL=""
 IMAGE=""
 BODY=""
-FLAIR="Video"
+FLAIR=""
 PORT="9222"
 SUBREDDIT="aiArt"
 PUBLISH=0
@@ -130,10 +152,63 @@ wait_ms() {
   agent-browser wait "$ms" >/dev/null
 }
 
+pick_default_flair() {
+  if [[ -n "$FLAIR" ]]; then
+    return
+  fi
+  case "$MODE" in
+    link|text) FLAIR="Text" ;;
+    image) FLAIR="Image - Other" ;;
+    *) FLAIR="Text" ;;
+  esac
+}
+
+upload_via_dom_injection() {
+  local path="$1"
+  local escaped
+  escaped=$(printf '%s' "$path" | sed "s/'/'\\''/g")
+
+  # Create a temporary file input, attach it, assign files via Playwright's setInputFiles,
+  # and dispatch a change event so Reddit's custom media component can ingest it.
+  agent-browser eval "(() => {
+    const old = document.getElementById('__agent_browser_upload_input__');
+    if (old) old.remove();
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.id = '__agent_browser_upload_input__';
+    input.style.position = 'fixed';
+    input.style.left = '-9999px';
+    input.style.top = '0';
+    document.body.appendChild(input);
+    return { ok: true };
+  })()" >/dev/null
+
+  agent-browser upload "#__agent_browser_upload_input__" "$path" >/dev/null
+
+  agent-browser eval "(() => {
+    const input = document.getElementById('__agent_browser_upload_input__');
+    if (!input) return { ok: false, reason: 'missing temp input' };
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+    return {
+      ok: true,
+      fileCount: input.files ? input.files.length : 0,
+      names: input.files ? [...input.files].map(f => f.name) : []
+    };
+  })()"
+}
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --title)
       TITLE="${2:-}"
+      shift 2
+      ;;
+    --mode)
+      MODE="${2:-}"
+      shift 2
+      ;;
+    --url)
+      URL="${2:-}"
       shift 2
       ;;
     --image)
@@ -176,23 +251,43 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ -z "$TITLE" || -z "$IMAGE" ]]; then
-  log "--title and --image are required"
+if [[ -z "$TITLE" ]]; then
+  log "--title is required"
   usage
   exit 2
 fi
+
+case "$MODE" in
+  link)
+    [[ -n "$URL" ]] || { log "--url is required for --mode link"; exit 2; }
+    ;;
+  text)
+    :
+    ;;
+  image)
+    [[ -n "$IMAGE" ]] || { log "--image is required for --mode image"; exit 2; }
+    ;;
+  *)
+    log "Invalid --mode: $MODE"
+    exit 2
+    ;;
+esac
 
 if ! command -v agent-browser >/dev/null 2>&1; then
   log "agent-browser not found in PATH"
   exit 1
 fi
 
-if [[ ! -f "$IMAGE" ]]; then
-  log "Image/file not found: $IMAGE"
-  exit 1
+if [[ "$MODE" == "image" ]]; then
+  if [[ ! -f "$IMAGE" ]]; then
+    log "Image/file not found: $IMAGE"
+    exit 1
+  fi
+  IMAGE="$(realpath "$IMAGE")"
 fi
 
-IMAGE="$(realpath "$IMAGE")"
+pick_default_flair
+
 TMPDIR="$(mktemp -d)"
 trap 'rm -rf "$TMPDIR"' EXIT
 
@@ -200,6 +295,7 @@ SNAP1="$TMPDIR/snap1.json"
 SNAP2="$TMPDIR/snap2.json"
 SNAP3="$TMPDIR/snap3.json"
 SNAP4="$TMPDIR/snap4.json"
+SNAP5="$TMPDIR/snap5.json"
 
 log "Connecting to Chrome on CDP port $PORT"
 agent-browser connect "$PORT" >/dev/null
@@ -209,27 +305,79 @@ agent-browser open "https://www.reddit.com/r/$SUBREDDIT/submit" >/dev/null
 wait_ms 2500
 run_snapshot "$SNAP1"
 
-TAB_IMAGE="$(json_get_ref_by_name "$SNAP1" "Images & Video")"
 TITLE_REF="$(json_get_ref_by_name "$SNAP1" "Title")"
 FLAIR_REF="$(json_get_ref_by_role_name_contains "$SNAP1" button "Add flair")"
 
-log "Switching to Images & Video"
-click_ref "$TAB_IMAGE"
-wait_ms 2000
-run_snapshot "$SNAP2"
+case "$MODE" in
+  link)
+    TAB_REF="$(json_get_ref_by_name "$SNAP1" "Link")"
+    log "Switching to Link"
+    click_ref "$TAB_REF"
+    wait_ms 1800
+    run_snapshot "$SNAP2"
 
-TITLE_REF="$(json_get_ref_by_name "$SNAP2" "Title")"
-UPLOAD_REF="$(json_get_ref_by_name "$SNAP2" "Upload files")"
-BODY_REF="$(json_get_ref_by_role_name_contains "$SNAP2" textbox "Optional Body")" || true
-POST_REF="$(json_get_ref_by_name "$SNAP2" "Post")"
-FLAIR_REF="$(json_get_ref_by_role_name_contains "$SNAP2" button "Add flair")"
+    TITLE_REF="$(json_get_ref_by_name "$SNAP2" "Title")"
+    URL_REF="$(json_get_ref_by_role_name_contains "$SNAP2" textbox "Link URL")"
+    BODY_REF="$(json_get_ref_by_role_name_contains "$SNAP2" textbox "Optional Body")" || true
+    FLAIR_REF="$(json_get_ref_by_role_name_contains "$SNAP2" button "Add flair")"
 
-log "Filling title"
-fill_ref "$TITLE_REF" "$TITLE"
+    log "Filling title"
+    fill_ref "$TITLE_REF" "$TITLE"
+    log "Filling link URL"
+    fill_ref "$URL_REF" "$URL"
+    if [[ -n "$BODY" && -n "${BODY_REF:-}" ]]; then
+      log "Filling optional body"
+      fill_ref "$BODY_REF" "$BODY"
+    fi
+    ;;
 
-log "Uploading file: $IMAGE"
-agent-browser upload "@$UPLOAD_REF" "$IMAGE" >/dev/null
-wait_ms 3000
+  text)
+    TAB_REF="$(json_get_ref_by_name "$SNAP1" "Text")"
+    log "Using Text mode"
+    click_ref "$TAB_REF" || true
+    wait_ms 1200
+    run_snapshot "$SNAP2"
+
+    TITLE_REF="$(json_get_ref_by_name "$SNAP2" "Title")"
+    BODY_REF="$(json_get_ref_by_role_name_contains "$SNAP2" textbox "Post body")"
+    FLAIR_REF="$(json_get_ref_by_role_name_contains "$SNAP2" button "Add flair")"
+
+    log "Filling title"
+    fill_ref "$TITLE_REF" "$TITLE"
+    if [[ -n "$BODY" ]]; then
+      log "Filling body"
+      fill_ref "$BODY_REF" "$BODY"
+    fi
+    ;;
+
+  image)
+    TAB_REF="$(json_get_ref_by_name "$SNAP1" "Images & Video")"
+    log "Switching to Images & Video"
+    click_ref "$TAB_REF"
+    wait_ms 1800
+    run_snapshot "$SNAP2"
+
+    TITLE_REF="$(json_get_ref_by_name "$SNAP2" "Title")"
+    BODY_REF="$(json_get_ref_by_role_name_contains "$SNAP2" textbox "Optional Body")" || true
+    FLAIR_REF="$(json_get_ref_by_role_name_contains "$SNAP2" button "Add flair")"
+
+    log "Filling title"
+    fill_ref "$TITLE_REF" "$TITLE"
+
+    log "Uploading file via DOM injection workaround: $IMAGE"
+    upload_via_dom_injection "$IMAGE" >/dev/null || {
+      log "Upload workaround failed. Reddit custom uploader did not accept the temp input."
+      exit 1
+    }
+    wait_ms 3000
+
+    if [[ -n "$BODY" && -n "${BODY_REF:-}" ]]; then
+      log "Filling optional body"
+      fill_ref "$BODY_REF" "$BODY"
+    fi
+    ;;
+esac
+
 run_snapshot "$SNAP3"
 
 log "Opening flair chooser"
@@ -255,17 +403,16 @@ log "Selecting flair: $FLAIR"
 click_ref "$FLAIR_OPTION_REF"
 click_ref "$ADD_REF"
 wait_ms 1000
+run_snapshot "$SNAP5"
 
-if [[ -n "$BODY" && -n "${BODY_REF:-}" ]]; then
-  log "Filling optional body"
-  fill_ref "$BODY_REF" "$BODY"
-  wait_ms 500
+POST_REF="$(json_get_ref_by_name "$SNAP5" "Post")"
+
+log "Prepared Reddit $MODE post for r/$SUBREDDIT"
+if [[ "$SUBREDDIT" == "aiArt" && "$MODE" == "link" ]]; then
+  log "Warning: r/aiArt rules mention no self-promotion/advertising and project posts may need modmail approval."
 fi
 
-log "Prepared Reddit post for r/$SUBREDDIT"
 if [[ "$PUBLISH" -eq 1 ]]; then
-  run_snapshot "$SNAP2"
-  POST_REF="$(json_get_ref_by_name "$SNAP2" "Post")"
   log "Publishing"
   click_ref "$POST_REF"
   log "Post submitted"
