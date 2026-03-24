@@ -14,6 +14,7 @@ The success of the DigiArt marketing campaign is my responsibility. I should pro
 - Identify and refine the best subreddit candidates for DigiArt using subreddit size, activity, posting norms, self-promo tolerance, and policy/rule fit.
 - Watch for meaningful changes in landing-page traffic, conversions, or referral patterns.
 - Note promising campaign ideas, distribution opportunities, and experiments worth running.
+- For web research, prefer the Exa search tool/workflow when available.
 - Flag anything blocked, risky, or time-sensitive that needs Bostjan's attention.
 
 ## Behavior
