@@ -1,16 +1,15 @@
 # USER.md - About Your Human
 
-_Learn about the person you're helping. Update this as you go._
-
-- **Name:**
-- **What to call them:**
-- **Pronouns:** _(optional)_
-- **Timezone:**
-- **Notes:**
+- **Name:** Bostjan
+- **What to call them:** Bostjan
+- **Pronouns:**
+- **Timezone:** Europe/Ljubljana
+- **Notes:** Focused on marketing the DigiArt app.
 
 ## Context
 
-_(What do they care about? What projects are they working on? What annoys them? What makes them laugh? Build this over time.)_
+- Main focus: everything related to marketing DigiArt.
+- Prefer straightforward, practical help over fluff.
 
 ---
 
