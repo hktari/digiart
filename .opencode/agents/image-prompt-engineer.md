@@ -1,1 +1,0 @@
-/home/bostjan/source/utility/agency-agents/integrations/opencode/agents/image-prompt-engineer.md

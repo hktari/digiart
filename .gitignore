@@ -1,1 +1,6 @@
 assets
+.opencode.backup
+
+.chrome-profile
+__pycache__
+*.pyc
