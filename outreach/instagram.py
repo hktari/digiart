@@ -187,13 +187,19 @@ class InstagramCommenter:
 
     def _human_type(self, ref: str, text: str) -> None:
         """Type text character-by-character with Gaussian delays and word-boundary pauses."""
-        mean_delay = 0.09
-        std_delay = 0.025
-        word_pause_mean = 0.35
-        word_pause_std = 0.12
+        mean_delay = 0.03
+        std_delay = 0.013
+        word_pause_mean = 0.16
+        word_pause_std = 0.8
         for i, char in enumerate(text):
-            self.browser.type_char(ref, char)
-            if char == " " or (i > 0 and text[i - 1] in ".!?"):
+            if char == "\n":
+                # Shift+Enter creates a new line instead of posting
+                self.browser.press("Shift+Enter")
+            else:
+                self.browser.type_char(ref, char)
+            if char == "\n":
+                pause = gaussian_random(word_pause_mean, word_pause_std, 0.15, 0.7)
+            elif char == " " or (i > 0 and text[i - 1] in ".!?"):
                 pause = gaussian_random(word_pause_mean, word_pause_std, 0.15, 0.7)
             else:
                 pause = gaussian_random(mean_delay, std_delay, 0.04, 0.22)

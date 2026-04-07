@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import json
 import os
-import subprocess
-import sys
 from pathlib import Path
 
+import yaml
+import subprocess
+import sys
 from logger import get_logger
 
 log = get_logger("companion")
 
-CONFIG_FILE = Path(__file__).parent / "shortcuts.json"
+CONFIG_FILE = Path(__file__).parent / "shortcuts.yaml"
 SCRIPT_PATH = Path(__file__).parent / "instagram.py"
 VENV_PYTHON = Path(__file__).parent.parent / ".venv" / "bin" / "python"
 
@@ -27,7 +27,7 @@ def load_config() -> dict[str, str]:
         log.error(f"Config file not found: {CONFIG_FILE}")
         sys.exit(1)
     with open(CONFIG_FILE, "r") as f:
-        return json.load(f)
+        return yaml.safe_load(f) or {"__comments__": "No shortcuts defined"}
 
 
 def get_original_user() -> str | None:
@@ -54,7 +54,7 @@ def trigger_comment(text: str) -> None:
 
     if original_user:
         # -H sets HOME to the target user's home directory
-        cmd = ["sudo", "-u", original_user, "-H"] + cmd
+        cmd = ["sudo", "-u", original_user, "-H", "XDG_RUNTIME_DIR=/run/user/1000"] + cmd
 
     log.info(f"Triggered comment: {text[:50]}{'...' if len(text) > 50 else ''}")
     log.debug(f"Executing: {' '.join(cmd)}")

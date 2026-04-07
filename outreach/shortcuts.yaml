@@ -1,0 +1,28 @@
+# Outreach message shortcuts
+# Use | for multi-line strings (preserves newlines)
+# Use > for multi-line strings (folds newlines into spaces)
+
+"1": |
+  Any1 interested in getting art like this shipped to their home? 
+  We're building a platform that lets you subscribe to your favorite digital artists and enjoy art in printed booklet.
+  Like this if you're interested in learning more
+
+"2": |
+  Would any1 like to experience this type of art in printed format ?
+
+  I'm working on a platform for digital artists and lovers into monthly drops of collectible printed booklets.
+
+  dm me if you're interested
+
+  I'd love to get your feedback
+
+"3": Great work as always!
+
+# Example of a longer multi-line message:
+# "4": |
+#   Hey! I love your artwork.
+#   We're building something cool for digital artists -
+#   a subscription platform that delivers printed art booklets to fans.
+#
+#   Would you be interested in learning more?
+#   Just reply here or DM me!
