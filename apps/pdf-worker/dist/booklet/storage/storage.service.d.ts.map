@@ -1,0 +1,1 @@
+{"version":3,"file":"storage.service.d.ts","sourceRoot":"","sources":["../../../src/booklet/storage/storage.service.ts"],"names":[],"mappings":"AAMA,qBACa,cAAc;IACzB,OAAO,CAAC,QAAQ,CAAC,MAAM,CAAmC;IAC1D,OAAO,CAAC,QAAQ,CAAC,MAAM,CAAiB;;IAMlC,SAAS,CAAC,KAAK,EAAE,UAAU,GAAG,OAAO,CAAC,MAAM,CAAC;YAUrC,UAAU;YAiCV,YAAY;CAW3B"}

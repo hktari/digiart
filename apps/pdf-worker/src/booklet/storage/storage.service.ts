@@ -1,10 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
-import {
-  PutObjectCommand,
-  S3Client,
-} from "@aws-sdk/client-s3";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { Injectable, Logger } from "@nestjs/common";
 
 @Injectable()
@@ -38,9 +35,11 @@ export class StorageService {
       );
     }
 
+    const endpoint = process.env.AWS_ENDPOINT_URL;
     const s3 = new S3Client({
       region,
       credentials: { accessKeyId, secretAccessKey },
+      ...(endpoint && { endpoint, forcePathStyle: true }),
     });
 
     await s3.send(
@@ -58,8 +57,7 @@ export class StorageService {
   }
 
   private async writeLocally(bytes: Uint8Array, key: string): Promise<string> {
-    const basePath =
-      process.env.STORAGE_LOCAL_PATH ?? "/tmp/booklets";
+    const basePath = process.env.STORAGE_LOCAL_PATH ?? "/tmp/booklets";
     const dir = join(basePath, "booklets");
     await mkdir(dir, { recursive: true });
     const filename = key.replace("booklets/", "");

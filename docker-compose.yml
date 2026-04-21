@@ -1,3 +1,16 @@
+# Infrastructure only — apps run via pnpm dev locally.
+#
+# Required env vars for apps/mvp and apps/pdf-worker when using MinIO:
+#   REDIS_URL=redis://localhost:6379
+#   STORAGE_DRIVER=s3
+#   AWS_ENDPOINT_URL=http://localhost:9000
+#   AWS_REGION=us-east-1
+#   AWS_ACCESS_KEY_ID=minioadmin
+#   AWS_SECRET_ACCESS_KEY=minioadmin
+#   AWS_S3_BUCKET=booklets
+#
+# DATABASE_URL must point to your Neon (or local Postgres) instance.
+
 services:
   redis:
     image: redis:7-alpine
@@ -27,6 +40,19 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+        mc alias set local http://minio:9000 minioadmin minioadmin &&
+        mc mb --ignore-existing local/booklets &&
+        mc anonymous set download local/booklets
+      "
+    restart: on-failure
 
 volumes:
   redis_data:

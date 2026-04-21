@@ -1,6 +1,7 @@
 import { Processor, WorkerHost } from "@nestjs/bullmq";
 import { Logger } from "@nestjs/common";
 import type { Job } from "bullmq";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 import type { BookletJobData, BookletJobResult } from "./booklet.types";
 import { PdfBuilderService } from "./pdf/pdf-builder.service";
@@ -12,7 +13,9 @@ const MIN_HEIGHT_PX = 1748;
 @Processor("booklet-generation")
 export class BookletProcessor extends WorkerHost {
   private readonly logger = new Logger(BookletProcessor.name);
-  private readonly prisma = new PrismaClient();
+  private readonly prisma = new PrismaClient({
+    adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }),
+  });
 
   constructor(
     private readonly pdfBuilder: PdfBuilderService,
