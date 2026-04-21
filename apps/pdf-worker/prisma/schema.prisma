@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Shared models (read-only references from apps/mvp — keep in sync)
+// ---------------------------------------------------------------------------
+
+enum Orientation {
+  PORTRAIT
+  LANDSCAPE
+  SQUARE
+  UNKNOWN
+}
+
+enum ArtworkStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+model Artwork {
+  id               String        @id @default(cuid())
+  creatorProfileId String
+  title            String
+  storageKey       String
+  mimeType         String?
+  fileSize         Int?
+  width            Int?
+  height           Int?
+  orientation      Orientation   @default(UNKNOWN)
+  status           ArtworkStatus @default(ACTIVE)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  creatorProfile CreatorProfile   @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  releaseArtworks ReleaseArtwork[]
+}
+
+model ReleaseArtwork {
+  id        String @id @default(cuid())
+  releaseId String
+  artworkId String
+  sortOrder Int    @default(0)
+
+  release Release @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  artwork Artwork @relation(fields: [artworkId], references: [id], onDelete: Cascade)
+
+  @@unique([releaseId, artworkId])
+}
+
+enum PublishStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Release {
+  id               String        @id @default(cuid())
+  creatorProfileId String
+  cycleId          String?
+  title            String
+  description      String?       @db.Text
+  status           PublishStatus @default(DRAFT)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  creatorProfile CreatorProfile             @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  artworks       ReleaseArtwork[]
+  selections     CollectorReleaseSelection[]
+}
+
+model CreatorProfile {
+  id          String @id @default(cuid())
+  userId      String @unique
+  slug        String @unique
+  displayName String
+
+  artworks  Artwork[]
+  releases  Release[]
+}
+
+model CollectorProfile {
+  id String @id @default(cuid())
+
+  selections          CollectorReleaseSelection[]
+  generatedPrintFiles GeneratedPrintFile[]
+}
+
+model SubscriptionCycle {
+  id    String @id @default(cuid())
+  label String
+  month Int
+  year  Int
+
+  selections          CollectorReleaseSelection[]
+  generatedPrintFiles GeneratedPrintFile[]
+
+  @@unique([month, year])
+}
+
+model CollectorReleaseSelection {
+  id                 String @id @default(cuid())
+  collectorProfileId String
+  releaseId          String
+  cycleId            String
+
+  collectorProfile CollectorProfile  @relation(fields: [collectorProfileId], references: [id], onDelete: Cascade)
+  release          Release           @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  cycle            SubscriptionCycle @relation(fields: [cycleId], references: [id])
+
+  @@unique([collectorProfileId, releaseId, cycleId])
+}
+
+// ---------------------------------------------------------------------------
+// PDF Worker models
+// ---------------------------------------------------------------------------
+
+enum PrintFileStatus {
+  PENDING
+  GENERATING
+  READY
+  FAILED
+}
+
+model GeneratedPrintFile {
+  id                 String          @id @default(cuid())
+  collectorProfileId String
+  cycleId            String
+  storageUrl         String?
+  pageCount          Int?
+  status             PrintFileStatus @default(PENDING)
+  errorMessage       String?
+  generatedAt        DateTime?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  collectorProfile CollectorProfile  @relation(fields: [collectorProfileId], references: [id], onDelete: Cascade)
+  cycle            SubscriptionCycle @relation(fields: [cycleId], references: [id])
+
+  @@unique([collectorProfileId, cycleId])
+}

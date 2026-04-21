@@ -1,0 +1,16 @@
+{
+  "name": "art-subscription-platform",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter mvp dev",
+    "dev:worker": "pnpm --filter pdf-worker dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "format": "pnpm -r format"
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  }
+}

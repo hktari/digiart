@@ -6,3 +6,4 @@ assets
 .chrome-profile
 __pycache__
 *.pyc
+node_modules
