@@ -14,7 +14,10 @@ import urllib.error
 import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
+from threading import Event
 from typing import Sequence
+
+from pynput import keyboard
 
 from logger import get_logger
 
@@ -186,24 +189,46 @@ class InstagramCommenter:
         self.browser.scroll("up", random.randint(200, 500))
 
     def _human_type(self, ref: str, text: str) -> None:
-        """Type text character-by-character with Gaussian delays and word-boundary pauses."""
+        """Type text character-by-character with Gaussian delays and word-boundary pauses.
+
+        Press Escape to cancel typing at any time.
+        """
+        cancel_event = Event()
+
+        def on_press(key):
+            if key == keyboard.Key.esc:
+                cancel_event.set()
+                return False  # Stop listener
+
+        listener = keyboard.Listener(on_press=on_press)
+        listener.start()
+
         mean_delay = 0.03
         std_delay = 0.013
         word_pause_mean = 0.16
         word_pause_std = 0.8
-        for i, char in enumerate(text):
-            if char == "\n":
-                # Shift+Enter creates a new line instead of posting
-                self.browser.press("Shift+Enter")
-            else:
-                self.browser.type_char(ref, char)
-            if char == "\n":
-                pause = gaussian_random(word_pause_mean, word_pause_std, 0.15, 0.7)
-            elif char == " " or (i > 0 and text[i - 1] in ".!?"):
-                pause = gaussian_random(word_pause_mean, word_pause_std, 0.15, 0.7)
-            else:
-                pause = gaussian_random(mean_delay, std_delay, 0.04, 0.22)
-            time.sleep(pause)
+
+        try:
+            for i, char in enumerate(text):
+                if cancel_event.is_set():
+                    self._log("Typing cancelled by user (Escape)")
+                    self.browser.press("Escape")  # Close any open dialogs
+                    raise AgentBrowserError("Typing cancelled by user")
+
+                if char == "\n":
+                    # Shift+Enter creates a new line instead of posting
+                    self.browser.press("Shift+Enter")
+                else:
+                    self.browser.type_char(ref, char)
+                if char == "\n":
+                    pause = gaussian_random(word_pause_mean, word_pause_std, 0.1, 0.2)
+                elif char == " " or (i > 0 and text[i - 1] in ".!?"):
+                    pause = gaussian_random(word_pause_mean, word_pause_std, 0.1, 0.2)
+                else:
+                    pause = gaussian_random(mean_delay, std_delay, 0.04, 0.15)
+                time.sleep(pause)
+        finally:
+            listener.stop()
 
     def post_comment(self, dump_snapshot: bool = False) -> None:
         current_url = self.browser.get_url()
@@ -219,10 +244,6 @@ class InstagramCommenter:
         if self.request.dry_run:
             self._log(f"[DRY RUN] Would type: {self.request.comment_text!r}")
             return
-
-        self._log("Simulating reading (scrolling)")
-        self._scroll_reading_pattern()
-        self._wait(0.8, 1.8)
 
         self._log("Clicking comment input")
         ref = self._find_ref("comment input", self.COMMENT_INPUT_PATTERNS)
