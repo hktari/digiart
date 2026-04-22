@@ -1,0 +1,173 @@
+@import "tailwindcss";
+
+:root {
+  --paper: #faf8f5;
+  --ink: #1a1a1a;
+  --vermilion: #e24b2a;
+  --teal: #2a7a7a;
+  --paper-dark: #f0ede8;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-vermilion: var(--vermilion);
+  --color-teal: var(--teal);
+  --color-paper-dark: var(--paper-dark);
+  --font-serif: var(--font-crimson-pro);
+  --font-sans: var(--font-manrope);
+  --font-display: var(--font-crimson-pro);
+
+  --color-beige-50: oklch(0.973 0.007 88.55);
+  --color-beige-100: oklch(0.931 0.021 91.55);
+  --color-beige-200: oklch(0.846 0.032 91.03);
+  --color-beige-300: oklch(0.749 0.028 87.86);
+  --color-beige-400: oklch(0.664 0.025 90.81);
+  --color-beige-500: oklch(0.576 0.022 90.62);
+  --color-beige-600: oklch(0.49 0.018 86.45);
+  --color-beige-700: oklch(0.405 0.015 91.67);
+  --color-beige-800: oklch(0.31 0.011 84.57);
+  --color-beige-900: oklch(0.223 0.008 84.57);
+  --color-beige-950: oklch(0.178 0.006 91.65);
+  --color-fuchsia-50: oklch(0.974 0.006 334.35);
+  --color-fuchsia-100: oklch(0.95 0.009 342.04);
+  --color-fuchsia-200: oklch(0.892 0.022 339.72);
+  --color-fuchsia-300: oklch(0.8 0.045 339.37);
+  --color-fuchsia-400: oklch(0.708 0.07 339.51);
+  --color-fuchsia-500: oklch(0.614 0.085 339.61);
+  --color-fuchsia-600: oklch(0.526 0.072 339.87);
+  --color-fuchsia-700: oklch(0.431 0.059 340.32);
+  --color-fuchsia-800: oklch(0.334 0.045 339.22);
+  --color-fuchsia-900: oklch(0.236 0.033 340.87);
+  --color-fuchsia-950: oklch(0.18 0.025 339.93);
+  --color-ocean-50: oklch(0.974 0.004 286.63);
+  --color-ocean-100: oklch(0.941 0.009 279.79);
+  --color-ocean-200: oklch(0.885 0.019 279.54);
+  --color-ocean-300: oklch(0.794 0.036 278.38);
+  --color-ocean-400: oklch(0.7 0.053 277.54);
+  --color-ocean-500: oklch(0.607 0.069 276.36);
+  --color-ocean-600: oklch(0.512 0.075 275.13);
+  --color-ocean-700: oklch(0.415 0.061 275.02);
+  --color-ocean-800: oklch(0.329 0.048 275.4);
+  --color-ocean-900: oklch(0.233 0.035 276.09);
+  --color-ocean-950: oklch(0.178 0.027 276.6);
+  --color-jade-50: oklch(0.954 0.015 158.11);
+  --color-jade-100: oklch(0.91 0.022 158.47);
+  --color-jade-200: oklch(0.824 0.036 158.48);
+  --color-jade-300: oklch(0.737 0.039 158.6);
+  --color-jade-400: oklch(0.65 0.04 158.38);
+  --color-jade-500: oklch(0.563 0.042 158.08);
+  --color-jade-600: oklch(0.477 0.041 158.36);
+  --color-jade-700: oklch(0.391 0.041 158.5);
+  --color-jade-800: oklch(0.306 0.037 157.43);
+  --color-jade-900: oklch(0.22 0.031 158.12);
+  --color-jade-950: oklch(0.174 0.028 159.8);
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-manrope), system-ui, sans-serif;
+  line-height: 1.6;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes breathing {
+
+  0%,
+  100% {
+    font-weight: 300;
+    letter-spacing: 0.01em;
+  }
+
+  50% {
+    font-weight: 400;
+    letter-spacing: 0.02em;
+  }
+}
+
+.animate-breathing {
+  animation: breathing 4s ease-in-out infinite;
+}
+
+.bg-paper-texture {
+  background-color: #fffaf3;
+  background-image:
+    url("https://www.transparenttextures.com/patterns/natural-paper.png"),
+    radial-gradient(circle at 50% 50%,
+      rgba(175, 147, 85, 0.02) 0%,
+      transparent 100%);
+  background-blend-mode: multiply;
+}
+
+.ink-bleed {
+  text-shadow: 0 0 1px rgba(26, 26, 26, 0.1);
+  filter: blur(0.2px);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.6s ease-out forwards;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.font-display {
+  font-family: var(--font-crimson-pro), serif;
+}
+
+.font-body {
+  font-family: var(--font-manrope), sans-serif;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bg-gradient-radial {
+  background: radial-gradient(circle at center, var(--tw-gradient-stops));
+}
