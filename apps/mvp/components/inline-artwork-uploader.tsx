@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 import {
   ALLOWED_ARTWORK_TYPES,
@@ -10,12 +9,18 @@ import {
   uploadOne,
 } from "@/lib/artwork-upload";
 
-export default function CreatorArtworkNewPage() {
-  const router = useRouter();
+interface InlineArtworkUploaderProps {
+  onUploadComplete?: (artworkIds: string[]) => void;
+  initialCount?: number;
+}
+
+export function InlineArtworkUploader({
+  onUploadComplete,
+  initialCount = 0,
+}: InlineArtworkUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [entries, setEntries] = useState<FileEntry[]>([]);
   const [isUploading, setIsUploading] = useState(false);
-  const [allDone, setAllDone] = useState(false);
 
   const updateEntry = useCallback((id: string, state: FileStatus) => {
     setEntries((prev) => prev.map((e) => (e.id === id ? { ...e, state } : e)));
@@ -28,7 +33,6 @@ export default function CreatorArtworkNewPage() {
     if (!valid.length) return;
     const newEntries: FileEntry[] = valid.map(makeFileEntry);
     setEntries((prev) => [...prev, ...newEntries]);
-    setAllDone(false);
   }, []);
 
   const handleFileChange = useCallback(
@@ -61,7 +65,6 @@ export default function CreatorArtworkNewPage() {
         e.id === id ? { ...e, state: { status: "queued" } } : e,
       ),
     );
-    setAllDone(false);
   }, []);
 
   const handleUpload = useCallback(async () => {
@@ -69,14 +72,17 @@ export default function CreatorArtworkNewPage() {
     if (!queued.length) return;
     setIsUploading(true);
 
+    const uploadedIds: string[] = [];
+
     await Promise.all(
       queued.map(async (entry) => {
         updateEntry(entry.id, { status: "uploading", progress: 0 });
         try {
-          const { warnings } = await uploadOne(entry, (pct) => {
+          const { artworkId, warnings } = await uploadOne(entry, (pct) => {
             updateEntry(entry.id, { status: "uploading", progress: pct });
           });
-          updateEntry(entry.id, { status: "done", artworkId: "", warnings });
+          updateEntry(entry.id, { status: "done", artworkId, warnings });
+          uploadedIds.push(artworkId);
         } catch (err) {
           updateEntry(entry.id, {
             status: "error",
@@ -87,38 +93,31 @@ export default function CreatorArtworkNewPage() {
     );
 
     setIsUploading(false);
-    setAllDone(true);
-  }, [entries, updateEntry]);
+    if (uploadedIds.length > 0 && onUploadComplete) {
+      onUploadComplete(uploadedIds);
+    }
+  }, [entries, updateEntry, onUploadComplete]);
 
   const doneCount = entries.filter((e) => e.state.status === "done").length;
-  const errorCount = entries.filter((e) => e.state.status === "error").length;
+  const _errorCount = entries.filter((e) => e.state.status === "error").length;
   const queuedCount = entries.filter((e) => e.state.status === "queued").length;
   const hasQueued = queuedCount > 0;
+  const totalUploaded = initialCount + doneCount;
 
   return (
-    <main className="max-w-2xl mx-auto px-4 py-10">
-      <div className="mb-8 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
-            Upload artworks
-          </h1>
-          <p className="mt-1 text-sm text-neutral-500">
-            JPEG or PNG · min 1748 × 1240 px · max 50 MB · multiple files
-            supported
-          </p>
-        </div>
-        {allDone && doneCount > 0 && (
-          <button
-            type="button"
-            onClick={() => router.push("/creator/artworks")}
-            className="shrink-0 rounded-lg bg-fuchsia-600 px-4 py-2 text-sm font-semibold text-white hover:bg-fuchsia-700 transition-colors"
-          >
-            View artworks
-          </button>
-        )}
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium text-neutral-700">
+          Uploaded Artworks
+        </h3>
+        <span className="text-sm text-neutral-500">
+          {totalUploaded} uploaded
+          {totalUploaded < 5 && (
+            <span className="text-beige-600"> (5 recommended)</span>
+          )}
+        </span>
       </div>
 
-      {/* Drop zone */}
       <div
         role="button"
         tabIndex={0}
@@ -126,28 +125,13 @@ export default function CreatorArtworkNewPage() {
         onDragOver={(e) => e.preventDefault()}
         onClick={() => fileInputRef.current?.click()}
         onKeyDown={(e) => e.key === "Enter" && fileInputRef.current?.click()}
-        className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-beige-300 bg-beige-50 hover:border-fuchsia-400 hover:bg-fuchsia-50/30 transition-colors cursor-pointer py-10 px-4 text-center"
+        className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-fuchsia-300 bg-fuchsia-50/30 hover:border-fuchsia-400 hover:bg-fuchsia-50 transition-colors cursor-pointer py-6 px-4 text-center"
       >
-        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-beige-100">
-          <svg
-            className="h-6 w-6 text-beige-500"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={1.5}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
-            />
-          </svg>
+        <div className="text-fuchsia-600 font-medium text-sm">
+          + Upload Artwork
         </div>
-        <p className="text-sm font-medium text-neutral-700">
-          Drag & drop or <span className="text-fuchsia-600">browse</span>
-        </p>
-        <p className="mt-1 text-xs text-neutral-400">
-          Select multiple files at once
+        <p className="mt-1 text-xs text-neutral-500">
+          Drag & drop or click · JPEG or PNG · min 1748 × 1240 px
         </p>
         <input
           ref={fileInputRef}
@@ -159,9 +143,8 @@ export default function CreatorArtworkNewPage() {
         />
       </div>
 
-      {/* File list */}
       {entries.length > 0 && (
-        <div className="mt-6 space-y-3">
+        <div className="space-y-2">
           {entries.map((entry) => {
             const { state } = entry;
             const isDone = state.status === "done";
@@ -172,7 +155,7 @@ export default function CreatorArtworkNewPage() {
             return (
               <div
                 key={entry.id}
-                className={`flex items-center gap-3 rounded-lg border px-4 py-3 ${
+                className={`flex items-center gap-3 rounded-lg border px-3 py-2 ${
                   isDone
                     ? "border-jade-200 bg-jade-50"
                     : isError
@@ -180,54 +163,35 @@ export default function CreatorArtworkNewPage() {
                       : "border-neutral-200 bg-white"
                 }`}
               >
-                {/* Thumbnail */}
                 <img
                   src={entry.preview}
                   alt=""
-                  className="h-12 w-12 rounded-md object-cover shrink-0"
+                  className="h-10 w-10 rounded object-cover shrink-0"
                 />
 
-                {/* Info + progress */}
                 <div className="min-w-0 flex-1 space-y-1">
-                  <p className="truncate text-sm font-medium text-neutral-800">
+                  <p className="truncate text-xs font-medium text-neutral-800">
                     {entry.file.name}
                   </p>
 
                   {state.status === "queued" && (
-                    <p className="text-xs text-neutral-400">
-                      {(entry.file.size / 1024 / 1024).toFixed(1)} MB · ready to
-                      upload
-                    </p>
+                    <p className="text-xs text-neutral-400">Ready to upload</p>
                   )}
 
                   {state.status === "uploading" && (
                     <div className="space-y-1">
-                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-200">
+                      <div className="h-1 w-full overflow-hidden rounded-full bg-neutral-200">
                         <div
                           className="h-full rounded-full bg-fuchsia-500 transition-all duration-150"
                           style={{ width: `${state.progress}%` }}
                         />
                       </div>
-                      <p className="text-xs text-neutral-400">
-                        {state.progress}%
-                      </p>
                     </div>
-                  )}
-
-                  {state.status === "validating" && (
-                    <p className="text-xs text-neutral-400 animate-pulse">
-                      Validating…
-                    </p>
                   )}
 
                   {isDone && (
                     <p className="text-xs text-jade-600 font-medium">
                       ✓ Uploaded
-                      {state.warnings.length > 0 && (
-                        <span className="ml-2 text-beige-600 font-normal">
-                          ⚠ {state.warnings.join(", ")}
-                        </span>
-                      )}
                     </p>
                   )}
 
@@ -236,7 +200,6 @@ export default function CreatorArtworkNewPage() {
                   )}
                 </div>
 
-                {/* Actions (only when not uploading) */}
                 {!isActive && !isDone && (
                   <div className="flex items-center gap-2 shrink-0">
                     {isError && (
@@ -271,49 +234,26 @@ export default function CreatorArtworkNewPage() {
         </div>
       )}
 
-      {/* Actions */}
-      {entries.length > 0 && (
-        <div className="mt-6 flex items-center justify-between gap-4">
-          <p className="text-sm text-neutral-500">
-            {doneCount > 0 && (
-              <span className="text-jade-600 font-medium">
-                {doneCount} uploaded
-              </span>
-            )}
-            {doneCount > 0 && errorCount > 0 && " · "}
-            {errorCount > 0 && (
-              <span className="text-red-600 font-medium">
-                {errorCount} failed
-              </span>
-            )}
-            {(doneCount > 0 || errorCount > 0) && queuedCount > 0 && " · "}
-            {queuedCount > 0 && `${queuedCount} queued`}
-          </p>
-          <div className="flex gap-3">
-            {!isUploading && (
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
-              >
-                Add more
-              </button>
-            )}
-            {hasQueued && (
-              <button
-                type="button"
-                onClick={handleUpload}
-                disabled={isUploading}
-                className="rounded-lg bg-fuchsia-600 px-5 py-2 text-sm font-semibold text-white hover:bg-fuchsia-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {isUploading
-                  ? `Uploading ${queuedCount}…`
-                  : `Upload ${queuedCount} ${queuedCount === 1 ? "file" : "files"}`}
-              </button>
-            )}
-          </div>
+      {hasQueued && (
+        <button
+          type="button"
+          onClick={handleUpload}
+          disabled={isUploading}
+          className="w-full rounded-lg bg-fuchsia-600 px-4 py-2 text-sm font-semibold text-white hover:bg-fuchsia-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          {isUploading
+            ? `Uploading ${queuedCount}…`
+            : `Upload ${queuedCount} ${queuedCount === 1 ? "file" : "files"}`}
+        </button>
+      )}
+
+      {totalUploaded < 5 && (
+        <div className="rounded-lg border border-ocean-200 bg-ocean-50 p-3 text-sm text-ocean-800">
+          💡 <strong>Tip:</strong> Collectors are more likely to subscribe to
+          creators with a diverse portfolio. We recommend uploading at least 5
+          artworks before sharing your profile.
         </div>
       )}
-    </main>
+    </div>
   );
 }

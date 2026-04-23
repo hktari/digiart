@@ -1,8 +1,8 @@
 "use client";
 
-import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { publishRelease, archiveRelease } from "@/lib/actions/releases";
+import { useTransition } from "react";
+import { archiveRelease, publishRelease } from "@/lib/actions/releases";
 
 interface ReleaseActionsProps {
   releaseId: string;

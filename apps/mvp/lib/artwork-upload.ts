@@ -48,10 +48,13 @@ export async function uploadOne(
     xhr.open("PUT", uploadUrl);
     xhr.setRequestHeader("Content-Type", entry.file.type);
     xhr.upload.onprogress = (ev) => {
-      if (ev.lengthComputable) onProgress(Math.round((ev.loaded / ev.total) * 100));
+      if (ev.lengthComputable)
+        onProgress(Math.round((ev.loaded / ev.total) * 100));
     };
     xhr.onload = () =>
-      xhr.status < 300 ? resolve() : reject(new Error(`S3 error ${xhr.status}`));
+      xhr.status < 300
+        ? resolve()
+        : reject(new Error(`S3 error ${xhr.status}`));
     xhr.onerror = () => reject(new Error("Network error"));
     xhr.send(entry.file);
   });
@@ -63,7 +66,8 @@ export async function uploadOne(
   });
 
   const data = await registerRes.json();
-  if (!registerRes.ok) throw new Error(data.message ?? data.error ?? "Register failed");
+  if (!registerRes.ok)
+    throw new Error(data.message ?? data.error ?? "Register failed");
 
   return { artworkId: data.artwork.id, warnings: data.warnings ?? [] };
 }

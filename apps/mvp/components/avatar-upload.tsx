@@ -10,11 +10,14 @@ interface AvatarUploadProps {
 
 type UploadPhase = "idle" | "uploading" | "saving" | "done" | "error";
 
-export function AvatarUpload({ currentAvatar, displayName }: AvatarUploadProps) {
+export function AvatarUpload({
+  currentAvatar,
+  displayName,
+}: AvatarUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const keyInputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
-  const [pendingKey, setPendingKey] = useState<string | null>(null);
   const [phase, setPhase] = useState<UploadPhase>("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -61,16 +64,17 @@ export function AvatarUpload({ currentAvatar, displayName }: AvatarUploadProps) 
         xhr.open("PUT", uploadUrl);
         xhr.setRequestHeader("Content-Type", file.type);
         xhr.onload = () =>
-          xhr.status < 300 ? resolve() : reject(new Error(`S3 error ${xhr.status}`));
+          xhr.status < 300
+            ? resolve()
+            : reject(new Error(`S3 error ${xhr.status}`));
         xhr.onerror = () => reject(new Error("Network error"));
         xhr.send(file);
       });
 
-      setPendingKey(key);
+      // Write the key directly into the DOM before submitting
+      if (keyInputRef.current) keyInputRef.current.value = key;
       setPhase("done");
-
-      // Auto-submit the hidden form to persist the key via server action
-      setTimeout(() => formRef.current?.requestSubmit(), 0);
+      formRef.current?.requestSubmit();
     } catch (err) {
       setPhase("error");
       setErrorMsg(err instanceof Error ? err.message : "Upload failed");
@@ -106,7 +110,9 @@ export function AvatarUpload({ currentAvatar, displayName }: AvatarUploadProps) 
         tabIndex={0}
         aria-label="Upload avatar"
         onClick={() => !isLoading && fileInputRef.current?.click()}
-        onKeyDown={(e) => e.key === "Enter" && !isLoading && fileInputRef.current?.click()}
+        onKeyDown={(e) =>
+          e.key === "Enter" && !isLoading && fileInputRef.current?.click()
+        }
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
         className="relative h-20 w-20 shrink-0 cursor-pointer rounded-full overflow-hidden group"
@@ -177,15 +183,17 @@ export function AvatarUpload({ currentAvatar, displayName }: AvatarUploadProps) 
           disabled={isLoading}
           className="text-sm font-medium text-fuchsia-600 hover:text-fuchsia-700 disabled:opacity-50 transition-colors"
         >
-          {isLoading ? "Uploading…" : avatarSrc ? "Change avatar" : "Upload avatar"}
+          {isLoading
+            ? "Uploading…"
+            : avatarSrc
+              ? "Change avatar"
+              : "Upload avatar"}
         </button>
         <p className="text-xs text-neutral-400">JPEG, PNG or WebP · max 5 MB</p>
         {phase === "done" && !isSaving && !errorMsg && (
           <p className="text-xs text-jade-600 font-medium">✓ Saved</p>
         )}
-        {errorMsg && (
-          <p className="text-xs text-red-600">{errorMsg}</p>
-        )}
+        {errorMsg && <p className="text-xs text-red-600">{errorMsg}</p>}
       </div>
 
       {/* Hidden file input */}
@@ -199,7 +207,7 @@ export function AvatarUpload({ currentAvatar, displayName }: AvatarUploadProps) 
 
       {/* Hidden form — submitted automatically after S3 upload */}
       <form ref={formRef} action={formAction} className="hidden">
-        <input type="hidden" name="key" value={pendingKey ?? ""} />
+        <input ref={keyInputRef} type="hidden" name="key" defaultValue="" />
       </form>
     </div>
   );

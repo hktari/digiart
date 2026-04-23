@@ -9,7 +9,7 @@ We handle two types of image uploads:
 | Upload Type | Purpose | Max Size | Formats | Dimension Requirements |
 |-------------|---------|----------|---------|----------------------|
 | **Avatar** | Creator profile picture | 5 MB | JPEG, PNG, WebP | None |
-| **Artwork** | Printable magazine content | 50 MB | JPEG, PNG only | Min 1240×1748 px (300 DPI for A6) |
+| **Artwork** | Printable magazine content | 50 MB | JPEG, PNG only | Min 1754×2480 px (300 DPI for A5) |
 
 ## Avatar Upload
 
@@ -61,17 +61,19 @@ Uses [Sharp](https://sharp.pixelplumbing.com/) to analyze the actual image:
 |-------|-------------|------------|
 | File size | ≤ 50 MB | `FILE_TOO_LARGE` |
 | Format | JPEG or PNG only | `INVALID_FORMAT` |
-| Dimensions | Min 1240×1748 px | `LOW_RESOLUTION` |
+| Dimensions | Min 1754×2480 px (portrait) or 2480×1754 px (landscape) | `LOW_RESOLUTION` |
 | Color space | Non-RGB spaces trigger warning | — |
 
 ### Resolution Requirements
 
 ```ts
-const MIN_WIDTH_PX = 1240;   // A6 width @ 300 DPI
-const MIN_HEIGHT_PX = 1748;  // A6 height @ 300 DPI
+const MIN_PRINT_WIDTH_PX = 1754;   // A5 width @ 300 DPI (148mm)
+const MIN_PRINT_HEIGHT_PX = 2480;  // A5 height @ 300 DPI (210mm)
 ```
 
-These minimums ensure print quality for the booklet format (A6: 105mm × 148mm).
+These minimums ensure print quality for the booklet format (A5: 148mm × 210mm).
+
+**Aspect Ratio Policy**: We accept **any aspect ratio** to keep uploads frictionless. Images only need to meet the minimum dimensions in at least one orientation (portrait or landscape). The PDF worker centers and scales images to fit the page while preserving aspect ratio.
 
 ### Color Space Handling
 
@@ -128,8 +130,30 @@ Return artwork ID + warnings
 | Code | Meaning | User Message |
 |------|---------|--------------|
 | `INVALID_FORMAT` | Unsupported file type | "Only JPEG and PNG files are accepted." |
-| `LOW_RESOLUTION` | Image too small for print | "Image is too small (W×H px). Minimum required is 1240×1748 px for 300 DPI print quality." |
+| `LOW_RESOLUTION` | Image too small for print | "Image is too small for A5 print (W×H px). Minimum is 1754×2480 px (portrait) or 2480×1754 px (landscape) at 300 DPI." |
 | `FILE_TOO_LARGE` | Exceeds size limit | "File must be under 50 MB." (or 5 MB for avatars) |
+
+## Future Enhancements
+
+### Optional Crop Tool
+
+Currently, we accept any aspect ratio to minimize upload friction. If users request more control over how their artwork appears in print, we can add an **optional frontend crop tool**:
+
+- Preview with A5 frame overlay showing the print area
+- Drag/resize crop region to control framing
+- Preset options: "Fit" (letterbox), "Fill" (crop to edges), "Original" (centered)
+- Skip option to use full image with automatic centering
+
+This would be **opt-in** — users who don't care about precise framing can skip it entirely.
+
+### Print Bleed & Safe Zones
+
+For edge-to-edge printing:
+- **Trim size**: 148×210mm (A5)
+- **Safe zone**: 138×200mm (5mm margin — critical content should stay inside)
+- **Bleed**: 156×218mm (4mm overprint area for edge-to-edge images)
+
+We could warn users if important content is near edges, but not block upload.
 
 ## Adding New Upload Types
 

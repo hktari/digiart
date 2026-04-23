@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
 import { CreatorSetupForm } from "@/components/creator-setup-form";
 import { getCreatorProfile } from "@/lib/actions/creator";
+import { auth } from "@/lib/auth";
 
 export default async function CreatorSetupPage() {
   const session = await auth();

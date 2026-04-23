@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 const { config } = require("dotenv");
-const { resolve } = require("path");
-const { spawn } = require("child_process");
+const { resolve } = require("node:path");
+const { spawn } = require("node:child_process");
 
 config({ path: resolve(__dirname, "../.env.test") });
 config({ path: resolve(__dirname, "../.env.test.local") });

@@ -2,11 +2,11 @@
 
 import { useActionState, useCallback, useState } from "react";
 import {
+  type CheckSlugResult,
   checkSlugAvailability,
   saveCreatorProfile,
-  type CheckSlugResult,
-  type SaveProfileResult,
 } from "@/lib/actions/creator";
+import { InlineArtworkUploader } from "./inline-artwork-uploader";
 
 type Step = "profile" | "payout" | "review" | "artwork" | "share";
 
@@ -59,7 +59,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
     taxId: initialData?.taxId ?? "",
     paypalEmail: initialData?.paypalEmail ?? "",
   });
-  const [isComplete, setIsComplete] = useState(false);
+  const [_isComplete, _setIsComplete] = useState(false);
   const [uploadedArtworks, setUploadedArtworks] = useState<string[]>([]);
   const [slugCheckState, slugCheckAction, isCheckingSlug] = useActionState(
     checkSlugAvailability,
@@ -588,54 +588,12 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
               </p>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-neutral-700">
-                  Uploaded Artworks
-                </h3>
-                <span className="text-sm text-neutral-500">
-                  {uploadedArtworks.length} uploaded
-                  {uploadedArtworks.length < 5 && (
-                    <span className="text-beige-600"> (5 recommended)</span>
-                  )}
-                </span>
-              </div>
-
-              {uploadedArtworks.length > 0 && (
-                <div className="grid grid-cols-3 gap-2">
-                  {uploadedArtworks.map((artworkId, idx) => (
-                    <div
-                      key={artworkId}
-                      className="aspect-square rounded-lg bg-neutral-100 border border-neutral-200 flex items-center justify-center text-xs text-neutral-500"
-                    >
-                      Artwork {idx + 1}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <a
-                href="/creator/artworks/new"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full rounded-lg border-2 border-dashed border-fuchsia-300 bg-fuchsia-50/30 hover:border-fuchsia-400 hover:bg-fuchsia-50 transition-colors px-4 py-8 text-center"
-              >
-                <div className="text-fuchsia-600 font-medium text-sm">
-                  + Upload Artwork
-                </div>
-                <p className="mt-1 text-xs text-neutral-500">
-                  Opens in new tab · JPEG or PNG · min 1748 × 1240 px
-                </p>
-              </a>
-
-              {uploadedArtworks.length < 5 && (
-                <div className="rounded-lg border border-ocean-200 bg-ocean-50 p-3 text-sm text-ocean-800">
-                  💡 <strong>Tip:</strong> Collectors are more likely to
-                  subscribe to creators with a diverse portfolio. We recommend
-                  uploading at least 5 artworks before sharing your profile.
-                </div>
-              )}
-            </div>
+            <InlineArtworkUploader
+              initialCount={uploadedArtworks.length}
+              onUploadComplete={(artworkIds) => {
+                setUploadedArtworks((prev) => [...prev, ...artworkIds]);
+              }}
+            />
 
             <div className="flex gap-3">
               <button

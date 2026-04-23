@@ -1,11 +1,11 @@
 "use server";
 
+import type { Artwork } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getPublicStorageUrl } from "@/lib/s3";
-import type { Artwork, ArtworkStatus } from "@prisma/client";
 
 export interface ArtworkWithThumbnail extends Artwork {
   thumbnailUrl?: string;

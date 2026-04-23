@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ReleaseForm } from "@/components/release-form";
-import { ReleaseArtworkPicker } from "@/components/release-artwork-picker";
 import { ReleaseActions } from "@/components/release-actions";
+import { ReleaseArtworkPicker } from "@/components/release-artwork-picker";
+import { ReleaseForm } from "@/components/release-form";
 import {
-  updateRelease,
-  getRelease,
   getCreatorArtworksForRelease,
+  getRelease,
+  updateRelease,
 } from "@/lib/actions/releases";
 
 const STATUS_BADGE: Record<string, string> = {

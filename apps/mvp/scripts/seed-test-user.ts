@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "@prisma/client";
 import { randomUUID } from "node:crypto";
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "@prisma/client";
 
 const connectionString =
   process.env.DATABASE_URL_TEST || process.env.DATABASE_URL;

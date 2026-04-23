@@ -1,7 +1,6 @@
+import { resolve } from "node:path";
 import { chromium, type FullConfig } from "@playwright/test";
 import { config as loadEnv } from "dotenv";
-import { existsSync } from "node:fs";
-import { resolve } from "node:path";
 
 async function globalSetup(config: FullConfig) {
   loadEnv({ path: resolve(__dirname, "../.env.test") });

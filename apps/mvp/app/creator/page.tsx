@@ -78,7 +78,7 @@ export default async function CreatorDashboardPage() {
                 Add payout details to receive payments.
               </p>
               <Link
-                href="/creator/payout"
+                href="/creator/profile"
                 className="ml-4 shrink-0 text-sm font-medium text-fuchsia-600 hover:text-fuchsia-700"
               >
                 Add payout info →

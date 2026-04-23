@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
 import { ArtworksList } from "@/components/artworks-list";
 import { getCreatorArtworks } from "@/lib/actions/artworks";
+import { auth } from "@/lib/auth";
 
 export default async function CreatorArtworksPage() {
   const session = await auth();

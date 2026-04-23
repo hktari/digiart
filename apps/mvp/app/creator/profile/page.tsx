@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
 import { AvatarUpload } from "@/components/avatar-upload";
+import { PayoutForm } from "@/components/payout-form";
 import { SocialLinksForm } from "@/components/social-links-form";
-import { getSocialLinks } from "@/lib/actions/social-links";
 import { getCreatorProfile } from "@/lib/actions/creator";
+import { getSocialLinks } from "@/lib/actions/social-links";
+import { auth } from "@/lib/auth";
 
 export default async function CreatorProfileEditPage() {
   const session = await auth();
@@ -30,6 +31,21 @@ export default async function CreatorProfileEditPage() {
           displayName={profile.displayName}
         />
       </div>
+
+      <div>
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-neutral-400 mb-4">
+          Payout
+        </h2>
+        <PayoutForm
+          initialData={{
+            legalName: profile.payoutProfile?.legalName,
+            taxId: profile.payoutProfile?.taxId,
+            paypalEmail: profile.payoutProfile?.paypalEmail,
+            isReady: profile.payoutProfile?.isReady,
+          }}
+        />
+      </div>
+
       <div>
         <h2 className="text-sm font-semibold uppercase tracking-widest text-neutral-400 mb-4">
           Social links

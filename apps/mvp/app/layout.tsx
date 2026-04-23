@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Crimson_Pro, Manrope } from "next/font/google";
 import "./globals.css";
-import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { Header } from "@/components/layout/Header";
+import { AuthProvider } from "@/components/providers/auth-provider";
 
 const crimsonPro = Crimson_Pro({
   variable: "--font-crimson-pro",
@@ -32,9 +33,11 @@ export default function RootLayout({
       <body
         className={`${crimsonPro.variable} ${manrope.variable} antialiased min-h-screen flex flex-col`}
       >
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <AuthProvider>
+          <Header />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </AuthProvider>
       </body>
     </html>
   );

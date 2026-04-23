@@ -1,5 +1,5 @@
+import { ArrowRight, BookOpen, Package, Palette } from "lucide-react";
 import Link from "next/link";
-import { BookOpen, ArrowRight, Palette, Package } from "lucide-react";
 
 export default function HomePage() {
   return (

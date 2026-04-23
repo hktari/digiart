@@ -11,7 +11,7 @@ const socialLinkSchema = z.object({
   url: z.string().url("Must be a valid URL"),
 });
 
-const saveSocialLinksSchema = z.object({
+const _saveSocialLinksSchema = z.object({
   links: z.array(socialLinkSchema).max(10, "Maximum 10 social links allowed"),
 });
 

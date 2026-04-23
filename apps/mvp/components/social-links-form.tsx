@@ -1,9 +1,9 @@
 "use client";
 
+import { Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
 import type { SocialLink } from "@/lib/actions/social-links";
 import { saveSocialLinks } from "@/lib/actions/social-links";
-import { Trash2 } from "lucide-react";
 
 interface SocialLinksFormProps {
   initialLinks?: SocialLink[];

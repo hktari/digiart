@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import Link from "next/link";
 import type { Artwork, ArtworkStatus, Orientation } from "@prisma/client";
-import { archiveArtwork, reactivateArtwork } from "@/lib/actions/artworks";
 import { Archive, ImageOff, RefreshCw } from "lucide-react";
+import Link from "next/link";
+import { useCallback, useState } from "react";
+import { archiveArtwork, reactivateArtwork } from "@/lib/actions/artworks";
 
 function getOrientationLabel(orientation: Orientation): string {
   const labels: Record<Orientation, string> = {

@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { BookOpen, LogOut, Menu, User, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, BookOpen } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 
 const navLinks = [
   { href: "/discover", label: "Discover" },
@@ -15,6 +16,8 @@ export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+  const { data: session, status } = useSession();
+  const isAuthenticated = status === "authenticated";
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -24,7 +27,7 @@ export function Header() {
 
   useEffect(() => {
     setMobileOpen(false);
-  }, [pathname]);
+  }, []);
 
   useEffect(() => {
     if (mobileOpen) {
@@ -74,18 +77,39 @@ export function Header() {
             </nav>
 
             <div className="hidden md:flex items-center gap-3">
-              <Link
-                href="/login"
-                className="text-sm font-medium text-ink/70 hover:text-ink transition-colors px-3 py-2"
-              >
-                Sign in
-              </Link>
-              <Link
-                href="/register"
-                className="text-sm font-medium bg-ocean-600 text-paper px-4 py-2 rounded hover:bg-ocean-700 transition-colors"
-              >
-                Get started
-              </Link>
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    href="/account"
+                    className="flex items-center gap-2 text-sm font-medium text-ink/70 hover:text-ink transition-colors px-3 py-2"
+                  >
+                    <User className="w-4 h-4" />
+                    {session?.user?.name || session?.user?.email}
+                  </Link>
+                  <button
+                    onClick={() => signOut()}
+                    className="flex items-center gap-1.5 text-sm font-medium text-ink/70 hover:text-ink transition-colors px-3 py-2"
+                    title="Sign out"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/auth/sign-in"
+                    className="text-sm font-medium text-ink/70 hover:text-ink transition-colors px-3 py-2"
+                  >
+                    Sign in
+                  </Link>
+                  <Link
+                    href="/auth/sign-in"
+                    className="text-sm font-medium bg-ocean-600 text-paper px-4 py-2 rounded hover:bg-ocean-700 transition-colors"
+                  >
+                    Get started
+                  </Link>
+                </>
+              )}
             </div>
 
             <button
@@ -136,18 +160,37 @@ export function Header() {
             </Link>
           ))}
           <div className="mt-3 pt-3 border-t border-beige-200 flex flex-col gap-2">
-            <Link
-              href="/login"
-              className="px-4 py-3 rounded text-sm font-medium text-ink/70 hover:text-ink hover:bg-beige-100 transition-colors"
-            >
-              Sign in
-            </Link>
-            <Link
-              href="/register"
-              className="px-4 py-3 rounded text-sm font-medium bg-ocean-600 text-paper hover:bg-ocean-700 transition-colors text-center"
-            >
-              Get started
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <Link
+                  href="/account"
+                  className="px-4 py-3 rounded text-sm font-medium text-ink/80 hover:text-ink hover:bg-beige-100 transition-colors"
+                >
+                  {session?.user?.name || session?.user?.email}
+                </Link>
+                <button
+                  onClick={() => signOut()}
+                  className="px-4 py-3 rounded text-sm font-medium text-ink/70 hover:text-ink hover:bg-beige-100 transition-colors text-left"
+                >
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/auth/sign-in"
+                  className="px-4 py-3 rounded text-sm font-medium text-ink/70 hover:text-ink hover:bg-beige-100 transition-colors"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  href="/auth/sign-in"
+                  className="px-4 py-3 rounded text-sm font-medium bg-ocean-600 text-paper hover:bg-ocean-700 transition-colors text-center"
+                >
+                  Get started
+                </Link>
+              </>
+            )}
           </div>
         </nav>
       </div>

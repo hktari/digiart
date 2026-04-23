@@ -1,6 +1,5 @@
-import React from "react";
-import Link from "next/link";
 import { BookOpen } from "lucide-react";
+import Link from "next/link";
 
 const footerLinks = {
   Platform: [
@@ -29,10 +28,7 @@ export function Footer() {
               href="/"
               className="inline-flex items-center gap-2 font-serif font-bold text-xl text-paper hover:text-ocean-300 transition-colors"
             >
-              <BookOpen
-                className="w-5 h-5 text-ocean-400"
-                strokeWidth={1.5}
-              />
+              <BookOpen className="w-5 h-5 text-ocean-400" strokeWidth={1.5} />
               Booklet Drops
             </Link>
             <p className="mt-4 text-sm text-paper/60 leading-relaxed max-w-xs">

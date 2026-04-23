@@ -1,15 +1,15 @@
 "use client";
 
-import { useCallback, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useCallback, useRef, useState, useTransition } from "react";
+import { createRelease, setReleaseArtworks } from "@/lib/actions/releases";
 import {
+  ALLOWED_ARTWORK_TYPES,
   type FileEntry,
   type FileStatus,
-  ALLOWED_ARTWORK_TYPES,
   makeFileEntry,
   uploadOne,
 } from "@/lib/artwork-upload";
-import { createRelease, setReleaseArtworks } from "@/lib/actions/releases";
 
 type Step = "details" | "artworks" | "submitting";
 

@@ -1,8 +1,8 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { SocialLinksForm } from "../social-links-form";
 import { saveSocialLinks } from "@/lib/actions/social-links";
+import { SocialLinksForm } from "../social-links-form";
 
 // Mock the server action
 vi.mock("@/lib/actions/social-links", () => ({

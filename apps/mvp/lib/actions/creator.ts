@@ -25,7 +25,7 @@ export type CheckSlugResult =
   | { available: false; error: string };
 
 export async function checkSlugAvailability(
-  prevState: unknown,
+  _prevState: unknown,
   formData: FormData,
 ): Promise<CheckSlugResult> {
   const parsed = checkSlugSchema.safeParse({
@@ -65,7 +65,7 @@ export type SaveProfileResult =
   | { success: false; errors: Record<string, string> };
 
 export async function saveCreatorProfile(
-  prevState: unknown,
+  _prevState: unknown,
   formData: FormData,
 ): Promise<SaveProfileResult> {
   const session = await auth();
@@ -221,6 +221,72 @@ export async function saveAvatar(
   await db.creatorProfile.update({
     where: { userId: session.user.id },
     data: { avatar: avatarUrl },
+  });
+
+  revalidatePath("/creator");
+  revalidatePath("/creator/profile");
+
+  return { success: true };
+}
+
+const payoutSchema = z.object({
+  legalName: z.string().max(100).optional(),
+  taxId: z.string().max(50).optional(),
+  paypalEmail: z
+    .string()
+    .email("Enter a valid PayPal email")
+    .or(z.literal(""))
+    .optional(),
+});
+
+export type SavePayoutResult =
+  | { success: true }
+  | { success: false; errors: Record<string, string> };
+
+export async function savePayoutProfile(
+  _prevState: unknown,
+  formData: FormData,
+): Promise<SavePayoutResult> {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/auth/sign-in");
+
+  const parsed = payoutSchema.safeParse({
+    legalName: formData.get("legalName") || undefined,
+    taxId: formData.get("taxId") || undefined,
+    paypalEmail: formData.get("paypalEmail") || "",
+  });
+
+  if (!parsed.success) {
+    const errors: Record<string, string> = {};
+    for (const issue of parsed.error.issues) {
+      errors[issue.path[0] as string] = issue.message;
+    }
+    return { success: false, errors };
+  }
+
+  const { legalName, taxId, paypalEmail } = parsed.data;
+
+  const profile = await db.creatorProfile.findUnique({
+    where: { userId: session.user.id },
+    select: { id: true },
+  });
+  if (!profile) redirect("/creator/setup");
+
+  await db.creatorPayoutProfile.upsert({
+    where: { creatorProfileId: profile.id },
+    create: {
+      creatorProfileId: profile.id,
+      legalName: legalName || null,
+      taxId: taxId || null,
+      paypalEmail: paypalEmail || null,
+      isReady: !!(legalName && paypalEmail),
+    },
+    update: {
+      legalName: legalName || null,
+      taxId: taxId || null,
+      paypalEmail: paypalEmail || null,
+      isReady: !!(legalName && paypalEmail),
+    },
   });
 
   revalidatePath("/creator");

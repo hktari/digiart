@@ -25,8 +25,10 @@ export interface ValidationFailure {
 export type ValidationResult = ValidationSuccess | ValidationFailure;
 
 const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
-const MIN_WIDTH_PX = 1240;
-const MIN_HEIGHT_PX = 1748;
+// A5 @ 300 DPI: 148mm × 210mm = 1754px × 2480px
+// We accept both portrait and landscape orientations
+const MIN_PRINT_WIDTH_PX = 1754;
+const MIN_PRINT_HEIGHT_PX = 2480;
 
 export async function validateArtworkImage(
   buffer: Buffer,
@@ -69,11 +71,18 @@ export async function validateArtworkImage(
     };
   }
 
-  if (width < MIN_WIDTH_PX || height < MIN_HEIGHT_PX) {
+  // Accept any aspect ratio — we only check that the image meets A5 minimums
+  // in at least one orientation (portrait or landscape)
+  const fitsPortrait =
+    width >= MIN_PRINT_WIDTH_PX && height >= MIN_PRINT_HEIGHT_PX;
+  const fitsLandscape =
+    width >= MIN_PRINT_HEIGHT_PX && height >= MIN_PRINT_WIDTH_PX;
+
+  if (!fitsPortrait && !fitsLandscape) {
     return {
       valid: false,
       code: "LOW_RESOLUTION",
-      message: `Image is too small (${width}×${height} px). Minimum required is ${MIN_WIDTH_PX}×${MIN_HEIGHT_PX} px for 300 DPI print quality.`,
+      message: `Image is too small for A5 print (${width}×${height} px). Minimum is ${MIN_PRINT_WIDTH_PX}×${MIN_PRINT_HEIGHT_PX} px (portrait) or ${MIN_PRINT_HEIGHT_PX}×${MIN_PRINT_WIDTH_PX} px (landscape) at 300 DPI.`,
     };
   }
 

@@ -1,10 +1,10 @@
+import { randomUUID } from "node:crypto";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getS3Bucket, s3 } from "@/lib/s3";
-import { randomUUID } from "node:crypto";
 
 const ALLOWED_CONTENT_TYPES = ["image/jpeg", "image/png"];
 const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
