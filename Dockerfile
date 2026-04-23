@@ -34,9 +34,9 @@ COPY --from=builder --chown=nestjs:nodejs /app/apps/pdf-worker/dist ./apps/pdf-w
 COPY --from=builder --chown=nestjs:nodejs /app/apps/pdf-worker/package.json ./apps/pdf-worker/
 COPY --from=builder --chown=nestjs:nodejs /app/apps/pdf-worker/prisma ./apps/pdf-worker/prisma
 
-# Copy production dependencies
-COPY --from=deps --chown=nestjs:nodejs /app/node_modules ./node_modules
-COPY --from=deps --chown=nestjs:nodejs /app/apps/pdf-worker/node_modules ./apps/pdf-worker/node_modules
+# Copy production dependencies (from builder to include generated Prisma client)
+COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nestjs:nodejs /app/apps/pdf-worker/node_modules ./apps/pdf-worker/node_modules
 
 USER nestjs
 
