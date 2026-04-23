@@ -89,22 +89,5 @@ Goal: automated emails keep creators and collectors on the happy path; fulfillme
 
 ## Notes
 
-- Build: In progress — fixing `lib/auth.ts` type errors
-- Tests: 63 unit tests passing (T5: 22, T6: 21, T8: 6 + existing)
-- Husky + lint-staged: pre-commit runs lint + typecheck + format ✅
-- `biome.json` now extends root monorepo config ✅
 - Prisma 7 with `@prisma/adapter-pg` (lazy client — no eager DB connection at build time) ✅
 - NextAuth v5 beta: magic-link via Resend, roles in session, post-auth → `/onboarding` ✅
-- DB not yet provisioned — set `DATABASE_URL` in `.env.local` and run `pnpm db:migrate` to activate
-
-### PDF Generation System (PR #1 — untested)
-
-- `lib/image-validation.ts`: Sharp-based format/resolution/orientation checks (min 1748×1240px, JPEG/PNG only, ≤50MB)
-- `lib/s3.ts`: lazy S3 client with env guard
-- `POST /api/artworks/presign`: presigned S3 PUT for `uploads/pending/{uuid}`
-- `POST /api/artworks/register`: validates → promotes to `artworks/` → creates Artwork record; cleans up on failure
-- `POST /api/fulfillment/generate-booklet`: admin-only BullMQ job dispatch
-- `GeneratedPrintFile` + `PrintFileStatus` added to Prisma schema (needs `pnpm db:migrate`)
-- Upload UI at `/creator/artworks/new`: drag-drop, progress bar, per-code error messages
-- `apps/pdf-worker` NestJS app: BullMQ processor, pdf-lib booklet assembly, S3/local storage driver
-- Requires: `docker compose up -d` (Redis), AWS S3 env vars, `prisma generate` in pdf-worker
