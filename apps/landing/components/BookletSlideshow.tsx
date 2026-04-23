@@ -33,8 +33,9 @@ export function BookletSlideshow({
       {images.map((src, index) => (
         <div
           key={src}
-          className={`absolute inset-0 transition-opacity duration-1000 ${index === currentIndex ? "opacity-100" : "opacity-0"
-            }`}
+          className={`absolute inset-0 transition-opacity duration-1000 ${
+            index === currentIndex ? "opacity-100" : "opacity-0"
+          }`}
         >
           <Image
             src={src}
@@ -52,8 +53,9 @@ export function BookletSlideshow({
           <button
             key={index}
             onClick={() => setCurrentIndex(index)}
-            className={`w-2 h-2 rounded-full transition-all ${index === currentIndex ? "bg-vermilion w-6" : "bg-ink/30"
-              }`}
+            className={`w-2 h-2 rounded-full transition-all ${
+              index === currentIndex ? "bg-vermilion w-6" : "bg-ink/30"
+            }`}
             aria-label={`Go to slide ${index + 1}`}
           />
         ))}

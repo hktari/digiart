@@ -170,10 +170,11 @@ export function ArtistCollectionWindow({
                                 onClick={(e) =>
                                   handleToggleFavorite(artist.id, e)
                                 }
-                                className={`flex items-center gap-1 text-sm font-medium font-body transition-colors hover:gap-2 ${favoriteArtists.includes(artist.id)
+                                className={`flex items-center gap-1 text-sm font-medium font-body transition-colors hover:gap-2 ${
+                                  favoriteArtists.includes(artist.id)
                                     ? "text-vermilion"
                                     : "text-ink/40 hover:text-ink/60"
-                                  }`}
+                                }`}
                                 aria-label={
                                   favoriteArtists.includes(artist.id)
                                     ? "Remove from favorites"
@@ -181,10 +182,11 @@ export function ArtistCollectionWindow({
                                 }
                               >
                                 <Heart
-                                  className={`w-3.5 h-3.5 ${favoriteArtists.includes(artist.id)
+                                  className={`w-3.5 h-3.5 ${
+                                    favoriteArtists.includes(artist.id)
                                       ? "fill-current"
                                       : ""
-                                    }`}
+                                  }`}
                                 />
                                 {favoriteArtists.includes(artist.id)
                                   ? "Favorited"
@@ -221,10 +223,11 @@ export function ArtistCollectionWindow({
                   <button
                     key={index}
                     onClick={() => setActiveIndex(index)}
-                    className={`h-1.5 rounded-full transition-all ${index === activeIndex
+                    className={`h-1.5 rounded-full transition-all ${
+                      index === activeIndex
                         ? "w-6 bg-vermilion"
                         : "w-1.5 bg-ink/20 hover:bg-ink/30"
-                      }`}
+                    }`}
                     aria-label={`Go to creator ${index + 1}`}
                   />
                 ))}

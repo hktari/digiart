@@ -4,11 +4,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { BookletPreview } from "./ui/BookletPreview";
-import {
-  BOOKLET_STYLES,
-  PALETTE_KITS,
-  BOOKLET_FORMATS,
-} from "@/lib/constants";
+import { BOOKLET_STYLES, PALETTE_KITS, BOOKLET_FORMATS } from "@/lib/constants";
 
 interface BookletCustomizerProps {
   onComplete?: (config: BookletConfig) => void;
@@ -27,11 +23,15 @@ export function BookletCustomizer({ onComplete }: BookletCustomizerProps) {
     format: "magazine",
   });
 
-  const currentStyle = BOOKLET_STYLES.find((s) => s.id === config.style) || BOOKLET_STYLES[0];
-  const availablePalettes = PALETTE_KITS.filter((p) => currentStyle.palettes.includes(p.id));
+  const currentStyle =
+    BOOKLET_STYLES.find((s) => s.id === config.style) || BOOKLET_STYLES[0];
+  const availablePalettes = PALETTE_KITS.filter((p) =>
+    currentStyle.palettes.includes(p.id),
+  );
 
   const selectedPalette =
-    availablePalettes.find((p) => p.id === config.paletteId) || availablePalettes[0];
+    availablePalettes.find((p) => p.id === config.paletteId) ||
+    availablePalettes[0];
 
   const updateConfig = (updates: Partial<BookletConfig>) => {
     const nextConfig = { ...config, ...updates };
@@ -89,12 +89,13 @@ export function BookletCustomizer({ onComplete }: BookletCustomizerProps) {
                   key={format.id}
                   onClick={() => updateConfig({ format: format.id })}
                   disabled={format.id !== "magazine"}
-                  className={`p-4 border-2 transition-smooth text-left ${config.format === format.id
+                  className={`p-4 border-2 transition-smooth text-left ${
+                    config.format === format.id
                       ? "border-vermilion bg-vermilion/5"
                       : format.id === "magazine"
                         ? "border-ink/10 hover:border-ink/20"
                         : "border-ink/5 bg-ink/5 cursor-not-allowed opacity-50"
-                    }`}
+                  }`}
                 >
                   <div className="font-medium text-sm font-body">
                     {format.name}
@@ -117,10 +118,11 @@ export function BookletCustomizer({ onComplete }: BookletCustomizerProps) {
                 <button
                   key={style.id}
                   onClick={() => updateConfig({ style: style.id })}
-                  className={`p-4 border-2 transition-smooth text-left ${config.style === style.id
-                    ? "border-vermilion bg-vermilion/5"
-                    : "border-ink/10 hover:border-ink/20"
-                    }`}
+                  className={`p-4 border-2 transition-smooth text-left ${
+                    config.style === style.id
+                      ? "border-vermilion bg-vermilion/5"
+                      : "border-ink/10 hover:border-ink/20"
+                  }`}
                 >
                   <div className="font-medium text-sm font-body">
                     {style.name}
@@ -143,10 +145,11 @@ export function BookletCustomizer({ onComplete }: BookletCustomizerProps) {
                 <button
                   key={palette.id}
                   onClick={() => updateConfig({ paletteId: palette.id })}
-                  className={`p-4 border-2 transition-smooth ${config.paletteId === palette.id
-                    ? "border-vermilion bg-vermilion/5"
-                    : "border-ink/10 hover:border-ink/20"
-                    }`}
+                  className={`p-4 border-2 transition-smooth ${
+                    config.paletteId === palette.id
+                      ? "border-vermilion bg-vermilion/5"
+                      : "border-ink/10 hover:border-ink/20"
+                  }`}
                 >
                   <div className="flex gap-2 mb-2">
                     <div

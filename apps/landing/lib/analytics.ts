@@ -3,7 +3,10 @@
 declare global {
   interface Window {
     umami?: {
-      track: (eventName: string, props?: Record<string, string | number>) => void;
+      track: (
+        eventName: string,
+        props?: Record<string, string | number>,
+      ) => void;
     };
   }
 }
@@ -20,7 +23,7 @@ export const ANALYTICS_EVENTS = {
 // Track a custom event with Umami
 export function trackEvent(
   eventName: string,
-  props?: Record<string, string | number>
+  props?: Record<string, string | number>,
 ): void {
   if (typeof window !== "undefined" && window.umami) {
     window.umami.track(eventName, props);
@@ -48,6 +51,8 @@ export function trackWaitlistSignup(audience: "creator" | "collector"): void {
 }
 
 // Track questionnaire open
-export function trackQuestionnaireOpen(audience: "creator" | "collector"): void {
+export function trackQuestionnaireOpen(
+  audience: "creator" | "collector",
+): void {
   trackEvent(ANALYTICS_EVENTS.QUESTIONNAIRE_OPEN, { audience });
 }

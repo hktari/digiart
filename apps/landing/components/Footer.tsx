@@ -1,10 +1,9 @@
 import React from "react";
 import { BRAND_NAME } from "@/lib/constants";
 
-interface FooterProps {
-}
+interface FooterProps {}
 
-export function Footer({ }: FooterProps) {
+export function Footer({}: FooterProps) {
   return (
     <footer className="bg-ink text-paper py-8 md:py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

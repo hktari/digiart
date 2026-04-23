@@ -14,11 +14,15 @@ export function useScrollTracking(enabled = true) {
 
     const handleScroll = () => {
       const scrollTop = window.scrollY;
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const docHeight =
+        document.documentElement.scrollHeight - window.innerHeight;
       const scrollPercent = Math.round((scrollTop / docHeight) * 100);
 
       MILESTONES.forEach((milestone) => {
-        if (scrollPercent >= milestone && !trackedMilestones.current.has(milestone)) {
+        if (
+          scrollPercent >= milestone &&
+          !trackedMilestones.current.has(milestone)
+        ) {
           trackedMilestones.current.add(milestone);
           trackScrollDepth(milestone);
         }

@@ -62,10 +62,11 @@ export function SimilarArtists({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`group cursor-pointer rounded-lg overflow-hidden transition-all duration-300 ${isSelected
-                  ? "ring-2 ring-vermilion ring-offset-2 ring-offset-paper-dark scale-[1.02]"
-                  : "hover:scale-[1.02]"
-                  }`}
+                className={`group cursor-pointer rounded-lg overflow-hidden transition-all duration-300 ${
+                  isSelected
+                    ? "ring-2 ring-vermilion ring-offset-2 ring-offset-paper-dark scale-[1.02]"
+                    : "hover:scale-[1.02]"
+                }`}
                 onClick={() => handleArtistClick(artist.id)}
               >
                 <div className="bg-paper h-full flex flex-col">

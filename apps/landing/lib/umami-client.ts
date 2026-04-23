@@ -20,7 +20,7 @@ export function createUmamiClient(options: UmamiClientOptions = {}) {
 
   if (!process.env.UMAMI_API_CLIENT_ENDPOINT) {
     throw new Error(
-      "UMAMI_API_CLIENT_ENDPOINT is required to create an Umami client."
+      "UMAMI_API_CLIENT_ENDPOINT is required to create an Umami client.",
     );
   }
 

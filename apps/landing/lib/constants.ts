@@ -145,10 +145,8 @@ export const CREATOR_HERO_IMAGES = [
 ];
 
 export const TALLY_FORMS_URLS = {
-  creators:
-    "https://tally.so/r/rjEWbM",
-  collectors:
-    "https://tally.so/r/Pd0y0P",
+  creators: "https://tally.so/r/rjEWbM",
+  collectors: "https://tally.so/r/Pd0y0P",
 };
 
 export const BOOKLET_FORMATS = [

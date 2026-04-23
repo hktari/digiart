@@ -57,9 +57,7 @@ export function NavigationButtons({
               className="flex gap-1 items-center"
             >
               {nextLabel ||
-                (isLastStep
-                  ? "Complete"
-                  : `${getNextStepLabel(currentStep)}`)}
+                (isLastStep ? "Complete" : `${getNextStepLabel(currentStep)}`)}
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           ) : (

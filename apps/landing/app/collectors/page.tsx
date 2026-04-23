@@ -99,10 +99,7 @@ export default function CollectorsPage() {
 
   return (
     <>
-      <Header
-        activeTab="collectors"
-        onCtaClick={scrollToWaitlist}
-      />
+      <Header activeTab="collectors" onCtaClick={scrollToWaitlist} />
 
       <main className="bg-paper min-h-screen">
         {/* Flow Progress Indicator */}

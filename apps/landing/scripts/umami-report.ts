@@ -17,13 +17,13 @@ async function main() {
 
   if (!websiteId) {
     throw new Error(
-      "Website id missing. Provide --website=<id> or set NEXT_PUBLIC_UMAMI_WEBSITE_ID."
+      "Website id missing. Provide --website=<id> or set NEXT_PUBLIC_UMAMI_WEBSITE_ID.",
     );
   }
 
   const client = createUmamiClient({ endpoint: DEFAULT_ENDPOINT });
 
-    const metrics = await client.getWebsiteMetrics(websiteId, {
+  const metrics = await client.getWebsiteMetrics(websiteId, {
     startAt,
     endAt,
   });
@@ -47,8 +47,8 @@ async function main() {
           events: events.ok ? undefined : events,
         },
         null,
-        2
-      )
+        2,
+      ),
     );
     process.exit(1);
   }
@@ -62,8 +62,8 @@ async function main() {
         events: events.data,
       },
       null,
-      2
-    )
+      2,
+    ),
   );
 }
 

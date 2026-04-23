@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/Button";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 
-
 export default async function QuestionnairePage({
   params,
 }: {
@@ -29,7 +28,9 @@ export default async function QuestionnairePage({
           <h1 className="font-serif font-bold text-3xl md:text-5xl mb-5">
             Your Opinion Matters
           </h1>
-          <p className="text-ink/70 text-lg">Help us design the perfect booklet experience</p>
+          <p className="text-ink/70 text-lg">
+            Help us design the perfect booklet experience
+          </p>
         </div>
         <Link
           href={formUrl}
@@ -37,10 +38,7 @@ export default async function QuestionnairePage({
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 text-ink hover:text-ink/80 transition-colors mt-4"
         >
-          <Button
-            className="flex gap-1 items-center"
-            variant="tertiary"
-          >
+          <Button className="flex gap-1 items-center" variant="tertiary">
             Open Questionnaire
             <ArrowRight className="w-4 h-4" />
           </Button>

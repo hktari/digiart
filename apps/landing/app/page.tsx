@@ -77,7 +77,7 @@ export default function Home() {
           }
         });
       },
-      { threshold: 0.5 }
+      { threshold: 0.5 },
     );
 
     observer.observe(ctaRef.current);
@@ -94,17 +94,30 @@ export default function Home() {
         <Header activeTab="collectors" showNavigation={false} sticky={false} />
       </div>
       <div className="flex justify-center sm:hidden absolute top-10 left-0 right-0 z-20">
-        <Image src="/logo.png" alt="Logo" width={256} height={256} className="h-24 w-auto" priority />
+        <Image
+          src="/logo.png"
+          alt="Logo"
+          width={256}
+          height={256}
+          className="h-24 w-auto"
+          priority
+        />
       </div>
-    
+
       <ScrollCarousel slides={BOOKLET_SLIDES_ALTERNATIVE} />
 
       <VignetteOverlay />
 
       <section className="min-h-screen flex flex-col items-center gap-6 justify-start sm:justify-center px-4 py-5 sm:py-20 bg-beige-texture relative">
-
         <div className="sm:absolute top-10 left-0 right-0 flex justify-center">
-          <Image src="/logo.png" alt="Logo" width={168} height={168} className="h-28 sm:h-42 w-auto" priority />
+          <Image
+            src="/logo.png"
+            alt="Logo"
+            width={168}
+            height={168}
+            className="h-28 sm:h-42 w-auto"
+            priority
+          />
         </div>
 
         <div className="max-w-4xl mx-auto text-center">
@@ -133,11 +146,7 @@ export default function Home() {
             >
               printed
             </BlurFade>{" "}
-            <BlurFade
-              delay={1.2}
-              duration={0.5}
-              as="div"
-            >
+            <BlurFade delay={1.2} duration={0.5} as="div">
               subscription-based booklets
             </BlurFade>
           </h1>
@@ -145,7 +154,10 @@ export default function Home() {
           <BlurFade delay={1.5} duration={0.5}>
             <hr className="sm:my-8 w-1/6 mx-auto" />
           </BlurFade>
-          <div ref={ctaRef} className="flex flex-col sm:flex-row gap-8 justify-center items-center pt-8">
+          <div
+            ref={ctaRef}
+            className="flex flex-col sm:flex-row gap-8 justify-center items-center pt-8"
+          >
             <div className="text-center">
               <BlurFade delay={1.5} duration={0.5}>
                 <Link

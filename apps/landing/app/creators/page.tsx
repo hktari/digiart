@@ -108,10 +108,7 @@ export default function CreatorsPage() {
 
   return (
     <>
-      <Header
-        activeTab="creators"
-        onCtaClick={scrollToWaitlist}
-      />
+      <Header activeTab="creators" onCtaClick={scrollToWaitlist} />
 
       <main className="relative overflow-hidden">
         <Hero
@@ -191,8 +188,7 @@ export default function CreatorsPage() {
         </div>
       </main>
 
-      <Footer
-      />
+      <Footer />
 
       {showPostSignup && (
         <PostSignupCard
