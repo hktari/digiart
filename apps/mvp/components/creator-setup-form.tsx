@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useCallback, useState } from "react";
+import { useActionState, useCallback, useEffect, useState } from "react";
 import {
   type CheckSlugResult,
   checkSlugAvailability,
@@ -150,6 +150,26 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
       setStep("review");
     }
   }, [validatePayoutStep]);
+
+  const handleReviewNext = useCallback(() => {
+    // Save profile before moving to artwork step
+    const fd = new FormData();
+    fd.append("displayName", formData.displayName);
+    fd.append("slug", formData.slug);
+    fd.append("bio", formData.bio);
+    fd.append("sourcePlatforms", JSON.stringify(formData.sourcePlatforms));
+    fd.append("legalName", formData.legalName);
+    fd.append("taxId", formData.taxId);
+    fd.append("paypalEmail", formData.paypalEmail);
+
+    saveAction(fd);
+  }, [formData, saveAction]);
+
+  useEffect(() => {
+    if (saveState?.success) {
+      setStep("artwork");
+    }
+  }, [saveState]);
 
   const handleBack = useCallback(() => {
     if (step === "payout") setStep("profile");
@@ -568,10 +588,11 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
               </button>
               <button
                 type="button"
-                onClick={() => setStep("artwork")}
-                className="flex-1 rounded-lg bg-fuchsia-600 px-5 py-3 text-sm font-semibold text-white hover:bg-fuchsia-700 transition-colors"
+                onClick={handleReviewNext}
+                disabled={isSaving}
+                className="flex-1 rounded-lg bg-fuchsia-600 px-5 py-3 text-sm font-semibold text-white hover:bg-fuchsia-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                Continue
+                {isSaving ? "Saving..." : "Continue"}
               </button>
             </div>
           </div>

@@ -1,56 +1,147 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { getPublicStorageUrl } from "@/lib/s3";
 
-export async function getPublishedReleases(tagSlugs?: string[]) {
-  const where = {
-    status: "PUBLISHED" as const,
-    ...(tagSlugs && tagSlugs.length > 0
-      ? {
-          tags: {
-            some: {
-              tag: {
-                slug: { in: tagSlugs },
-              },
-            },
-          },
-        }
-      : {}),
+export async function getAllPublishedCreators(tagSlug?: string) {
+  const where: {
+    status: "PUBLISHED";
+    releases?: {
+      some: {
+        status: "PUBLISHED";
+        tags?: {
+          some: {
+            tag: {
+              slug: string;
+            };
+          };
+        };
+      };
+    };
+  } = {
+    status: "PUBLISHED",
   };
 
-  const releases = await db.release.findMany({
+  if (tagSlug) {
+    where.releases = {
+      some: {
+        status: "PUBLISHED",
+        tags: {
+          some: {
+            tag: {
+              slug: tagSlug,
+            },
+          },
+        },
+      },
+    };
+  }
+
+  return db.creatorProfile.findMany({
     where,
-    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      slug: true,
+      displayName: true,
+      avatar: true,
+      bio: true,
+      _count: {
+        select: {
+          releases: {
+            where: {
+              status: "PUBLISHED",
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+}
+
+export async function getAllPublishedReleases(tagSlug?: string) {
+  const where: {
+    status: "PUBLISHED";
+    tags?: {
+      some: {
+        tag: {
+          slug: string;
+        };
+      };
+    };
+  } = {
+    status: "PUBLISHED",
+  };
+
+  if (tagSlug) {
+    where.tags = {
+      some: {
+        tag: {
+          slug: tagSlug,
+        },
+      },
+    };
+  }
+
+  return db.release.findMany({
+    where,
     include: {
       creatorProfile: {
         select: {
+          id: true,
           displayName: true,
           slug: true,
           avatar: true,
         },
       },
       artworks: {
+        include: {
+          artwork: {
+            select: {
+              id: true,
+              title: true,
+              storageKey: true,
+              orientation: true,
+            },
+          },
+        },
+        orderBy: {
+          sortOrder: "asc",
+        },
         take: 1,
-        orderBy: { sortOrder: "asc" },
-        include: { artwork: true },
       },
       tags: {
-        include: { tag: true },
+        include: {
+          tag: true,
+        },
       },
-      _count: { select: { artworks: true } },
+      _count: {
+        select: {
+          artworks: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
     },
   });
+}
 
-  return releases.map((release) => ({
-    ...release,
-    artworks: release.artworks.map((ra) => ({
-      ...ra,
-      artwork: {
-        ...ra.artwork,
-        thumbnailUrl: getPublicStorageUrl(ra.artwork.storageKey),
+export async function getAllTags() {
+  return db.tag.findMany({
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      _count: {
+        select: {
+          releaseTags: true,
+        },
       },
-    })),
-    tags: release.tags.map((rt) => rt.tag),
-  }));
+    },
+    orderBy: {
+      name: "asc",
+    },
+  });
 }

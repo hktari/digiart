@@ -4,11 +4,11 @@
 
 - **Sprint 1** (T1-T4): ✅ Complete
 - **Sprint 2** (T5-T11): ✅ Complete (except T10 tag UI)
-- **Sprint 3** (T12-T15): ⬜ Not started (placeholders only)
+- **Sprint 3** (T12-T15): ✅ Complete
 - **Sprint 4** (T16-T19): ⬜ Not started
 - **Sprint 5** (T20-T24): ⬜ Not started
 
-**Latest completion:** T11 - Public creator profile page (`/creators/[slug]`) with avatar, bio, social links, recent releases grid, and subscribe CTA.
+**Latest completion:** Sprint 3 - Full collector-side implementation with subscription flow, release selection, and browse/discover pages (T12-T15).
 
 ## Tickets
 
@@ -25,10 +25,10 @@
 | 9   | Monthly releases with publish state and artwork assignment                | ✅ Done              |
 | 10  | Release tags for creator org and collector filtering                      | 🟡 Schema only       |
 | 11  | Public creator profile pages (collector acquisition path)                 | ✅ Done              |
-| 12  | Collector onboarding from creator link + shipping country                 | ⬜ Pending           |
-| 13  | Collector creator subscription records                                    | ⬜ Pending           |
-| 14  | Collector release selection records                                       | ⬜ Pending           |
-| 15  | Collector browse and discovery (filtered by tags)                         | ⬜ Pending           |
+| 12  | Collector onboarding from creator link + shipping country                 | ✅ Done              |
+| 13  | Collector creator subscription records                                    | ✅ Done              |
+| 14  | Collector release selection records                                       | ✅ Done              |
+| 15  | Collector browse and discovery (filtered by tags)                         | ✅ Done              |
 | 16  | SubscriptionCycle with lock and fulfillment dates                         | ⬜ Pending           |
 | 17  | Booklet constraint config (page-range rules)                              | ⬜ Pending           |
 | 18  | Peecho offering sync/config and pricing quote service                     | ⬜ Pending           |
@@ -57,16 +57,28 @@ Goal: a creator can sign up, complete their profile, upload artworks, publish a 
 - **T10** 🟡 Release tags: tag model in schema, but UI for tag selector/display not implemented.
 - **T11** ✅ `/creators/[slug]` public profile: display name, avatar, bio, social links, published releases, subscribe CTA.
 
-### Sprint 3 — Collector Side (T12–T15) ⬜ Not started
+### Sprint 3 — Collector Side (T12–T15) ✅ Complete
 
 Goal: a collector can land on a creator link, sign up, subscribe, select releases, and browse.
 
-- **T12** ⬜ `/creators/[slug]/subscribe` + `/collector/setup`: post-auth onboarding, shipping country capture. (Placeholders only)
-- **T13** ⬜ Collector creator subscription record creation + `/collector/subscriptions` view. (Placeholder only)
-- **T14** ⬜ `/collector/releases` release selection flow: browse creator releases, select/deselect for current cycle. (Placeholder only)
-- **T15** ⬜ `/browse/creators` + `/browse/releases` + `/collector/discover`: filtered by tags, basic search. (Placeholders only)
+- **T12** ✅ `/creators/[slug]/subscribe` + `/collector/setup`: Full implementation with role creation, shipping country selection (24 countries), and redirect flow from creator profiles.
+- **T13** ✅ `/collector/subscriptions`: Grid view of active subscriptions with creator cards, avatars, bio snippets, and links to creator profiles.
+- **T14** ✅ `/collector/releases`: Interactive release selection grid with current cycle info, lock date display, artwork previews, tag filtering, and optimistic UI updates.
+- **T15** ✅ `/browse/creators` + `/browse/releases` + `/collector/discover`: Full browse experience with tag filtering, creator/release cards, search by tags, and dual-view discover page.
 
-**Note:** Schema models exist (`CollectorProfile`, `CollectorCreatorSubscription`, `CollectorReleaseSelection`) but no UI implementation yet.
+**Implementation details:**
+
+- New actions: `lib/actions/collector.ts` (profile, subscriptions, selections), `lib/actions/cycles.ts` (cycle queries), `lib/actions/browse.ts` (public discovery)
+- New components: `CollectorSetupForm`, `ReleaseSelectionGrid`
+- All pages fully functional with proper auth guards, empty states, and responsive layouts
+- Tag-based filtering across all browse/discover pages
+- Optimistic UI updates for release selection with error rollback
+<<<<<<< /home/bostjan/source/projects/art-subscription-platform/apps/mvp/progress.md
+=======
+- Collector dashboard (`/collector`) with stats cards, subscription preview, and quick links
+- Header navigation updated to match actual routes (`/browse/creators`, `/browse/releases`)
+- Country list marked for Peecho integration in Sprint 4 (currently hardcoded 24 countries)
+>>>>>>> /home/bostjan/.windsurf/worktrees/art-subscription-platform/art-subscription-platform-3533524b/apps/mvp/progress.md
 
 ### Sprint 4 — Platform Controls (T16–T19)
 
@@ -89,22 +101,5 @@ Goal: automated emails keep creators and collectors on the happy path; fulfillme
 
 ## Notes
 
-- Build: In progress — fixing `lib/auth.ts` type errors
-- Tests: 63 unit tests passing (T5: 22, T6: 21, T8: 6 + existing)
-- Husky + lint-staged: pre-commit runs lint + typecheck + format ✅
-- `biome.json` now extends root monorepo config ✅
 - Prisma 7 with `@prisma/adapter-pg` (lazy client — no eager DB connection at build time) ✅
 - NextAuth v5 beta: magic-link via Resend, roles in session, post-auth → `/onboarding` ✅
-- DB not yet provisioned — set `DATABASE_URL` in `.env.local` and run `pnpm db:migrate` to activate
-
-### PDF Generation System (PR #1 — untested)
-
-- `lib/image-validation.ts`: Sharp-based format/resolution/orientation checks (min 1748×1240px, JPEG/PNG only, ≤50MB)
-- `lib/s3.ts`: lazy S3 client with env guard
-- `POST /api/artworks/presign`: presigned S3 PUT for `uploads/pending/{uuid}`
-- `POST /api/artworks/register`: validates → promotes to `artworks/` → creates Artwork record; cleans up on failure
-- `POST /api/fulfillment/generate-booklet`: admin-only BullMQ job dispatch
-- `GeneratedPrintFile` + `PrintFileStatus` added to Prisma schema (needs `pnpm db:migrate`)
-- Upload UI at `/creator/artworks/new`: drag-drop, progress bar, per-code error messages
-- `apps/pdf-worker` NestJS app: BullMQ processor, pdf-lib booklet assembly, S3/local storage driver
-- Requires: `docker compose up -d` (Redis), AWS S3 env vars, `prisma generate` in pdf-worker

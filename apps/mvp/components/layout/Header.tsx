@@ -7,9 +7,8 @@ import { signOut, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
 const navLinks = [
-  { href: "/discover", label: "Discover" },
-  { href: "/artists", label: "Artists" },
-  { href: "/subscriptions", label: "My Subscriptions" },
+  { href: "/browse/creators", label: "Creators" },
+  { href: "/browse/releases", label: "Releases" },
 ];
 
 export function Header() {
