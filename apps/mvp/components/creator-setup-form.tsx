@@ -61,6 +61,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
   });
   const [_isComplete, _setIsComplete] = useState(false);
   const [uploadedArtworks, setUploadedArtworks] = useState<string[]>([]);
+  const [hasTransitioned, setHasTransitioned] = useState(false);
   const [slugCheckState, slugCheckAction, isCheckingSlug] = useActionState(
     checkSlugAvailability,
     null,
@@ -162,14 +163,16 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
     fd.append("taxId", formData.taxId);
     fd.append("paypalEmail", formData.paypalEmail);
 
+    setHasTransitioned(false);
     saveAction(fd);
   }, [formData, saveAction]);
 
   useEffect(() => {
-    if (saveState?.success) {
+    if (saveState?.success && !hasTransitioned && step === "review") {
+      setHasTransitioned(true);
       setStep("artwork");
     }
-  }, [saveState]);
+  }, [saveState, hasTransitioned, step]);
 
   const handleBack = useCallback(() => {
     if (step === "payout") setStep("profile");
