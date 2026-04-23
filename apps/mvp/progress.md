@@ -1,5 +1,15 @@
 # MVP Phase 1 Progress
 
+## Current Status
+
+- **Sprint 1** (T1-T4): ✅ Complete
+- **Sprint 2** (T5-T11): ✅ Complete (except T10 tag UI)
+- **Sprint 3** (T12-T15): ⬜ Not started (placeholders only)
+- **Sprint 4** (T16-T19): ⬜ Not started
+- **Sprint 5** (T20-T24): ⬜ Not started
+
+**Latest completion:** T11 - Public creator profile page (`/creators/[slug]`) with avatar, bio, social links, recent releases grid, and subscribe CTA.
+
 ## Tickets
 
 | #   | Title                                                                     | Status               |
@@ -12,9 +22,9 @@
 | 6   | Generic creator social links                                              | ✅ Done (21 tests)   |
 | 7   | App-managed artwork upload and storage                                    | ✅ Done (part of T8) |
 | 8   | Artwork CRUD with metadata and orientation capture                        | ✅ Done (6 tests)    |
-| 9   | Monthly releases with publish state and artwork assignment                | ⬜ Pending           |
-| 10  | Release tags for creator org and collector filtering                      | ⬜ Pending           |
-| 11  | Public creator profile pages (collector acquisition path)                 | ⬜ Pending           |
+| 9   | Monthly releases with publish state and artwork assignment                | ✅ Done              |
+| 10  | Release tags for creator org and collector filtering                      | 🟡 Schema only       |
+| 11  | Public creator profile pages (collector acquisition path)                 | ✅ Done              |
 | 12  | Collector onboarding from creator link + shipping country                 | ⬜ Pending           |
 | 13  | Collector creator subscription records                                    | ⬜ Pending           |
 | 14  | Collector release selection records                                       | ⬜ Pending           |
@@ -35,26 +45,28 @@
 
 App scaffold, Prisma schema, NextAuth magic-link, multi-role support, onboarding branch.
 
-### Sprint 2 — Creator Side (T5–T11)
+### Sprint 2 — Creator Side (T5–T11) ✅ Complete (except T10 tags UI)
 
 Goal: a creator can sign up, complete their profile, upload artworks, publish a release, and share their public link.
 
-- **T5** `/creator/setup` multi-step form: display name, slug (unique check), avatar upload, bio, payout basics. Gate publish on required fields.
-- **T6** `/creator/profile` social links: repeatable label + URL list (add/remove).
-- **T7** File upload infrastructure: storage adapter (local dev / S3-compatible prod), upload API route `/api/uploads`.
-- **T8** `/creator/artworks` CRUD: upload, title, orientation capture, archive.
-- **T9** `/creator/releases` + `/creator/releases/new` + `/creator/releases/[id]`: create release, assign artworks, set publish state.
-- **T10** Release tags: tag model seeding/management, tag selector on release form, tag display.
-- **T11** `/creators/[slug]` public profile: display name, avatar, bio, social links, published releases, subscribe CTA.
+- **T5** ✅ `/creator/setup` multi-step form: display name, slug (unique check), avatar upload, bio, payout basics. Gate publish on required fields.
+- **T6** ✅ `/creator/profile` social links: repeatable label + URL list (add/remove).
+- **T7** ✅ File upload infrastructure: storage adapter (local dev / S3-compatible prod), upload API route `/api/uploads`.
+- **T8** ✅ `/creator/artworks` CRUD: upload, title, orientation capture, archive.
+- **T9** ✅ `/creator/releases` + `/creator/releases/new` + `/creator/releases/[id]`: create release, assign artworks, set publish state.
+- **T10** 🟡 Release tags: tag model in schema, but UI for tag selector/display not implemented.
+- **T11** ✅ `/creators/[slug]` public profile: display name, avatar, bio, social links, published releases, subscribe CTA.
 
-### Sprint 3 — Collector Side (T12–T15)
+### Sprint 3 — Collector Side (T12–T15) ⬜ Not started
 
 Goal: a collector can land on a creator link, sign up, subscribe, select releases, and browse.
 
-- **T12** `/creators/[slug]/subscribe` + `/collector/setup`: post-auth onboarding, shipping country capture.
-- **T13** Collector creator subscription record creation + `/collector/subscriptions` view.
-- **T14** `/collector/releases` release selection flow: browse creator releases, select/deselect for current cycle.
-- **T15** `/browse/creators` + `/browse/releases` + `/collector/discover`: filtered by tags, basic search.
+- **T12** ⬜ `/creators/[slug]/subscribe` + `/collector/setup`: post-auth onboarding, shipping country capture. (Placeholders only)
+- **T13** ⬜ Collector creator subscription record creation + `/collector/subscriptions` view. (Placeholder only)
+- **T14** ⬜ `/collector/releases` release selection flow: browse creator releases, select/deselect for current cycle. (Placeholder only)
+- **T15** ⬜ `/browse/creators` + `/browse/releases` + `/collector/discover`: filtered by tags, basic search. (Placeholders only)
+
+**Note:** Schema models exist (`CollectorProfile`, `CollectorCreatorSubscription`, `CollectorReleaseSelection`) but no UI implementation yet.
 
 ### Sprint 4 — Platform Controls (T16–T19)
 

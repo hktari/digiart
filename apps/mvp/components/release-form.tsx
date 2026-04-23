@@ -1,14 +1,20 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import type { createRelease, updateRelease } from "@/lib/actions/releases";
+import { TagInput } from "./tag-input";
 
 type SaveAction = typeof createRelease | typeof updateRelease;
 
 interface ReleaseFormProps {
   action: SaveAction;
-  initialData?: { id?: string; title?: string; description?: string };
+  initialData?: {
+    id?: string;
+    title?: string;
+    description?: string;
+    tags?: string[];
+  };
   submitLabel?: string;
 }
 
@@ -19,6 +25,7 @@ export function ReleaseForm({
 }: ReleaseFormProps) {
   const router = useRouter();
   const [state, formAction, isPending] = useActionState(action, null);
+  const [tags, setTags] = useState<string[]>(initialData?.tags ?? []);
 
   useEffect(() => {
     if (state?.success) {
@@ -73,6 +80,23 @@ export function ReleaseForm({
             {state.errors.description}
           </p>
         )}
+      </div>
+
+      <div>
+        <label
+          htmlFor="tags-input"
+          className="block text-sm font-medium text-neutral-700 mb-1"
+        >
+          Tags
+          <span className="ml-1 text-neutral-400 font-normal">(optional)</span>
+        </label>
+        <TagInput
+          tags={tags}
+          onChange={setTags}
+          placeholder="Add tags..."
+          id="tags-input"
+        />
+        <input type="hidden" name="tags" value={JSON.stringify(tags)} />
       </div>
 
       {!state?.success &&

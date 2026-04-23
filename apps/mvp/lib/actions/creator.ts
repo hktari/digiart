@@ -294,3 +294,45 @@ export async function savePayoutProfile(
 
   return { success: true };
 }
+
+export async function getPublicCreatorProfile(slug: string) {
+  const profile = await db.creatorProfile.findUnique({
+    where: { slug, status: "PUBLISHED" },
+    include: {
+      socialLinks: {
+        orderBy: { sortOrder: "asc" },
+      },
+      releases: {
+        where: { status: "PUBLISHED" },
+        orderBy: { createdAt: "desc" },
+        take: 6,
+        include: {
+          artworks: {
+            include: {
+              artwork: {
+                select: {
+                  id: true,
+                  title: true,
+                  storageKey: true,
+                },
+              },
+            },
+            orderBy: { sortOrder: "asc" },
+            take: 1,
+          },
+          _count: {
+            select: { artworks: true },
+          },
+        },
+      },
+      _count: {
+        select: {
+          subscriptions: { where: { isActive: true } },
+          releases: { where: { status: "PUBLISHED" } },
+        },
+      },
+    },
+  });
+
+  return profile;
+}

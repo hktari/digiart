@@ -6,6 +6,7 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getPublicStorageUrl } from "@/lib/s3";
+import { getReleaseTags, setReleaseTags } from "./tags";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -62,8 +63,11 @@ export async function getRelease(id: string) {
 
   if (!release) return null;
 
+  const tags = await getReleaseTags(id);
+
   return {
     ...release,
+    tags: tags.map((tag) => tag.name),
     artworks: release.artworks.map((ra) => ({
       ...ra,
       artwork: withThumbnail(ra.artwork),
@@ -123,6 +127,18 @@ export async function createRelease(
     },
   });
 
+  const tagsJson = formData.get("tags");
+  if (tagsJson && typeof tagsJson === "string") {
+    try {
+      const tags = JSON.parse(tagsJson) as string[];
+      if (Array.isArray(tags) && tags.length > 0) {
+        await setReleaseTags(release.id, tags);
+      }
+    } catch {
+      // Ignore invalid JSON
+    }
+  }
+
   revalidatePath("/creator/releases");
   return { success: true, releaseId: release.id };
 }
@@ -164,6 +180,16 @@ export async function updateRelease(
       description: parsed.data.description ?? null,
     },
   });
+
+  const tagsJson = formData.get("tags");
+  if (tagsJson && typeof tagsJson === "string") {
+    try {
+      const tags = JSON.parse(tagsJson) as string[];
+      await setReleaseTags(id, tags);
+    } catch {
+      // Ignore invalid JSON
+    }
+  }
 
   revalidatePath("/creator/releases");
   revalidatePath(`/creator/releases/${id}`);
