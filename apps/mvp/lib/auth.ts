@@ -1,10 +1,10 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import NextAuth from "next-auth";
+import NextAuth, { type NextAuthResult } from "next-auth";
 import Resend from "next-auth/providers/resend";
 import { db } from "@/lib/db";
 import { getUserRoles } from "@/lib/roles";
 
-const nextAuthResult = NextAuth({
+const nextAuthResult: NextAuthResult = NextAuth({
   adapter: PrismaAdapter(db),
   providers: [
     Resend({
@@ -30,7 +30,10 @@ const nextAuthResult = NextAuth({
   },
 });
 
-export const { handlers, signIn, signOut, auth: nextAuth } = nextAuthResult;
+export const handlers: NextAuthResult["handlers"] = nextAuthResult.handlers;
+export const signIn: NextAuthResult["signIn"] = nextAuthResult.signIn;
+export const signOut: NextAuthResult["signOut"] = nextAuthResult.signOut;
+const nextAuth: NextAuthResult["auth"] = nextAuthResult.auth;
 
 export async function auth() {
   if (
