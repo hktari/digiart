@@ -1,0 +1,230 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { z } from "zod";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { getPublicStorageUrl } from "@/lib/s3";
+
+const slugSchema = z
+  .string()
+  .min(3, "Slug must be at least 3 characters")
+  .max(50, "Slug must be at most 50 characters")
+  .regex(
+    /^[a-z0-9-]+$/,
+    "Slug can only contain lowercase letters, numbers, and hyphens",
+  );
+
+const checkSlugSchema = z.object({
+  slug: slugSchema,
+});
+
+export type CheckSlugResult =
+  | { available: true }
+  | { available: false; error: string };
+
+export async function checkSlugAvailability(
+  prevState: unknown,
+  formData: FormData,
+): Promise<CheckSlugResult> {
+  const parsed = checkSlugSchema.safeParse({
+    slug: formData.get("slug"),
+  });
+
+  if (!parsed.success) {
+    return { available: false, error: parsed.error.errors[0].message };
+  }
+
+  const { slug } = parsed.data;
+
+  const existing = await db.creatorProfile.findUnique({
+    where: { slug },
+    select: { id: true },
+  });
+
+  if (existing) {
+    return { available: false, error: "This slug is already taken" };
+  }
+
+  return { available: true };
+}
+
+const saveCreatorProfileSchema = z.object({
+  displayName: z.string().min(1, "Display name is required").max(100),
+  slug: slugSchema,
+  bio: z.string().max(500, "Bio must be at most 500 characters").optional(),
+  sourcePlatforms: z.array(z.string()).optional(),
+  legalName: z.string().max(100).optional(),
+  taxId: z.string().max(50).optional(),
+  paypalEmail: z.string().email().optional().or(z.literal("")),
+});
+
+export type SaveProfileResult =
+  | { success: true }
+  | { success: false; errors: Record<string, string> };
+
+export async function saveCreatorProfile(
+  prevState: unknown,
+  formData: FormData,
+): Promise<SaveProfileResult> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    redirect("/auth/sign-in");
+  }
+
+  // Parse sourcePlatforms from JSON string
+  const sourcePlatformsRaw = formData.get("sourcePlatforms");
+  let sourcePlatforms: string[] | undefined;
+  try {
+    sourcePlatforms = sourcePlatformsRaw
+      ? JSON.parse(sourcePlatformsRaw as string)
+      : undefined;
+  } catch {
+    sourcePlatforms = undefined;
+  }
+
+  const parsed = saveCreatorProfileSchema.safeParse({
+    displayName: formData.get("displayName"),
+    slug: formData.get("slug"),
+    bio: formData.get("bio") || undefined,
+    sourcePlatforms,
+    legalName: formData.get("legalName") || undefined,
+    taxId: formData.get("taxId") || undefined,
+    paypalEmail: formData.get("paypalEmail") || "",
+  });
+
+  if (!parsed.success) {
+    const errors: Record<string, string> = {};
+    for (const issue of parsed.error.issues) {
+      const key = issue.path[0] as string;
+      errors[key] = issue.message;
+    }
+    return { success: false, errors };
+  }
+
+  const {
+    displayName,
+    slug,
+    bio,
+    sourcePlatforms: selectedPlatforms,
+    legalName,
+    taxId,
+    paypalEmail,
+  } = parsed.data;
+
+  // Convert platforms array to comma-separated string for storage
+  const sourcePlatform = selectedPlatforms?.join(",") || null;
+
+  // Check slug availability again (race condition protection)
+  const existing = await db.creatorProfile.findUnique({
+    where: { slug },
+    select: { id: true, userId: true },
+  });
+
+  if (existing && existing.userId !== session.user.id) {
+    return { success: false, errors: { slug: "This slug is already taken" } };
+  }
+
+  // Upsert creator profile
+  await db.creatorProfile.upsert({
+    where: { userId: session.user.id },
+    create: {
+      userId: session.user.id,
+      slug,
+      displayName,
+      bio: bio || null,
+      sourcePlatform,
+      status: "DRAFT",
+      payoutProfile: {
+        create: {
+          legalName: legalName || null,
+          taxId: taxId || null,
+          paypalEmail: paypalEmail || null,
+          isReady: !!(legalName && paypalEmail),
+        },
+      },
+    },
+    update: {
+      slug,
+      displayName,
+      bio: bio || null,
+      sourcePlatform,
+      payoutProfile: {
+        upsert: {
+          create: {
+            legalName: legalName || null,
+            taxId: taxId || null,
+            paypalEmail: paypalEmail || null,
+            isReady: !!(legalName && paypalEmail),
+          },
+          update: {
+            legalName: legalName || null,
+            taxId: taxId || null,
+            paypalEmail: paypalEmail || null,
+            isReady: !!(legalName && paypalEmail),
+          },
+        },
+      },
+    },
+  });
+
+  revalidatePath("/creator");
+  revalidatePath("/creator/setup");
+  redirect("/creator");
+}
+
+export async function getCreatorProfile(userId: string) {
+  return db.creatorProfile.findUnique({
+    where: { userId },
+    include: { payoutProfile: true },
+  });
+}
+
+export async function getCreatorDashboardData() {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/auth/sign-in");
+
+  const profile = await db.creatorProfile.findUnique({
+    where: { userId: session.user.id },
+    include: {
+      payoutProfile: { select: { isReady: true, paypalEmail: true } },
+      _count: {
+        select: {
+          artworks: { where: { status: "ACTIVE" } },
+          releases: true,
+          subscriptions: { where: { isActive: true } },
+        },
+      },
+    },
+  });
+
+  if (!profile) redirect("/creator/setup");
+
+  return profile;
+}
+
+export async function saveAvatar(
+  _prevState: unknown,
+  formData: FormData,
+): Promise<{ success: true } | { success: false; error: string }> {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/auth/sign-in");
+
+  const key = formData.get("key");
+  if (!key || typeof key !== "string" || !key.startsWith("avatars/")) {
+    return { success: false, error: "Invalid avatar key" };
+  }
+
+  const avatarUrl = getPublicStorageUrl(key);
+
+  await db.creatorProfile.update({
+    where: { userId: session.user.id },
+    data: { avatar: avatarUrl },
+  });
+
+  revalidatePath("/creator");
+  revalidatePath("/creator/profile");
+
+  return { success: true };
+}

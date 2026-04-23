@@ -1,0 +1,463 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Auth and identity (NextAuth v5 / Auth.js)
+// ---------------------------------------------------------------------------
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  roles         UserRole[]
+
+  creatorProfile  CreatorProfile?
+  collectorProfile CollectorProfile?
+
+  notificationPreference NotificationPreference?
+  emailNotificationLogs  EmailNotificationLog[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+enum Role {
+  CREATOR
+  COLLECTOR
+  ADMIN
+}
+
+model UserRole {
+  id        String   @id @default(cuid())
+  userId    String
+  role      Role
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, role])
+}
+
+// ---------------------------------------------------------------------------
+// Creator data
+// ---------------------------------------------------------------------------
+
+enum PublishStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model CreatorProfile {
+  id             String        @id @default(cuid())
+  userId         String        @unique
+  slug           String        @unique
+  displayName    String
+  avatar         String?
+  bio            String?       @db.Text
+  sourcePlatform String?       // Where creator is coming from (ArtStation, DeviantArt, Instagram, etc.)
+  status         PublishStatus @default(DRAFT)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payoutProfile CreatorPayoutProfile?
+  socialLinks  CreatorSocialLink[]
+  artworks     Artwork[]
+  releases     Release[]
+  subscriptions CollectorCreatorSubscription[]
+}
+
+model CreatorPayoutProfile {
+  id              String   @id @default(cuid())
+  creatorProfileId String  @unique
+  legalName       String?
+  taxId           String?
+  bankAccountInfo String?  @db.Text
+  paypalEmail     String?
+  isReady         Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+}
+
+model CreatorSocialLink {
+  id              String @id @default(cuid())
+  creatorProfileId String
+  label           String
+  url             String
+  sortOrder       Int    @default(0)
+
+  creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+}
+
+// ---------------------------------------------------------------------------
+// Collector data
+// ---------------------------------------------------------------------------
+
+enum OnboardingState {
+  PENDING
+  SHIPPING_SET
+  COMPLETE
+}
+
+model CollectorProfile {
+  id              String          @id @default(cuid())
+  userId          String          @unique
+  displayName     String?
+  shippingCountry String?
+  onboardingState OnboardingState @default(PENDING)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  user                User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptions       CollectorCreatorSubscription[]
+  selections          CollectorReleaseSelection[]
+  priceQuotes         PricingQuoteSnapshot[]
+  generatedPrintFiles GeneratedPrintFile[]
+}
+
+// ---------------------------------------------------------------------------
+// Content and release data
+// ---------------------------------------------------------------------------
+
+enum ArtworkStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum Orientation {
+  PORTRAIT
+  LANDSCAPE
+  SQUARE
+  UNKNOWN
+}
+
+model Artwork {
+  id              String        @id @default(cuid())
+  creatorProfileId String
+  title           String
+  storageKey      String
+  mimeType        String?
+  fileSize        Int?
+  width           Int?
+  height          Int?
+  orientation     Orientation   @default(UNKNOWN)
+  status          ArtworkStatus @default(ACTIVE)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  creatorProfile CreatorProfile   @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  releaseArtworks ReleaseArtwork[]
+}
+
+model Release {
+  id              String        @id @default(cuid())
+  creatorProfileId String
+  cycleId         String?
+  title           String
+  description     String?       @db.Text
+  status          PublishStatus @default(DRAFT)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  creatorProfile  CreatorProfile             @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  cycle           SubscriptionCycle?         @relation(fields: [cycleId], references: [id])
+  artworks        ReleaseArtwork[]
+  tags            ReleaseTag[]
+  selections      CollectorReleaseSelection[]
+}
+
+model ReleaseArtwork {
+  id        String @id @default(cuid())
+  releaseId String
+  artworkId String
+  sortOrder Int    @default(0)
+
+  release Release @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  artwork Artwork @relation(fields: [artworkId], references: [id], onDelete: Cascade)
+
+  @@unique([releaseId, artworkId])
+}
+
+model Tag {
+  id   String @id @default(cuid())
+  name String @unique
+  slug String @unique
+
+  releaseTags ReleaseTag[]
+}
+
+model ReleaseTag {
+  releaseId String
+  tagId     String
+
+  release Release @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([releaseId, tagId])
+}
+
+// ---------------------------------------------------------------------------
+// Collector selection data
+// ---------------------------------------------------------------------------
+
+model CollectorCreatorSubscription {
+  id               String   @id @default(cuid())
+  collectorProfileId String
+  creatorProfileId  String
+  isActive          Boolean  @default(true)
+  entryCreatorId    String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  collectorProfile CollectorProfile @relation(fields: [collectorProfileId], references: [id], onDelete: Cascade)
+  creatorProfile   CreatorProfile   @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([collectorProfileId, creatorProfileId])
+}
+
+model CollectorReleaseSelection {
+  id                 String   @id @default(cuid())
+  collectorProfileId String
+  releaseId          String
+  cycleId            String
+  createdAt          DateTime @default(now())
+
+  collectorProfile CollectorProfile  @relation(fields: [collectorProfileId], references: [id], onDelete: Cascade)
+  release          Release           @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  cycle            SubscriptionCycle @relation(fields: [cycleId], references: [id])
+
+  @@unique([collectorProfileId, releaseId, cycleId])
+}
+
+// ---------------------------------------------------------------------------
+// Cycle and constraints
+// ---------------------------------------------------------------------------
+
+enum CycleStatus {
+  OPEN
+  LOCKED
+  PROCESSING
+  COMPLETE
+}
+
+model SubscriptionCycle {
+  id                    String      @id @default(cuid())
+  label                 String
+  month                 Int
+  year                  Int
+  selectionOpenDate     DateTime
+  lockDate              DateTime
+  fulfillmentDate       DateTime
+  status                CycleStatus @default(OPEN)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  releases            Release[]
+  selections          CollectorReleaseSelection[]
+  quotes              PricingQuoteSnapshot[]
+  emailLogs           EmailNotificationLog[]
+  generatedPrintFiles GeneratedPrintFile[]
+
+  @@unique([month, year])
+}
+
+model BookletConstraint {
+  id          String   @id @default(cuid())
+  minPages    Int
+  maxPages    Int
+  maxCreators Int?
+  maxReleases Int?
+  isActive    Boolean  @default(true)
+  version     Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// POD pricing and product config
+// ---------------------------------------------------------------------------
+
+enum PodEnvironment {
+  SANDBOX
+  PRODUCTION
+}
+
+model PodProviderConfig {
+  id          String         @id @default(cuid())
+  provider    String
+  environment PodEnvironment @default(SANDBOX)
+  isActive    Boolean        @default(false)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  offerings PodOffering[]
+}
+
+model PodOffering {
+  id               String   @id @default(cuid())
+  providerId       String
+  externalId       String
+  name             String
+  minPages         Int
+  maxPages         Int
+  widthMm          Float?
+  heightMm         Float?
+  pricingMeta      Json?
+  isActive         Boolean  @default(true)
+  syncedAt         DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  provider PodProviderConfig      @relation(fields: [providerId], references: [id])
+  quotes   PricingQuoteSnapshot[]
+
+  @@unique([providerId, externalId])
+}
+
+model PricingQuoteSnapshot {
+  id                 String   @id @default(cuid())
+  collectorProfileId String
+  cycleId            String
+  offeringId         String
+  country            String
+  requestedPageCount Int
+  shippingAmount     Decimal  @db.Decimal(10, 2)
+  productAmount      Decimal  @db.Decimal(10, 2)
+  taxAmount          Decimal  @db.Decimal(10, 2)
+  totalEstimate      Decimal  @db.Decimal(10, 2)
+  currency           String   @default("EUR")
+  quotedAt           DateTime @default(now())
+
+  collectorProfile CollectorProfile  @relation(fields: [collectorProfileId], references: [id], onDelete: Cascade)
+  cycle            SubscriptionCycle @relation(fields: [cycleId], references: [id])
+  offering         PodOffering       @relation(fields: [offeringId], references: [id])
+}
+
+// ---------------------------------------------------------------------------
+// PDF generation
+// ---------------------------------------------------------------------------
+
+enum PrintFileStatus {
+  PENDING
+  GENERATING
+  READY
+  FAILED
+}
+
+model GeneratedPrintFile {
+  id                 String          @id @default(cuid())
+  collectorProfileId String
+  cycleId            String
+  storageUrl         String?
+  pageCount          Int?
+  status             PrintFileStatus @default(PENDING)
+  errorMessage       String?
+  generatedAt        DateTime?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  collectorProfile CollectorProfile  @relation(fields: [collectorProfileId], references: [id], onDelete: Cascade)
+  cycle            SubscriptionCycle @relation(fields: [cycleId], references: [id])
+
+  @@unique([collectorProfileId, cycleId])
+}
+
+// ---------------------------------------------------------------------------
+// Notifications
+// ---------------------------------------------------------------------------
+
+model NotificationPreference {
+  id                    String  @id @default(cuid())
+  userId                String  @unique
+  emailEnabled          Boolean @default(true)
+  cycleReminderEnabled  Boolean @default(true)
+  lockReminderEnabled   Boolean @default(true)
+  releaseReminderEnabled Boolean @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum EmailNotificationType {
+  CREATOR_WELCOME
+  CREATOR_ONBOARDING_INCOMPLETE
+  CREATOR_RELEASE_REMINDER
+  CREATOR_RELEASE_MISSING_WARNING
+  CREATOR_RELEASE_PUBLISHED
+  CREATOR_COLLECTOR_AT_RISK
+  COLLECTOR_WELCOME
+  COLLECTOR_SETUP_REMINDER
+  COLLECTOR_PRICE_ESTIMATE
+  COLLECTOR_SELECTION_REMINDER
+  COLLECTOR_LOCK_REMINDER
+  COLLECTOR_LOCK_CONFIRMED
+  COLLECTOR_CREATOR_AT_RISK
+  COLLECTOR_FULFILLMENT_BLOCKED
+}
+
+enum EmailNotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model EmailNotificationLog {
+  id         String                  @id @default(cuid())
+  userId     String
+  type       EmailNotificationType
+  cycleId    String?
+  status     EmailNotificationStatus @default(PENDING)
+  sentAt     DateTime?
+  errorMsg   String?
+  createdAt  DateTime                @default(now())
+
+  user  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cycle SubscriptionCycle? @relation(fields: [cycleId], references: [id])
+}

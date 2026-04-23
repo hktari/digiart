@@ -1,0 +1,36 @@
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { CreatorSetupForm } from "@/components/creator-setup-form";
+import { getCreatorProfile } from "@/lib/actions/creator";
+
+export default async function CreatorSetupPage() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    redirect("/auth/sign-in");
+  }
+
+  const profile = await getCreatorProfile(session.user.id);
+
+  // If profile is complete, redirect to dashboard
+  if (profile && profile.status === "PUBLISHED") {
+    redirect("/creator");
+  }
+
+  return (
+    <CreatorSetupForm
+      initialData={
+        profile
+          ? {
+              displayName: profile.displayName,
+              slug: profile.slug,
+              bio: profile.bio ?? undefined,
+              sourcePlatforms: profile.sourcePlatform?.split(",") ?? undefined,
+              legalName: profile.payoutProfile?.legalName ?? undefined,
+              taxId: profile.payoutProfile?.taxId ?? undefined,
+              paypalEmail: profile.payoutProfile?.paypalEmail ?? undefined,
+            }
+          : undefined
+      }
+    />
+  );
+}

@@ -1,0 +1,7 @@
+{
+  "approvedBuilds": {
+    "@prisma/engines": true,
+    "prisma": true,
+    "sharp": true
+  }
+}

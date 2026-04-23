@@ -1,0 +1,4 @@
+{
+  "*.{ts,tsx}": ["bash -c 'pnpm lint'", "bash -c 'pnpm typecheck'"],
+  "*.{ts,tsx,json,md}": ["bash -c 'pnpm format'"]
+}

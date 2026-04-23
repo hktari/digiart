@@ -1,0 +1,741 @@
+"use client";
+
+import { useActionState, useCallback, useState } from "react";
+import {
+  checkSlugAvailability,
+  saveCreatorProfile,
+  type CheckSlugResult,
+  type SaveProfileResult,
+} from "@/lib/actions/creator";
+
+type Step = "profile" | "payout" | "review" | "artwork" | "share";
+
+const SOURCE_PLATFORMS = [
+  { value: "artstation", label: "ArtStation" },
+  { value: "deviantart", label: "DeviantArt" },
+  { value: "instagram", label: "Instagram" },
+  { value: "behance", label: "Behance" },
+  { value: "dribbble", label: "Dribbble" },
+  { value: "twitter", label: "Twitter/X" },
+  { value: "cara", label: "Cara" },
+  { value: "pixiv", label: "Pixiv" },
+  { value: "midjourney", label: "Midjourney" },
+  { value: "discord", label: "Discord" },
+  { value: "leonardo", label: "Leonardo.ai" },
+  { value: "seaart", label: "SeaArt" },
+  { value: "other", label: "Other" },
+] as const;
+
+interface CreatorSetupFormProps {
+  initialData?: {
+    displayName?: string;
+    slug?: string;
+    bio?: string;
+    sourcePlatforms?: string[];
+    legalName?: string;
+    taxId?: string;
+    paypalEmail?: string;
+  };
+}
+
+interface FormData {
+  displayName: string;
+  slug: string;
+  bio: string;
+  sourcePlatforms: string[];
+  legalName: string;
+  taxId: string;
+  paypalEmail: string;
+}
+
+export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
+  const [step, setStep] = useState<Step>("profile");
+  const [formData, setFormData] = useState<FormData>({
+    displayName: initialData?.displayName ?? "",
+    slug: initialData?.slug ?? "",
+    bio: initialData?.bio ?? "",
+    sourcePlatforms: initialData?.sourcePlatforms ?? [],
+    legalName: initialData?.legalName ?? "",
+    taxId: initialData?.taxId ?? "",
+    paypalEmail: initialData?.paypalEmail ?? "",
+  });
+  const [isComplete, setIsComplete] = useState(false);
+  const [uploadedArtworks, setUploadedArtworks] = useState<string[]>([]);
+  const [slugCheckState, slugCheckAction, isCheckingSlug] = useActionState(
+    checkSlugAvailability,
+    null,
+  );
+  const [saveState, saveAction, isSaving] = useActionState(
+    saveCreatorProfile,
+    null,
+  );
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const updateField = useCallback(
+    (field: keyof FormData, value: string | string[]) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+      // Clear error for this field when user types
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    },
+    [],
+  );
+
+  const togglePlatform = useCallback((platformValue: string) => {
+    setFormData((prev) => {
+      const current = prev.sourcePlatforms;
+      const updated = current.includes(platformValue)
+        ? current.filter((p) => p !== platformValue)
+        : [...current, platformValue];
+      return { ...prev, sourcePlatforms: updated };
+    });
+    // Clear error for this field
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next.sourcePlatforms;
+      return next;
+    });
+  }, []);
+
+  const validateProfileStep = useCallback((): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!formData.displayName.trim()) {
+      errors.displayName = "Display name is required";
+    }
+
+    if (!formData.slug.trim()) {
+      errors.slug = "Slug is required";
+    } else if (!/^[a-z0-9-]+$/.test(formData.slug)) {
+      errors.slug =
+        "Slug can only contain lowercase letters, numbers, and hyphens";
+    } else if (formData.slug.length < 3) {
+      errors.slug = "Slug must be at least 3 characters";
+    }
+
+    if (formData.bio.length > 500) {
+      errors.bio = "Bio must be at most 500 characters";
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  }, [formData]);
+
+  const handleProfileNext = useCallback(() => {
+    if (validateProfileStep()) {
+      setStep("payout");
+    }
+  }, [validateProfileStep]);
+
+  const validatePayoutStep = useCallback((): boolean => {
+    const errors: Record<string, string> = {};
+
+    // Validate PayPal email if provided
+    if (formData.paypalEmail) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.paypalEmail)) {
+        errors.paypalEmail = "Please enter a valid email address";
+      }
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  }, [formData]);
+
+  const handlePayoutNext = useCallback(() => {
+    if (validatePayoutStep()) {
+      setStep("review");
+    }
+  }, [validatePayoutStep]);
+
+  const handleBack = useCallback(() => {
+    if (step === "payout") setStep("profile");
+    else if (step === "review") setStep("payout");
+    else if (step === "artwork") setStep("review");
+    else if (step === "share") setStep("artwork");
+  }, [step]);
+
+  const isSlugAvailable = slugCheckState?.available === true;
+  const isSlugTaken = slugCheckState?.available === false;
+
+  // Merge server errors with client errors
+  const allErrors =
+    saveState?.success === false
+      ? { ...fieldErrors, ...saveState.errors }
+      : fieldErrors;
+
+  return (
+    <div className="max-w-xl mx-auto px-4 py-10">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
+          Creator Setup
+        </h1>
+        <p className="mt-1 text-sm text-neutral-500">
+          Complete your profile to start publishing releases.
+        </p>
+      </div>
+
+      {/* Progress indicator */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2">
+          <div
+            className={`h-2 flex-1 rounded-full ${
+              step === "profile" ? "bg-fuchsia-500" : "bg-fuchsia-200"
+            }`}
+          />
+          <div
+            className={`h-2 flex-1 rounded-full ${
+              step === "payout"
+                ? "bg-fuchsia-500"
+                : step === "review"
+                  ? "bg-fuchsia-200"
+                  : "bg-neutral-200"
+            }`}
+          />
+          <div
+            className={`h-2 flex-1 rounded-full ${
+              step === "review"
+                ? "bg-fuchsia-500"
+                : step === "artwork"
+                  ? "bg-fuchsia-200"
+                  : "bg-neutral-200"
+            }`}
+          />
+          <div
+            className={`h-2 flex-1 rounded-full ${
+              step === "artwork"
+                ? "bg-fuchsia-500"
+                : step === "share"
+                  ? "bg-fuchsia-200"
+                  : "bg-neutral-200"
+            }`}
+          />
+          <div
+            className={`h-2 flex-1 rounded-full ${
+              step === "share" ? "bg-fuchsia-500" : "bg-neutral-200"
+            }`}
+          />
+        </div>
+        <div className="mt-2 flex justify-between text-xs text-neutral-500">
+          <span>Profile</span>
+          <span>Payout</span>
+          <span>Review</span>
+          <span>Artwork</span>
+          <span>Share</span>
+        </div>
+      </div>
+
+      <form action={saveAction} className="space-y-6">
+        {/* Hidden inputs for all form data (used when submitting from share step) */}
+        <input type="hidden" name="displayName" value={formData.displayName} />
+        <input type="hidden" name="slug" value={formData.slug} />
+        <input type="hidden" name="bio" value={formData.bio} />
+        <input
+          type="hidden"
+          name="sourcePlatforms"
+          value={JSON.stringify(formData.sourcePlatforms)}
+        />
+        <input type="hidden" name="legalName" value={formData.legalName} />
+        <input type="hidden" name="taxId" value={formData.taxId} />
+        <input type="hidden" name="paypalEmail" value={formData.paypalEmail} />
+
+        {/* Step 1: Profile */}
+        {step === "profile" && (
+          <div className="space-y-6">
+            <div>
+              <label
+                htmlFor="displayName"
+                className="block text-sm font-medium text-neutral-700 mb-1"
+              >
+                Display Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="displayName"
+                name="displayName"
+                value={formData.displayName}
+                onChange={(e) => updateField("displayName", e.target.value)}
+                placeholder="Your artist name"
+                className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500 ${
+                  allErrors.displayName
+                    ? "border-red-300 focus:border-red-500"
+                    : "border-neutral-300"
+                }`}
+              />
+              {allErrors.displayName && (
+                <p className="mt-1 text-sm text-red-600">
+                  {allErrors.displayName}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label
+                htmlFor="slug"
+                className="block text-sm font-medium text-neutral-700 mb-1"
+              >
+                Profile Slug <span className="text-red-500">*</span>
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  id="slug"
+                  name="slug"
+                  value={formData.slug}
+                  onChange={(e) =>
+                    updateField("slug", e.target.value.toLowerCase())
+                  }
+                  placeholder="your-name"
+                  className={`flex-1 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500 ${
+                    allErrors.slug
+                      ? "border-red-300 focus:border-red-500"
+                      : "border-neutral-300"
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const fd = new FormData();
+                    fd.set("slug", formData.slug);
+                    slugCheckAction(fd);
+                  }}
+                  disabled={!formData.slug || isCheckingSlug}
+                  className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCheckingSlug ? "Checking..." : "Check"}
+                </button>
+              </div>
+              <p className="mt-1 text-xs text-neutral-500">
+                yourdomain.com/creators/{formData.slug || "your-name"}
+              </p>
+              {allErrors.slug && (
+                <p className="mt-1 text-sm text-red-600">{allErrors.slug}</p>
+              )}
+              {isSlugAvailable && (
+                <p className="mt-1 text-sm text-jade-600">
+                  This slug is available!
+                </p>
+              )}
+              {isSlugTaken && (
+                <p className="mt-1 text-sm text-red-600">
+                  {
+                    (slugCheckState as CheckSlugResult & { available: false })
+                      .error
+                  }
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label
+                htmlFor="bio"
+                className="block text-sm font-medium text-neutral-700 mb-1"
+              >
+                Bio
+              </label>
+              <textarea
+                id="bio"
+                name="bio"
+                value={formData.bio}
+                onChange={(e) => updateField("bio", e.target.value)}
+                placeholder="Tell collectors about yourself and your art..."
+                rows={4}
+                className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500 ${
+                  allErrors.bio
+                    ? "border-red-300 focus:border-red-500"
+                    : "border-neutral-300"
+                }`}
+              />
+              <p className="mt-1 text-xs text-neutral-500">
+                {formData.bio.length}/500 characters
+              </p>
+              {allErrors.bio && (
+                <p className="mt-1 text-sm text-red-600">{allErrors.bio}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                Where do you currently share your art?
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {SOURCE_PLATFORMS.map((platform) => {
+                  const isSelected = formData.sourcePlatforms.includes(
+                    platform.value,
+                  );
+                  return (
+                    <button
+                      key={platform.value}
+                      type="button"
+                      onClick={() => togglePlatform(platform.value)}
+                      className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                        isSelected
+                          ? "bg-fuchsia-600 text-white"
+                          : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200 border border-neutral-300"
+                      }`}
+                    >
+                      {platform.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-2 text-xs text-neutral-500">
+                Select all that apply. This helps us understand our creator
+                community better.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleProfileNext}
+              className="w-full rounded-lg bg-fuchsia-600 px-5 py-3 text-sm font-semibold text-white hover:bg-fuchsia-700 transition-colors"
+            >
+              Continue to Payout Settings
+            </button>
+          </div>
+        )}
+
+        {/* Step 2: Payout */}
+        {step === "payout" && (
+          <div className="space-y-6">
+            <div className="rounded-lg border border-beige-200 bg-beige-50 p-4">
+              <p className="text-sm text-beige-800">
+                <strong>Optional:</strong> You can complete payout information
+                later, but you&apos;ll need it to receive payments.
+              </p>
+            </div>
+
+            <div>
+              <label
+                htmlFor="legalName"
+                className="block text-sm font-medium text-neutral-700 mb-1"
+              >
+                Legal Name
+              </label>
+              <input
+                type="text"
+                id="legalName"
+                name="legalName"
+                value={formData.legalName}
+                onChange={(e) => updateField("legalName", e.target.value)}
+                placeholder="Your full legal name"
+                className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500 ${
+                  allErrors.legalName
+                    ? "border-red-300 focus:border-red-500"
+                    : "border-neutral-300"
+                }`}
+              />
+              {allErrors.legalName && (
+                <p className="mt-1 text-sm text-red-600">
+                  {allErrors.legalName}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label
+                htmlFor="taxId"
+                className="block text-sm font-medium text-neutral-700 mb-1"
+              >
+                Tax ID / VAT Number
+              </label>
+              <input
+                type="text"
+                id="taxId"
+                name="taxId"
+                value={formData.taxId}
+                onChange={(e) => updateField("taxId", e.target.value)}
+                placeholder="Tax identification number"
+                className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="paypalEmail"
+                className="block text-sm font-medium text-neutral-700 mb-1"
+              >
+                PayPal Email
+              </label>
+              <input
+                type="email"
+                id="paypalEmail"
+                name="paypalEmail"
+                value={formData.paypalEmail}
+                onChange={(e) => updateField("paypalEmail", e.target.value)}
+                placeholder="you@example.com"
+                className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500 ${
+                  allErrors.paypalEmail
+                    ? "border-red-300 focus:border-red-500"
+                    : "border-neutral-300"
+                }`}
+              />
+              {allErrors.paypalEmail && (
+                <p className="mt-1 text-sm text-red-600">
+                  {allErrors.paypalEmail}
+                </p>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={handleBack}
+                className="flex-1 rounded-lg border border-neutral-300 px-5 py-3 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 transition-colors"
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={handlePayoutNext}
+                className="flex-1 rounded-lg bg-fuchsia-600 px-5 py-3 text-sm font-semibold text-white hover:bg-fuchsia-700 transition-colors"
+              >
+                Review
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Review */}
+        {step === "review" && (
+          <div className="space-y-6">
+            <div className="rounded-lg border border-neutral-200 p-4 space-y-4">
+              <div>
+                <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide">
+                  Display Name
+                </p>
+                <p className="text-sm text-neutral-900">
+                  {formData.displayName}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide">
+                  Profile URL
+                </p>
+                <p className="text-sm text-neutral-900">
+                  yourdomain.com/creators/{formData.slug}
+                </p>
+              </div>
+              {formData.bio && (
+                <div>
+                  <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide">
+                    Bio
+                  </p>
+                  <p className="text-sm text-neutral-900 line-clamp-3">
+                    {formData.bio}
+                  </p>
+                </div>
+              )}
+              {formData.sourcePlatforms.length > 0 && (
+                <div>
+                  <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide">
+                    Current Platforms
+                  </p>
+                  <p className="text-sm text-neutral-900">
+                    {formData.sourcePlatforms
+                      .map(
+                        (value) =>
+                          SOURCE_PLATFORMS.find((p) => p.value === value)
+                            ?.label,
+                      )
+                      .filter(Boolean)
+                      .join(", ")}
+                  </p>
+                </div>
+              )}
+              <div>
+                <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide">
+                  Payout Ready
+                </p>
+                <p className="text-sm text-neutral-900">
+                  {formData.legalName && formData.paypalEmail
+                    ? "Yes - Legal name and PayPal provided"
+                    : "No - Complete payout info later"}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={handleBack}
+                className="flex-1 rounded-lg border border-neutral-300 px-5 py-3 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 transition-colors"
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={() => setStep("artwork")}
+                className="flex-1 rounded-lg bg-fuchsia-600 px-5 py-3 text-sm font-semibold text-white hover:bg-fuchsia-700 transition-colors"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 4: Artwork Upload */}
+        {step === "artwork" && (
+          <div className="space-y-6">
+            <div className="rounded-lg border border-beige-200 bg-beige-50 p-4">
+              <p className="text-sm text-beige-800">
+                <strong>Recommended:</strong> Upload at least 5 artworks to make
+                your profile more attractive to collectors. You can always add
+                more later.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium text-neutral-700">
+                  Uploaded Artworks
+                </h3>
+                <span className="text-sm text-neutral-500">
+                  {uploadedArtworks.length} uploaded
+                  {uploadedArtworks.length < 5 && (
+                    <span className="text-beige-600"> (5 recommended)</span>
+                  )}
+                </span>
+              </div>
+
+              {uploadedArtworks.length > 0 && (
+                <div className="grid grid-cols-3 gap-2">
+                  {uploadedArtworks.map((artworkId, idx) => (
+                    <div
+                      key={artworkId}
+                      className="aspect-square rounded-lg bg-neutral-100 border border-neutral-200 flex items-center justify-center text-xs text-neutral-500"
+                    >
+                      Artwork {idx + 1}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <a
+                href="/creator/artworks/new"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full rounded-lg border-2 border-dashed border-fuchsia-300 bg-fuchsia-50/30 hover:border-fuchsia-400 hover:bg-fuchsia-50 transition-colors px-4 py-8 text-center"
+              >
+                <div className="text-fuchsia-600 font-medium text-sm">
+                  + Upload Artwork
+                </div>
+                <p className="mt-1 text-xs text-neutral-500">
+                  Opens in new tab · JPEG or PNG · min 1748 × 1240 px
+                </p>
+              </a>
+
+              {uploadedArtworks.length < 5 && (
+                <div className="rounded-lg border border-ocean-200 bg-ocean-50 p-3 text-sm text-ocean-800">
+                  💡 <strong>Tip:</strong> Collectors are more likely to
+                  subscribe to creators with a diverse portfolio. We recommend
+                  uploading at least 5 artworks before sharing your profile.
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={handleBack}
+                className="flex-1 rounded-lg border border-neutral-300 px-5 py-3 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 transition-colors"
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={() => setStep("share")}
+                className="flex-1 rounded-lg bg-fuchsia-600 px-5 py-3 text-sm font-semibold text-white hover:bg-fuchsia-700 transition-colors"
+              >
+                {uploadedArtworks.length >= 5 ? "Continue" : "Skip for now"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 5: Share */}
+        {step === "share" && (
+          <div className="space-y-6">
+            <div className="rounded-lg border border-jade-200 bg-jade-50 p-4 text-center">
+              <div className="text-4xl mb-2">🎉</div>
+              <h2 className="text-lg font-semibold text-jade-900">
+                You&apos;re all set!
+              </h2>
+              <p className="text-sm text-jade-700 mt-1">
+                Your creator profile is ready. Share it with your audience to
+                start growing your collector base.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                  Your Profile Link
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={`yourdomain.com/creators/${formData.slug}`}
+                    className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm bg-neutral-50 text-neutral-600"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        `yourdomain.com/creators/${formData.slug}`,
+                      );
+                      // Could add toast notification here
+                    }}
+                    className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <a
+                  href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out my art on this new platform! yourdomain.com/creators/${formData.slug}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-lg border border-neutral-300 px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors text-center"
+                >
+                  Share on Twitter/X
+                </a>
+                <a
+                  href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`yourdomain.com/creators/${formData.slug}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-lg border border-neutral-300 px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors text-center"
+                >
+                  Share on Facebook
+                </a>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={handleBack}
+                className="flex-1 rounded-lg border border-neutral-300 px-5 py-3 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 transition-colors"
+              >
+                Back
+              </button>
+              <button
+                type="submit"
+                disabled={isSaving}
+                className="flex-1 rounded-lg bg-fuchsia-600 px-5 py-3 text-sm font-semibold text-white hover:bg-fuchsia-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {isSaving ? "Saving..." : "Go to Dashboard"}
+              </button>
+            </div>
+          </div>
+        )}
+      </form>
+    </div>
+  );
+}
