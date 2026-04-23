@@ -16,6 +16,7 @@ COPY --from=deps /app/apps/pdf-worker/node_modules ./apps/pdf-worker/node_module
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY apps/pdf-worker ./apps/pdf-worker
 COPY tsconfig.base.json ./
+RUN cd apps/pdf-worker && npx prisma generate
 RUN pnpm --filter pdf-worker build
 
 # Production image

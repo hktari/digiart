@@ -83,7 +83,7 @@ export class BookletProcessor extends WorkerHost {
     }
 
     const creatorNames: string[] = [
-      ...new Set(
+      ...new Set<string>(
         selections.map(
           (s: (typeof selections)[number]) =>
             s.release.creatorProfile.displayName,
