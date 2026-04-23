@@ -7,7 +7,12 @@
     "dev:worker": "pnpm --filter pdf-worker dev",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
-    "format": "pnpm -r format"
+    "format": "pnpm -r format",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.1"
   },
   "engines": {
     "node": ">=20",
