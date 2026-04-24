@@ -1,0 +1,1 @@
+- use vitest + playwright for testing
