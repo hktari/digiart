@@ -38,19 +38,25 @@ export default async function BrowseCreatorsPage({ searchParams }: Props) {
               >
                 All
               </Link>
-              {tags.map((t) => (
-                <Link
-                  key={t.slug}
-                  href={`/browse/creators?tag=${t.slug}`}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                    tag === t.slug
-                      ? "bg-fuchsia-600 text-white"
-                      : "bg-white text-neutral-700 border border-neutral-200 hover:border-fuchsia-300"
-                  }`}
-                >
-                  {t.name} ({t._count.releaseTags})
-                </Link>
-              ))}
+              {tags.map(
+                (t: {
+                  slug: string;
+                  name: string;
+                  _count: { releaseTags: number };
+                }) => (
+                  <Link
+                    key={t.slug}
+                    href={`/browse/creators?tag=${t.slug}`}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                      tag === t.slug
+                        ? "bg-fuchsia-600 text-white"
+                        : "bg-white text-neutral-700 border border-neutral-200 hover:border-fuchsia-300"
+                    }`}
+                  >
+                    {t.name} ({t._count.releaseTags})
+                  </Link>
+                ),
+              )}
             </div>
           </div>
         )}

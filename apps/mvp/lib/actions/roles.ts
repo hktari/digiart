@@ -4,7 +4,7 @@ import type { Role } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { addRole, removeRole } from "@/lib/roles";
+import { addRole, removeRole, hasRole } from "@/lib/roles";
 
 const ROLE_REDIRECT: Record<Role, string> = {
   CREATOR: "/creator/setup",
@@ -27,4 +27,11 @@ export async function revokeRole(role: Role) {
 
   await removeRole(session.user.id, role);
   revalidatePath("/account/roles");
+}
+
+export async function ensureRole(userId: string, role: Role) {
+  const has = await hasRole(userId, role);
+  if (!has) {
+    await addRole(userId, role);
+  }
 }

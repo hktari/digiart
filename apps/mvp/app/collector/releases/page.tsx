@@ -73,7 +73,9 @@ export default async function CollectorReleasesPage() {
     getCollectorReleaseSelections(session.user.id, currentCycle.id),
   ]);
 
-  const selectedReleaseIds = new Set(selections.map((s) => s.release.id));
+  const selectedReleaseIds = new Set<string>(
+    selections.map((s: { release: { id: string } }) => s.release.id),
+  );
 
   return (
     <div className="min-h-screen bg-neutral-50">
