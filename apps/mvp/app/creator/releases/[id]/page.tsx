@@ -8,6 +8,10 @@ import {
   getRelease,
   updateRelease,
 } from "@/lib/actions/releases";
+import { canEditRelease } from "@/lib/cycle-utils";
+import { CycleLockedBanner } from "@/components/cycle-locked-banner";
+import { db } from "@/lib/db";
+import { computeCycleStatus } from "@/lib/cycle-status";
 
 const STATUS_BADGE: Record<string, string> = {
   DRAFT: "bg-neutral-100 text-neutral-600",
@@ -28,8 +32,20 @@ export default async function CreatorReleaseDetailPage({
 
   if (!release) notFound();
 
-  const isLocked = release.status !== "DRAFT";
+  const canEdit = await canEditRelease(release.cycleId);
+  const isLocked = release.status !== "DRAFT" || !canEdit;
   const selectedIds = release.artworks.map((ra) => ra.artworkId);
+
+  let cycle = null;
+  let cycleStatus = null;
+  if (release.cycleId) {
+    cycle = await db.subscriptionCycle.findUnique({
+      where: { id: release.cycleId },
+    });
+    if (cycle) {
+      cycleStatus = computeCycleStatus(cycle);
+    }
+  }
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10 space-y-10">
@@ -65,6 +81,11 @@ export default async function CreatorReleaseDetailPage({
           })}
         </p>
       </div>
+
+      {/* Cycle locked banner */}
+      {cycle && cycleStatus && cycleStatus !== "OPEN" && (
+        <CycleLockedBanner status={cycleStatus} cycleName={cycle.label} />
+      )}
 
       {/* Details form */}
       <section>
