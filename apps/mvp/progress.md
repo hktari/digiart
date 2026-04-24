@@ -73,12 +73,9 @@ Goal: a collector can land on a creator link, sign up, subscribe, select release
 - All pages fully functional with proper auth guards, empty states, and responsive layouts
 - Tag-based filtering across all browse/discover pages
 - Optimistic UI updates for release selection with error rollback
-<<<<<<< /home/bostjan/source/projects/art-subscription-platform/apps/mvp/progress.md
-=======
+- Country list marked for Peecho integration in Sprint 4 (currently hardcoded 24 countries)
 - Collector dashboard (`/collector`) with stats cards, subscription preview, and quick links
 - Header navigation updated to match actual routes (`/browse/creators`, `/browse/releases`)
-- Country list marked for Peecho integration in Sprint 4 (currently hardcoded 24 countries)
->>>>>>> /home/bostjan/.windsurf/worktrees/art-subscription-platform/art-subscription-platform-3533524b/apps/mvp/progress.md
 
 ### Sprint 4 — Platform Controls (T16–T19)
 

@@ -128,17 +128,17 @@ export async function getAllPublishedReleases(tagSlug?: string) {
     },
   });
 
-  // Transform to add thumbnailUrl to artworks and flatten tags
+  // Transform the data to include thumbnailUrl and flatten tags structure
   return releases.map((release) => ({
     ...release,
-    artworks: release.artworks.map((ra) => ({
-      ...ra,
+    artworks: release.artworks.map((artworkRelease) => ({
+      ...artworkRelease,
       artwork: {
-        ...ra.artwork,
-        thumbnailUrl: getPublicStorageUrl(ra.artwork.storageKey),
+        ...artworkRelease.artwork,
+        thumbnailUrl: getPublicStorageUrl(artworkRelease.artwork.storageKey),
       },
     })),
-    tags: release.tags.map((rt) => rt.tag),
+    tags: release.tags.map((releaseTag) => releaseTag.tag),
   }));
 }
 
