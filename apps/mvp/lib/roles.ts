@@ -1,7 +1,7 @@
 import type { Role } from "@prisma/client";
-import { db } from "@/lib/db";
-import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 
 export type { Role };
 

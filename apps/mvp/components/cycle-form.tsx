@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import type { SubscriptionCycle } from "@prisma/client";
 import { useRouter } from "next/navigation";
-import type { SubscriptionCycle, CycleStatus } from "@prisma/client";
+import { useState } from "react";
 
 interface CycleFormProps {
   cycle?: SubscriptionCycle;
-  onSubmit: (formData: FormData) => Promise<{ error?: string; success?: boolean }>;
+  onSubmit: (
+    formData: FormData,
+  ) => Promise<{ error?: string; success?: boolean }>;
 }
 
 export function CycleForm({ cycle, onSubmit }: CycleFormProps) {

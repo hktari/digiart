@@ -5,7 +5,7 @@ import { requireAdmin } from "@/lib/roles";
 export async function GET() {
   try {
     await requireAdmin();
-    
+
     const provider = await db.podProviderConfig.findFirst({
       where: { provider: "Peecho" },
       include: {
@@ -14,12 +14,9 @@ export async function GET() {
         },
       },
     });
-    
+
     return NextResponse.json(provider);
-  } catch (error) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
+  } catch (_error) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 }

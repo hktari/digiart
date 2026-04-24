@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { getQuote } from "@/lib/peecho/quote-service";
-import { z } from "zod";
 
 const quoteRequestSchema = z.object({
   country: z.string().min(2).max(2),
@@ -13,10 +13,7 @@ export async function POST(request: Request) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -25,7 +22,7 @@ export async function POST(request: Request) {
     if (!result.success) {
       return NextResponse.json(
         { error: result.error.errors[0].message },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -40,7 +37,7 @@ export async function POST(request: Request) {
     console.error("Quote API error:", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to get quote" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

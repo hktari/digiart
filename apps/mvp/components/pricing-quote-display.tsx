@@ -13,10 +13,17 @@ interface QuoteData {
 
 interface PricingQuoteDisplayProps {
   initialQuote?: QuoteData | null;
-  onRefresh: () => Promise<{ error?: string; success?: boolean; quote?: QuoteData }>;
+  onRefresh: () => Promise<{
+    error?: string;
+    success?: boolean;
+    quote?: QuoteData;
+  }>;
 }
 
-export function PricingQuoteDisplay({ initialQuote, onRefresh }: PricingQuoteDisplayProps) {
+export function PricingQuoteDisplay({
+  initialQuote,
+  onRefresh,
+}: PricingQuoteDisplayProps) {
   const [quote, setQuote] = useState<QuoteData | null>(initialQuote || null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,6 +63,7 @@ export function PricingQuoteDisplay({ initialQuote, onRefresh }: PricingQuoteDis
           <div className="flex justify-between items-start mb-4">
             <h2 className="text-xl font-semibold">Pricing Estimate</h2>
             <button
+              type="button"
               onClick={handleRefresh}
               disabled={isRefreshing}
               className="text-sm text-fuchsia-600 hover:underline disabled:opacity-50"
@@ -102,8 +110,11 @@ export function PricingQuoteDisplay({ initialQuote, onRefresh }: PricingQuoteDis
         </div>
       ) : (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-          <p className="text-gray-600 mb-4">No pricing estimate available yet.</p>
+          <p className="text-gray-600 mb-4">
+            No pricing estimate available yet.
+          </p>
           <button
+            type="button"
             onClick={handleRefresh}
             disabled={isRefreshing}
             className="px-4 py-2 bg-fuchsia-600 text-white rounded-md hover:bg-fuchsia-700 disabled:opacity-50"

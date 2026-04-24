@@ -1,5 +1,4 @@
 import { db } from "@/lib/db";
-import type { Decimal } from "@prisma/client/runtime/library";
 
 interface QuoteData {
   shippingAmount: number;
@@ -14,7 +13,7 @@ export async function createQuoteSnapshot(
   collectorId: string,
   cycleId: string,
   pageCount: number,
-  quoteData: QuoteData
+  quoteData: QuoteData,
 ) {
   const offering = await db.podOffering.findFirst({
     where: { externalId: quoteData.offeringId },

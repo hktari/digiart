@@ -1,8 +1,8 @@
+import type { CycleStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/roles";
-import { z } from "zod";
-import type { CycleStatus } from "@prisma/client";
 
 const cycleUpdateSchema = z.object({
   label: z.string().min(1).optional(),
@@ -15,12 +15,12 @@ const cycleUpdateSchema = z.object({
 });
 
 export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
+  _request: Request,
+  { params }: { params: { id: string } },
 ) {
   try {
     await requireAdmin();
-    
+
     const cycle = await db.subscriptionCycle.findUnique({
       where: { id: params.id },
       include: {
@@ -28,42 +28,36 @@ export async function GET(
         selections: { include: { collectorProfile: true } },
       },
     });
-    
+
     if (!cycle) {
-      return NextResponse.json(
-        { error: "Cycle not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Cycle not found" }, { status: 404 });
     }
-    
+
     return NextResponse.json(cycle);
-  } catch (error) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
+  } catch (_error) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 }
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     await requireAdmin();
-    
+
     const body = await request.json();
     const result = cycleUpdateSchema.safeParse(body);
-    
+
     if (!result.success) {
       return NextResponse.json(
         { error: result.error.errors[0].message },
-        { status: 400 }
+        { status: 400 },
       );
     }
-    
+
     const updateData: Record<string, unknown> = {};
-    
+
     if (result.data.label) updateData.label = result.data.label;
     if (result.data.month) updateData.month = result.data.month;
     if (result.data.year) updateData.year = result.data.year;
@@ -79,28 +73,28 @@ export async function PATCH(
     if (result.data.status) {
       updateData.status = result.data.status as CycleStatus;
     }
-    
+
     const cycle = await db.subscriptionCycle.update({
       where: { id: params.id },
       data: updateData,
     });
-    
+
     return NextResponse.json(cycle);
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: "Failed to update cycle" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
+  _request: Request,
+  { params }: { params: { id: string } },
 ) {
   try {
     await requireAdmin();
-    
+
     const cycle = await db.subscriptionCycle.findUnique({
       where: { id: params.id },
       include: {
@@ -108,30 +102,27 @@ export async function DELETE(
         releases: true,
       },
     });
-    
+
     if (!cycle) {
-      return NextResponse.json(
-        { error: "Cycle not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Cycle not found" }, { status: 404 });
     }
-    
+
     if (cycle.selections.length > 0 || cycle.releases.length > 0) {
       return NextResponse.json(
         { error: "Cannot delete cycle with existing selections or releases" },
-        { status: 400 }
+        { status: 400 },
       );
     }
-    
+
     await db.subscriptionCycle.delete({
       where: { id: params.id },
     });
-    
+
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: "Failed to delete cycle" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

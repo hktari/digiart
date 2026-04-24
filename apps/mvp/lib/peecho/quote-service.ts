@@ -31,7 +31,9 @@ export async function getQuote(params: QuoteParams): Promise<QuoteResult> {
       });
 
       if (!defaultOffering) {
-        throw new Error("No suitable offering found for the requested page count");
+        throw new Error(
+          "No suitable offering found for the requested page count",
+        );
       }
 
       offeringId = defaultOffering.externalId;
@@ -56,7 +58,7 @@ export async function getQuote(params: QuoteParams): Promise<QuoteResult> {
     throw new Error(
       error instanceof Error
         ? error.message
-        : "Failed to retrieve pricing quote"
+        : "Failed to retrieve pricing quote",
     );
   }
 }

@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import type { BookletConstraint } from "@prisma/client";
+import { useState, useEffect, useCallback } from "react";
 import { ConstraintForm } from "@/components/constraint-form";
 import {
   createConstraint,
-  updateConstraint,
   deleteConstraint,
   toggleConstraintActive,
+  updateConstraint,
 } from "@/lib/actions/constraint-actions";
-import type { BookletConstraint } from "@prisma/client";
 
 export default function AdminBookletConstraintsPage() {
   const [constraints, setConstraints] = useState<BookletConstraint[]>([]);
@@ -17,7 +17,7 @@ export default function AdminBookletConstraintsPage() {
   const [editingConstraint, setEditingConstraint] =
     useState<BookletConstraint | null>(null);
 
-  const loadConstraints = async () => {
+  const loadConstraints = useCallback(async () => {
     try {
       const response = await fetch("/api/admin/booklet-constraints");
       const data = await response.json();
@@ -27,11 +27,11 @@ export default function AdminBookletConstraintsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadConstraints();
-  }, []);
+  }, [loadConstraints]);
 
   const handleCreate = async (formData: FormData) => {
     const result = await createConstraint(formData);
@@ -79,6 +79,7 @@ export default function AdminBookletConstraintsPage() {
           </p>
         </div>
         <button
+          type="button"
           onClick={() => {
             setShowForm(!showForm);
             setEditingConstraint(null);
@@ -116,6 +117,7 @@ export default function AdminBookletConstraintsPage() {
               </div>
             </div>
             <button
+              type="button"
               onClick={() => setEditingConstraint(activeConstraint)}
               className="text-green-700 hover:underline text-sm"
             >
@@ -201,18 +203,21 @@ export default function AdminBookletConstraintsPage() {
                     </td>
                     <td className="px-6 py-4 text-sm text-right space-x-2">
                       <button
+                        type="button"
                         onClick={() => handleToggleActive(constraint.id)}
                         className="text-fuchsia-600 hover:underline"
                       >
                         {constraint.isActive ? "Deactivate" : "Activate"}
                       </button>
                       <button
+                        type="button"
                         onClick={() => setEditingConstraint(constraint)}
                         className="text-fuchsia-600 hover:underline"
                       >
                         Edit
                       </button>
                       <button
+                        type="button"
                         onClick={() => handleDelete(constraint.id)}
                         className="text-red-600 hover:underline"
                       >

@@ -1,9 +1,9 @@
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { PricingQuoteDisplay } from "@/components/pricing-quote-display";
 import { fetchAndPersistQuote } from "@/lib/actions/pricing-actions";
+import { auth } from "@/lib/auth";
 import { getCurrentCycle } from "@/lib/cycle-utils";
+import { db } from "@/lib/db";
 import { getLatestQuote } from "@/lib/pricing/quote-snapshot";
 
 export default async function CollectorPricingPage() {

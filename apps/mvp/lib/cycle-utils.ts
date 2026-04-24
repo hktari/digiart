@@ -1,10 +1,10 @@
 import type { CycleStatus, SubscriptionCycle } from "@prisma/client";
-import { db } from "@/lib/db";
 import { computeCycleStatus } from "@/lib/cycle-status";
+import { db } from "@/lib/db";
 
 export async function getCurrentCycle(): Promise<SubscriptionCycle | null> {
   const now = new Date();
-  
+
   const cycle = await db.subscriptionCycle.findFirst({
     where: {
       selectionOpenDate: { lte: now },
@@ -12,20 +12,20 @@ export async function getCurrentCycle(): Promise<SubscriptionCycle | null> {
     },
     orderBy: { selectionOpenDate: "desc" },
   });
-  
+
   if (!cycle) {
     return null;
   }
-  
+
   const computedStatus = computeCycleStatus(cycle);
-  
+
   if (cycle.status !== computedStatus) {
     return await db.subscriptionCycle.update({
       where: { id: cycle.id },
       data: { status: computedStatus },
     });
   }
-  
+
   return cycle;
 }
 
@@ -33,15 +33,15 @@ export async function canEditRelease(cycleId: string | null): Promise<boolean> {
   if (!cycleId) {
     return true;
   }
-  
+
   const cycle = await db.subscriptionCycle.findUnique({
     where: { id: cycleId },
   });
-  
+
   if (!cycle) {
     return false;
   }
-  
+
   const status = computeCycleStatus(cycle);
   return status === "OPEN";
 }
@@ -50,11 +50,11 @@ export async function canEditSelections(cycleId: string): Promise<boolean> {
   const cycle = await db.subscriptionCycle.findUnique({
     where: { id: cycleId },
   });
-  
+
   if (!cycle) {
     return false;
   }
-  
+
   const status = computeCycleStatus(cycle);
   return status === "OPEN";
 }
@@ -83,14 +83,14 @@ export function getTimeUntilLock(lockDate: Date): {
 } {
   const now = new Date();
   const diff = lockDate.getTime() - now.getTime();
-  
+
   if (diff <= 0) {
     return { days: 0, hours: 0, minutes: 0, isExpired: true };
   }
-  
+
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
   const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  
+
   return { days, hours, minutes, isExpired: false };
 }

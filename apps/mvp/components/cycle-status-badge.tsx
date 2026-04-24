@@ -5,7 +5,10 @@ interface CycleStatusBadgeProps {
   className?: string;
 }
 
-export function CycleStatusBadge({ status, className = "" }: CycleStatusBadgeProps) {
+export function CycleStatusBadge({
+  status,
+  className = "",
+}: CycleStatusBadgeProps) {
   const colors = {
     OPEN: "bg-green-100 text-green-800",
     LOCKED: "bg-yellow-100 text-yellow-800",

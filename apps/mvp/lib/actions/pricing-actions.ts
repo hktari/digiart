@@ -1,11 +1,11 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import { getCurrentCycle } from "@/lib/cycle-utils";
 import { db } from "@/lib/db";
 import { getQuote } from "@/lib/peecho/quote-service";
 import { createQuoteSnapshot } from "@/lib/pricing/quote-snapshot";
-import { getCurrentCycle } from "@/lib/cycle-utils";
-import { redirect } from "next/navigation";
 
 export async function fetchAndPersistQuote(pageCount: number = 20) {
   const session = await auth();
@@ -22,7 +22,9 @@ export async function fetchAndPersistQuote(pageCount: number = 20) {
   }
 
   if (!collectorProfile.shippingCountry) {
-    return { error: "Please set your shipping country in profile settings first" };
+    return {
+      error: "Please set your shipping country in profile settings first",
+    };
   }
 
   const currentCycle = await getCurrentCycle();
@@ -40,7 +42,7 @@ export async function fetchAndPersistQuote(pageCount: number = 20) {
       collectorProfile.id,
       currentCycle.id,
       pageCount,
-      quoteData
+      quoteData,
     );
 
     return {

@@ -1,15 +1,21 @@
 "use client";
 
-import { useState } from "react";
 import type { BookletConstraint } from "@prisma/client";
+import { useState } from "react";
 
 interface ConstraintFormProps {
   constraint?: BookletConstraint;
-  onSubmit: (formData: FormData) => Promise<{ error?: string; success?: boolean }>;
+  onSubmit: (
+    formData: FormData,
+  ) => Promise<{ error?: string; success?: boolean }>;
   onCancel?: () => void;
 }
 
-export function ConstraintForm({ constraint, onSubmit, onCancel }: ConstraintFormProps) {
+export function ConstraintForm({
+  constraint,
+  onSubmit,
+  onCancel,
+}: ConstraintFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -31,7 +37,10 @@ export function ConstraintForm({ constraint, onSubmit, onCancel }: ConstraintFor
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 bg-white border rounded-lg p-6">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 bg-white border rounded-lg p-6"
+    >
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded">
           {error}
@@ -72,7 +81,10 @@ export function ConstraintForm({ constraint, onSubmit, onCancel }: ConstraintFor
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="maxCreators" className="block text-sm font-medium mb-2">
+          <label
+            htmlFor="maxCreators"
+            className="block text-sm font-medium mb-2"
+          >
             Max Creators (Optional)
           </label>
           <input
@@ -86,7 +98,10 @@ export function ConstraintForm({ constraint, onSubmit, onCancel }: ConstraintFor
         </div>
 
         <div>
-          <label htmlFor="maxReleases" className="block text-sm font-medium mb-2">
+          <label
+            htmlFor="maxReleases"
+            className="block text-sm font-medium mb-2"
+          >
             Max Releases (Optional)
           </label>
           <input

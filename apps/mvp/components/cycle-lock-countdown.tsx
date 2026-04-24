@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { getTimeUntilLock } from "@/lib/cycle-utils";
 
 interface CycleLockCountdownProps {

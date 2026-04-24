@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/roles";
-import { z } from "zod";
 
 const constraintUpdateSchema = z.object({
   minPages: z.number().min(1).optional(),
@@ -12,86 +12,83 @@ const constraintUpdateSchema = z.object({
 });
 
 export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
+  _request: Request,
+  { params }: { params: { id: string } },
 ) {
   try {
     await requireAdmin();
-    
+
     const constraint = await db.bookletConstraint.findUnique({
       where: { id: params.id },
     });
-    
+
     if (!constraint) {
       return NextResponse.json(
         { error: "Constraint not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
-    
+
     return NextResponse.json(constraint);
-  } catch (error) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
+  } catch (_error) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 }
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     await requireAdmin();
-    
+
     const body = await request.json();
     const result = constraintUpdateSchema.safeParse(body);
-    
+
     if (!result.success) {
       return NextResponse.json(
         { error: result.error.errors[0].message },
-        { status: 400 }
+        { status: 400 },
       );
     }
-    
+
     if (result.data.isActive) {
       await db.bookletConstraint.updateMany({
         where: { isActive: true, id: { not: params.id } },
         data: { isActive: false },
       });
     }
-    
+
     const constraint = await db.bookletConstraint.update({
       where: { id: params.id },
       data: result.data,
     });
-    
+
     return NextResponse.json(constraint);
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: "Failed to update constraint" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
+  _request: Request,
+  { params }: { params: { id: string } },
 ) {
   try {
     await requireAdmin();
-    
+
     await db.bookletConstraint.delete({
       where: { id: params.id },
     });
-    
+
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: "Failed to delete constraint" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -1,8 +1,8 @@
+import Link from "next/link";
+import { deleteCycle } from "@/lib/actions/cycle-actions";
+import { computeCycleStatus } from "@/lib/cycle-status";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/roles";
-import Link from "next/link";
-import { deleteCycle, updateCycleStatus } from "@/lib/actions/cycle-actions";
-import { computeCycleStatus } from "@/lib/cycle-status";
 
 export default async function AdminCyclesPage() {
   await requireAdmin();

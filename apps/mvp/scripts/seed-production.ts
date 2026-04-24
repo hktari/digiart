@@ -105,9 +105,12 @@ async function seedProduction() {
     });
 
     if (!existingCycle) {
-      const monthName = new Date(nextYear, nextMonth % 12).toLocaleString("default", {
-        month: "long",
-      });
+      const monthName = new Date(nextYear, nextMonth % 12).toLocaleString(
+        "default",
+        {
+          month: "long",
+        },
+      );
 
       const cycle = await db.subscriptionCycle.create({
         data: {
@@ -124,7 +127,9 @@ async function seedProduction() {
       console.log("✅ First subscription cycle created:");
       console.log(`   Label: ${cycle.label}`);
       console.log(`   Lock Date: ${cycle.lockDate.toLocaleDateString()}`);
-      console.log(`   Fulfillment Date: ${cycle.fulfillmentDate.toLocaleDateString()}`);
+      console.log(
+        `   Fulfillment Date: ${cycle.fulfillmentDate.toLocaleDateString()}`,
+      );
       console.log("");
     } else {
       console.log("ℹ️  Subscription cycle already exists (skipped)");
@@ -134,7 +139,9 @@ async function seedProduction() {
     console.log("✅ Production database seeded successfully!");
     console.log("");
     console.log("📝 Next steps:");
-    console.log("   1. Admin user can sign in with magic link at: /auth/sign-in");
+    console.log(
+      "   1. Admin user can sign in with magic link at: /auth/sign-in",
+    );
     console.log("   2. Navigate to /admin/pod to sync Peecho offerings");
     console.log("   3. Create additional subscription cycles at /admin/cycles");
     console.log("");

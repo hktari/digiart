@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { PodProviderConfig, PodOffering } from "@prisma/client";
 
 type ProviderWithOfferings = PodProviderConfig & {
@@ -13,7 +13,7 @@ export default function AdminPodPage() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
-  const loadProvider = async () => {
+  const loadProvider = useCallback(async () => {
     try {
       const response = await fetch("/api/admin/pod/provider");
       if (response.ok) {
@@ -25,11 +25,11 @@ export default function AdminPodPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadProvider();
-  }, []);
+  }, [loadProvider]);
 
   const handleSync = async () => {
     setIsSyncing(true);
@@ -48,7 +48,7 @@ export default function AdminPodPage() {
       } else {
         setSyncMessage(`✗ ${data.error}`);
       }
-    } catch (error) {
+    } catch (_error) {
       setSyncMessage("✗ Failed to sync offerings");
     } finally {
       setIsSyncing(false);
@@ -123,6 +123,7 @@ export default function AdminPodPage() {
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">Product Offerings</h2>
               <button
+                type="button"
                 onClick={handleSync}
                 disabled={isSyncing}
                 className="px-4 py-2 bg-fuchsia-600 text-white rounded-md hover:bg-fuchsia-700 disabled:opacity-50"
@@ -207,6 +208,7 @@ export default function AdminPodPage() {
                         </td>
                         <td className="px-6 py-4 text-sm text-right">
                           <button
+                            type="button"
                             onClick={() =>
                               handleToggleOffering(
                                 offering.id,
@@ -232,6 +234,7 @@ export default function AdminPodPage() {
             No POD provider configured. Sync offerings to initialize.
           </p>
           <button
+            type="button"
             onClick={handleSync}
             disabled={isSyncing}
             className="mt-4 px-4 py-2 bg-fuchsia-600 text-white rounded-md hover:bg-fuchsia-700 disabled:opacity-50"

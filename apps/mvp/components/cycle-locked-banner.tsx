@@ -5,7 +5,10 @@ interface CycleLockedBannerProps {
   cycleName: string;
 }
 
-export function CycleLockedBanner({ status, cycleName }: CycleLockedBannerProps) {
+export function CycleLockedBanner({
+  status,
+  cycleName,
+}: CycleLockedBannerProps) {
   if (status === "OPEN") {
     return null;
   }
@@ -13,17 +16,20 @@ export function CycleLockedBanner({ status, cycleName }: CycleLockedBannerProps)
   const messages = {
     LOCKED: {
       title: "Cycle Locked",
-      description: "Selections are locked while we prepare your booklet. No changes can be made at this time.",
+      description:
+        "Selections are locked while we prepare your booklet. No changes can be made at this time.",
       color: "yellow",
     },
     PROCESSING: {
       title: "Processing",
-      description: "Your booklet is being generated. This cycle is now closed for editing.",
+      description:
+        "Your booklet is being generated. This cycle is now closed for editing.",
       color: "blue",
     },
     COMPLETE: {
       title: "Cycle Complete",
-      description: "This cycle has been fulfilled. View your archived selections below.",
+      description:
+        "This cycle has been fulfilled. View your archived selections below.",
       color: "gray",
     },
   };
@@ -42,6 +48,8 @@ export function CycleLockedBanner({ status, cycleName }: CycleLockedBannerProps)
             className={`h-5 w-5 ${textColor}`}
             fill="currentColor"
             viewBox="0 0 20 20"
+            role="img"
+            aria-label="Warning"
           >
             <path
               fillRule="evenodd"

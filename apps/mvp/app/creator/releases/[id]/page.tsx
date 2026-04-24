@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CycleLockedBanner } from "@/components/cycle-locked-banner";
 import { ReleaseActions } from "@/components/release-actions";
 import { ReleaseArtworkPicker } from "@/components/release-artwork-picker";
 import { ReleaseForm } from "@/components/release-form";
@@ -8,10 +9,9 @@ import {
   getRelease,
   updateRelease,
 } from "@/lib/actions/releases";
-import { canEditRelease } from "@/lib/cycle-utils";
-import { CycleLockedBanner } from "@/components/cycle-locked-banner";
-import { db } from "@/lib/db";
 import { computeCycleStatus } from "@/lib/cycle-status";
+import { canEditRelease } from "@/lib/cycle-utils";
+import { db } from "@/lib/db";
 
 const STATUS_BADGE: Record<string, string> = {
   DRAFT: "bg-neutral-100 text-neutral-600",

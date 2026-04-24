@@ -1,4 +1,5 @@
-const PEECHO_API_URL = process.env.PEECHO_API_URL || "https://sandbox.peecho.com/api/v1";
+const PEECHO_API_URL =
+  process.env.PEECHO_API_URL || "https://sandbox.peecho.com/api/v1";
 const PEECHO_API_KEY = process.env.PEECHO_API_KEY;
 
 if (!PEECHO_API_KEY) {
@@ -41,14 +42,14 @@ export class PeechoClient {
 
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
   ): Promise<T> {
     const url = `${this.apiUrl}${endpoint}`;
-    
+
     const response = await fetch(url, {
       ...options,
       headers: {
-        "Authorization": `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${this.apiKey}`,
         "Content-Type": "application/json",
         ...options.headers,
       },
@@ -57,7 +58,7 @@ export class PeechoClient {
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(
-        `Peecho API error: ${response.status} ${response.statusText} - ${errorText}`
+        `Peecho API error: ${response.status} ${response.statusText} - ${errorText}`,
       );
     }
 
@@ -66,7 +67,9 @@ export class PeechoClient {
 
   async getOfferings(): Promise<PeechoOffering[]> {
     try {
-      const data = await this.request<{ offerings: PeechoOffering[] }>("/offerings");
+      const data = await this.request<{ offerings: PeechoOffering[] }>(
+        "/offerings",
+      );
       return data.offerings || [];
     } catch (error) {
       console.error("Failed to fetch Peecho offerings:", error);

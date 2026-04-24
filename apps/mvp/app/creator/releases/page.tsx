@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { getReleases } from "@/lib/actions/releases";
-import { getCurrentCycle } from "@/lib/cycle-utils";
-import { CycleStatusBadge } from "@/components/cycle-status-badge";
 import { CycleLockCountdown } from "@/components/cycle-lock-countdown";
+import { CycleStatusBadge } from "@/components/cycle-status-badge";
+import { getReleases } from "@/lib/actions/releases";
 import { computeCycleStatus } from "@/lib/cycle-status";
+import { getCurrentCycle } from "@/lib/cycle-utils";
 
 const STATUS_BADGE: Record<string, string> = {
   DRAFT: "bg-neutral-100 text-neutral-600",

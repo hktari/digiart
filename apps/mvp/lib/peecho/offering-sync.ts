@@ -15,7 +15,10 @@ export async function syncPeechoOfferings(): Promise<{
       providerConfig = await db.podProviderConfig.create({
         data: {
           provider: "Peecho",
-          environment: process.env.PEECHO_ENVIRONMENT === "PRODUCTION" ? "PRODUCTION" : "SANDBOX",
+          environment:
+            process.env.PEECHO_ENVIRONMENT === "PRODUCTION"
+              ? "PRODUCTION"
+              : "SANDBOX",
           isActive: true,
         },
       });
