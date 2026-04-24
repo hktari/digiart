@@ -6,6 +6,7 @@ FROM base AS deps
 WORKDIR /app
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml pnpm-approved-builds.json ./
 COPY apps/pdf-worker/package.json ./apps/pdf-worker/
+COPY apps/mvp/package.json ./apps/mvp/
 RUN pnpm install --frozen-lockfile --prod=false
 
 # Build the application
