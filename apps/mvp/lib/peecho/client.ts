@@ -1,5 +1,5 @@
 const PEECHO_API_URL =
-  process.env.PEECHO_API_URL || "https://sandbox.peecho.com/api/v1";
+  process.env.PEECHO_API_URL || "https://test.www.peecho.com/rest/v2";
 const PEECHO_API_KEY = process.env.PEECHO_API_KEY;
 
 if (!PEECHO_API_KEY) {
