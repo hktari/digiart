@@ -10,7 +10,7 @@
     "experimentalDecorators": true,
     "incremental": true,
     "tsBuildInfoFile": ".tsbuildinfo",
-    "types": ["node"],
+    "types": ["node", "jest"],
     "paths": {
       "@/*": ["./src/*"]
     }
