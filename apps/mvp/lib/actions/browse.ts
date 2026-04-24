@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { getPublicStorageUrl } from "@/lib/s3";
 
 export async function getAllPublishedCreators(tagSlug?: string) {
   const where: {
@@ -84,7 +85,7 @@ export async function getAllPublishedReleases(tagSlug?: string) {
     };
   }
 
-  return db.release.findMany({
+  const releases = await db.release.findMany({
     where,
     include: {
       creatorProfile: {
@@ -126,6 +127,19 @@ export async function getAllPublishedReleases(tagSlug?: string) {
       createdAt: "desc",
     },
   });
+
+  // Transform to add thumbnailUrl to artworks and flatten tags
+  return releases.map((release) => ({
+    ...release,
+    artworks: release.artworks.map((ra) => ({
+      ...ra,
+      artwork: {
+        ...ra.artwork,
+        thumbnailUrl: getPublicStorageUrl(ra.artwork.storageKey),
+      },
+    })),
+    tags: release.tags.map((rt) => rt.tag),
+  }));
 }
 
 export async function getAllTags() {

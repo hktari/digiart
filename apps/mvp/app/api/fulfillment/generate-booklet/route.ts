@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     where: { userId: session.user.id },
     select: { role: true },
   });
-  const isAdmin = roles.some((r) => r.role === "ADMIN");
+  const isAdmin = roles.some((r: { role: string }) => r.role === "ADMIN");
   if (!isAdmin) {
     return NextResponse.json(
       { error: "Admin access required" },

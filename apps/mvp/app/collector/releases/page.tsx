@@ -45,7 +45,9 @@ export default async function CollectorReleasesPage() {
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
+                  role="img"
                 >
+                  <title>Calendar icon</title>
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -73,7 +75,9 @@ export default async function CollectorReleasesPage() {
     getCollectorReleaseSelections(session.user.id, currentCycle.id),
   ]);
 
-  const selectedReleaseIds = new Set(selections.map((s) => s.release.id));
+  const selectedReleaseIds = new Set<string>(
+    selections.map((s: { release: { id: string } }) => s.release.id),
+  );
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -103,7 +107,9 @@ export default async function CollectorReleasesPage() {
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
+                role="img"
               >
+                <title>Calendar icon</title>
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
