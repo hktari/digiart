@@ -70,7 +70,9 @@ export default async function BrowseCreatorsPage({ searchParams }: Props) {
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
+                  role="img"
                 >
+                  <title>Search icon</title>
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"

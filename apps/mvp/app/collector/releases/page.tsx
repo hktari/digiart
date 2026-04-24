@@ -45,7 +45,9 @@ export default async function CollectorReleasesPage() {
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
+                  role="img"
                 >
+                  <title>Calendar icon</title>
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -105,7 +107,9 @@ export default async function CollectorReleasesPage() {
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
+                role="img"
               >
+                <title>Calendar icon</title>
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"

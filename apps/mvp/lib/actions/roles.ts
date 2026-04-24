@@ -4,7 +4,7 @@ import type { Role } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { addRole, removeRole, hasRole } from "@/lib/roles";
+import { addRole, hasRole, removeRole } from "@/lib/roles";
 
 const ROLE_REDIRECT: Record<Role, string> = {
   CREATOR: "/creator/setup",
