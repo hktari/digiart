@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createConstraint,
-  updateConstraint,
   deleteConstraint,
   toggleConstraintActive,
+  updateConstraint,
 } from "../actions/constraint-actions";
 
 vi.mock("@/lib/db", () => ({
@@ -45,10 +45,22 @@ describe("createConstraint", () => {
 
     vi.mocked(db.bookletConstraint.findFirst).mockResolvedValue(null);
     vi.mocked(db.bookletConstraint.updateMany).mockResolvedValue({ count: 0 });
-    const mockConstraint = { id: "c1", minPages: 30, maxPages: 50, isActive: true, version: 1 };
-    vi.mocked(db.bookletConstraint.create).mockResolvedValue(mockConstraint as never);
+    const mockConstraint = {
+      id: "c1",
+      minPages: 30,
+      maxPages: 50,
+      isActive: true,
+      version: 1,
+    };
+    vi.mocked(db.bookletConstraint.create).mockResolvedValue(
+      mockConstraint as never,
+    );
 
-    const fd = makeFormData({ minPages: "30", maxPages: "50", isActive: "true" });
+    const fd = makeFormData({
+      minPages: "30",
+      maxPages: "50",
+      isActive: "true",
+    });
     const result = await createConstraint(fd);
 
     expect(result.success).toBe(true);
@@ -58,11 +70,20 @@ describe("createConstraint", () => {
   it("deactivates other constraints when creating active one", async () => {
     const { db } = await import("@/lib/db");
 
-    vi.mocked(db.bookletConstraint.findFirst).mockResolvedValue({ version: 2 } as never);
+    vi.mocked(db.bookletConstraint.findFirst).mockResolvedValue({
+      version: 2,
+    } as never);
     vi.mocked(db.bookletConstraint.updateMany).mockResolvedValue({ count: 1 });
-    vi.mocked(db.bookletConstraint.create).mockResolvedValue({ id: "c2", version: 3 } as never);
+    vi.mocked(db.bookletConstraint.create).mockResolvedValue({
+      id: "c2",
+      version: 3,
+    } as never);
 
-    const fd = makeFormData({ minPages: "30", maxPages: "50", isActive: "true" });
+    const fd = makeFormData({
+      minPages: "30",
+      maxPages: "50",
+      isActive: "true",
+    });
     await createConstraint(fd);
 
     expect(db.bookletConstraint.updateMany).toHaveBeenCalledWith({
@@ -75,16 +96,26 @@ describe("createConstraint", () => {
     const { db } = await import("@/lib/db");
 
     vi.mocked(db.bookletConstraint.findFirst).mockResolvedValue(null);
-    vi.mocked(db.bookletConstraint.create).mockResolvedValue({ id: "c1" } as never);
+    vi.mocked(db.bookletConstraint.create).mockResolvedValue({
+      id: "c1",
+    } as never);
 
-    const fd = makeFormData({ minPages: "30", maxPages: "50", isActive: "false" });
+    const fd = makeFormData({
+      minPages: "30",
+      maxPages: "50",
+      isActive: "false",
+    });
     await createConstraint(fd);
 
     expect(db.bookletConstraint.updateMany).not.toHaveBeenCalled();
   });
 
   it("returns error when minPages >= maxPages", async () => {
-    const fd = makeFormData({ minPages: "50", maxPages: "30", isActive: "false" });
+    const fd = makeFormData({
+      minPages: "50",
+      maxPages: "30",
+      isActive: "false",
+    });
     const result = await createConstraint(fd);
 
     expect(result.error).toBeDefined();
@@ -94,11 +125,20 @@ describe("createConstraint", () => {
   it("increments version from latest", async () => {
     const { db } = await import("@/lib/db");
 
-    vi.mocked(db.bookletConstraint.findFirst).mockResolvedValue({ version: 5 } as never);
+    vi.mocked(db.bookletConstraint.findFirst).mockResolvedValue({
+      version: 5,
+    } as never);
     vi.mocked(db.bookletConstraint.updateMany).mockResolvedValue({ count: 0 });
-    vi.mocked(db.bookletConstraint.create).mockResolvedValue({ id: "c1", version: 6 } as never);
+    vi.mocked(db.bookletConstraint.create).mockResolvedValue({
+      id: "c1",
+      version: 6,
+    } as never);
 
-    const fd = makeFormData({ minPages: "10", maxPages: "50", isActive: "false" });
+    const fd = makeFormData({
+      minPages: "10",
+      maxPages: "50",
+      isActive: "false",
+    });
     await createConstraint(fd);
 
     expect(db.bookletConstraint.create).toHaveBeenCalledWith({
@@ -110,9 +150,16 @@ describe("createConstraint", () => {
     const { db } = await import("@/lib/db");
 
     vi.mocked(db.bookletConstraint.findFirst).mockResolvedValue(null);
-    vi.mocked(db.bookletConstraint.create).mockResolvedValue({ id: "c1", version: 1 } as never);
+    vi.mocked(db.bookletConstraint.create).mockResolvedValue({
+      id: "c1",
+      version: 1,
+    } as never);
 
-    const fd = makeFormData({ minPages: "10", maxPages: "50", isActive: "false" });
+    const fd = makeFormData({
+      minPages: "10",
+      maxPages: "50",
+      isActive: "false",
+    });
     await createConstraint(fd);
 
     expect(db.bookletConstraint.create).toHaveBeenCalledWith({
@@ -133,7 +180,11 @@ describe("updateConstraint", () => {
     const updated = { id: "c1", minPages: 25, maxPages: 60, isActive: true };
     vi.mocked(db.bookletConstraint.update).mockResolvedValue(updated as never);
 
-    const fd = makeFormData({ minPages: "25", maxPages: "60", isActive: "true" });
+    const fd = makeFormData({
+      minPages: "25",
+      maxPages: "60",
+      isActive: "true",
+    });
     const result = await updateConstraint("c1", fd);
 
     expect(result.success).toBe(true);
@@ -144,9 +195,15 @@ describe("updateConstraint", () => {
     const { db } = await import("@/lib/db");
 
     vi.mocked(db.bookletConstraint.updateMany).mockResolvedValue({ count: 1 });
-    vi.mocked(db.bookletConstraint.update).mockResolvedValue({ id: "c1" } as never);
+    vi.mocked(db.bookletConstraint.update).mockResolvedValue({
+      id: "c1",
+    } as never);
 
-    const fd = makeFormData({ minPages: "25", maxPages: "60", isActive: "true" });
+    const fd = makeFormData({
+      minPages: "25",
+      maxPages: "60",
+      isActive: "true",
+    });
     await updateConstraint("c1", fd);
 
     expect(db.bookletConstraint.updateMany).toHaveBeenCalledWith({
@@ -156,7 +213,11 @@ describe("updateConstraint", () => {
   });
 
   it("returns error for invalid data", async () => {
-    const fd = makeFormData({ minPages: "60", maxPages: "20", isActive: "false" });
+    const fd = makeFormData({
+      minPages: "60",
+      maxPages: "20",
+      isActive: "false",
+    });
     const result = await updateConstraint("c1", fd);
 
     expect(result.error).toBeDefined();
@@ -176,13 +237,17 @@ describe("deleteConstraint", () => {
     const result = await deleteConstraint("c1");
 
     expect(result.success).toBe(true);
-    expect(db.bookletConstraint.delete).toHaveBeenCalledWith({ where: { id: "c1" } });
+    expect(db.bookletConstraint.delete).toHaveBeenCalledWith({
+      where: { id: "c1" },
+    });
   });
 
   it("returns error when delete fails", async () => {
     const { db } = await import("@/lib/db");
 
-    vi.mocked(db.bookletConstraint.delete).mockRejectedValue(new Error("DB error"));
+    vi.mocked(db.bookletConstraint.delete).mockRejectedValue(
+      new Error("DB error"),
+    );
 
     const result = await deleteConstraint("c1");
 
@@ -203,7 +268,10 @@ describe("toggleConstraintActive", () => {
       isActive: false,
     } as never);
     vi.mocked(db.bookletConstraint.updateMany).mockResolvedValue({ count: 1 });
-    vi.mocked(db.bookletConstraint.update).mockResolvedValue({ id: "c1", isActive: true } as never);
+    vi.mocked(db.bookletConstraint.update).mockResolvedValue({
+      id: "c1",
+      isActive: true,
+    } as never);
 
     const result = await toggleConstraintActive("c1");
 
@@ -225,7 +293,10 @@ describe("toggleConstraintActive", () => {
       id: "c1",
       isActive: true,
     } as never);
-    vi.mocked(db.bookletConstraint.update).mockResolvedValue({ id: "c1", isActive: false } as never);
+    vi.mocked(db.bookletConstraint.update).mockResolvedValue({
+      id: "c1",
+      isActive: false,
+    } as never);
 
     const result = await toggleConstraintActive("c1");
 
@@ -250,8 +321,13 @@ describe("toggleConstraintActive", () => {
   it("returns error when toggle fails", async () => {
     const { db } = await import("@/lib/db");
 
-    vi.mocked(db.bookletConstraint.findUnique).mockResolvedValue({ id: "c1", isActive: true } as never);
-    vi.mocked(db.bookletConstraint.update).mockRejectedValue(new Error("DB error"));
+    vi.mocked(db.bookletConstraint.findUnique).mockResolvedValue({
+      id: "c1",
+      isActive: true,
+    } as never);
+    vi.mocked(db.bookletConstraint.update).mockRejectedValue(
+      new Error("DB error"),
+    );
 
     const result = await toggleConstraintActive("c1");
 

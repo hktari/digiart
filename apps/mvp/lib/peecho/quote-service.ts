@@ -1,12 +1,12 @@
 import { peechoClient } from "./client";
 
-interface QuoteParams {
+export interface QuoteParams {
   country: string;
   pageCount: number;
   offeringId?: string;
 }
 
-interface QuoteResult {
+export interface QuoteResult {
   shippingAmount: number;
   productAmount: number;
   taxAmount: number;

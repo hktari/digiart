@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { syncPeechoOfferings } from "../peecho/offering-sync";
 
 vi.mock("@/lib/db", () => ({
@@ -28,14 +28,31 @@ describe("syncPeechoOfferings", () => {
     const { db } = await import("@/lib/db");
     const { peechoClient } = await import("../peecho/client");
 
-    const newProvider = { id: "provider-1", provider: "Peecho", environment: "SANDBOX", isActive: true };
+    const newProvider = {
+      id: "provider-1",
+      provider: "Peecho",
+      environment: "SANDBOX",
+      isActive: true,
+    };
     const mockOfferings = [
-      { id: "1", name: "Booklet A4", minNumberOfPages: 20, maxNumberOfPages: 100, dimensionWidth: 210, dimensionHeight: 297, pricingDto: null },
+      {
+        id: "1",
+        name: "Booklet A4",
+        minNumberOfPages: 20,
+        maxNumberOfPages: 100,
+        dimensionWidth: 210,
+        dimensionHeight: 297,
+        pricingDto: null,
+      },
     ];
 
     vi.mocked(db.podProviderConfig.findFirst).mockResolvedValue(null);
-    vi.mocked(db.podProviderConfig.create).mockResolvedValue(newProvider as never);
-    vi.mocked(peechoClient.getOfferings).mockResolvedValue(mockOfferings as never);
+    vi.mocked(db.podProviderConfig.create).mockResolvedValue(
+      newProvider as never,
+    );
+    vi.mocked(peechoClient.getOfferings).mockResolvedValue(
+      mockOfferings as never,
+    );
     vi.mocked(db.podOffering.upsert).mockResolvedValue({} as never);
 
     const result = await syncPeechoOfferings();
@@ -52,8 +69,15 @@ describe("syncPeechoOfferings", () => {
     const { db } = await import("@/lib/db");
     const { peechoClient } = await import("../peecho/client");
 
-    const existingProvider = { id: "provider-1", provider: "Peecho", environment: "SANDBOX", isActive: true };
-    vi.mocked(db.podProviderConfig.findFirst).mockResolvedValue(existingProvider as never);
+    const existingProvider = {
+      id: "provider-1",
+      provider: "Peecho",
+      environment: "SANDBOX",
+      isActive: true,
+    };
+    vi.mocked(db.podProviderConfig.findFirst).mockResolvedValue(
+      existingProvider as never,
+    );
     vi.mocked(peechoClient.getOfferings).mockResolvedValue([]);
 
     await syncPeechoOfferings();
@@ -65,15 +89,45 @@ describe("syncPeechoOfferings", () => {
     const { db } = await import("@/lib/db");
     const { peechoClient } = await import("../peecho/client");
 
-    const provider = { id: "provider-1", provider: "Peecho", environment: "SANDBOX", isActive: true };
+    const provider = {
+      id: "provider-1",
+      provider: "Peecho",
+      environment: "SANDBOX",
+      isActive: true,
+    };
     const mockOfferings = [
-      { id: "1", name: "Booklet A5", minNumberOfPages: 20, maxNumberOfPages: 60, dimensionWidth: 148, dimensionHeight: 210 },
-      { id: "2", name: "Booklet A4", minNumberOfPages: 20, maxNumberOfPages: 100, dimensionWidth: 210, dimensionHeight: 297 },
-      { id: "3", name: "Booklet A3", minNumberOfPages: 20, maxNumberOfPages: 150, dimensionWidth: 297, dimensionHeight: 420 },
+      {
+        id: "1",
+        name: "Booklet A5",
+        minNumberOfPages: 20,
+        maxNumberOfPages: 60,
+        dimensionWidth: 148,
+        dimensionHeight: 210,
+      },
+      {
+        id: "2",
+        name: "Booklet A4",
+        minNumberOfPages: 20,
+        maxNumberOfPages: 100,
+        dimensionWidth: 210,
+        dimensionHeight: 297,
+      },
+      {
+        id: "3",
+        name: "Booklet A3",
+        minNumberOfPages: 20,
+        maxNumberOfPages: 150,
+        dimensionWidth: 297,
+        dimensionHeight: 420,
+      },
     ];
 
-    vi.mocked(db.podProviderConfig.findFirst).mockResolvedValue(provider as never);
-    vi.mocked(peechoClient.getOfferings).mockResolvedValue(mockOfferings as never);
+    vi.mocked(db.podProviderConfig.findFirst).mockResolvedValue(
+      provider as never,
+    );
+    vi.mocked(peechoClient.getOfferings).mockResolvedValue(
+      mockOfferings as never,
+    );
     vi.mocked(db.podOffering.upsert).mockResolvedValue({} as never);
 
     const result = await syncPeechoOfferings();
@@ -88,7 +142,9 @@ describe("syncPeechoOfferings", () => {
     const { peechoClient } = await import("../peecho/client");
 
     const provider = { id: "provider-1" };
-    vi.mocked(db.podProviderConfig.findFirst).mockResolvedValue(provider as never);
+    vi.mocked(db.podProviderConfig.findFirst).mockResolvedValue(
+      provider as never,
+    );
     vi.mocked(peechoClient.getOfferings).mockResolvedValue([]);
 
     const result = await syncPeechoOfferings();
@@ -101,8 +157,12 @@ describe("syncPeechoOfferings", () => {
     const { db } = await import("@/lib/db");
     const { peechoClient } = await import("../peecho/client");
 
-    vi.mocked(db.podProviderConfig.findFirst).mockResolvedValue({ id: "p1" } as never);
-    vi.mocked(peechoClient.getOfferings).mockRejectedValue(new Error("Peecho API error: 500"));
+    vi.mocked(db.podProviderConfig.findFirst).mockResolvedValue({
+      id: "p1",
+    } as never);
+    vi.mocked(peechoClient.getOfferings).mockRejectedValue(
+      new Error("Peecho API error: 500"),
+    );
 
     const result = await syncPeechoOfferings();
 
@@ -116,7 +176,9 @@ describe("syncPeechoOfferings", () => {
 
     process.env.PEECHO_ENVIRONMENT = "PRODUCTION";
     vi.mocked(db.podProviderConfig.findFirst).mockResolvedValue(null);
-    vi.mocked(db.podProviderConfig.create).mockResolvedValue({ id: "p1" } as never);
+    vi.mocked(db.podProviderConfig.create).mockResolvedValue({
+      id: "p1",
+    } as never);
     vi.mocked(peechoClient.getOfferings).mockResolvedValue([]);
 
     await syncPeechoOfferings();

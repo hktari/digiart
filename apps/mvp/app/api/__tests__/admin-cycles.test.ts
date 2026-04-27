@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { DELETE, GET as GET_ONE, PATCH } from "../admin/cycles/[id]/route";
 import { GET, POST } from "../admin/cycles/route";
-import { GET as GET_ONE, PATCH, DELETE } from "../admin/cycles/[id]/route";
 
 vi.mock("@/lib/db", () => ({
   db: {

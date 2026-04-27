@@ -1,10 +1,18 @@
-import type { SubscriptionCycle, BookletConstraint, PodOffering, PricingQuoteSnapshot } from "@prisma/client";
+import type {
+  BookletConstraint,
+  PodOffering,
+  PricingQuoteSnapshot,
+  SubscriptionCycle,
+} from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/client";
 
 /**
  * Test data factories for creating mock objects
  */
 
-export function createTestCycle(overrides?: Partial<SubscriptionCycle>): SubscriptionCycle {
+export function createTestCycle(
+  overrides?: Partial<SubscriptionCycle>,
+): SubscriptionCycle {
   const now = new Date();
   const month = now.getMonth() + 1;
   const year = now.getFullYear();
@@ -24,13 +32,16 @@ export function createTestCycle(overrides?: Partial<SubscriptionCycle>): Subscri
   };
 }
 
-export function createTestConstraint(overrides?: Partial<BookletConstraint>): BookletConstraint {
+export function createTestConstraint(
+  overrides?: Partial<BookletConstraint>,
+): BookletConstraint {
   const now = new Date();
 
   return {
     id: `test-constraint-${Date.now()}`,
     minPages: 30,
     maxPages: 50,
+    maxCreators: null,
     maxReleases: null,
     isActive: true,
     version: 1,
@@ -40,7 +51,9 @@ export function createTestConstraint(overrides?: Partial<BookletConstraint>): Bo
   };
 }
 
-export function createTestOffering(overrides?: Partial<PodOffering>): PodOffering {
+export function createTestOffering(
+  overrides?: Partial<PodOffering>,
+): PodOffering {
   const now = new Date();
 
   return {
@@ -61,7 +74,9 @@ export function createTestOffering(overrides?: Partial<PodOffering>): PodOfferin
   };
 }
 
-export function createTestQuote(overrides?: Partial<PricingQuoteSnapshot>): PricingQuoteSnapshot {
+export function createTestQuote(
+  overrides?: Partial<PricingQuoteSnapshot>,
+): PricingQuoteSnapshot {
   const now = new Date();
 
   return {
@@ -71,14 +86,12 @@ export function createTestQuote(overrides?: Partial<PricingQuoteSnapshot>): Pric
     offeringId: "test-offering-1",
     country: "US",
     requestedPageCount: 30,
-    shippingAmount: 5.0,
-    productAmount: 12.5,
-    taxAmount: 1.75,
-    totalEstimate: 19.25,
+    shippingAmount: new Decimal(5.0),
+    productAmount: new Decimal(12.5),
+    taxAmount: new Decimal(1.75),
+    totalEstimate: new Decimal(19.25),
     currency: "USD",
     quotedAt: now,
-    createdAt: now,
-    updatedAt: now,
     ...overrides,
   };
 }
@@ -86,7 +99,9 @@ export function createTestQuote(overrides?: Partial<PricingQuoteSnapshot>): Pric
 /**
  * Helper to create a cycle in a specific status
  */
-export function createCycleWithStatus(status: "OPEN" | "LOCKED" | "PROCESSING" | "COMPLETE"): SubscriptionCycle {
+export function createCycleWithStatus(
+  status: "OPEN" | "LOCKED" | "PROCESSING" | "COMPLETE",
+): SubscriptionCycle {
   const now = new Date();
   const month = now.getMonth();
   const year = now.getFullYear();

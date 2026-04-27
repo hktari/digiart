@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { redirect } from "next/navigation";
 import { NewReleaseForm } from "@/components/new-release-form";
 import { computeCycleStatus } from "@/lib/cycle-status";

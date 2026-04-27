@@ -9,10 +9,11 @@ const offeringUpdateSchema = z.object({
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     await requireAdmin();
+    const { id } = await params;
 
     const body = await request.json();
     const result = offeringUpdateSchema.safeParse(body);
@@ -25,7 +26,7 @@ export async function PATCH(
     }
 
     const offering = await db.podOffering.update({
-      where: { id: params.id },
+      where: { id },
       data: { isActive: result.data.isActive },
     });
 

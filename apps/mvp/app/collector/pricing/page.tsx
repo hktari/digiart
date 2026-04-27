@@ -22,7 +22,14 @@ export default async function CollectorPricingPage() {
 
   const currentCycle = await getCurrentCycle();
 
-  let latestQuote = null;
+  let latestQuote: {
+    shippingAmount: number;
+    productAmount: number;
+    taxAmount: number;
+    totalEstimate: number;
+    currency: string;
+    quotedAt: Date;
+  } | null = null;
   if (currentCycle) {
     const quote = await getLatestQuote(collectorProfile.id, currentCycle.id);
     if (quote) {

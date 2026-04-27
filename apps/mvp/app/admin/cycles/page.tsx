@@ -124,7 +124,10 @@ export default async function AdminCyclesPage() {
                       {cycle._count.releases === 0 &&
                         cycle._count.selections === 0 && (
                           <form
-                            action={deleteCycle.bind(null, cycle.id)}
+                            action={async () => {
+                              "use server";
+                              await deleteCycle(cycle.id);
+                            }}
                             className="inline"
                           >
                             <button

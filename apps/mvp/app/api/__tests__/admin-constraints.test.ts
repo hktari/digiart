@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GET, POST } from "../admin/booklet-constraints/route";
 
 vi.mock("@/lib/db", () => ({
@@ -41,7 +41,9 @@ describe("GET /api/admin/booklet-constraints", () => {
       { id: "c2", minPages: 25, maxPages: 60, isActive: true, version: 2 },
       { id: "c1", minPages: 30, maxPages: 50, isActive: false, version: 1 },
     ];
-    vi.mocked(db.bookletConstraint.findMany).mockResolvedValue(constraints as never);
+    vi.mocked(db.bookletConstraint.findMany).mockResolvedValue(
+      constraints as never,
+    );
 
     const res = await GET();
     const data = await res.json();
@@ -70,10 +72,20 @@ describe("POST /api/admin/booklet-constraints", () => {
   it("creates constraint and assigns next version", async () => {
     const { db } = await import("@/lib/db");
 
-    vi.mocked(db.bookletConstraint.findFirst).mockResolvedValue({ version: 3 } as never);
+    vi.mocked(db.bookletConstraint.findFirst).mockResolvedValue({
+      version: 3,
+    } as never);
     vi.mocked(db.bookletConstraint.updateMany).mockResolvedValue({ count: 0 });
-    const newConstraint = { id: "c4", minPages: 20, maxPages: 60, isActive: false, version: 4 };
-    vi.mocked(db.bookletConstraint.create).mockResolvedValue(newConstraint as never);
+    const newConstraint = {
+      id: "c4",
+      minPages: 20,
+      maxPages: 60,
+      isActive: false,
+      version: 4,
+    };
+    vi.mocked(db.bookletConstraint.create).mockResolvedValue(
+      newConstraint as never,
+    );
 
     const req = new Request("http://localhost/api/admin/booklet-constraints", {
       method: "POST",
@@ -95,7 +107,10 @@ describe("POST /api/admin/booklet-constraints", () => {
 
     vi.mocked(db.bookletConstraint.findFirst).mockResolvedValue(null);
     vi.mocked(db.bookletConstraint.updateMany).mockResolvedValue({ count: 1 });
-    vi.mocked(db.bookletConstraint.create).mockResolvedValue({ id: "c1", version: 1 } as never);
+    vi.mocked(db.bookletConstraint.create).mockResolvedValue({
+      id: "c1",
+      version: 1,
+    } as never);
 
     const req = new Request("http://localhost/api/admin/booklet-constraints", {
       method: "POST",

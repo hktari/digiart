@@ -1,3 +1,4 @@
+import type { CycleStatus, SubscriptionCycle } from "@prisma/client";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CycleLockedBanner } from "@/components/cycle-locked-banner";
@@ -36,8 +37,8 @@ export default async function CreatorReleaseDetailPage({
   const isLocked = release.status !== "DRAFT" || !canEdit;
   const selectedIds = release.artworks.map((ra) => ra.artworkId);
 
-  let cycle = null;
-  let cycleStatus = null;
+  let cycle: SubscriptionCycle | null = null;
+  let cycleStatus: CycleStatus | null = null;
   if (release.cycleId) {
     cycle = await db.subscriptionCycle.findUnique({
       where: { id: release.cycleId },

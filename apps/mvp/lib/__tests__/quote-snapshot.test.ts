@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQuoteSnapshot, getLatestQuote } from "../pricing/quote-snapshot";
 
 vi.mock("@/lib/db", () => ({
@@ -54,9 +54,16 @@ describe("createQuoteSnapshot", () => {
       quotedAt: new Date(),
     };
 
-    vi.mocked(db.pricingQuoteSnapshot.create).mockResolvedValue(mockSnapshot as never);
+    vi.mocked(db.pricingQuoteSnapshot.create).mockResolvedValue(
+      mockSnapshot as never,
+    );
 
-    const result = await createQuoteSnapshot("collector-1", "cycle-1", 30, mockQuoteData);
+    const result = await createQuoteSnapshot(
+      "collector-1",
+      "cycle-1",
+      30,
+      mockQuoteData,
+    );
 
     expect(result).toEqual(mockSnapshot);
     expect(db.pricingQuoteSnapshot.create).toHaveBeenCalledWith({
@@ -81,32 +88,36 @@ describe("createQuoteSnapshot", () => {
     vi.mocked(db.podOffering.findFirst).mockResolvedValue(null);
 
     await expect(
-      createQuoteSnapshot("collector-1", "cycle-1", 30, mockQuoteData)
+      createQuoteSnapshot("collector-1", "cycle-1", 30, mockQuoteData),
     ).rejects.toThrow("Offering not found");
   });
 
   it("throws when collector profile not found", async () => {
     const { db } = await import("@/lib/db");
 
-    vi.mocked(db.podOffering.findFirst).mockResolvedValue({ id: "db-offering-1" } as never);
+    vi.mocked(db.podOffering.findFirst).mockResolvedValue({
+      id: "db-offering-1",
+    } as never);
     vi.mocked(db.collectorProfile.findUnique).mockResolvedValue(null);
 
     await expect(
-      createQuoteSnapshot("collector-1", "cycle-1", 30, mockQuoteData)
+      createQuoteSnapshot("collector-1", "cycle-1", 30, mockQuoteData),
     ).rejects.toThrow("Collector shipping country not set");
   });
 
   it("throws when collector has no shipping country", async () => {
     const { db } = await import("@/lib/db");
 
-    vi.mocked(db.podOffering.findFirst).mockResolvedValue({ id: "db-offering-1" } as never);
+    vi.mocked(db.podOffering.findFirst).mockResolvedValue({
+      id: "db-offering-1",
+    } as never);
     vi.mocked(db.collectorProfile.findUnique).mockResolvedValue({
       id: "collector-1",
       shippingCountry: null,
     } as never);
 
     await expect(
-      createQuoteSnapshot("collector-1", "cycle-1", 30, mockQuoteData)
+      createQuoteSnapshot("collector-1", "cycle-1", 30, mockQuoteData),
     ).rejects.toThrow("Collector shipping country not set");
   });
 });
@@ -129,7 +140,9 @@ describe("getLatestQuote", () => {
       offering: { id: "db-offering-1", name: "Softcover" },
     };
 
-    vi.mocked(db.pricingQuoteSnapshot.findFirst).mockResolvedValue(mockQuote as never);
+    vi.mocked(db.pricingQuoteSnapshot.findFirst).mockResolvedValue(
+      mockQuote as never,
+    );
 
     const result = await getLatestQuote("collector-1", "cycle-1");
 

@@ -88,7 +88,9 @@ export async function seedTestData() {
 /**
  * Create a test user with specific role
  */
-export async function createTestUser(role: "CREATOR" | "COLLECTOR" | "ADMIN" = "CREATOR") {
+export async function createTestUser(
+  role: "CREATOR" | "COLLECTOR" | "ADMIN" = "CREATOR",
+) {
   const user = await db.user.create({
     data: {
       id: `test-user-${Date.now()}`,

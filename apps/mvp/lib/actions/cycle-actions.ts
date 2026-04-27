@@ -89,10 +89,8 @@ export async function updateCycle(id: string, formData: FormData) {
 
   const existing = await db.subscriptionCycle.findFirst({
     where: {
-      month_year: {
-        month: result.data.month,
-        year: result.data.year,
-      },
+      month: result.data.month,
+      year: result.data.year,
       id: { not: id },
     },
   });

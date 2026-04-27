@@ -1,7 +1,7 @@
 "use client";
 
 import type { BookletConstraint } from "@prisma/client";
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ConstraintForm } from "@/components/constraint-form";
 import {
   createConstraint,

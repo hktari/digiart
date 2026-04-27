@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { POST } from "../pricing/quote/route";
 
 vi.mock("@/lib/auth", () => ({
@@ -43,7 +43,11 @@ describe("POST /api/pricing/quote", () => {
     expect(res.status).toBe(200);
     expect(data.totalEstimate).toBe(19.25);
     expect(data.currency).toBe("USD");
-    expect(getQuote).toHaveBeenCalledWith({ country: "US", pageCount: 30, offeringId: undefined });
+    expect(getQuote).toHaveBeenCalledWith({
+      country: "US",
+      pageCount: 30,
+      offeringId: undefined,
+    });
   });
 
   it("returns 401 for unauthenticated request", async () => {
@@ -61,7 +65,10 @@ describe("POST /api/pricing/quote", () => {
 
   it("returns 400 when country is missing", async () => {
     const { auth } = await import("@/lib/auth");
-    vi.mocked(auth).mockResolvedValue({ user: { id: "user-1" }, expires: "2099-01-01" });
+    vi.mocked(auth).mockResolvedValue({
+      user: { id: "user-1" },
+      expires: "2099-01-01",
+    });
 
     const req = new Request("http://localhost/api/pricing/quote", {
       method: "POST",
@@ -74,7 +81,10 @@ describe("POST /api/pricing/quote", () => {
 
   it("returns 400 when pageCount is missing", async () => {
     const { auth } = await import("@/lib/auth");
-    vi.mocked(auth).mockResolvedValue({ user: { id: "user-1" }, expires: "2099-01-01" });
+    vi.mocked(auth).mockResolvedValue({
+      user: { id: "user-1" },
+      expires: "2099-01-01",
+    });
 
     const req = new Request("http://localhost/api/pricing/quote", {
       method: "POST",
@@ -87,7 +97,10 @@ describe("POST /api/pricing/quote", () => {
 
   it("returns 400 when country is invalid (not 2-char)", async () => {
     const { auth } = await import("@/lib/auth");
-    vi.mocked(auth).mockResolvedValue({ user: { id: "user-1" }, expires: "2099-01-01" });
+    vi.mocked(auth).mockResolvedValue({
+      user: { id: "user-1" },
+      expires: "2099-01-01",
+    });
 
     const req = new Request("http://localhost/api/pricing/quote", {
       method: "POST",
@@ -102,7 +115,10 @@ describe("POST /api/pricing/quote", () => {
     const { auth } = await import("@/lib/auth");
     const { getQuote } = await import("@/lib/peecho/quote-service");
 
-    vi.mocked(auth).mockResolvedValue({ user: { id: "user-1" }, expires: "2099-01-01" });
+    vi.mocked(auth).mockResolvedValue({
+      user: { id: "user-1" },
+      expires: "2099-01-01",
+    });
     vi.mocked(getQuote).mockResolvedValue({
       shippingAmount: 5.0,
       productAmount: 12.5,
@@ -114,7 +130,11 @@ describe("POST /api/pricing/quote", () => {
 
     const req = new Request("http://localhost/api/pricing/quote", {
       method: "POST",
-      body: JSON.stringify({ country: "US", pageCount: 30, offeringId: "specific-offering" }),
+      body: JSON.stringify({
+        country: "US",
+        pageCount: 30,
+        offeringId: "specific-offering",
+      }),
     });
 
     await POST(req);
@@ -130,8 +150,13 @@ describe("POST /api/pricing/quote", () => {
     const { auth } = await import("@/lib/auth");
     const { getQuote } = await import("@/lib/peecho/quote-service");
 
-    vi.mocked(auth).mockResolvedValue({ user: { id: "user-1" }, expires: "2099-01-01" });
-    vi.mocked(getQuote).mockRejectedValue(new Error("No suitable offering found"));
+    vi.mocked(auth).mockResolvedValue({
+      user: { id: "user-1" },
+      expires: "2099-01-01",
+    });
+    vi.mocked(getQuote).mockRejectedValue(
+      new Error("No suitable offering found"),
+    );
 
     const req = new Request("http://localhost/api/pricing/quote", {
       method: "POST",

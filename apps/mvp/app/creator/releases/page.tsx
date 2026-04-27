@@ -50,7 +50,7 @@ export default async function CreatorReleasesPage() {
         </div>
       )}
 
-      {currentCycle && cycleStatus !== "OPEN" && (
+      {currentCycle && cycleStatus && cycleStatus !== "OPEN" && (
         <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <p className="text-sm text-yellow-800">
             <strong>Cycle {cycleStatus.toLowerCase()}:</strong> New releases

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import type { PodProviderConfig, PodOffering } from "@prisma/client";
+import type { PodOffering, PodProviderConfig } from "@prisma/client";
+import { useCallback, useEffect, useState } from "react";
 
 type ProviderWithOfferings = PodProviderConfig & {
   offerings: PodOffering[];

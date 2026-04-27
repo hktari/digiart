@@ -1,7 +1,6 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { computeCycleStatus } from "../cycle-status";
 import { createTestCycle } from "../test-utils";
-import type { SubscriptionCycle } from "@prisma/client";
 
 // Mock db at top level
 vi.mock("@/lib/db", () => ({

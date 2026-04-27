@@ -16,13 +16,14 @@ const cycleUpdateSchema = z.object({
 
 export async function GET(
   _request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     await requireAdmin();
+    const { id } = await params;
 
     const cycle = await db.subscriptionCycle.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         releases: { include: { creatorProfile: true } },
         selections: { include: { collectorProfile: true } },
@@ -41,10 +42,11 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     await requireAdmin();
+    const { id } = await params;
 
     const body = await request.json();
     const result = cycleUpdateSchema.safeParse(body);
@@ -75,7 +77,7 @@ export async function PATCH(
     }
 
     const cycle = await db.subscriptionCycle.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
     });
 
@@ -90,13 +92,14 @@ export async function PATCH(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     await requireAdmin();
+    const { id } = await params;
 
     const cycle = await db.subscriptionCycle.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         selections: true,
         releases: true,
@@ -115,7 +118,7 @@ export async function DELETE(
     }
 
     await db.subscriptionCycle.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({ success: true });

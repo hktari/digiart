@@ -1,3 +1,5 @@
+import { vi } from "vitest";
+
 /**
  * Mock utilities for testing
  */
