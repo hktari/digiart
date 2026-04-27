@@ -169,9 +169,18 @@ export async function updateRelease(
 
   const existing = await db.release.findFirst({
     where: { id, creatorProfileId },
-    select: { id: true },
+    select: { id: true, cycleId: true },
   });
   if (!existing) return { success: false, errors: { id: "Release not found" } };
+
+  const { canEditRelease } = await import("@/lib/cycle-utils");
+  const canEdit = await canEditRelease(existing.cycleId);
+  if (!canEdit) {
+    return {
+      success: false,
+      errors: { cycle: "Cannot edit release - cycle is locked" },
+    };
+  }
 
   await db.release.update({
     where: { id },
@@ -204,11 +213,17 @@ export async function setReleaseArtworks(
 
   const release = await db.release.findFirst({
     where: { id: releaseId, creatorProfileId },
-    select: { id: true, status: true },
+    select: { id: true, status: true, cycleId: true },
   });
   if (!release) return { success: false, error: "Release not found" };
   if (release.status === "PUBLISHED") {
     return { success: false, error: "Cannot edit a published release" };
+  }
+
+  const { canEditRelease } = await import("@/lib/cycle-utils");
+  const canEdit = await canEditRelease(release.cycleId);
+  if (!canEdit) {
+    return { success: false, error: "Cannot edit release - cycle is locked" };
   }
 
   // Verify all artworks belong to this creator
@@ -251,6 +266,15 @@ export async function publishRelease(
     return {
       success: false,
       error: `Add at least 5 artworks before publishing (currently ${release._count.artworks})`,
+    };
+  }
+
+  const { canEditRelease } = await import("@/lib/cycle-utils");
+  const canEdit = await canEditRelease(release.cycleId);
+  if (!canEdit) {
+    return {
+      success: false,
+      error: "Cannot publish release - cycle is locked",
     };
   }
 

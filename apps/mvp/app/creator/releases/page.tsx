@@ -1,5 +1,9 @@
 import Link from "next/link";
+import { CycleLockCountdown } from "@/components/cycle-lock-countdown";
+import { CycleStatusBadge } from "@/components/cycle-status-badge";
 import { getReleases } from "@/lib/actions/releases";
+import { computeCycleStatus } from "@/lib/cycle-status";
+import { getCurrentCycle } from "@/lib/cycle-utils";
 
 const STATUS_BADGE: Record<string, string> = {
   DRAFT: "bg-neutral-100 text-neutral-600",
@@ -9,20 +13,51 @@ const STATUS_BADGE: Record<string, string> = {
 
 export default async function CreatorReleasesPage() {
   const releases = await getReleases();
+  const currentCycle = await getCurrentCycle();
+  const cycleStatus = currentCycle ? computeCycleStatus(currentCycle) : null;
+  const canCreateRelease = cycleStatus === "OPEN";
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
-          Releases
-        </h1>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
+            Releases
+          </h1>
+          {currentCycle && cycleStatus && (
+            <div className="flex items-center gap-2 mt-2">
+              <span className="text-sm text-neutral-600">Current cycle:</span>
+              <CycleStatusBadge status={cycleStatus} />
+            </div>
+          )}
+        </div>
         <Link
           href="/creator/releases/new"
-          className="rounded-lg bg-fuchsia-600 px-4 py-2 text-sm font-semibold text-white hover:bg-fuchsia-700 transition-colors"
+          className={`rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors ${
+            canCreateRelease
+              ? "bg-fuchsia-600 hover:bg-fuchsia-700"
+              : "bg-gray-400 cursor-not-allowed pointer-events-none"
+          }`}
+          aria-disabled={!canCreateRelease}
         >
           + New release
         </Link>
       </div>
+
+      {currentCycle && cycleStatus === "OPEN" && (
+        <div className="mb-6">
+          <CycleLockCountdown lockDate={currentCycle.lockDate} />
+        </div>
+      )}
+
+      {currentCycle && cycleStatus && cycleStatus !== "OPEN" && (
+        <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <p className="text-sm text-yellow-800">
+            <strong>Cycle {cycleStatus.toLowerCase()}:</strong> New releases
+            cannot be created at this time.
+          </p>
+        </div>
+      )}
 
       {releases.length === 0 ? (
         <div className="rounded-xl border border-dashed border-neutral-200 py-16 text-center">

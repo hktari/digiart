@@ -1,4 +1,6 @@
 import type { Role } from "@prisma/client";
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 export type { Role };
@@ -25,4 +27,16 @@ export async function addRole(userId: string, role: Role): Promise<void> {
 
 export async function removeRole(userId: string, role: Role): Promise<void> {
   await db.userRole.deleteMany({ where: { userId, role } });
+}
+
+export async function requireAdmin(): Promise<string> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    redirect("/auth/sign-in");
+  }
+  const isAdmin = await hasRole(session.user.id, "ADMIN");
+  if (!isAdmin) {
+    redirect("/");
+  }
+  return session.user.id;
 }
