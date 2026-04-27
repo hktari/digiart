@@ -51,11 +51,9 @@ async function runTests(): Promise<TestResult> {
   console.log(`${CYAN}═══════════════════════════════════════${RESET}`);
 
   const apiUrl =
-    process.env.PEECHO_API_URL || "https://test.www.peecho.com/rest/v2";
-  const hasButtonKey = !!process.env.PEECHO_BUTTON_KEY;
+    process.env.PEECHO_API_URL || "https://test.www.peecho.com/rest/v3";
   const hasMerchantKey = !!process.env.PEECHO_MERCHANT_API_KEY;
   info(`API URL: ${apiUrl}`);
-  info(`Button Key: ${hasButtonKey ? "set" : "NOT SET - tests will fail"}`);
   info(
     `Merchant API Key: ${hasMerchantKey ? "set" : "NOT SET - tests will fail"}`,
   );
@@ -122,69 +120,61 @@ async function runTests(): Promise<TestResult> {
       pass(`Quote received successfully`);
       result.passed++;
 
-      // Validate quote fields
-      const quoteFields: (keyof typeof quote)[] = [
-        "product_price",
-        "shipping_wholesale",
-        "total_price",
-        "currency",
-      ];
+      const currency = quote.quoteDetails.currency;
+      const item = quote.quotedItems[0];
 
-      for (const field of quoteFields) {
-        if (quote[field] !== undefined && quote[field] !== null) {
-          pass(`Quote has required field: ${field} = ${quote[field]}`);
+      if (item) {
+        pass(`Quote has quotedItems[0]`);
+        result.passed++;
+      } else {
+        fail(`Quote missing quotedItems`);
+        result.failed++;
+      }
+
+      if (item) {
+        // Validate amounts are positive numbers
+        if (item.productPrice > 0) {
+          pass(`Product amount is positive: ${item.productPrice} ${currency}`);
           result.passed++;
         } else {
-          fail(`Quote missing required field: ${field}`);
+          fail(`Product amount is not a positive number: ${item.productPrice}`);
           result.failed++;
         }
-      }
 
-      // Validate amounts are positive numbers
-      const productPrice = parseFloat(quote.product_price);
-      const shippingPrice = parseFloat(quote.shipping_wholesale);
-      const vatAmount = parseFloat(quote.vat);
-      const totalPrice = parseFloat(quote.total_price);
+        if (item.totalItemPrice >= item.productPrice) {
+          pass(
+            `Total amount >= product amount: ${item.totalItemPrice} ${currency}`,
+          );
+          result.passed++;
+        } else {
+          fail(
+            `Total (${item.totalItemPrice}) is less than product (${item.productPrice})`,
+          );
+          result.failed++;
+        }
 
-      if (!Number.isNaN(productPrice) && productPrice > 0) {
-        pass(
-          `Product amount is positive: ${quote.product_price} ${quote.currency}`,
-        );
-        result.passed++;
-      } else {
-        fail(`Product amount is not a positive number: ${quote.product_price}`);
-        result.failed++;
-      }
+        // ── Section 4: Quote Calculation Sanity ───────────────
+        section("4. Quote Calculation Sanity Check");
 
-      if (!Number.isNaN(totalPrice) && totalPrice >= productPrice) {
-        pass(
-          `Total amount >= product amount: ${quote.total_price} ${quote.currency}`,
-        );
-        result.passed++;
-      } else {
-        fail(
-          `Total amount (${quote.total_price}) is less than product amount (${quote.product_price})`,
-        );
-        result.failed++;
-      }
+        const calculated =
+          item.productPrice +
+          item.shippingWholesale +
+          item.vat -
+          item.totalQuantityDiscount;
+        const diff = Math.abs(calculated - item.totalItemPrice);
+        const tolerance = 0.02;
 
-      // ── Section 4: Quote Calculation Sanity ───────────────
-      section("4. Quote Calculation Sanity Check");
-
-      const calculated = productPrice + shippingPrice + vatAmount;
-      const diff = Math.abs(calculated - totalPrice);
-      const tolerance = 0.02; // Allow 2 cents rounding tolerance
-
-      if (diff <= tolerance) {
-        pass(
-          `Total amount matches: product + shipping + vat ≈ total (diff: ${diff.toFixed(4)})`,
-        );
-        result.passed++;
-      } else {
-        fail(
-          `Total mismatch: ${quote.product_price} + ${quote.shipping_wholesale} + ${quote.vat} = ${calculated.toFixed(2)} ≠ ${quote.total_price}`,
-        );
-        result.failed++;
+        if (diff <= tolerance) {
+          pass(
+            `Total matches: product + shipping + vat - discount ≈ total (diff: ${diff.toFixed(4)})`,
+          );
+          result.passed++;
+        } else {
+          fail(
+            `Total mismatch: ${item.productPrice} + ${item.shippingWholesale} + ${item.vat} - ${item.totalQuantityDiscount} = ${calculated.toFixed(2)} ≠ ${item.totalItemPrice}`,
+          );
+          result.failed++;
+        }
       }
     } catch (err) {
       fail("Failed to fetch quote", err);
@@ -202,7 +192,10 @@ async function runTests(): Promise<TestResult> {
           page_count: testPageCount,
           country,
         });
-        pass(`Quote for ${country}: ${quote.total_price} ${quote.currency}`);
+        const item0 = quote.quotedItems[0];
+        pass(
+          `Quote for ${country}: ${item0?.totalItemPrice} ${quote.quoteDetails.currency}`,
+        );
         result.passed++;
       } catch (err) {
         // Some offerings may not support all countries
@@ -217,7 +210,7 @@ async function runTests(): Promise<TestResult> {
 
     try {
       await client.getQuote({
-        offering_id: "nonexistent-offering-id",
+        offering_id: "9999999",
         page_count: 30,
         country: "US",
       });

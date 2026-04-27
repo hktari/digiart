@@ -45,12 +45,17 @@ export async function getQuote(params: QuoteParams): Promise<QuoteResult> {
       country: params.country,
     });
 
+    const item = quote.quotedItems[0];
+    if (!item) {
+      throw new Error("No quote items returned from Peecho");
+    }
+
     return {
-      shippingAmount: parseFloat(quote.shipping_wholesale),
-      productAmount: parseFloat(quote.product_price),
-      taxAmount: parseFloat(quote.vat),
-      totalEstimate: parseFloat(quote.total_price),
-      currency: quote.currency,
+      shippingAmount: item.shippingWholesale,
+      productAmount: item.productPrice,
+      taxAmount: item.vat,
+      totalEstimate: item.totalItemPrice,
+      currency: quote.quoteDetails.currency,
       offeringId,
     };
   } catch (error) {

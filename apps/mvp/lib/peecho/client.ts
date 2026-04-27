@@ -1,5 +1,5 @@
 const PEECHO_API_URL =
-  process.env.PEECHO_API_URL || "https://test.www.peecho.com/rest/v2";
+  process.env.PEECHO_API_URL || "https://test.www.peecho.com/rest/v3";
 
 export interface PeechoOffering {
   id: number;
@@ -21,6 +21,20 @@ export interface PeechoOffering {
   pagesIncludedInBasePrice: number;
 }
 
+export interface PeechoQuoteItem {
+  offeringId: number;
+  numberOfPages: number;
+  quantity: number;
+  basePrice: number;
+  pricePerPage: number;
+  productPrice: number;
+  shippingWholesale: number;
+  totalQuantityDiscount: number;
+  vatPercentage: number;
+  vat: number;
+  totalItemPrice: number;
+}
+
 export interface PeechoQuoteParams {
   offering_id: string;
   page_count: number;
@@ -30,37 +44,35 @@ export interface PeechoQuoteParams {
 }
 
 export interface PeechoQuoteResponse {
-  offering_id: number;
-  number_of_pages: number;
-  quantity: number;
-  country_code: string;
-  base_price: string;
-  price_per_page: string;
-  product_price: string;
-  shipping_wholesale: string;
-  total_quantity_discount: string;
-  vat_percentage: string;
-  vat: string;
-  total_price: string;
-  currency: string;
-  exchange_rate: string;
+  quoteDetails: {
+    countryCode: string;
+    state?: string;
+    currency: string;
+    exchangeRate: string;
+  };
+  quotedItems: PeechoQuoteItem[];
+  quoteSummary: {
+    numberOfItems: number;
+    totalWholesalePrice: number;
+    totalShippingPrice: number;
+    vatSummary: { vatPercentage: number; vat: number }[];
+    totalQuantityDiscount: number;
+  };
 }
 
 type OfferingsApiResponse = Record<string, Record<string, PeechoOffering[]>>;
 
 export class PeechoClient {
   private apiUrl: string;
-  private buttonKey: string;
   private merchantApiKey: string;
 
   constructor() {
     this.apiUrl = process.env.PEECHO_API_URL || PEECHO_API_URL;
-    this.buttonKey = process.env.PEECHO_BUTTON_KEY || "";
     this.merchantApiKey = process.env.PEECHO_MERCHANT_API_KEY || "";
 
-    if (!this.buttonKey || !this.merchantApiKey) {
+    if (!this.merchantApiKey) {
       console.warn(
-        "PEECHO_BUTTON_KEY or PEECHO_MERCHANT_API_KEY is not set. Peecho integration will not work.",
+        "PEECHO_MERCHANT_API_KEY is not set. Peecho integration will not work.",
       );
     }
   }
@@ -86,10 +98,28 @@ export class PeechoClient {
     return response.json();
   }
 
+  private async post<T>(endpoint: string, body: unknown): Promise<T> {
+    const url = `${this.apiUrl}${endpoint}`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Peecho API error: ${response.status} ${response.statusText} - ${errorText}`,
+      );
+    }
+
+    return response.json();
+  }
+
   async getOfferings(): Promise<PeechoOffering[]> {
     try {
       const data = await this.get<OfferingsApiResponse>("/offering/list", {
-        buttonKey: this.buttonKey,
         merchantApiKey: this.merchantApiKey,
       });
 
@@ -108,13 +138,17 @@ export class PeechoClient {
 
   async getQuote(params: PeechoQuoteParams): Promise<PeechoQuoteResponse> {
     try {
-      const data = await this.get<PeechoQuoteResponse>("/offering/quote", {
-        merchantApiKey: this.merchantApiKey,
-        offeringId: params.offering_id,
-        numberOfPages: params.page_count.toString(),
-        quantity: (params.quantity ?? 1).toString(),
-        countryCodeIso2: params.country,
+      const data = await this.post<PeechoQuoteResponse>("/quote", {
+        apiKey: this.merchantApiKey,
+        countryCode: params.country,
         ...(params.currency ? { currency: params.currency } : {}),
+        items: [
+          {
+            offeringId: parseInt(params.offering_id, 10),
+            numberOfPages: params.page_count,
+            quantity: params.quantity ?? 1,
+          },
+        ],
       });
       return data;
     } catch (error) {

@@ -24,20 +24,29 @@ describe("getQuote", () => {
     const { peechoClient } = await import("../peecho/client");
 
     vi.mocked(peechoClient.getQuote).mockResolvedValue({
-      offering_id: 1,
-      number_of_pages: 30,
-      quantity: 1,
-      country_code: "US",
-      base_price: "2.26",
-      price_per_page: "0.11",
-      product_price: "12.50",
-      shipping_wholesale: "5.00",
-      total_quantity_discount: "0.00",
-      vat_percentage: "0%",
-      vat: "1.75",
-      total_price: "19.25",
-      currency: "USD",
-      exchange_rate: "1.00",
+      quoteDetails: { countryCode: "US", currency: "USD", exchangeRate: "1" },
+      quotedItems: [
+        {
+          offeringId: 1,
+          numberOfPages: 30,
+          quantity: 1,
+          basePrice: 2.26,
+          pricePerPage: 0.11,
+          productPrice: 12.5,
+          shippingWholesale: 5.0,
+          totalQuantityDiscount: 0,
+          vatPercentage: 0,
+          vat: 1.75,
+          totalItemPrice: 19.25,
+        },
+      ],
+      quoteSummary: {
+        numberOfItems: 1,
+        totalWholesalePrice: 19.25,
+        totalShippingPrice: 5.0,
+        vatSummary: [{ vatPercentage: 0, vat: 0 }],
+        totalQuantityDiscount: 0,
+      },
     });
 
     const result = await getQuote({
@@ -76,20 +85,33 @@ describe("getQuote", () => {
     } as never);
 
     vi.mocked(peechoClient.getQuote).mockResolvedValue({
-      offering_id: 2,
-      number_of_pages: 40,
-      quantity: 1,
-      country_code: "DE",
-      base_price: "2.00",
-      price_per_page: "0.10",
-      product_price: "10.00",
-      shipping_wholesale: "4.00",
-      total_quantity_discount: "0.00",
-      vat_percentage: "19%",
-      vat: "1.40",
-      total_price: "15.40",
-      currency: "EUR",
-      exchange_rate: "0.88",
+      quoteDetails: {
+        countryCode: "DE",
+        currency: "EUR",
+        exchangeRate: "0.88",
+      },
+      quotedItems: [
+        {
+          offeringId: 2,
+          numberOfPages: 40,
+          quantity: 1,
+          basePrice: 2.0,
+          pricePerPage: 0.1,
+          productPrice: 10.0,
+          shippingWholesale: 4.0,
+          totalQuantityDiscount: 0,
+          vatPercentage: 19,
+          vat: 1.4,
+          totalItemPrice: 15.4,
+        },
+      ],
+      quoteSummary: {
+        numberOfItems: 1,
+        totalWholesalePrice: 15.4,
+        totalShippingPrice: 4.0,
+        vatSummary: [{ vatPercentage: 19, vat: 1.4 }],
+        totalQuantityDiscount: 0,
+      },
     });
 
     const result = await getQuote({ country: "DE", pageCount: 40 });
@@ -131,20 +153,33 @@ describe("getQuote", () => {
     const { peechoClient } = await import("../peecho/client");
 
     vi.mocked(peechoClient.getQuote).mockResolvedValue({
-      offering_id: 3,
-      number_of_pages: 50,
-      quantity: 1,
-      country_code: "GB",
-      base_price: "3.00",
-      price_per_page: "0.15",
-      product_price: "20.00",
-      shipping_wholesale: "8.50",
-      total_quantity_discount: "0.00",
-      vat_percentage: "20%",
-      vat: "2.85",
-      total_price: "31.35",
-      currency: "GBP",
-      exchange_rate: "0.85",
+      quoteDetails: {
+        countryCode: "GB",
+        currency: "GBP",
+        exchangeRate: "0.85",
+      },
+      quotedItems: [
+        {
+          offeringId: 3,
+          numberOfPages: 50,
+          quantity: 1,
+          basePrice: 3.0,
+          pricePerPage: 0.15,
+          productPrice: 20.0,
+          shippingWholesale: 8.5,
+          totalQuantityDiscount: 0,
+          vatPercentage: 20,
+          vat: 2.85,
+          totalItemPrice: 31.35,
+        },
+      ],
+      quoteSummary: {
+        numberOfItems: 1,
+        totalWholesalePrice: 31.35,
+        totalShippingPrice: 8.5,
+        vatSummary: [{ vatPercentage: 20, vat: 2.85 }],
+        totalQuantityDiscount: 0,
+      },
     });
 
     const result = await getQuote({

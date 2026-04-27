@@ -9,7 +9,6 @@ describe("PeechoClient", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.PEECHO_BUTTON_KEY = "test-button-key";
     process.env.PEECHO_MERCHANT_API_KEY = "test-merchant-key";
     process.env.PEECHO_API_URL = "https://test.www.peecho.com/rest/v2";
     client = new PeechoClient();
@@ -45,7 +44,7 @@ describe("PeechoClient", () => {
         expect.any(Object),
       );
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("buttonKey=test-button-key"),
+        expect.stringContaining("merchantApiKey=test-merchant-key"),
         expect.any(Object),
       );
     });
@@ -74,24 +73,33 @@ describe("PeechoClient", () => {
   });
 
   describe("getQuote", () => {
-    const mockQuote = {
-      offering_id: 12345,
-      number_of_pages: 30,
-      quantity: 1,
-      country_code: "US",
-      base_price: "2.26",
-      price_per_page: "0.11",
-      product_price: "12.50",
-      shipping_wholesale: "5.00",
-      total_quantity_discount: "0.00",
-      vat_percentage: "0%",
-      vat: "1.75",
-      total_price: "19.25",
-      currency: "USD",
-      exchange_rate: "1.00",
+    const mockQuote: import("../peecho/client").PeechoQuoteResponse = {
+      quoteDetails: { countryCode: "US", currency: "USD", exchangeRate: "1" },
+      quotedItems: [
+        {
+          offeringId: 12345,
+          numberOfPages: 30,
+          quantity: 1,
+          basePrice: 2.26,
+          pricePerPage: 0.11,
+          productPrice: 12.5,
+          shippingWholesale: 5.0,
+          totalQuantityDiscount: 0,
+          vatPercentage: 0,
+          vat: 1.75,
+          totalItemPrice: 19.25,
+        },
+      ],
+      quoteSummary: {
+        numberOfItems: 1,
+        totalWholesalePrice: 19.25,
+        totalShippingPrice: 5.0,
+        vatSummary: [{ vatPercentage: 0, vat: 0 }],
+        totalQuantityDiscount: 0,
+      },
     };
 
-    it("fetches quote with correct parameters via GET query params", async () => {
+    it("fetches quote via POST /quote with JSON body", async () => {
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: () => Promise.resolve(mockQuote),
@@ -106,16 +114,20 @@ describe("PeechoClient", () => {
 
       expect(result).toEqual(mockQuote);
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("/offering/quote"),
-        expect.any(Object),
+        expect.stringContaining("/quote"),
+        expect.objectContaining({ method: "POST" }),
       );
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("offeringId=12345"),
-        expect.any(Object),
+        expect.any(String),
+        expect.objectContaining({
+          body: expect.stringContaining('"offeringId":12345'),
+        }),
       );
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("countryCodeIso2=US"),
-        expect.any(Object),
+        expect.any(String),
+        expect.objectContaining({
+          body: expect.stringContaining('"countryCode":"US"'),
+        }),
       );
     });
 
@@ -127,14 +139,16 @@ describe("PeechoClient", () => {
       } as Response);
 
       await client.getQuote({
-        offering_id: "o1",
+        offering_id: "123",
         page_count: 30,
         country: "US",
       });
 
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("quantity=1"),
-        expect.any(Object),
+        expect.any(String),
+        expect.objectContaining({
+          body: expect.stringContaining('"quantity":1'),
+        }),
       );
     });
 
@@ -146,15 +160,17 @@ describe("PeechoClient", () => {
       } as Response);
 
       await client.getQuote({
-        offering_id: "o1",
+        offering_id: "123",
         page_count: 30,
         country: "US",
         quantity: 5,
       });
 
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining("quantity=5"),
-        expect.any(Object),
+        expect.any(String),
+        expect.objectContaining({
+          body: expect.stringContaining('"quantity":5'),
+        }),
       );
     });
 
