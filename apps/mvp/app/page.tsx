@@ -21,14 +21,14 @@ export default function HomePage() {
           </p>
           <div className="mt-10 flex flex-col sm:flex-row gap-3 justify-center">
             <Link
-              href="/discover"
+              href="/browse/creators"
               className="inline-flex items-center justify-center gap-2 bg-ocean-600 text-paper text-sm font-medium px-6 py-3 rounded hover:bg-ocean-700 transition-colors"
             >
               Browse artists
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
-              href="/register"
+              href="/auth/sign-up"
               className="inline-flex items-center justify-center gap-2 bg-paper-dark text-ink text-sm font-medium px-6 py-3 rounded hover:bg-beige-200 transition-colors border border-beige-200"
             >
               Get started free
@@ -92,7 +92,7 @@ export default function HomePage() {
             Join thousands of collectors supporting independent artists.
           </p>
           <Link
-            href="/register"
+            href="/auth/sign-up"
             className="mt-8 inline-flex items-center gap-2 bg-ocean-600 text-paper text-sm font-medium px-8 py-3 rounded hover:bg-ocean-700 transition-colors"
           >
             Create your account

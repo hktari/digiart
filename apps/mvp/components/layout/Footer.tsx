@@ -3,14 +3,14 @@ import Link from "next/link";
 
 const footerLinks = {
   Platform: [
-    { href: "/discover", label: "Discover" },
-    { href: "/artists", label: "Artists" },
-    { href: "/subscriptions", label: "Subscriptions" },
+    { href: "/browse/creators", label: "Browse Creators" },
+    { href: "/browse/releases", label: "Browse Releases" },
+    { href: "/auth/sign-up", label: "Get Started" },
   ],
-  Company: [
-    { href: "/about", label: "About" },
-    { href: "/blog", label: "Blog" },
-    { href: "/contact", label: "Contact" },
+  Account: [
+    { href: "/auth/sign-in", label: "Sign in" },
+    { href: "/account", label: "My Account" },
+    { href: "/account/roles", label: "Manage Roles" },
   ],
   Legal: [
     { href: "/privacy", label: "Privacy Policy" },
