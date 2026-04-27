@@ -143,3 +143,4 @@ MVP_DEPLOYMENT_URL=https://your-mvp.railway.app pnpm test:smoke
 | ------- | ------------------------- | ---------------------------------------------------------- |
 | `local` | Dev only                  | `STORAGE_LOCAL_PATH` (default: `/tmp/booklets`)            |
 | `s3`    | Production or local MinIO | `AWS_*` env vars + optionally `AWS_ENDPOINT_URL` for MinIO |
+# Railway deploy trigger
