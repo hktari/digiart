@@ -1,6 +1,15 @@
 "use client";
 
-import { BookOpen, LogOut, Menu, User, X } from "lucide-react";
+import {
+  BookOpen,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Palette,
+  Settings,
+  User,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
@@ -17,6 +26,9 @@ export function Header() {
   const pathname = usePathname();
   const { data: session, status } = useSession();
   const isAuthenticated = status === "authenticated";
+  const isAdmin = session?.user?.roles?.includes("ADMIN") ?? false;
+  const isCollector = session?.user?.roles?.includes("COLLECTOR") ?? false;
+  const isCreator = session?.user?.roles?.includes("CREATOR") ?? false;
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -73,6 +85,45 @@ export function Header() {
                   {link.label}
                 </Link>
               ))}
+              {isCreator && (
+                <Link
+                  href="/creator"
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded text-sm font-medium transition-colors ${
+                    pathname.startsWith("/creator")
+                      ? "bg-fuchsia-600 text-paper"
+                      : "text-ink/70 hover:text-ink hover:bg-beige-100"
+                  }`}
+                >
+                  <Palette className="w-3.5 h-3.5" strokeWidth={1.5} />
+                  Creator
+                </Link>
+              )}
+              {isCollector && (
+                <Link
+                  href="/collector"
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded text-sm font-medium transition-colors ${
+                    pathname.startsWith("/collector")
+                      ? "bg-ocean-600 text-paper"
+                      : "text-ink/70 hover:text-ink hover:bg-beige-100"
+                  }`}
+                >
+                  <LayoutDashboard className="w-3.5 h-3.5" strokeWidth={1.5} />
+                  Collection
+                </Link>
+              )}
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded text-sm font-medium transition-colors ${
+                    pathname.startsWith("/admin")
+                      ? "bg-jade-600 text-paper"
+                      : "text-ink/70 hover:text-ink hover:bg-beige-100"
+                  }`}
+                >
+                  <Settings className="w-3.5 h-3.5" strokeWidth={1.5} />
+                  Admin
+                </Link>
+              )}
             </nav>
 
             <div className="hidden md:flex items-center gap-3">
@@ -86,6 +137,7 @@ export function Header() {
                     {session?.user?.name || session?.user?.email}
                   </Link>
                   <button
+                    type="button"
                     onClick={() => signOut()}
                     className="flex items-center gap-1.5 text-sm font-medium text-ink/70 hover:text-ink transition-colors px-3 py-2"
                     title="Sign out"
@@ -102,7 +154,7 @@ export function Header() {
                     Sign in
                   </Link>
                   <Link
-                    href="/auth/sign-in"
+                    href="/auth/sign-up"
                     className="text-sm font-medium bg-ocean-600 text-paper px-4 py-2 rounded hover:bg-ocean-700 transition-colors"
                   >
                     Get started
@@ -158,6 +210,48 @@ export function Header() {
               {link.label}
             </Link>
           ))}
+          {isCreator && (
+            <Link
+              href="/creator"
+              onClick={() => setMobileOpen(false)}
+              className={`flex items-center gap-2 px-4 py-3 rounded text-sm font-medium transition-colors ${
+                pathname.startsWith("/creator")
+                  ? "bg-fuchsia-600 text-paper"
+                  : "text-ink/80 hover:text-ink hover:bg-beige-100"
+              }`}
+            >
+              <Palette className="w-4 h-4" strokeWidth={1.5} />
+              Creator studio
+            </Link>
+          )}
+          {isCollector && (
+            <Link
+              href="/collector"
+              onClick={() => setMobileOpen(false)}
+              className={`flex items-center gap-2 px-4 py-3 rounded text-sm font-medium transition-colors ${
+                pathname.startsWith("/collector")
+                  ? "bg-ocean-600 text-paper"
+                  : "text-ink/80 hover:text-ink hover:bg-beige-100"
+              }`}
+            >
+              <LayoutDashboard className="w-4 h-4" strokeWidth={1.5} />
+              My collection
+            </Link>
+          )}
+          {isAdmin && (
+            <Link
+              href="/admin"
+              onClick={() => setMobileOpen(false)}
+              className={`flex items-center gap-2 px-4 py-3 rounded text-sm font-medium transition-colors ${
+                pathname.startsWith("/admin")
+                  ? "bg-jade-600 text-paper"
+                  : "text-ink/80 hover:text-ink hover:bg-beige-100"
+              }`}
+            >
+              <Settings className="w-4 h-4" strokeWidth={1.5} />
+              Admin
+            </Link>
+          )}
           <div className="mt-3 pt-3 border-t border-beige-200 flex flex-col gap-2">
             {isAuthenticated ? (
               <>
@@ -168,6 +262,7 @@ export function Header() {
                   {session?.user?.name || session?.user?.email}
                 </Link>
                 <button
+                  type="button"
                   onClick={() => signOut()}
                   className="px-4 py-3 rounded text-sm font-medium text-ink/70 hover:text-ink hover:bg-beige-100 transition-colors text-left"
                 >
@@ -183,7 +278,7 @@ export function Header() {
                   Sign in
                 </Link>
                 <Link
-                  href="/auth/sign-in"
+                  href="/auth/sign-up"
                   className="px-4 py-3 rounded text-sm font-medium bg-ocean-600 text-paper hover:bg-ocean-700 transition-colors text-center"
                 >
                   Get started
