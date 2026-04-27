@@ -46,10 +46,10 @@ export async function getQuote(params: QuoteParams): Promise<QuoteResult> {
     });
 
     return {
-      shippingAmount: quote.shipping_amount,
-      productAmount: quote.product_amount,
-      taxAmount: quote.tax_amount,
-      totalEstimate: quote.total_amount,
+      shippingAmount: parseFloat(quote.shipping_wholesale),
+      productAmount: parseFloat(quote.product_price),
+      taxAmount: parseFloat(quote.vat),
+      totalEstimate: parseFloat(quote.total_price),
       currency: quote.currency,
       offeringId,
     };

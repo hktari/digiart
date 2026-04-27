@@ -26,7 +26,10 @@ function pass(msg: string) {
 
 function fail(msg: string, error?: unknown) {
   console.error(`${RED}  ✗ ${msg}${RESET}`);
-  if (error) console.error(`    ${RED}Error: ${error instanceof Error ? error.message : error}${RESET}`);
+  if (error)
+    console.error(
+      `    ${RED}Error: ${error instanceof Error ? error.message : error}${RESET}`,
+    );
 }
 
 function section(msg: string) {
@@ -47,10 +50,15 @@ async function runTests(): Promise<TestResult> {
   console.log(`${CYAN}  Peecho Sandbox Integration Tests${RESET}`);
   console.log(`${CYAN}═══════════════════════════════════════${RESET}`);
 
-  const apiUrl = process.env.PEECHO_API_URL || "https://test.www.peecho.com/rest/v2";
-  const hasKey = !!process.env.PEECHO_API_KEY;
+  const apiUrl =
+    process.env.PEECHO_API_URL || "https://test.www.peecho.com/rest/v2";
+  const hasButtonKey = !!process.env.PEECHO_BUTTON_KEY;
+  const hasMerchantKey = !!process.env.PEECHO_MERCHANT_API_KEY;
   info(`API URL: ${apiUrl}`);
-  info(`API Key: ${hasKey ? "set" : "NOT SET - tests will fail"}`);
+  info(`Button Key: ${hasButtonKey ? "set" : "NOT SET - tests will fail"}`);
+  info(
+    `Merchant API Key: ${hasMerchantKey ? "set" : "NOT SET - tests will fail"}`,
+  );
 
   // ── Section 1: Get Offerings ─────────────────────────────────
   section("1. Fetch Offerings");
@@ -77,7 +85,12 @@ async function runTests(): Promise<TestResult> {
     const offering = offerings[0];
     info(`First offering: "${offering.name}" (id: ${offering.id})`);
 
-    const requiredFields: (keyof typeof offering)[] = ["id", "name"];
+    const requiredFields: (keyof typeof offering)[] = [
+      "id",
+      "name",
+      "minNumberOfPages",
+      "maxNumberOfPages",
+    ];
     for (const field of requiredFields) {
       if (offering[field] !== undefined && offering[field] !== null) {
         pass(`Offering has required field: ${field}`);
@@ -95,7 +108,9 @@ async function runTests(): Promise<TestResult> {
     const testPageCount = 30;
     const testCountry = "US";
 
-    info(`Requesting quote: offering=${testOfferingId}, pages=${testPageCount}, country=${testCountry}`);
+    info(
+      `Requesting quote: offering=${testOfferingId}, pages=${testPageCount}, country=${testCountry}`,
+    );
 
     try {
       const quote = await client.getQuote({
@@ -109,9 +124,9 @@ async function runTests(): Promise<TestResult> {
 
       // Validate quote fields
       const quoteFields: (keyof typeof quote)[] = [
-        "product_amount",
-        "shipping_amount",
-        "total_amount",
+        "product_price",
+        "shipping_wholesale",
+        "total_price",
         "currency",
       ];
 
@@ -126,35 +141,48 @@ async function runTests(): Promise<TestResult> {
       }
 
       // Validate amounts are positive numbers
-      if (typeof quote.product_amount === "number" && quote.product_amount > 0) {
-        pass(`Product amount is positive: ${quote.product_amount} ${quote.currency}`);
+      const productPrice = parseFloat(quote.product_price);
+      const shippingPrice = parseFloat(quote.shipping_wholesale);
+      const vatAmount = parseFloat(quote.vat);
+      const totalPrice = parseFloat(quote.total_price);
+
+      if (!Number.isNaN(productPrice) && productPrice > 0) {
+        pass(
+          `Product amount is positive: ${quote.product_price} ${quote.currency}`,
+        );
         result.passed++;
       } else {
-        fail(`Product amount is not a positive number: ${quote.product_amount}`);
+        fail(`Product amount is not a positive number: ${quote.product_price}`);
         result.failed++;
       }
 
-      if (typeof quote.total_amount === "number" && quote.total_amount >= quote.product_amount) {
-        pass(`Total amount >= product amount: ${quote.total_amount} ${quote.currency}`);
+      if (!Number.isNaN(totalPrice) && totalPrice >= productPrice) {
+        pass(
+          `Total amount >= product amount: ${quote.total_price} ${quote.currency}`,
+        );
         result.passed++;
       } else {
-        fail(`Total amount (${quote.total_amount}) is less than product amount (${quote.product_amount})`);
+        fail(
+          `Total amount (${quote.total_price}) is less than product amount (${quote.product_price})`,
+        );
         result.failed++;
       }
 
       // ── Section 4: Quote Calculation Sanity ───────────────
       section("4. Quote Calculation Sanity Check");
 
-      const calculated = quote.product_amount + quote.shipping_amount + (quote.tax_amount ?? 0);
-      const diff = Math.abs(calculated - quote.total_amount);
+      const calculated = productPrice + shippingPrice + vatAmount;
+      const diff = Math.abs(calculated - totalPrice);
       const tolerance = 0.02; // Allow 2 cents rounding tolerance
 
       if (diff <= tolerance) {
-        pass(`Total amount matches: product + shipping + tax ≈ total (diff: ${diff.toFixed(4)})`);
+        pass(
+          `Total amount matches: product + shipping + vat ≈ total (diff: ${diff.toFixed(4)})`,
+        );
         result.passed++;
       } else {
         fail(
-          `Total mismatch: ${quote.product_amount} + ${quote.shipping_amount} + ${quote.tax_amount ?? 0} = ${calculated} ≠ ${quote.total_amount}`
+          `Total mismatch: ${quote.product_price} + ${quote.shipping_wholesale} + ${quote.vat} = ${calculated.toFixed(2)} ≠ ${quote.total_price}`,
         );
         result.failed++;
       }
@@ -174,11 +202,13 @@ async function runTests(): Promise<TestResult> {
           page_count: testPageCount,
           country,
         });
-        pass(`Quote for ${country}: ${quote.total_amount} ${quote.currency}`);
+        pass(`Quote for ${country}: ${quote.total_price} ${quote.currency}`);
         result.passed++;
       } catch (err) {
         // Some offerings may not support all countries
-        info(`Quote for ${country} not available: ${err instanceof Error ? err.message : err}`);
+        info(
+          `Quote for ${country} not available: ${err instanceof Error ? err.message : err}`,
+        );
       }
     }
 
