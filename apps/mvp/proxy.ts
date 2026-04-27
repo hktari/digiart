@@ -3,6 +3,13 @@ import { NextResponse } from "next/server";
 import { middlewareAuth } from "@/lib/auth";
 
 export async function proxy(req: NextRequest) {
+  if (
+    process.env.NODE_ENV !== "production" &&
+    process.env.AUTH_BYPASS_TEST_USER_ID
+  ) {
+    return NextResponse.next();
+  }
+
   const session = await middlewareAuth();
   if (!session) {
     const signIn = new URL("/auth/sign-in", req.url);
