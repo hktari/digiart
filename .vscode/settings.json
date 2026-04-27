@@ -1,0 +1,4 @@
+{
+  "jestrunner.vitestConfigPath": "apps/mvp/vitest.config.ts",
+  "jestrunner.enableTestExplorer": true
+}

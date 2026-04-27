@@ -17,6 +17,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "test:smoke": "playwright test --config playwright.smoke.config.ts",
     "test:seed": "dotenv -- tsx scripts/seed-test-user.ts",
     "test:integration": "dotenv -e .env.test -- vitest run --config vitest.config.integration.ts",
     "test:integration:watch": "dotenv -e .env.test -- vitest --config vitest.config.integration.ts"

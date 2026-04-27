@@ -1,65 +1,81 @@
 # Deployment Guide
 
-This guide covers deploying the Art Subscription Platform MVP to Vercel and the PDF worker to Railway.
+This guide covers deploying the Art Subscription Platform MVP to Railway and the PDF worker to Railway.
 
 ## Prerequisites
 
 - [ ] Neon Postgres database created
 - [ ] AWS S3 bucket created (or alternative S3-compatible storage)
 - [ ] Redis instance (Railway, Upstash, or similar)
-- [ ] Vercel account
 - [ ] Railway account
 
-## 1. Deploy MVP to Vercel
+## 1. Deploy MVP to Railway
 
 ### Setup
 
-1. **Connect Repository to Vercel**
-   - Go to [vercel.com](https://vercel.com)
-   - Import your Git repository
-   - Vercel will auto-detect Next.js
+1. **Create New Project in Railway**
+   - Go to [railway.app](https://railway.app)
+   - Click "New Project"
+   - Select "Deploy from GitHub repo"
+   - Choose your repository
 
-2. **Configure Project Settings**
+2. **Configure Service**
+   - Railway will detect the monorepo structure
    - **Root Directory**: `apps/mvp`
-   - **Framework Preset**: Next.js
-   - **Build Command**: Auto-detected (uses `vercel.json`)
-   - **Install Command**: Auto-detected (uses `vercel.json`)
+   - **Build Command**: `pnpm install && pnpm build`
+   - **Start Command**: `pnpm start`
 
 3. **Set Environment Variables**
 
-   Navigate to Project Settings → Environment Variables and add:
+   In Railway project settings, add:
 
    ```bash
    # Database
    DATABASE_URL=postgresql://user:password@host/database?sslmode=require
-   
+
    # NextAuth
-   NEXTAUTH_URL=https://your-domain.vercel.app
-   NEXTAUTH_SECRET=<generate-with-openssl-rand-base64-32>
-   
+   NEXTAUTH_URL=https://your-service.railway.app
+   AUTH_SECRET=<generate-with-openssl-rand-base64-32>
+
    # AWS S3 (for booklet storage)
    AWS_REGION=eu-west-1
    AWS_ACCESS_KEY_ID=<your-access-key>
    AWS_SECRET_ACCESS_KEY=<your-secret-key>
    AWS_S3_BUCKET=<your-bucket-name>
-   
+
    # Redis (for BullMQ job queue)
    REDIS_URL=redis://default:password@host:port
-   
+
    # PDF Worker API
    PDF_WORKER_URL=https://your-worker.railway.app
+
+   # App
+   PORT=3000
+   NODE_ENV=production
    ```
 
 4. **Deploy**
-   - Click "Deploy"
-   - Vercel will build and deploy your MVP
+   - Railway will build and deploy your MVP
    - First deployment runs database migrations automatically
 
 ### Post-Deployment
 
-- Set up custom domain in Vercel dashboard (optional)
-- Update `NEXTAUTH_URL` to match your custom domain
-- Redeploy to apply changes
+1. **Generate Public Domain**
+   - In Railway service settings, generate a public domain
+   - Copy the URL (e.g., `https://your-mvp.railway.app`)
+
+2. **Run Smoke Tests**
+
+   Verify the deployment is healthy:
+
+   ```bash
+   cd apps/mvp
+   MVP_DEPLOYMENT_URL=https://your-mvp.railway.app pnpm test:smoke
+   ```
+
+3. **Set up custom domain** (optional)
+4. **Update `NEXTAUTH_URL`** to match your domain
+5. **Redeploy to apply changes**
 
 ## 2. Deploy PDF Worker to Railway
 
@@ -83,17 +99,17 @@ This guide covers deploying the Art Subscription Platform MVP to Vercel and the 
    ```bash
    # Database (same as MVP)
    DATABASE_URL=postgresql://user:password@host/database?sslmode=require
-   
+
    # Redis
    REDIS_URL=redis://default:password@host:port
-   
+
    # Storage
    STORAGE_DRIVER=s3
    AWS_REGION=eu-west-1
    AWS_ACCESS_KEY_ID=<your-access-key>
    AWS_SECRET_ACCESS_KEY=<your-secret-key>
    AWS_S3_BUCKET=<your-bucket-name>
-   
+
    # App
    PORT=3001
    NODE_ENV=production
@@ -131,6 +147,7 @@ DATABASE_URL=<production-database-url> pnpm --filter mvp db:migrate
 ### Future Migrations
 
 1. Create migration locally:
+
    ```bash
    pnpm --filter mvp db:migrate:dev --name <migration-name>
    ```
@@ -186,16 +203,19 @@ Cloudflare R2 is S3-compatible and more cost-effective:
 ## 6. Monitoring & Logs
 
 ### Vercel
+
 - View logs in Vercel dashboard → Deployments → Logs
 - Set up log drains for external monitoring (optional)
 
 ### Railway
+
 - View logs in Railway dashboard → Service → Logs
 - Set up alerts for service downtime
 
 ## 7. Environment Variables Checklist
 
 ### MVP (Vercel)
+
 - [ ] `DATABASE_URL`
 - [ ] `NEXTAUTH_URL`
 - [ ] `NEXTAUTH_SECRET`
@@ -207,6 +227,7 @@ Cloudflare R2 is S3-compatible and more cost-effective:
 - [ ] `PDF_WORKER_URL`
 
 ### PDF Worker (Railway)
+
 - [ ] `DATABASE_URL`
 - [ ] `REDIS_URL`
 - [ ] `STORAGE_DRIVER=s3`
@@ -220,17 +241,20 @@ Cloudflare R2 is S3-compatible and more cost-effective:
 ## 8. Troubleshooting
 
 ### MVP won't build on Vercel
+
 - Check build logs for errors
 - Verify `apps/mvp` directory exists and has `package.json`
 - Ensure all dependencies are in `package.json`
 
 ### PDF Worker fails to start on Railway
+
 - Check Railway logs for startup errors
 - Verify Dockerfile builds locally: `docker build -t pdf-worker .`
 - Ensure all environment variables are set
 - Check Redis and Database connectivity
 
 ### Booklet generation fails
+
 - Verify `PDF_WORKER_URL` is set correctly in MVP
 - Check Railway logs for worker errors
 - Verify S3 credentials and bucket permissions
@@ -239,18 +263,22 @@ Cloudflare R2 is S3-compatible and more cost-effective:
 ## 9. Cost Estimates
 
 ### Vercel
+
 - **Hobby**: Free (good for MVP testing)
 - **Pro**: $20/month (recommended for production)
 
 ### Railway
+
 - **Free tier**: $5 credit/month (limited)
 - **Estimated**: $10-20/month for worker + Redis
 
 ### Neon
+
 - **Free tier**: Available
 - **Pro**: Starts at $19/month
 
 ### AWS S3
+
 - **Storage**: ~$0.023/GB/month
 - **Requests**: Minimal for this use case
 - **Estimated**: $1-5/month

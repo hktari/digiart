@@ -1,1 +1,2 @@
 - use vitest + playwright for testing
+- MVP is deployed on Railway
