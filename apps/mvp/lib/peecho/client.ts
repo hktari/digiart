@@ -60,6 +60,56 @@ export interface PeechoQuoteResponse {
   };
 }
 
+export interface PeechoOrderItem {
+  item_reference: string;
+  offering_id: number;
+  quantity: number;
+  file_details: {
+    content_url: string;
+    content_width: number;
+    content_height: number;
+    number_of_pages: number;
+    spine_details?: {
+      dynamic_spine_details?: {
+        text_font?: string;
+        text_size?: number;
+        text_colour?: string;
+        text_top?: string;
+        text_center?: string;
+        text_bottom?: string;
+      };
+      custom_spine_url?: string;
+    };
+  };
+}
+
+export interface PeechoCreateOrderParams {
+  currency?: string;
+  order_reference?: string;
+  item_details: PeechoOrderItem[];
+  address_details: {
+    email_address: string;
+    shipping_address: {
+      first_name: string;
+      last_name: string;
+      address_line_1: string;
+      address_line_2?: string | number;
+      zip_code: string;
+      city: string;
+      state?: string | null;
+      country_code: string;
+    };
+  };
+}
+
+export interface PeechoCreateOrderResponse {
+  order_id: number;
+}
+
+export interface PeechoPayOrderResponse {
+  order_state: string;
+}
+
 type OfferingsApiResponse = Record<string, Record<string, PeechoOffering[]>>;
 
 export class PeechoClient {
@@ -153,6 +203,46 @@ export class PeechoClient {
       return data;
     } catch (error) {
       console.error("Failed to get Peecho quote:", error);
+      throw error;
+    }
+  }
+
+  async createOrder(
+    params: PeechoCreateOrderParams,
+  ): Promise<PeechoCreateOrderResponse> {
+    try {
+      const data = await this.post<PeechoCreateOrderResponse>("/order/", {
+        merchant_api_key: this.merchantApiKey,
+        currency: params.currency ?? "EUR",
+        order_reference: params.order_reference,
+        item_details: params.item_details,
+        address_details: params.address_details,
+      });
+      return data;
+    } catch (error) {
+      console.error("Failed to create Peecho order:", error);
+      throw error;
+    }
+  }
+
+  async payOrder(
+    orderId: number,
+    secretKey: string,
+  ): Promise<PeechoPayOrderResponse> {
+    const { createHash } = await import("node:crypto");
+    const secret = createHash("sha256")
+      .update(`${secretKey}${orderId}`)
+      .digest("hex");
+
+    try {
+      const data = await this.post<PeechoPayOrderResponse>("/order/payment/", {
+        order_id: orderId,
+        merchant_api_key: this.merchantApiKey,
+        secret,
+      });
+      return data;
+    } catch (error) {
+      console.error("Failed to pay Peecho order:", error);
       throw error;
     }
   }

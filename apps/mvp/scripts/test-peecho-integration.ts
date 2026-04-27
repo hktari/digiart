@@ -222,6 +222,85 @@ async function runTests(): Promise<TestResult> {
     }
   }
 
+  // ── Section 7: Place a Test Order ─────────────────────────
+  section("7. Place Test Order (create → pay)");
+
+  const secretKey = process.env.PEECHO_SECRET_KEY;
+  if (!secretKey) {
+    info("PEECHO_SECRET_KEY not set — skipping order placement test");
+  } else {
+    let orderId: number | undefined;
+
+    try {
+      const orderRef = `test-order-${Date.now()}`;
+      info(`Creating order (reference: ${orderRef})`);
+
+      const created = await client.createOrder({
+        currency: "EUR",
+        order_reference: orderRef,
+        item_details: [
+          {
+            item_reference: `item-${Date.now()}`,
+            offering_id: 351795,
+            quantity: 1,
+            file_details: {
+              content_url:
+                "https://peecho-thumbnailer.s3.eu-west-1.amazonaws.com/Peecho+HCB+print+file.pdf",
+              content_width: 210,
+              content_height: 297,
+              number_of_pages: 80,
+            },
+          },
+        ],
+        address_details: {
+          email_address: "test@example.com",
+          shipping_address: {
+            first_name: "Test",
+            last_name: "User",
+            address_line_1: "Teststraat 1",
+            zip_code: "1234AB",
+            city: "Amsterdam",
+            country_code: "NLD",
+          },
+        },
+      });
+
+      orderId = created.order_id;
+      pass(`Order created: id=${orderId}`);
+      result.passed++;
+    } catch (err) {
+      fail("Failed to create order", err);
+      result.failed++;
+    }
+
+    if (orderId !== undefined) {
+      try {
+        info(`Paying order ${orderId}`);
+        const payment = await client.payOrder(orderId, secretKey);
+        if (payment.order_state === "PAID") {
+          pass(
+            `Order ${orderId} payment accepted: state=${payment.order_state}`,
+          );
+          result.passed++;
+        } else {
+          fail(`Unexpected order state after payment: ${payment.order_state}`);
+          result.failed++;
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (msg.includes("MERCH_INSUFFICIENT_BALANCE")) {
+          pass(
+            `Order ${orderId} created OK — payment skipped (insufficient sandbox credit; top up at Settings > API > Credit)`,
+          );
+          result.passed++;
+        } else {
+          fail("Failed to pay order", err);
+          result.failed++;
+        }
+      }
+    }
+  }
+
   // ── Summary ─────────────────────────────────────────────────
   console.log(`\n${CYAN}═══════════════════════════════════════${RESET}`);
   console.log(`${CYAN}  Results${RESET}`);
