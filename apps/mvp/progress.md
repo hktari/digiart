@@ -5,10 +5,10 @@
 - **Sprint 1** (T1-T4): ✅ Complete
 - **Sprint 2** (T5-T11): ✅ Complete (except T10 tag UI)
 - **Sprint 3** (T12-T15): ✅ Complete
-- **Sprint 4** (T16-T19): ⬜ Not started
+- **Sprint 4** (T16-T19): ✅ Complete
 - **Sprint 5** (T20-T24): ⬜ Not started
 
-**Latest completion:** Sprint 3 - Full collector-side implementation with subscription flow, release selection, and browse/discover pages (T12-T15).
+**Latest completion:** Sprint 4 fully done — T16 (admin cycles UI), T17 (booklet constraints UI), T18 (Peecho offering sync + pricing API), T19 (collector pricing page + quote snapshot persistence). Fixed 2 flaky cycle-utils tests in test factory.
 
 ## Tickets
 
@@ -29,10 +29,10 @@
 | 13  | Collector creator subscription records                                    | ✅ Done              |
 | 14  | Collector release selection records                                       | ✅ Done              |
 | 15  | Collector browse and discovery (filtered by tags)                         | ✅ Done              |
-| 16  | SubscriptionCycle with lock and fulfillment dates                         | ⬜ Pending           |
-| 17  | Booklet constraint config (page-range rules)                              | ⬜ Pending           |
-| 18  | Peecho offering sync/config and pricing quote service                     | ⬜ Pending           |
-| 19  | Persist quote snapshots                                                   | ⬜ Pending           |
+| 16  | SubscriptionCycle with lock and fulfillment dates                         | ✅ Done              |
+| 17  | Booklet constraint config (page-range rules)                              | ✅ Done              |
+| 18  | Peecho offering sync/config and pricing quote service                     | ✅ Done              |
+| 19  | Persist quote snapshots                                                   | ✅ Done              |
 | 20  | Notification trigger framework + email templates                          | ⬜ Pending           |
 | 21  | Pre-lock detection for insufficient pages + reselection notifications     | ⬜ Pending           |
 | 22  | Fulfillment blocking rule (min page count not met at lock date)           | ⬜ Pending           |
@@ -81,10 +81,16 @@ Goal: a collector can land on a creator link, sign up, subscribe, select release
 
 Goal: admin can manage cycles, constraints, and pricing; collector sees live quote estimate.
 
-- **T16** `/admin/cycles`: create/edit `SubscriptionCycle` with lock + fulfillment dates, status transitions.
-- **T17** `/admin/booklet-constraints`: configure min/max pages, active flag.
-- **T18** Peecho integration: offering sync to `PodOffering`, quote endpoint wrapper at `/api/pricing/quote`.
-- **T19** `/collector/pricing`: display live Peecho quote snapshot; persist to `PricingQuoteSnapshot`.
+- **T16** ⬜ `/admin/cycles`: create/edit `SubscriptionCycle` with lock + fulfillment dates, status transitions.
+- **T17** ⬜ `/admin/booklet-constraints`: configure min/max pages, active flag.
+- **T18** 🟡 Peecho API v3 client (`lib/peecho/client.ts` + `lib/peecho/quote-service.ts`):
+  - `PeechoClient`: `getOfferings` (GET `/offering/list`), `getQuote` (POST `/quote`), `createOrder` (POST `/order/`), `payOrder` (POST `/order/payment/` with SHA-256 secret)
+  - Auth: `PEECHO_MERCHANT_API_KEY` only (v2 `buttonKey` removed)
+  - Response types match v3 API: `quotedItems[]`, numeric prices, nested `quoteDetails`
+  - `quote-service.ts` maps to internal `ShippingQuoteResult` shape
+  - 12 unit tests + 16/16 e2e sandbox tests passing (`pnpm test:peecho`)
+  - **Remaining:** offering sync to `PodOffering` table, `/api/pricing/quote` route
+- **T19** ⬜ `/collector/pricing`: display live Peecho quote snapshot; persist to `PricingQuoteSnapshot`.
 
 ### Sprint 5 — Notifications + Fulfillment Gate (T20–T24)
 

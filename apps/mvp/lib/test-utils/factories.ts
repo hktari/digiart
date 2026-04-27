@@ -109,9 +109,9 @@ export function createCycleWithStatus(
   switch (status) {
     case "OPEN":
       return createTestCycle({
-        selectionOpenDate: new Date(year, month, 1),
-        lockDate: new Date(year, month, 25), // Future
-        fulfillmentDate: new Date(year, month + 1, 1),
+        selectionOpenDate: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+        lockDate: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000), // Always future
+        fulfillmentDate: new Date(now.getTime() + 45 * 24 * 60 * 60 * 1000),
         status: "OPEN",
       });
     case "LOCKED":
