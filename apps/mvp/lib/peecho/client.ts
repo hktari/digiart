@@ -141,7 +141,7 @@ export class PeechoClient {
       const data = await this.post<PeechoQuoteResponse>("/quote", {
         apiKey: this.merchantApiKey,
         countryCode: params.country,
-        ...(params.currency ? { currency: params.currency } : {}),
+        currency: params.currency ?? "EUR",
         items: [
           {
             offeringId: parseInt(params.offering_id, 10),

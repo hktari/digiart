@@ -102,9 +102,9 @@ async function runTests(): Promise<TestResult> {
     // ── Section 3: Get Quote ───────────────────────────────────
     section("3. Fetch Pricing Quote");
 
-    const testOfferingId = offering.id?.toString();
-    const testPageCount = 30;
-    const testCountry = "US";
+    const testOfferingId = "351795";
+    const testPageCount = 80;
+    const testCountry = "DE";
 
     info(
       `Requesting quote: offering=${testOfferingId}, pages=${testPageCount}, country=${testCountry}`,
@@ -184,7 +184,7 @@ async function runTests(): Promise<TestResult> {
     // ── Section 5: Quote for different countries ───────────────
     section("5. Quote for Multiple Countries");
 
-    const countries = ["US", "DE", "GB"];
+    const countries = ["DE", "GB", "NL"];
     for (const country of countries) {
       try {
         const quote = await client.getQuote({
