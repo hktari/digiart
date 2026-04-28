@@ -42,14 +42,14 @@ export default async function AdminDashboardPage() {
     : 0;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <div>
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
         <p className="text-gray-600 mt-1">Platform overview and quick links</p>
       </div>
 
       {/* Current Cycle Highlight */}
-      <div className="bg-white border rounded-lg p-6">
+      <div className="bg-white border rounded-lg p-8">
         <div className="flex justify-between items-start mb-4">
           <h2 className="text-xl font-semibold">Current Cycle</h2>
           <Link
@@ -139,10 +139,10 @@ export default async function AdminDashboardPage() {
       </div>
 
       {/* Section cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Link
           href="/admin/cycles"
-          className="bg-white border rounded-lg p-6 hover:border-fuchsia-300 hover:shadow-sm transition-all group"
+          className="bg-white border rounded-lg p-8 hover:border-fuchsia-300 hover:shadow-sm transition-all group"
         >
           <div className="flex justify-between items-start">
             <div>
@@ -158,7 +158,7 @@ export default async function AdminDashboardPage() {
 
         <Link
           href="/admin/booklet-constraints"
-          className="bg-white border rounded-lg p-6 hover:border-fuchsia-300 hover:shadow-sm transition-all group"
+          className="bg-white border rounded-lg p-8 hover:border-fuchsia-300 hover:shadow-sm transition-all group"
         >
           <div className="flex justify-between items-start">
             <div>
@@ -185,7 +185,7 @@ export default async function AdminDashboardPage() {
 
         <Link
           href="/admin/pod"
-          className="bg-white border rounded-lg p-6 hover:border-fuchsia-300 hover:shadow-sm transition-all group"
+          className="bg-white border rounded-lg p-8 hover:border-fuchsia-300 hover:shadow-sm transition-all group"
         >
           <div className="flex justify-between items-start">
             <div>

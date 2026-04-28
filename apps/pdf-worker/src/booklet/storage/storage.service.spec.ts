@@ -18,7 +18,9 @@ jest.mock("@aws-sdk/client-s3", () => ({
 const mockMkdir = mkdir as jest.MockedFunction<typeof mkdir>;
 const mockWriteFile = writeFile as jest.MockedFunction<typeof writeFile>;
 const MockS3Client = S3Client as jest.MockedClass<typeof S3Client>;
-const MockPutObjectCommand = PutObjectCommand as jest.MockedClass<typeof PutObjectCommand>;
+const MockPutObjectCommand = PutObjectCommand as jest.MockedClass<
+  typeof PutObjectCommand
+>;
 
 describe("StorageService", () => {
   let service: StorageService;
@@ -86,12 +88,16 @@ describe("StorageService", () => {
     it("should upload to S3 and return an https:// URL", async () => {
       service = await build();
       const mockSend = jest.fn().mockResolvedValue({});
-      MockS3Client.mockImplementation(() => ({ send: mockSend }) as unknown as S3Client);
+      MockS3Client.mockImplementation(
+        () => ({ send: mockSend }) as unknown as S3Client,
+      );
 
       const bytes = new Uint8Array([1, 2, 3]);
       const url = await service.uploadPdf(bytes);
 
-      expect(url).toMatch(/^https:\/\/test-bucket\.s3\.eu-west-1\.amazonaws\.com\/booklets\/.+\.pdf$/);
+      expect(url).toMatch(
+        /^https:\/\/test-bucket\.s3\.eu-west-1\.amazonaws\.com\/booklets\/.+\.pdf$/,
+      );
       expect(MockPutObjectCommand).toHaveBeenCalledWith(
         expect.objectContaining({
           Bucket: "test-bucket",
@@ -113,7 +119,9 @@ describe("StorageService", () => {
       process.env.AWS_ENDPOINT_URL = "http://localhost:9000";
       service = await build();
       const mockSend = jest.fn().mockResolvedValue({});
-      MockS3Client.mockImplementation(() => ({ send: mockSend }) as unknown as S3Client);
+      MockS3Client.mockImplementation(
+        () => ({ send: mockSend }) as unknown as S3Client,
+      );
 
       await service.uploadPdf(new Uint8Array([1]));
 
@@ -122,6 +130,25 @@ describe("StorageService", () => {
           endpoint: "http://localhost:9000",
           forcePathStyle: true,
         }),
+      );
+
+      delete process.env.AWS_ENDPOINT_URL;
+    });
+
+    it("should return path-style URL when AWS_ENDPOINT_URL is set (Railway S3/MinIO)", async () => {
+      process.env.AWS_ENDPOINT_URL = "https://digiart-storage.ams.railway.app";
+      service = await build();
+      const mockSend = jest.fn().mockResolvedValue({});
+      MockS3Client.mockImplementation(
+        () => ({ send: mockSend }) as unknown as S3Client,
+      );
+
+      const bytes = new Uint8Array([1, 2, 3]);
+      const url = await service.uploadPdf(bytes);
+
+      // Should use path-style URL for Railway S3: endpoint/bucket/key
+      expect(url).toMatch(
+        /^https:\/\/digiart-storage\.ams\.railway\.app\/test-bucket\/booklets\/.+\.pdf$/,
       );
 
       delete process.env.AWS_ENDPOINT_URL;

@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import type { PricingQuoteSnapshot, PodOffering } from "@prisma/client";
 
 interface QuoteData {
   shippingAmount: number;
@@ -14,7 +15,7 @@ export async function createQuoteSnapshot(
   cycleId: string,
   pageCount: number,
   quoteData: QuoteData,
-) {
+): Promise<PricingQuoteSnapshot> {
   const offering = await db.podOffering.findFirst({
     where: { externalId: quoteData.offeringId },
   });
@@ -49,7 +50,10 @@ export async function createQuoteSnapshot(
   return snapshot;
 }
 
-export async function getLatestQuote(collectorId: string, cycleId: string) {
+export async function getLatestQuote(
+  collectorId: string,
+  cycleId: string,
+): Promise<(PricingQuoteSnapshot & { offering: PodOffering }) | null> {
   const quote = await db.pricingQuoteSnapshot.findFirst({
     where: {
       collectorProfileId: collectorId,

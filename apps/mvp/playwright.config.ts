@@ -28,9 +28,10 @@ export default defineConfig({
     },
   ],
 
-  webServer: {
-    command: "node scripts/dev-with-test-env.js",
-    url: "http://localhost:3005",
-    reuseExistingServer: !process.env.CI,
-  },
+  // webServer: {
+  //   command: "node scripts/dev-with-test-env.js",
+  //   url: "http://localhost:3005",
+  //   reuseExistingServer: !process.env.CI,
+  //   timeout: 120000,
+  // },
 });

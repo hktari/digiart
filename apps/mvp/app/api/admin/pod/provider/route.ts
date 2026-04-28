@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/roles";
+import type { PodProviderConfig } from "@prisma/client";
 
-export async function GET() {
+export async function GET(): Promise<NextResponse> {
   try {
     await requireAdmin();
 

@@ -2,8 +2,11 @@
 
 import { db } from "@/lib/db";
 import { getPublicStorageUrl } from "@/lib/s3";
+import type { CreatorProfile, Release, Tag } from "@prisma/client";
 
-export async function getAllPublishedCreators(tagSlug?: string) {
+export async function getAllPublishedCreators(
+  tagSlug?: string,
+): Promise<any[]> {
   const where: {
     status: "PUBLISHED";
     releases?: {
@@ -61,7 +64,9 @@ export async function getAllPublishedCreators(tagSlug?: string) {
   });
 }
 
-export async function getAllPublishedReleases(tagSlug?: string) {
+export async function getAllPublishedReleases(
+  tagSlug?: string,
+): Promise<any[]> {
   const where: {
     status: "PUBLISHED";
     tags?: {
@@ -142,7 +147,9 @@ export async function getAllPublishedReleases(tagSlug?: string) {
   }));
 }
 
-export async function getAllTags() {
+export async function getAllTags(): Promise<
+  (Tag & { _count: { releaseTags: number } })[]
+> {
   return db.tag.findMany({
     select: {
       id: true,

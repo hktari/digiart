@@ -124,6 +124,18 @@ This will output:
 
 ### Running E2E Tests
 
+**Two-step workflow:**
+
+1. **Start the test server** (in one terminal):
+
+```bash
+pnpm test:e2e:server
+```
+
+This starts Next.js on port 3005 with test environment variables loaded.
+
+2. **Run the tests** (in another terminal):
+
 ```bash
 # Run all E2E tests
 pnpm test:e2e
@@ -135,7 +147,11 @@ pnpm test:e2e:ui
 pnpm test:e2e e2e/auth.spec.ts
 ```
 
-**Note:** If tests fail with auth errors, re-run `pnpm test:seed` to regenerate credentials.
+**Note:**
+
+- The test server must be running before executing tests
+- If tests fail with auth errors, re-run `pnpm test:seed` to regenerate credentials
+- Tests expect the server on `http://localhost:3005`
 
 ### How E2E Auth Works
 

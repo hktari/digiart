@@ -5,6 +5,11 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import type {
+  CollectorProfile,
+  CollectorCreatorSubscription,
+  CollectorReleaseSelection,
+} from "@prisma/client";
 
 const collectorSetupSchema = z.object({
   displayName: z.string().min(1, "Display name is required").max(100),
@@ -67,7 +72,7 @@ export async function saveCollectorProfile(
   }
 }
 
-export async function getCollectorProfile(userId: string) {
+export async function getCollectorProfile(userId: string): Promise<any> {
   return db.collectorProfile.findUnique({
     where: { userId },
     include: {
@@ -185,7 +190,7 @@ export async function getCollectorSubscriptions(userId: string) {
 export async function getCollectorReleaseSelections(
   userId: string,
   cycleId?: string,
-) {
+): Promise<any[]> {
   const collectorProfile = await db.collectorProfile.findUnique({
     where: { userId },
   });

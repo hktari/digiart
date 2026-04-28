@@ -6,6 +6,7 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getPublicStorageUrl } from "@/lib/s3";
+import type { CreatorProfile } from "@prisma/client";
 
 const slugSchema = z
   .string()
@@ -174,14 +175,14 @@ export async function saveCreatorProfile(
   redirect("/creator");
 }
 
-export async function getCreatorProfile(userId: string) {
+export async function getCreatorProfile(userId: string): Promise<any> {
   return db.creatorProfile.findUnique({
     where: { userId },
     include: { payoutProfile: true },
   });
 }
 
-export async function getCreatorDashboardData() {
+export async function getCreatorDashboardData(): Promise<any> {
   const session = await auth();
   if (!session?.user?.id) redirect("/auth/sign-in");
 
@@ -295,7 +296,7 @@ export async function savePayoutProfile(
   return { success: true };
 }
 
-export async function getPublicCreatorProfile(slug: string) {
+export async function getPublicCreatorProfile(slug: string): Promise<any> {
   const profile = await db.creatorProfile.findUnique({
     where: { slug, status: "PUBLISHED" },
     include: {

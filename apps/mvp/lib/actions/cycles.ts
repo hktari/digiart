@@ -1,8 +1,9 @@
 "use server";
 
 import { db } from "@/lib/db";
+import type { SubscriptionCycle, Release } from "@prisma/client";
 
-export async function getCurrentCycle() {
+export async function getCurrentCycle(): Promise<SubscriptionCycle | null> {
   return db.subscriptionCycle.findFirst({
     where: {
       status: "OPEN",
@@ -13,7 +14,9 @@ export async function getCurrentCycle() {
   });
 }
 
-export async function getAvailableReleasesForCycle(cycleId: string) {
+export async function getAvailableReleasesForCycle(
+  cycleId: string,
+): Promise<any[]> {
   return db.release.findMany({
     where: {
       status: "PUBLISHED",

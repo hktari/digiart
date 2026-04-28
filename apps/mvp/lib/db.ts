@@ -23,7 +23,7 @@ function getDb(): PrismaClient {
   return client;
 }
 
-export const db = new Proxy({} as PrismaClient, {
+export const db: PrismaClient = new Proxy({} as PrismaClient, {
   get(_target, prop) {
     return (getDb() as unknown as Record<string | symbol, unknown>)[prop];
   },

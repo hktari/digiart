@@ -51,7 +51,7 @@ export class StorageService {
       }),
     );
 
-    const url = `https://${bucket}.s3.${region}.amazonaws.com/${key}`;
+    const url = this.getPublicStorageUrl(bucket, region, key);
     this.logger.log(`PDF uploaded to S3: ${url}`);
     return url;
   }
@@ -66,5 +66,19 @@ export class StorageService {
     const url = `file://${filePath}`;
     this.logger.log(`PDF written locally: ${url}`);
     return url;
+  }
+
+  private getPublicStorageUrl(
+    bucket: string,
+    region: string,
+    key: string,
+  ): string {
+    const endpoint = process.env.AWS_ENDPOINT_URL;
+    if (endpoint) {
+      // Railway S3 / MinIO - use path-style URL
+      return `${endpoint}/${bucket}/${key}`;
+    }
+    // AWS S3 - use virtual-hosted style
+    return `https://${bucket}.s3.${region}.amazonaws.com/${key}`;
   }
 }

@@ -2,33 +2,40 @@ import { expect, test } from "../playwright/fixtures";
 
 test.describe("Artwork Upload", () => {
   test("creator can access artwork upload page", async ({ page }) => {
-    await page.goto("/creator/artworks/new", { waitUntil: "networkidle" });
+    await page.goto("/creator/artworks/new", { waitUntil: "load" });
 
     await expect(
-      page.getByRole("heading", { name: /upload artwork/i }),
+      page.getByRole("heading", { name: /upload artworks/i }),
     ).toBeVisible();
     await expect(page.getByText(/drag & drop or/i)).toBeVisible();
   });
 
-  test("file drop zone and title input are visible", async ({ page }) => {
-    await page.goto("/creator/artworks/new", { waitUntil: "networkidle" });
+  test("file drop zone is visible", async ({ page }) => {
+    await page.goto("/creator/artworks/new", { waitUntil: "load" });
 
     await expect(page.getByText(/drag & drop or/i)).toBeVisible();
-    await expect(page.getByLabel(/title/i)).toBeVisible();
   });
 
-  test("submit button is disabled until both file and title are filled", async ({
-    page,
-  }) => {
-    await page.goto("/creator/artworks/new", { waitUntil: "networkidle" });
+  test("upload button appears after file is selected", async ({ page }) => {
+    await page.goto("/creator/artworks/new", { waitUntil: "load" });
 
-    const submitButton = page.getByRole("button", { name: /upload artwork/i });
-    await expect(submitButton).toBeDisabled();
+    // Button should not be visible initially
+    await expect(
+      page.getByRole("button", { name: /upload.*file/i }),
+    ).not.toBeVisible();
 
-    const titleInput = page.getByLabel(/title/i);
-    await titleInput.waitFor({ state: "visible" });
-    await titleInput.fill("Test Artwork");
-    await expect(submitButton).toBeDisabled();
+    // Select a file
+    const fileInput = page.locator('input[type="file"]');
+    await fileInput.setInputFiles({
+      name: "test-artwork.jpg",
+      mimeType: "image/jpeg",
+      buffer: Buffer.from("fake-image-data"),
+    });
+
+    // Button should now be visible
+    await expect(
+      page.getByRole("button", { name: /upload 1 file/i }),
+    ).toBeVisible();
   });
 
   test("shows success state after successful upload", async ({ page }) => {
@@ -58,7 +65,7 @@ test.describe("Artwork Upload", () => {
       });
     });
 
-    await page.goto("/creator/artworks/new", { waitUntil: "networkidle" });
+    await page.goto("/creator/artworks/new", { waitUntil: "load" });
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles({
@@ -67,33 +74,17 @@ test.describe("Artwork Upload", () => {
       buffer: Buffer.from("fake-image-data"),
     });
 
-    const titleInput = page.getByLabel(/title/i);
-    await titleInput.waitFor({ state: "visible" });
-    await titleInput.fill("Test Artwork");
+    await page.getByRole("button", { name: /upload.*file/i }).click();
 
-    await page.getByRole("button", { name: /upload artwork/i }).click();
-
-    await expect(page.getByText(/artwork uploaded!/i)).toBeVisible({
+    // Check for success indicators
+    await expect(page.getByText(/✓ uploaded/i)).toBeVisible({
       timeout: 10000,
     });
-    await expect(
-      page.getByRole("button", { name: /view artworks/i }),
-    ).toBeVisible();
+    await expect(page.getByText(/1 uploaded/i)).toBeVisible();
   });
 
-  test("shows error state on upload failure", async ({ page }) => {
-    await page.route("**/api/artworks/presign", (route) => {
-      route.fulfill({
-        status: 400,
-        contentType: "application/json",
-        body: JSON.stringify({
-          error: "INVALID_FORMAT",
-          message: "Only JPEG and PNG files are accepted.",
-        }),
-      });
-    });
-
-    await page.goto("/creator/artworks/new", { waitUntil: "networkidle" });
+  test("rejects invalid file types client-side", async ({ page }) => {
+    await page.goto("/creator/artworks/new", { waitUntil: "load" });
 
     const fileInput = page.locator('input[type="file"]');
     await fileInput.setInputFiles({
@@ -102,15 +93,9 @@ test.describe("Artwork Upload", () => {
       buffer: Buffer.from("fake-image-data"),
     });
 
-    const titleInput = page.getByLabel(/title/i);
-    await titleInput.waitFor({ state: "visible" });
-    await titleInput.fill("Test Artwork");
-
-    await page.getByRole("button", { name: /upload artwork/i }).click();
-
-    await expect(page.getByText(/INVALID FORMAT/i)).toBeVisible();
+    // Upload button should not appear because invalid files are filtered out
     await expect(
-      page.getByText(/only jpeg and png files are accepted/i),
-    ).toBeVisible();
+      page.getByRole("button", { name: /upload.*file/i }),
+    ).not.toBeVisible();
   });
 });

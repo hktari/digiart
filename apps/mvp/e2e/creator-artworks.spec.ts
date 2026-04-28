@@ -9,9 +9,13 @@ test.describe("Creator Artworks", () => {
     ).toBeVisible();
   });
 
-  test("shows placeholder when no artworks exist", async ({ page }) => {
+  test("shows upload button when no artworks exist", async ({ page }) => {
     await page.goto("/creator/artworks");
 
-    await expect(page.getByText(/coming soon/i)).toBeVisible();
+    // Should show "No artworks yet" message and upload button
+    await expect(page.getByText(/no artworks yet/i)).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: /upload artwork/i }),
+    ).toBeVisible();
   });
 });

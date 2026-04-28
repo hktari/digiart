@@ -7,6 +7,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getPublicStorageUrl } from "@/lib/s3";
 import { getReleaseTags, setReleaseTags } from "./tags";
+import type { Release, Artwork } from "@prisma/client";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -33,7 +34,7 @@ function withThumbnail<T extends { storageKey: string }>(artwork: T) {
 // Queries
 // ---------------------------------------------------------------------------
 
-export async function getReleases() {
+export async function getReleases(): Promise<any[]> {
   const creatorProfileId = await requireCreatorProfile();
 
   const releases = await db.release.findMany({
@@ -47,7 +48,7 @@ export async function getReleases() {
   return releases;
 }
 
-export async function getRelease(id: string) {
+export async function getRelease(id: string): Promise<any> {
   const creatorProfileId = await requireCreatorProfile();
 
   const release = await db.release.findFirst({
@@ -75,7 +76,7 @@ export async function getRelease(id: string) {
   };
 }
 
-export async function getCreatorArtworksForRelease() {
+export async function getCreatorArtworksForRelease(): Promise<any[]> {
   const creatorProfileId = await requireCreatorProfile();
 
   const artworks = await db.artwork.findMany({

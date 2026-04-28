@@ -17,9 +17,9 @@ export interface QuoteResult {
 
 export async function getQuote(params: QuoteParams): Promise<QuoteResult> {
   try {
-    let offeringId = params.offeringId;
+    let offeringId: string;
 
-    if (!offeringId) {
+    if (!params.offeringId) {
       const { db } = await import("@/lib/db");
       const defaultOffering = await db.podOffering.findFirst({
         where: {
@@ -37,6 +37,8 @@ export async function getQuote(params: QuoteParams): Promise<QuoteResult> {
       }
 
       offeringId = defaultOffering.externalId;
+    } else {
+      offeringId = params.offeringId;
     }
 
     const quote = await peechoClient.getQuote({

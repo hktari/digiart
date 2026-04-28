@@ -38,12 +38,6 @@ const adminNavLinks = [
     exact: false,
   },
   {
-    href: "/admin/pricing",
-    label: "Pricing",
-    icon: DollarSign,
-    exact: false,
-  },
-  {
     href: "/admin/booklet-constraints",
     label: "Constraints",
     icon: BookOpen,
@@ -113,7 +107,7 @@ export default function AdminLayout({
             );
           })}
         </nav>
-        <div>{children}</div>
+        <div className="p-6 md:p-8">{children}</div>
       </div>
     </div>
   );

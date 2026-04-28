@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/roles";
+import type { PodOffering } from "@prisma/client";
 
 const offeringUpdateSchema = z.object({
   isActive: z.boolean(),
@@ -10,7 +11,7 @@ const offeringUpdateSchema = z.object({
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
-) {
+): Promise<NextResponse> {
   try {
     await requireAdmin();
     const { id } = await params;

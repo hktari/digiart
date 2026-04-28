@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/roles";
+import type { SubscriptionCycle } from "@prisma/client";
 
 const cycleSchema = z
   .object({
@@ -20,7 +21,7 @@ const cycleSchema = z
     message: "Lock date must be before fulfillment date",
   });
 
-export async function GET() {
+export async function GET(): Promise<NextResponse> {
   try {
     await requireAdmin();
 
@@ -34,7 +35,7 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<NextResponse> {
   try {
     await requireAdmin();
 
