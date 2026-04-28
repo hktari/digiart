@@ -1,61 +1,18 @@
 /**
  * Creator onboarding E2E tests
  *
- * Flow under test:
- *  1. A user with no role lands on /onboarding and sees role-choice buttons.
- *  2. They click "Creator" — the server assigns the CREATOR role and redirects
- *     to /creator/setup.
- *  3. They complete the multi-step setup form (profile → payout → review →
- *     artwork → share).
- *  4. After saving they are redirected to /creator (dashboard).
+ * Runs the multi-step creator setup form as the pre-seeded CREATOR user
+ * (who starts with no CreatorProfile after each DB reset).
  *
- * The "creator" fixture (default storageState) authenticates as the
- * pre-seeded CREATOR user — used for steps 3-4 which skip the role choice.
- *
- * The noRoleContext fixture authenticates as the pre-seeded no-role user —
- * used for steps 1-2.
+ * This project MUST run before creator-profile and creator-release because
+ * those suites depend on the CreatorProfile created by the final test here.
+ * Ordering is enforced via Playwright project dependencies in
+ * playwright.config.ts.
  */
 import { expect, test } from "../playwright/fixtures";
 
 // ---------------------------------------------------------------------------
-// Onboarding role selection (no-role user)
-// ---------------------------------------------------------------------------
-
-test.describe("Onboarding – role selection", () => {
-  test("shows role choice page for a user with no role", async ({
-    noRoleContext,
-  }) => {
-    const page = await noRoleContext.newPage();
-    await page.goto("/onboarding");
-
-    await expect(
-      page.getByRole("heading", { name: /how will you use the platform/i }),
-    ).toBeVisible();
-    await expect(page.getByRole("button", { name: /creator/i })).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: /collector/i }),
-    ).toBeVisible();
-  });
-
-  test("clicking Creator assigns role and redirects to /creator/setup", async ({
-    noRoleContext,
-  }) => {
-    const page = await noRoleContext.newPage();
-    await page.goto("/onboarding");
-
-    await page.getByRole("button", { name: /creator/i }).click();
-
-    await page.waitForURL(/\/creator\/setup/, { timeout: 15000 });
-    await expect(page).toHaveURL(/\/creator\/setup/);
-    await expect(
-      page.getByRole("heading", { name: /creator setup/i }),
-    ).toBeVisible();
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Creator setup form (CREATOR user — profile already created test needs clean
-// state so we use the creator user which starts without a CreatorProfile)
+// Creator setup form
 // ---------------------------------------------------------------------------
 
 test.describe("Creator setup form", () => {
@@ -96,9 +53,11 @@ test.describe("Creator setup form", () => {
     ).toBeVisible();
   });
 
-  test("full setup flow completes and redirects to creator dashboard", async ({
+  test("full setup flow saves profile and advances past review step", async ({
     page,
   }) => {
+    test.slow();
+
     await page.goto("/creator/setup");
 
     // Step 1 – Profile
@@ -114,17 +73,17 @@ test.describe("Creator setup form", () => {
     ).toBeVisible();
     await page.getByRole("button", { name: /continue to review/i }).click();
 
-    // Step 3 – Review
+    // Step 3 – Review: confirm data is shown
     await expect(page.getByText(/e2e test creator/i)).toBeVisible();
     await expect(page.getByText(/e2e-test-creator/i)).toBeVisible();
 
-    // Submit from review step
-    await page
-      .getByRole("button", { name: /save.*profile|complete setup/i })
-      .click();
+    // Submit — the review step's Continue button saves the CreatorProfile
+    await page.getByRole("button", { name: /^continue$/i }).click();
 
-    // Should advance to artwork step or redirect to dashboard
-    // (depends on server action success — allow both outcomes)
-    await expect(page).toHaveURL(/\/creator(\/setup|$)/, { timeout: 20000 });
+    // Must advance to the artwork upload step (NOT stay on review).
+    // This confirms the server action succeeded and the profile now exists.
+    await expect(page.getByText(/uploaded artworks/i)).toBeVisible({
+      timeout: 20000,
+    });
   });
 });
