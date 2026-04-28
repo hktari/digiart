@@ -6,16 +6,26 @@ This document describes the complete print-on-demand (POD) fulfillment flow from
 
 ## Key Concepts
 
-### Pricing Quote Lock-In
+### Pricing Model
 
-**When a collector subscribes to a creator, they agree to a pricing quote for that subscription cycle.** This quote includes:
+**Pricing is flat-rate per subscription cycle.** The platform prices in a configurable maximum page count — collectors are not charged per page. The only variable in collector pricing is **destination country**, which affects shipping cost.
 
-- **Product Amount**: Base cost of printing the booklet (based on page count and format)
-- **Shipping Amount**: Delivery cost based on destination country (€3-27 range for Peecho)
+- **Product Amount**: Fixed base cost of printing (covers up to platform-configured max pages)
+- **Shipping Amount**: Delivery cost based on destination country (€3–27 range for Peecho)
 - **Tax Amount**: VAT/tax calculated based on collector's region
 - **Total Estimate**: Sum of all charges in the agreed currency (default: EUR)
 
 This pricing quote is locked in at subscription time and stored in `PricingQuoteSnapshot`. The collector is committed to this price for the cycle, regardless of any subsequent pricing changes by the POD provider.
+
+### Booklet Content Selection
+
+Creators publish releases each cycle. Collectors subscribe to creators and the system automatically assigns new releases to the collector's booklet for that cycle. Releases have **variable size** (no fixed image count enforced on creators).
+
+The collector has agency: they can review the releases assigned to their booklet and deselect any. The platform shows a running total of images (pages) that will be in their final booklet. This updates live as the collector changes their selection.
+
+### Automatic Generation
+
+Booklet PDF generation is fully automatic once the cycle lock date is reached. The only manual edge case requiring admin attention is when a creator has **not uploaded new art for the cycle** — in this case no release exists to include.
 
 ## Flow Diagram
 
@@ -28,40 +38,31 @@ Collector Subscribes to Creator
             │
             ▼
 ┌─────────────────────────────┐
-│ 1. Calculate Page Estimate  │
-│    - Based on creator's     │
-│      typical release size     │
-│    - Or default estimate    │
+│ 1. Fetch POD Pricing         │
+│    - Call Peecho/Prodigi API │
+│    - Pass: country, format   │
+│      (magazine, max pages)   │
+│    - Get: product + shipping │
 └─────────────────────────────┘
             │
             ▼
 ┌─────────────────────────────┐
-│ 2. Fetch POD Pricing        │
-│    - Call Peecho/Prodigi API│
-│    - Pass: country, pages,   │
-│      format (magazine)       │
-│    - Get: product + shipping│
+│ 2. Store PricingQuoteSnapshot│
+│    - collectorProfileId      │
+│    - cycleId (future cycle)  │
+│    - offeringId (product)    │
+│    - country                 │
+│    - shippingAmount          │
+│    - productAmount           │
+│    - taxAmount               │
+│    - totalEstimate           │
+│    - currency (EUR)          │
+│    - quotedAt                │
 └─────────────────────────────┘
             │
             ▼
 ┌─────────────────────────────┐
-│ 3. Store PricingQuoteSnapshot│
-│    - collectorProfileId     │
-│    - cycleId (future cycle) │
-│    - offeringId (product)   │
-│    - country                │
-│    - requestedPageCount     │
-│    - shippingAmount         │
-│    - productAmount          │
-│    - taxAmount              │
-│    - totalEstimate          │
-│    - currency (EUR)         │
-│    - quotedAt               │
-└─────────────────────────────┘
-            │
-            ▼
-┌─────────────────────────────┐
-│ 4. Display to Collector     │
+│ 3. Display to Collector      │
 │    "Your monthly booklet      │
 │     will cost €X (including   │
 │     €Y shipping to Z)"        │
@@ -69,7 +70,7 @@ Collector Subscribes to Creator
             │
             ▼
 ┌─────────────────────────────┐
-│ 5. Collector Confirms        │
+│ 4. Collector Confirms        │
 │    Subscription              │
 │    → Locks in pricing quote  │
 └─────────────────────────────┘
@@ -82,13 +83,22 @@ Collector Subscribes to Creator
 Cycle Selection Window Opens
             │
             ▼
-┌─────────────────────────────┐
-│ Collector Makes Selections   │
-│ - Chooses releases from      │
-│   subscribed creators        │
-│ - Stores in                  │
-│   CollectorReleaseSelection  │
-└─────────────────────────────┘
+┌─────────────────────────────────────────────┐
+│ System Auto-assigns Releases                 │
+│ - New releases from subscribed creators      │
+│   automatically added to collector's booklet │
+│ - Stored in CollectorReleaseSelection        │
+│ - Collector sees running image/page count    │
+└─────────────────────────────────────────────┘
+            │
+            ▼
+┌─────────────────────────────────────────────┐
+│ Collector Reviews & Curates (optional)       │
+│ - Can deselect releases                      │
+│ - Running total updates live                 │
+│ - Any changes update                         │
+│   CollectorReleaseSelection                  │
+└─────────────────────────────────────────────┘
             │
             ▼
 Cycle Lock Date Reached
@@ -111,16 +121,7 @@ Cycle Lock Date Reached
             │
             ▼
 ┌─────────────────────────────┐
-│ 3. Validate Against Quote     │
-│    - If page count differs    │
-│      significantly from       │
-│      quoted estimate,         │
-│      flag for review          │
-└─────────────────────────────┘
-            │
-            ▼
-┌─────────────────────────────┐
-│ 4. Generate PDF              │
+│ 3. Generate PDF (automatic)  │
 │    - Enqueue job to           │
 │      BullMQ queue             │
 │    - PDF Worker processes:    │
@@ -136,7 +137,8 @@ Cycle Lock Date Reached
 
 
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                         FULFILLMENT & ORDERING PHASE                        │
+│               FULFILLMENT & ORDERING PHASE  [NOT YET IMPLEMENTED]           │
+│                           Planned for Sprint 5                               │
 └─────────────────────────────────────────────────────────────────────────────┘
 
 PDF Generated & Ready
@@ -199,47 +201,56 @@ PDF Generated & Ready
 
 Stored when collector subscribes, locks in pricing for the cycle:
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `collectorProfileId` | String | FK to CollectorProfile |
-| `cycleId` | String | FK to SubscriptionCycle (future cycle) |
-| `offeringId` | String | FK to PodOffering (product spec) |
-| `country` | String | Destination country for shipping |
-| `requestedPageCount` | Int | Estimated pages at subscription time |
-| `shippingAmount` | Decimal | Locked shipping cost (€3-27) |
-| `productAmount` | Decimal | Locked product/printing cost |
-| `taxAmount` | Decimal | Locked VAT/tax |
-| `totalEstimate` | Decimal | Total locked price |
-| `currency` | String | Default: "EUR" |
-| `quotedAt` | DateTime | When quote was generated |
+| Field                | Type     | Description                            |
+| -------------------- | -------- | -------------------------------------- |
+| `collectorProfileId` | String   | FK to CollectorProfile                 |
+| `cycleId`            | String   | FK to SubscriptionCycle (future cycle) |
+| `offeringId`         | String   | FK to PodOffering (product spec)       |
+| `country`            | String   | Destination country for shipping       |
+| `shippingAmount`     | Decimal  | Locked shipping cost (€3–27)           |
+| `productAmount`      | Decimal  | Locked product/printing cost (flat)    |
+| `taxAmount`          | Decimal  | Locked VAT/tax                         |
+| `totalEstimate`      | Decimal  | Total locked price                     |
+| `currency`           | String   | Default: "EUR"                         |
+| `quotedAt`           | DateTime | When quote was generated               |
 
 ### GeneratedPrintFile
 
 Stored when PDF is generated:
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `collectorProfileId` | String | FK to CollectorProfile |
-| `cycleId` | String | FK to SubscriptionCycle |
-| `storageUrl` | String? | URL to PDF in S3/local storage |
-| `pageCount` | Int? | Actual generated page count |
-| `status` | PrintFileStatus | PENDING → GENERATING → READY/FAILED |
-| `errorMessage` | String? | Error details if failed |
-| `generatedAt` | DateTime? | When PDF was completed |
+| Field                | Type            | Description                         |
+| -------------------- | --------------- | ----------------------------------- |
+| `collectorProfileId` | String          | FK to CollectorProfile              |
+| `cycleId`            | String          | FK to SubscriptionCycle             |
+| `storageUrl`         | String?         | URL to PDF in S3/local storage      |
+| `pageCount`          | Int?            | Actual generated page count         |
+| `status`             | PrintFileStatus | PENDING → GENERATING → READY/FAILED |
+| `errorMessage`       | String?         | Error details if failed             |
+| `generatedAt`        | DateTime?       | When PDF was completed              |
 
 ## Pricing Strategy Notes
 
+### Flat-Rate Model
+
+The platform charges a fixed subscription price per cycle. This covers printing up to a **platform-configured maximum page count**. The platform absorbs any cost difference between a collector's actual booklet size and the maximum — there is no per-page billing.
+
+This simplifies:
+
+- Collector UX (single predictable price)
+- Billing implementation (no per-cycle recalculation)
+- Creator incentive (no reason to limit release size)
+
 ### Regional Shipping Variance
 
-Per Peecho/Prodigi research, shipping costs vary significantly by destination:
+The only variable in collector pricing is destination country. Per Peecho/Prodigi research:
 
-| Tier | Region | Shipping Range |
-|------|--------|----------------|
-| Tier 1 | Core EU | €3-6 |
-| Tier 2 | Extended EU | €7-10 |
-| Tier 3 | UK/Europe non-EU | €11-16 |
-| Tier 4 | North America | €17-22 |
-| Tier 5 | Asia-Pacific | €23-27 |
+| Tier   | Region           | Shipping Range |
+| ------ | ---------------- | -------------- |
+| Tier 1 | Core EU          | €3–6           |
+| Tier 2 | Extended EU      | €7–10          |
+| Tier 3 | UK/Europe non-EU | €11–16         |
+| Tier 4 | North America    | €17–22         |
+| Tier 5 | Asia-Pacific     | €23–27         |
 
 ### Quote Lock-In Benefits
 
@@ -247,33 +258,6 @@ Per Peecho/Prodigi research, shipping costs vary significantly by destination:
 2. **No Surprises**: Shipping fluctuations don't affect committed subscribers
 3. **Creator Revenue Predictability**: Platform can calculate margins upfront
 4. **Simplified Billing**: Single charge per cycle, not per-order
-
-### Handling Page Count Variance
-
-If actual page count differs from quoted estimate:
-
-- **Small variance (< 10%)**: Absorb into platform margin
-- **Large variance (> 10%)**: Flag for manual review, possibly adjust future cycle pricing
-- **Under quote**: Platform keeps margin difference
-- **Over quote**: Platform absorbs cost or adjusts future pricing
-
-## API Integration Points
-
-### Peecho/Prodigi API (Planned)
-
-1. **Get Quote** (`POST /v1/quotes`)
-   - Input: country, page count, format (magazine)
-   - Output: product cost, shipping cost, tax, total
-
-2. **Create Order** (`POST /v1/orders`)
-   - Input: PDF URL, shipping address, product spec, quote reference
-   - Output: order ID, estimated ship date
-
-3. **Webhook Events**
-   - `order.confirmed`: Order received by printer
-   - `order.shipped`: Tracking number available
-   - `order.delivered`: Confirmed delivery
-   - `order.failed`: Print/shipping failure
 
 ## Error Handling
 
