@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 3005",
+    "dev": "next dev --port 3003",
     "build": "next build",
     "start": "next start",
     "lint": "biome check --write --unsafe",
@@ -22,6 +22,7 @@
     "test:integration": "dotenv -e .env.test -- vitest run --config vitest.config.integration.ts",
     "test:integration:watch": "dotenv -e .env.test -- vitest --config vitest.config.integration.ts",
     "test:seed": "dotenv -- tsx scripts/seed-test-user.ts",
+    "test:reset": "dotenv -e .env.test -- tsx scripts/reset-test-db.ts",
     "db:seed:production": "dotenv -- tsx scripts/seed-production.ts",
     "test:peecho": "dotenv -e .env.test -- tsx scripts/test-peecho-integration.ts",
     "test:coverage": "vitest run --coverage",
