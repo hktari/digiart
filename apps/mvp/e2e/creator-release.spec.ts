@@ -41,10 +41,10 @@ test.describe("Creator releases list", () => {
   test("new release button is enabled when cycle is OPEN", async ({ page }) => {
     await page.goto("/creator/releases");
 
-    const newReleaseBtn = page.getByRole("link", { name: /\+ new release/i });
+    const newReleaseBtn = page.getByRole("link", { name: "+ New release" });
     await expect(newReleaseBtn).toBeVisible();
 
-    // The link should NOT have pointer-events-none (disabled) class
+    // The link should NOT be aria-disabled when cycle is OPEN
     const ariaDisabled = await newReleaseBtn.getAttribute("aria-disabled");
     expect(ariaDisabled).not.toBe("true");
   });
@@ -68,7 +68,7 @@ test.describe("New release form", () => {
   test("requires title before advancing", async ({ page }) => {
     await page.goto("/creator/releases/new");
 
-    await page.getByRole("button", { name: /next.*artworks/i }).click();
+    await page.getByRole("button", { name: /next: add artworks/i }).click();
 
     await expect(page.getByText(/title is required/i)).toBeVisible();
   });
@@ -77,10 +77,10 @@ test.describe("New release form", () => {
     await page.goto("/creator/releases/new");
 
     await page.getByLabel(/title/i).fill("E2E Test Release");
-    await page.getByRole("button", { name: /next.*artworks/i }).click();
+    await page.getByRole("button", { name: /next: add artworks/i }).click();
 
     // Drop zone should now be visible
-    await expect(page.getByText(/drag.*drop|drop.*here/i)).toBeVisible();
+    await expect(page.getByText(/drag & drop or/i)).toBeVisible();
   });
 
   test("creates a release with mocked uploads and redirects to detail", async ({
@@ -121,7 +121,7 @@ test.describe("New release form", () => {
 
     // Step 1 — fill title
     await page.getByLabel(/title/i).fill("E2E Test Release");
-    await page.getByRole("button", { name: /next.*artworks/i }).click();
+    await page.getByRole("button", { name: /next: add artworks/i }).click();
 
     // Step 2 — add 5 artwork files (meets minimum)
     const fileInput = page.locator('input[type="file"]');
@@ -132,22 +132,21 @@ test.describe("New release form", () => {
     }));
     await fileInput.setInputFiles(fakeFiles);
 
-    // Upload queued files
+    // Submit — uploads happen as part of the create flow
     await page
-      .getByRole("button", { name: /upload.*queued|upload all/i })
+      .getByRole("button", { name: /create release with 5 artworks/i })
       .click();
 
-    // Wait for uploads to complete
-    await expect(page.getByText(/5.*uploaded|uploaded.*5/i)).toBeVisible({
-      timeout: 15000,
+    // Next.js server-action redirects are handled client-side;
+    // wait for navigation away from the /new page instead of a 303 response.
+    await page.waitForURL((url) => !url.pathname.includes("/new"), {
+      timeout: 30000,
     });
 
-    // Submit the release
-    await page.getByRole("button", { name: /create release|publish/i }).click();
-
-    // Should redirect to release detail page
-    await page.waitForURL(/\/creator\/releases\/[^/]+$/, { timeout: 20000 });
-    await expect(page).toHaveURL(/\/creator\/releases\/[^/]+$/);
+    // Should land on the release detail page
+    await expect(
+      page.getByRole("heading", { name: /e2e test release/i }),
+    ).toBeVisible({ timeout: 10000 });
   });
 });
 

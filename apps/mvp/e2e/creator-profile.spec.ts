@@ -23,15 +23,21 @@ test.describe("Creator profile edit", () => {
     await expect(
       page.getByRole("heading", { name: /edit profile/i }),
     ).toBeVisible();
-    await expect(page.getByText(/payout/i)).toBeVisible();
-    await expect(page.getByText(/social links/i)).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Payout" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Social links", exact: true }),
+    ).toBeVisible();
   });
 
   test("avatar section is visible", async ({ page }) => {
     await page.goto("/creator/profile");
 
-    // Avatar upload area should be visible
-    await expect(page.getByRole("button", { name: /change/i })).toBeVisible();
+    // Avatar upload area should be visible ("Change avatar" when profile exists)
+    await expect(
+      page
+        .getByRole("button", { name: /upload avatar|change avatar/i })
+        .first(),
+    ).toBeVisible();
   });
 });
 
@@ -97,51 +103,53 @@ test.describe("Social links", () => {
   });
 
   test("shows social links section", async ({ page }) => {
-    await expect(page.getByText(/social links/i)).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Social links", exact: true }),
+    ).toBeVisible();
   });
 
   test("can add a social link", async ({ page }) => {
-    await page.getByRole("button", { name: /add link/i }).click();
+    await page.getByRole("button", { name: "Add Link" }).click();
 
     // A new link row should appear with label and URL inputs
-    await expect(page.getByLabel(/label/i).last()).toBeVisible();
-    await expect(page.getByLabel(/url/i).last()).toBeVisible();
+    await expect(page.getByLabel("Label").last()).toBeVisible();
+    await expect(page.getByLabel("URL").last()).toBeVisible();
   });
 
   test("validates required fields on save", async ({ page }) => {
-    await page.getByRole("button", { name: /add link/i }).click();
+    await page.getByRole("button", { name: "Add Link" }).click();
 
     // Try to save without filling in the link
-    await page.getByRole("button", { name: /save links|save social/i }).click();
+    await page.getByRole("button", { name: "Save Social Links" }).click();
 
     await expect(page.getByText(/label is required/i)).toBeVisible();
     await expect(page.getByText(/url is required/i)).toBeVisible();
   });
 
   test("validates URL format", async ({ page }) => {
-    await page.getByRole("button", { name: /add link/i }).click();
+    await page.getByRole("button", { name: "Add Link" }).click();
 
     // Select a label from the dropdown
-    const labelSelect = page.getByLabel(/label/i).last();
+    const labelSelect = page.getByLabel("Label").last();
     await labelSelect.selectOption("Instagram");
 
     // Enter invalid URL
-    await page.getByLabel(/url/i).last().fill("not-a-url");
+    await page.getByLabel("URL").last().fill("not-a-url");
 
-    await page.getByRole("button", { name: /save links|save social/i }).click();
+    await page.getByRole("button", { name: "Save Social Links" }).click();
 
-    await expect(page.getByText(/must be a valid url/i)).toBeVisible();
+    await expect(page.getByText(/must be a valid url.*https/i)).toBeVisible();
   });
 
   test("saves a valid social link", async ({ page }) => {
-    await page.getByRole("button", { name: /add link/i }).click();
+    await page.getByRole("button", { name: "Add Link" }).click();
 
-    const labelSelect = page.getByLabel(/label/i).last();
+    const labelSelect = page.getByLabel("Label").last();
     await labelSelect.selectOption("Instagram");
 
-    await page.getByLabel(/url/i).last().fill("https://instagram.com/e2etest");
+    await page.getByLabel("URL").last().fill("https://instagram.com/e2etest");
 
-    await page.getByRole("button", { name: /save links|save social/i }).click();
+    await page.getByRole("button", { name: "Save Social Links" }).click();
 
     await expect(page.getByText(/social links have been saved/i)).toBeVisible({
       timeout: 10000,
@@ -149,21 +157,24 @@ test.describe("Social links", () => {
   });
 
   test("can remove a social link", async ({ page }) => {
-    // Add a link first
-    await page.getByRole("button", { name: /add link/i }).click();
+    const initialCount = await page.locator('[id^="url-"]').count();
 
-    const labelSelect = page.getByLabel(/label/i).last();
+    // Add a link first
+    await page.getByRole("button", { name: "Add Link" }).click();
+
+    const labelSelect = page.getByLabel("Label").last();
     await labelSelect.selectOption("Website");
 
-    await page.getByLabel(/url/i).last().fill("https://example.com");
+    await page.getByLabel("URL").last().fill("https://example.com");
 
-    // Remove it
+    // Remove it — aria-label is "Remove link" when no label selected yet,
+    // or "Remove Website" after selecting
     await page
-      .getByRole("button", { name: /remove/i })
+      .getByRole("button", { name: /remove website/i })
       .last()
       .click();
 
-    // No more link rows visible
-    await expect(page.getByLabel(/url/i)).toHaveCount(0);
+    // Count should return to the initial number of pre-existing links
+    await expect(page.locator('[id^="url-"]')).toHaveCount(initialCount);
   });
 });

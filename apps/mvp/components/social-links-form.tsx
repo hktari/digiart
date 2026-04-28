@@ -39,7 +39,10 @@ export function SocialLinksForm({ initialLinks = [] }: SocialLinksFormProps) {
 
   const addLink = useCallback(() => {
     if (links.length >= MAX_LINKS) return;
-    setLinks((prev) => [...prev, { label: "", url: "" }]);
+    setLinks((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), label: "", url: "" },
+    ]);
     setSaveSuccess(false);
   }, [links.length]);
 
@@ -162,7 +165,7 @@ export function SocialLinksForm({ initialLinks = [] }: SocialLinksFormProps) {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} noValidate className="space-y-6">
         {saveSuccess && (
           <div className="rounded-lg border border-jade-200 bg-jade-50 px-4 py-3 text-sm text-jade-700">
             Your social links have been saved.
@@ -178,7 +181,7 @@ export function SocialLinksForm({ initialLinks = [] }: SocialLinksFormProps) {
         <div className="space-y-4">
           {links.map((link, index) => (
             <div
-              key={index}
+              key={link.id ?? index}
               className="rounded-lg border border-neutral-200 p-4 space-y-3"
             >
               <div className="flex items-start gap-3">
