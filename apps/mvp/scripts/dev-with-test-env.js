@@ -7,20 +7,6 @@ const { existsSync, readFileSync, unlinkSync } = require("node:fs");
 config({ path: resolve(__dirname, "../.env.test") });
 config({ path: resolve(__dirname, "../.env.test.local") });
 
-// Check and remove stale lock file if port differs
-const lockPath = resolve(__dirname, "../.next/dev/lock");
-if (existsSync(lockPath)) {
-  try {
-    const lock = JSON.parse(readFileSync(lockPath, "utf-8"));
-    if (lock.port !== 3005) {
-      console.log(`Removing stale lock file (port ${lock.port} !== 3005)`);
-      unlinkSync(lockPath);
-    }
-  } catch (err) {
-    // Ignore errors reading/parsing lock file
-  }
-}
-
 const child = spawn("pnpm", ["next", "dev", "--port", "3005"], {
   stdio: "inherit",
   env: { ...process.env, PORT: "3005" },

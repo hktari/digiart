@@ -13,11 +13,11 @@ export default defineConfig({
   reporter: "html",
   globalSetup: "./playwright/global-setup.ts",
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3005",
+    baseURL: "http://localhost:3005",
     trace: "on-first-retry",
     storageState: "playwright/.auth/user.json",
     screenshot: "only-on-failure",
-    actionTimeout: 10000, // Match expect timeout
+    actionTimeout: 10000,
     navigationTimeout: 15000,
   },
 

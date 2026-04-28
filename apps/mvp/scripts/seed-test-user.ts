@@ -5,11 +5,10 @@ import { resolve } from "node:path";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 
-const connectionString =
-  process.env.DATABASE_URL_TEST || process.env.DATABASE_URL;
+const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
-  console.error("❌ DATABASE_URL_TEST or DATABASE_URL not set");
+  console.error("❌ DATABASE_URL not set");
   process.exit(1);
 }
 

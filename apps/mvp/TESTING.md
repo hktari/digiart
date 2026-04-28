@@ -95,7 +95,7 @@ Edit `.env.test`:
 
 ```env
 # Neon test branch URL
-DATABASE_URL_TEST="postgresql://user:password@host/test-db?sslmode=require"
+DATABASE_URL="postgresql://user:password@host/test-db?sslmode=require"
 
 # Auth configuration
 AUTH_SECRET="your-auth-secret"
@@ -105,7 +105,7 @@ AUTH_URL="http://localhost:3000"
 #### 3. Run Migrations on Test Database
 
 ```bash
-DATABASE_URL=$DATABASE_URL_TEST pnpm db:push
+dotenv -e .env.test -- pnpm db:push
 ```
 
 #### 4. Seed Test User
@@ -126,13 +126,13 @@ This will output:
 
 **Two-step workflow:**
 
-1. **Start the test server** (in one terminal):
+1. **Start the dev server** (in one terminal):
 
 ```bash
 pnpm test:e2e:server
 ```
 
-This starts Next.js on port 3005 with test environment variables loaded.
+This starts Next.js on port 3005.
 
 2. **Run the tests** (in another terminal):
 
@@ -149,9 +149,9 @@ pnpm test:e2e e2e/auth.spec.ts
 
 **Note:**
 
-- The test server must be running before executing tests
+- The dev server must be running on port 3005 before executing tests
 - If tests fail with auth errors, re-run `pnpm test:seed` to regenerate credentials
-- Tests expect the server on `http://localhost:3005`
+- All development and testing uses port 3005
 
 ### How E2E Auth Works
 
