@@ -9,46 +9,18 @@
  *  - New release form: creates release with mocked uploads, redirects to
  *    release detail page
  *
- * Prerequisite: The test DB is seeded with an OPEN SubscriptionCycle
- * (guaranteed by reset-test-db.ts).  The CREATOR user must have a
- * CreatorProfile (created in the onboarding tests or via /creator/setup).
+ * Prerequisites:
+ *  - reset-test-db.ts seeds an OPEN SubscriptionCycle
+ *  - creator-onboarding project runs first (Playwright project dependency)
+ *    so the CREATOR user already has a CreatorProfile
  */
 import { expect, test } from "../playwright/fixtures";
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-async function ensureCreatorProfile(
-  page: import("@playwright/test").Page,
-  displayName = "E2E Test Creator",
-  slug = "e2e-test-creator",
-) {
-  await page.goto("/creator/setup");
-
-  if (page.url().includes("/creator") && !page.url().includes("/setup")) {
-    return;
-  }
-
-  await page.getByLabel(/display name/i).fill(displayName);
-  await page.getByLabel(/profile slug/i).fill(slug);
-  await page.getByRole("button", { name: /continue to payout/i }).click();
-  await page.getByRole("button", { name: /continue to review/i }).click();
-  await page
-    .getByRole("button", { name: /save.*profile|complete setup/i })
-    .click();
-  await page.waitForURL(/\/creator/, { timeout: 20000 });
-}
 
 // ---------------------------------------------------------------------------
 // Releases list
 // ---------------------------------------------------------------------------
 
 test.describe("Creator releases list", () => {
-  test.beforeEach(async ({ page }) => {
-    await ensureCreatorProfile(page);
-  });
-
   test("releases page loads", async ({ page }) => {
     await page.goto("/creator/releases");
 
@@ -83,10 +55,6 @@ test.describe("Creator releases list", () => {
 // ---------------------------------------------------------------------------
 
 test.describe("New release form", () => {
-  test.beforeEach(async ({ page }) => {
-    await ensureCreatorProfile(page);
-  });
-
   test("form page loads with details step", async ({ page }) => {
     await page.goto("/creator/releases/new");
 
@@ -188,10 +156,6 @@ test.describe("New release form", () => {
 // ---------------------------------------------------------------------------
 
 test.describe("Release detail", () => {
-  test.beforeEach(async ({ page }) => {
-    await ensureCreatorProfile(page);
-  });
-
   test("release list shows the created release after creation", async ({
     page,
   }) => {

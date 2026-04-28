@@ -6,62 +6,17 @@
  *  - Avatar upload (mocked S3 presign + PUT)
  *  - Social links: add, validate, save, delete
  *
- * All tests use the pre-seeded CREATOR user whose profile is created during
- * the onboarding flow.  The profile page redirects to /creator/setup when no
- * CreatorProfile exists, so these tests depend on onboarding having run first
- * OR on the profile being seeded separately.
- *
- * To keep these tests independent we mock the redirect in the profile page
- * by seeding a minimal CreatorProfile via the setup API action before the
- * suite starts.  We call /creator/setup programmatically via a POST to make
- * the creator profile exist.
+ * Prerequisite: creator-onboarding project must have run first (enforced by
+ * Playwright project dependencies in playwright.config.ts). The CREATOR user
+ * will already have a CreatorProfile created during the onboarding flow.
  */
 import { expect, test } from "../playwright/fixtures";
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Navigates through /creator/setup quickly to ensure a CreatorProfile exists.
- * Idempotent — if the profile already exists the form will pre-fill and the
- * save will simply update it.
- */
-async function ensureCreatorProfile(
-  page: import("@playwright/test").Page,
-  displayName = "E2E Test Creator",
-  slug = "e2e-test-creator",
-) {
-  await page.goto("/creator/setup");
-
-  // If we're already on the dashboard the profile exists
-  if (page.url().includes("/creator") && !page.url().includes("/setup")) {
-    return;
-  }
-
-  await page.getByLabel(/display name/i).fill(displayName);
-  await page.getByLabel(/profile slug/i).fill(slug);
-  await page.getByRole("button", { name: /continue to payout/i }).click();
-
-  await page.getByRole("button", { name: /continue to review/i }).click();
-
-  await page
-    .getByRole("button", { name: /save.*profile|complete setup/i })
-    .click();
-
-  // Wait for profile to be saved (either moves to artwork step or dashboard)
-  await page.waitForURL(/\/creator/, { timeout: 20000 });
-}
 
 // ---------------------------------------------------------------------------
 // Profile edit page
 // ---------------------------------------------------------------------------
 
 test.describe("Creator profile edit", () => {
-  test.beforeEach(async ({ page }) => {
-    await ensureCreatorProfile(page);
-  });
-
   test("profile edit page loads", async ({ page }) => {
     await page.goto("/creator/profile");
 
@@ -85,10 +40,6 @@ test.describe("Creator profile edit", () => {
 // ---------------------------------------------------------------------------
 
 test.describe("Avatar upload", () => {
-  test.beforeEach(async ({ page }) => {
-    await ensureCreatorProfile(page);
-  });
-
   test("shows error for non-image file type", async ({ page }) => {
     await page.goto("/creator/profile");
 
@@ -142,7 +93,6 @@ test.describe("Avatar upload", () => {
 
 test.describe("Social links", () => {
   test.beforeEach(async ({ page }) => {
-    await ensureCreatorProfile(page);
     await page.goto("/creator/profile");
   });
 
