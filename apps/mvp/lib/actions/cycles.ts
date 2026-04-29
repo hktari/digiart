@@ -1,7 +1,7 @@
 "use server";
 
+import type { SubscriptionCycle } from "@prisma/client";
 import { db } from "@/lib/db";
-import type { SubscriptionCycle, Release } from "@prisma/client";
 
 export async function getCurrentCycle(): Promise<SubscriptionCycle | null> {
   return db.subscriptionCycle.findFirst({

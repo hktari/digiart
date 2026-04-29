@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/roles";
-import type { PodOffering } from "@prisma/client";
 
 const offeringUpdateSchema = z.object({
   isActive: z.boolean(),

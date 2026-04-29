@@ -7,7 +7,6 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getPublicStorageUrl } from "@/lib/s3";
 import { getReleaseTags, setReleaseTags } from "./tags";
-import type { Release, Artwork } from "@prisma/client";
 
 // ---------------------------------------------------------------------------
 // Helpers

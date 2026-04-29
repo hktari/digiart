@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/roles";
-import type { SubscriptionCycle } from "@prisma/client";
 
 const cycleSchema = z
   .object({

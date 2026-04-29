@@ -132,7 +132,7 @@ This will output:
 pnpm test:e2e:server
 ```
 
-This starts Next.js on port 3005.
+This starts Next.js on port 3003.
 
 2. **Run the tests** (in another terminal):
 
@@ -149,9 +149,9 @@ pnpm test:e2e e2e/auth.spec.ts
 
 **Note:**
 
-- The dev server must be running on port 3005 before executing tests
+- The dev server must be running on port 3003 before executing tests
 - If tests fail with auth errors, re-run `pnpm test:seed` to regenerate credentials
-- All development and testing uses port 3005
+- All development and testing uses port 3003
 
 ### How E2E Auth Works
 

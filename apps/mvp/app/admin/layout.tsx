@@ -4,7 +4,6 @@ import {
   Bell,
   BookOpen,
   CalendarClock,
-  DollarSign,
   LayoutDashboard,
   Package,
   Users,

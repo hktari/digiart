@@ -6,7 +6,6 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getPublicStorageUrl } from "@/lib/s3";
-import type { CreatorProfile } from "@prisma/client";
 
 const slugSchema = z
   .string()

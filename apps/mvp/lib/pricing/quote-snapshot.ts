@@ -1,5 +1,5 @@
+import type { PodOffering, PricingQuoteSnapshot } from "@prisma/client";
 import { db } from "@/lib/db";
-import type { PricingQuoteSnapshot, PodOffering } from "@prisma/client";
 
 interface QuoteData {
   shippingAmount: number;

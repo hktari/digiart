@@ -5,11 +5,6 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import type {
-  CollectorProfile,
-  CollectorCreatorSubscription,
-  CollectorReleaseSelection,
-} from "@prisma/client";
 
 const collectorSetupSchema = z.object({
   displayName: z.string().min(1, "Display name is required").max(100),

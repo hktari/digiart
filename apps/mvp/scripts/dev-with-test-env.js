@@ -7,9 +7,9 @@ const { existsSync, readFileSync, unlinkSync } = require("node:fs");
 config({ path: resolve(__dirname, "../.env.test") });
 config({ path: resolve(__dirname, "../.env.test.local") });
 
-const child = spawn("pnpm", ["next", "dev", "--port", "3005"], {
+const child = spawn("pnpm", ["next", "dev", "--port", "3003"], {
   stdio: "inherit",
-  env: { ...process.env, PORT: "3005" },
+  env: { ...process.env, PORT: "3003" },
 });
 
 child.on("exit", (code) => {

@@ -1,8 +1,8 @@
 "use server";
 
+import type { Tag } from "@prisma/client";
 import { db } from "@/lib/db";
 import { getPublicStorageUrl } from "@/lib/s3";
-import type { CreatorProfile, Release, Tag } from "@prisma/client";
 
 export async function getAllPublishedCreators(
   tagSlug?: string,
