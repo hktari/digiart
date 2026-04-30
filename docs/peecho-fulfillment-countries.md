@@ -27,7 +27,7 @@ Key fields:
 From the repository root:
 
 ```bash
-pnpm --filter mvp pod:sync-countries
+pnpm pod:sync-countries
 ```
 
 The command uses:
@@ -36,6 +36,34 @@ The command uses:
 - `PEECHO_API_URL` if overriding the default sandbox URL
 - `PEECHO_MERCHANT_API_KEY`
 - `PEECHO_OFFERING_IDS`
+
+## Offering ID Discovery
+
+If the country sync fails with an error like `Offering with id ... not found`,
+the configured `PEECHO_OFFERING_IDS` value does not exist in the selected Peecho
+environment.
+
+List available offering IDs:
+
+```bash
+pnpm pod:list-offerings
+```
+
+The script prints each offering ID with its name, catalogue code, page limits,
+dimensions, and pricing metadata when Peecho returns it. It also prints a
+copyable `PEECHO_OFFERING_IDS="..."` line.
+
+After choosing the booklet/magazine offering ID, update `.env`:
+
+```bash
+PEECHO_OFFERING_IDS="123456"
+```
+
+Then rerun:
+
+```bash
+pnpm pod:sync-countries
+```
 
 ## Sync Behavior
 

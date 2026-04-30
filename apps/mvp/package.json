@@ -27,7 +27,8 @@
     "test:peecho": "dotenv -e .env.test -- tsx scripts/test-peecho-integration.ts",
     "test:coverage": "vitest run --coverage",
     "test:backend": "vitest run lib/__tests__ app/api/__tests__",
-    "pod:sync-countries": "dotenv -- tsx scripts/sync-peecho-countries.ts"
+    "pod:sync-countries": "dotenv -- tsx scripts/sync-peecho-countries.ts",
+    "pod:list-offerings": "dotenv -- tsx scripts/list-peecho-offerings.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.2",

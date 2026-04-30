@@ -8,7 +8,9 @@
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
     "format": "pnpm -r format",
-    "prepare": "husky"
+    "prepare": "husky",
+    "pod:list-offerings": "pnpm --filter mvp pod:list-offerings",
+    "pod:sync-countries": "pnpm --filter mvp pod:sync-countries"
   },
   "devDependencies": {
     "husky": "^9.1.7",
