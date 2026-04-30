@@ -15,7 +15,15 @@ import { getCurrentCycle } from "./cycles";
 
 const collectorSetupSchema = z.object({
   displayName: z.string().min(1, "Display name is required").max(100),
-  shippingCountry: z.string().min(2, "Shipping country is required"),
+  shippingCountry: z.string().length(2, "Shipping country is required"),
+  shippingStateCode: z
+    .string()
+    .trim()
+    .transform((value) => value.toUpperCase())
+    .refine((value) => value === "" || /^[A-Z]{2}$/.test(value), {
+      message: "State code must be a 2-letter code (e.g. CA, NY)",
+    })
+    .optional(),
 });
 
 export type CollectorSetupResult =
@@ -100,6 +108,7 @@ export async function saveCollectorProfile(
   const parsed = collectorSetupSchema.safeParse({
     displayName: formData.get("displayName"),
     shippingCountry: formData.get("shippingCountry"),
+    shippingStateCode: formData.get("shippingStateCode"),
   });
 
   if (!parsed.success) {
@@ -111,11 +120,23 @@ export async function saveCollectorProfile(
     return { success: false, errors };
   }
 
-  const { displayName, shippingCountry } = parsed.data;
+  const shippingCountry = parsed.data.shippingCountry.toUpperCase();
+  const shippingStateCode = parsed.data.shippingStateCode || undefined;
+  const { displayName } = parsed.data;
+
+  if (shippingCountry === "US" && !shippingStateCode) {
+    return {
+      success: false,
+      errors: {
+        shippingStateCode:
+          "State code is required for US shipping (e.g. CA, NY).",
+      },
+    };
+  }
 
   try {
     const fulfillmentCountry = await db.fulfillmentCountry.findUnique({
-      where: { code: shippingCountry.toUpperCase() },
+      where: { code: shippingCountry },
       select: { isActive: true },
     });
 
@@ -134,12 +155,14 @@ export async function saveCollectorProfile(
       create: {
         userId: session.user.id,
         displayName,
-        shippingCountry: shippingCountry.toUpperCase(),
+        shippingCountry,
+        shippingStateCode,
         onboardingState: "SHIPPING_SET",
       },
       update: {
         displayName,
-        shippingCountry: shippingCountry.toUpperCase(),
+        shippingCountry,
+        shippingStateCode,
         onboardingState: "SHIPPING_SET",
       },
     });

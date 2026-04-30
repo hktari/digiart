@@ -22,6 +22,7 @@ export default async function CollectorSetupPage() {
           ? {
               displayName: profile.displayName ?? undefined,
               shippingCountry: profile.shippingCountry ?? undefined,
+              shippingStateCode: profile.shippingStateCode ?? undefined,
             }
           : undefined
       }

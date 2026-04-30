@@ -35,6 +35,7 @@ export async function fetchAndPersistQuote(pageCount: number = 20) {
   try {
     const quoteData = await getQuote({
       country: collectorProfile.shippingCountry,
+      countryStateCode: collectorProfile.shippingStateCode ?? undefined,
       pageCount,
     });
 

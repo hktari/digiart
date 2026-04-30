@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import type { CollectorSetupResult } from "@/lib/actions/collector";
 import { saveCollectorProfile } from "@/lib/actions/collector";
 
@@ -9,6 +9,7 @@ interface CollectorSetupFormProps {
   initialData?: {
     displayName?: string;
     shippingCountry?: string;
+    shippingStateCode?: string;
   };
   redirectTo?: string;
 }
@@ -47,6 +48,9 @@ export function CollectorSetupForm({
   redirectTo = "/collector",
 }: CollectorSetupFormProps) {
   const router = useRouter();
+  const [shippingCountry, setShippingCountry] = useState(
+    initialData?.shippingCountry || "",
+  );
   const [state, formAction, isPending] = useActionState<
     CollectorSetupResult,
     FormData
@@ -104,6 +108,7 @@ export function CollectorSetupForm({
               name="shippingCountry"
               defaultValue={initialData?.shippingCountry}
               required
+              onChange={(event) => setShippingCountry(event.target.value)}
               className="mt-1 block w-full rounded-md border border-neutral-300 px-3 py-2 shadow-sm focus:border-fuchsia-500 focus:outline-none focus:ring-1 focus:ring-fuchsia-500"
             >
               <option value="">Select your country</option>
@@ -119,6 +124,35 @@ export function CollectorSetupForm({
               </p>
             )}
           </div>
+
+          {shippingCountry === "US" && (
+            <div>
+              <label
+                htmlFor="shippingStateCode"
+                className="block text-sm font-medium text-neutral-700"
+              >
+                State Code (US only)
+              </label>
+              <input
+                type="text"
+                id="shippingStateCode"
+                name="shippingStateCode"
+                defaultValue={initialData?.shippingStateCode}
+                required
+                maxLength={2}
+                className="mt-1 block w-full rounded-md border border-neutral-300 px-3 py-2 uppercase shadow-sm focus:border-fuchsia-500 focus:outline-none focus:ring-1 focus:ring-fuchsia-500"
+                placeholder="CA"
+              />
+              <p className="mt-1 text-xs text-neutral-500">
+                Use 2-letter USPS code, e.g. CA, NY, TX.
+              </p>
+              {!state.success && state.errors.shippingStateCode && (
+                <p className="mt-1 text-sm text-red-600">
+                  {state.errors.shippingStateCode}
+                </p>
+              )}
+            </div>
+          )}
 
           {!state.success && state.errors._form && (
             <div className="rounded-md bg-red-50 p-4">

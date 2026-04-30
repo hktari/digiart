@@ -152,6 +152,7 @@ model CollectorProfile {
   userId          String          @unique
   displayName     String?
   shippingCountry String?
+  shippingStateCode String?
   onboardingState OnboardingState @default(PENDING)
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
