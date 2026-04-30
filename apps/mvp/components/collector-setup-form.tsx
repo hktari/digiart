@@ -45,7 +45,7 @@ const COUNTRIES = [
 
 export function CollectorSetupForm({
   initialData,
-  redirectTo = "/collector",
+  redirectTo = "/",
 }: CollectorSetupFormProps) {
   const router = useRouter();
   const [shippingCountry, setShippingCountry] = useState(

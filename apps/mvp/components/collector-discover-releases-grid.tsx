@@ -47,9 +47,6 @@ export function CollectorDiscoverReleasesGrid({
   const [isPending, startTransition] = useTransition();
 
   const selectedCount = useMemo(() => selectedIds.size, [selectedIds]);
-  const [expandedReleaseId, setExpandedReleaseId] = useState<string | null>(
-    null,
-  );
 
   const onToggle = (releaseId: string) => {
     if (!cycleId) return;
@@ -81,7 +78,6 @@ export function CollectorDiscoverReleasesGrid({
         {releases.map((release) => {
           const coverArtwork = release.artworks[0]?.artwork;
           const isSelected = selectedIds.has(release.id);
-          const isInspecting = expandedReleaseId === release.id;
 
           return (
             <div
@@ -166,52 +162,12 @@ export function CollectorDiscoverReleasesGrid({
                     {isSelected ? "Remove" : "Add to booklet"}
                   </button>
                   <Link
-                    href={`/creators/${release.creatorProfile.slug}`}
+                    href={`/creators/${release.creatorProfile.slug}/releases/${release.id}`}
                     className="block w-full text-center px-3 py-2 text-sm font-medium text-fuchsia-600 border border-fuchsia-600 rounded-md hover:bg-fuchsia-50 transition-colors"
                   >
-                    View Creator
+                    View release details
                   </Link>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setExpandedReleaseId(isInspecting ? null : release.id)
-                  }
-                  className="w-full px-3 py-2 text-sm font-medium rounded-md border border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50 transition-colors"
-                >
-                  {isInspecting
-                    ? "Hide release contents"
-                    : "Inspect release contents"}
-                </button>
-
-                {isInspecting && (
-                  <div className="space-y-2 rounded-md border border-neutral-200 bg-neutral-50 p-3">
-                    <p className="text-xs font-medium uppercase tracking-wide text-neutral-600">
-                      Release contents
-                    </p>
-                    <div className="grid grid-cols-3 gap-2">
-                      {release.artworks.map(({ artwork }) => (
-                        <div key={artwork.storageKey} className="space-y-1">
-                          <div className="relative aspect-square overflow-hidden rounded bg-neutral-100">
-                            <Image
-                              src={`/api/storage/${artwork.storageKey}`}
-                              alt={artwork.title}
-                              fill
-                              className="object-cover"
-                            />
-                          </div>
-                          <p
-                            className="truncate text-[11px] text-neutral-600"
-                            title={artwork.title}
-                          >
-                            {artwork.title}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           );

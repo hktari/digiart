@@ -9,8 +9,7 @@ export default async function OnboardingPage() {
 
   const roles = await getUserRoles(session.user.id);
 
-  if (roles.includes("CREATOR")) redirect("/creator/setup");
-  if (roles.includes("COLLECTOR")) redirect("/collector/setup");
+  if (roles.length > 0) redirect("/");
 
   return (
     <main className="flex min-h-screen items-center justify-center px-4">
@@ -28,9 +27,9 @@ export default async function OnboardingPage() {
           <form action={assignRole.bind(null, "CREATOR")}>
             <button
               type="submit"
-              className="w-full rounded-xl border-2 border-neutral-200 p-6 text-left hover:border-fuchsia-400 hover:bg-fuchsia-50 transition-colors group"
+              className="group w-full rounded-xl border-2 border-neutral-200 p-6 text-left transition-colors hover:border-fuchsia-400 hover:bg-fuchsia-50"
             >
-              <div className="text-3xl mb-3">🎨</div>
+              <div className="mb-3 text-3xl">🎨</div>
               <div className="font-semibold group-hover:text-fuchsia-700">
                 Publish releases
               </div>
@@ -43,9 +42,9 @@ export default async function OnboardingPage() {
           <form action={assignRole.bind(null, "COLLECTOR")}>
             <button
               type="submit"
-              className="w-full rounded-xl border-2 border-neutral-200 p-6 text-left hover:border-fuchsia-400 hover:bg-fuchsia-50 transition-colors group"
+              className="group w-full rounded-xl border-2 border-neutral-200 p-6 text-left transition-colors hover:border-fuchsia-400 hover:bg-fuchsia-50"
             >
-              <div className="text-3xl mb-3">📬</div>
+              <div className="mb-3 text-3xl">📬</div>
               <div className="font-semibold group-hover:text-fuchsia-700">
                 Build booklets
               </div>

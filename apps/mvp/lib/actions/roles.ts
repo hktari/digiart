@@ -17,6 +17,7 @@ export async function assignRole(role: Role) {
   if (!session?.user?.id) redirect("/auth/sign-in");
 
   await addRole(session.user.id, role);
+  revalidatePath("/");
   revalidatePath("/account/roles");
   redirect(ROLE_REDIRECT[role]);
 }
@@ -26,6 +27,7 @@ export async function revokeRole(role: Role) {
   if (!session?.user?.id) redirect("/auth/sign-in");
 
   await removeRole(session.user.id, role);
+  revalidatePath("/");
   revalidatePath("/account/roles");
 }
 

@@ -11,9 +11,8 @@ export default async function CreatorSetupPage() {
 
   const profile = await getCreatorProfile(session.user.id);
 
-  // If profile is complete, redirect to dashboard
   if (profile && profile.status === "PUBLISHED") {
-    redirect("/creator");
+    redirect("/");
   }
 
   return (

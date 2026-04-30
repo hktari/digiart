@@ -5,7 +5,6 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
-  Palette,
   Settings,
   User,
   X,
@@ -31,6 +30,7 @@ export function Header() {
   const isCreator = session?.user?.roles?.includes("CREATOR") ?? false;
   const hasWorkspace = isCreator || isCollector;
   const isWorkspacePath =
+    pathname === "/" ||
     pathname.startsWith("/account") ||
     pathname.startsWith("/creator") ||
     pathname.startsWith("/collector");
@@ -61,30 +61,30 @@ export function Header() {
       <header
         className={`sticky top-0 z-50 transition-all duration-300 ${
           isScrolled
-            ? "bg-paper/95 backdrop-blur-sm shadow-sm border-b border-beige-200"
-            : "bg-paper border-b border-beige-100"
+            ? "border-b border-beige-200 bg-paper/95 shadow-sm backdrop-blur-sm"
+            : "border-b border-beige-100 bg-paper"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 md:h-18">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between md:h-18">
             <Link
               href="/"
-              className="flex items-center gap-2 font-serif font-bold text-xl text-ink hover:text-ocean-600 transition-colors"
+              className="flex items-center gap-2 font-serif text-xl font-bold text-ink transition-colors hover:text-ocean-600"
             >
-              <BookOpen className="w-5 h-5 text-ocean-600" strokeWidth={1.5} />
+              <BookOpen className="h-5 w-5 text-ocean-600" strokeWidth={1.5} />
               <span className="hidden sm:inline">Booklet Drops</span>
               <span className="sm:hidden">BD</span>
             </Link>
 
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="hidden items-center gap-1 md:flex">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                  className={`rounded px-4 py-2 text-sm font-medium transition-colors ${
                     pathname === link.href
                       ? "bg-ocean-600 text-paper"
-                      : "text-ink/70 hover:text-ink hover:bg-beige-100"
+                      : "text-ink/70 hover:bg-beige-100 hover:text-ink"
                   }`}
                 >
                   {link.label}
@@ -92,62 +92,62 @@ export function Header() {
               ))}
               {hasWorkspace && (
                 <Link
-                  href="/account"
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded text-sm font-medium transition-colors ${
+                  href="/"
+                  className={`flex items-center gap-1.5 rounded px-4 py-2 text-sm font-medium transition-colors ${
                     isWorkspacePath
                       ? "bg-fuchsia-600 text-paper"
-                      : "text-ink/70 hover:text-ink hover:bg-beige-100"
+                      : "text-ink/70 hover:bg-beige-100 hover:text-ink"
                   }`}
                 >
-                  <Palette className="w-3.5 h-3.5" strokeWidth={1.5} />
-                  Workspace
+                  <LayoutDashboard className="h-3.5 w-3.5" strokeWidth={1.5} />
+                  Dashboard
                 </Link>
               )}
               {isAdmin && (
                 <Link
                   href="/admin"
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded text-sm font-medium transition-colors ${
+                  className={`flex items-center gap-1.5 rounded px-4 py-2 text-sm font-medium transition-colors ${
                     pathname.startsWith("/admin")
                       ? "bg-jade-600 text-paper"
-                      : "text-ink/70 hover:text-ink hover:bg-beige-100"
+                      : "text-ink/70 hover:bg-beige-100 hover:text-ink"
                   }`}
                 >
-                  <Settings className="w-3.5 h-3.5" strokeWidth={1.5} />
+                  <Settings className="h-3.5 w-3.5" strokeWidth={1.5} />
                   Admin
                 </Link>
               )}
             </nav>
 
-            <div className="hidden md:flex items-center gap-3">
+            <div className="hidden items-center gap-3 md:flex">
               {isAuthenticated ? (
                 <>
                   <Link
-                    href="/account"
-                    className="flex items-center gap-2 text-sm font-medium text-ink/70 hover:text-ink transition-colors px-3 py-2"
+                    href="/account/roles"
+                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-ink/70 transition-colors hover:text-ink"
                   >
-                    <User className="w-4 h-4" />
+                    <User className="h-4 w-4" />
                     {session?.user?.name || session?.user?.email}
                   </Link>
                   <button
                     type="button"
                     onClick={() => signOut()}
-                    className="flex items-center gap-1.5 text-sm font-medium text-ink/70 hover:text-ink transition-colors px-3 py-2"
+                    className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-ink/70 transition-colors hover:text-ink"
                     title="Sign out"
                   >
-                    <LogOut className="w-4 h-4" />
+                    <LogOut className="h-4 w-4" />
                   </button>
                 </>
               ) : (
                 <>
                   <Link
                     href="/auth/sign-in"
-                    className="text-sm font-medium text-ink/70 hover:text-ink transition-colors px-3 py-2"
+                    className="px-3 py-2 text-sm font-medium text-ink/70 transition-colors hover:text-ink"
                   >
                     Sign in
                   </Link>
                   <Link
                     href="/auth/sign-up"
-                    className="text-sm font-medium bg-ocean-600 text-paper px-4 py-2 rounded hover:bg-ocean-700 transition-colors"
+                    className="rounded bg-ocean-600 px-4 py-2 text-sm font-medium text-paper transition-colors hover:bg-ocean-700"
                   >
                     Get started
                   </Link>
@@ -160,12 +160,12 @@ export function Header() {
               aria-label={mobileOpen ? "Close menu" : "Open menu"}
               aria-expanded={mobileOpen}
               onClick={() => setMobileOpen((v) => !v)}
-              className="md:hidden p-2 rounded text-ink/70 hover:text-ink hover:bg-beige-100 transition-colors"
+              className="rounded p-2 text-ink/70 transition-colors hover:bg-beige-100 hover:text-ink md:hidden"
             >
               {mobileOpen ? (
-                <X className="w-5 h-5" />
+                <X className="h-5 w-5" />
               ) : (
-                <Menu className="w-5 h-5" />
+                <Menu className="h-5 w-5" />
               )}
             </button>
           </div>
@@ -181,22 +181,22 @@ export function Header() {
       )}
 
       <div
-        className={`fixed top-16 inset-x-0 z-40 bg-paper border-b border-beige-200 shadow-lg md:hidden transition-all duration-300 ease-in-out ${
+        className={`fixed inset-x-0 top-16 z-40 border-b border-beige-200 bg-paper shadow-lg transition-all duration-300 ease-in-out md:hidden ${
           mobileOpen
-            ? "opacity-100 translate-y-0 pointer-events-auto"
-            : "opacity-0 -translate-y-2 pointer-events-none"
+            ? "pointer-events-auto translate-y-0 opacity-100"
+            : "pointer-events-none -translate-y-2 opacity-0"
         }`}
         aria-hidden={!mobileOpen}
       >
-        <nav className="max-w-7xl mx-auto px-4 py-4 flex flex-col gap-1">
+        <nav className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-4">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className={`px-4 py-3 rounded text-sm font-medium transition-colors ${
+              className={`rounded px-4 py-3 text-sm font-medium transition-colors ${
                 pathname === link.href
                   ? "bg-ocean-600 text-paper"
-                  : "text-ink/80 hover:text-ink hover:bg-beige-100"
+                  : "text-ink/80 hover:bg-beige-100 hover:text-ink"
               }`}
             >
               {link.label}
@@ -204,45 +204,45 @@ export function Header() {
           ))}
           {hasWorkspace && (
             <Link
-              href="/account"
+              href="/"
               onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-2 px-4 py-3 rounded text-sm font-medium transition-colors ${
+              className={`flex items-center gap-2 rounded px-4 py-3 text-sm font-medium transition-colors ${
                 isWorkspacePath
                   ? "bg-fuchsia-600 text-paper"
-                  : "text-ink/80 hover:text-ink hover:bg-beige-100"
+                  : "text-ink/80 hover:bg-beige-100 hover:text-ink"
               }`}
             >
-              <LayoutDashboard className="w-4 h-4" strokeWidth={1.5} />
-              Workspace
+              <LayoutDashboard className="h-4 w-4" strokeWidth={1.5} />
+              Dashboard
             </Link>
           )}
           {isAdmin && (
             <Link
               href="/admin"
               onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-2 px-4 py-3 rounded text-sm font-medium transition-colors ${
+              className={`flex items-center gap-2 rounded px-4 py-3 text-sm font-medium transition-colors ${
                 pathname.startsWith("/admin")
                   ? "bg-jade-600 text-paper"
-                  : "text-ink/80 hover:text-ink hover:bg-beige-100"
+                  : "text-ink/80 hover:bg-beige-100 hover:text-ink"
               }`}
             >
-              <Settings className="w-4 h-4" strokeWidth={1.5} />
+              <Settings className="h-4 w-4" strokeWidth={1.5} />
               Admin
             </Link>
           )}
-          <div className="mt-3 pt-3 border-t border-beige-200 flex flex-col gap-2">
+          <div className="mt-3 flex flex-col gap-2 border-t border-beige-200 pt-3">
             {isAuthenticated ? (
               <>
                 <Link
-                  href="/account"
-                  className="px-4 py-3 rounded text-sm font-medium text-ink/80 hover:text-ink hover:bg-beige-100 transition-colors"
+                  href="/account/roles"
+                  className="rounded px-4 py-3 text-sm font-medium text-ink/80 transition-colors hover:bg-beige-100 hover:text-ink"
                 >
                   {session?.user?.name || session?.user?.email}
                 </Link>
                 <button
                   type="button"
                   onClick={() => signOut()}
-                  className="px-4 py-3 rounded text-sm font-medium text-ink/70 hover:text-ink hover:bg-beige-100 transition-colors text-left"
+                  className="px-4 py-3 text-left text-sm font-medium text-ink/70 transition-colors hover:bg-beige-100 hover:text-ink"
                 >
                   Sign out
                 </button>
@@ -251,13 +251,13 @@ export function Header() {
               <>
                 <Link
                   href="/auth/sign-in"
-                  className="px-4 py-3 rounded text-sm font-medium text-ink/70 hover:text-ink hover:bg-beige-100 transition-colors"
+                  className="rounded px-4 py-3 text-sm font-medium text-ink/70 transition-colors hover:bg-beige-100 hover:text-ink"
                 >
                   Sign in
                 </Link>
                 <Link
                   href="/auth/sign-up"
-                  className="px-4 py-3 rounded text-sm font-medium bg-ocean-600 text-paper hover:bg-ocean-700 transition-colors text-center"
+                  className="rounded bg-ocean-600 px-4 py-3 text-center text-sm font-medium text-paper transition-colors hover:bg-ocean-700"
                 >
                   Get started
                 </Link>

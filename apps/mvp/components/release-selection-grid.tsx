@@ -42,9 +42,6 @@ export function ReleaseSelectionGrid({
   cycleId,
 }: ReleaseSelectionGridProps) {
   const [selectedIds, setSelectedIds] = useState(initialSelectedIds);
-  const [expandedReleaseId, setExpandedReleaseId] = useState<string | null>(
-    null,
-  );
   const [isPending, startTransition] = useTransition();
 
   const handleToggle = (releaseId: string) => {
@@ -106,7 +103,6 @@ export function ReleaseSelectionGrid({
       {releases.map((release) => {
         const isSelected = selectedIds.has(release.id);
         const coverArtwork = release.artworks[0]?.artwork;
-        const isInspecting = expandedReleaseId === release.id;
 
         return (
           <div
@@ -187,46 +183,13 @@ export function ReleaseSelectionGrid({
                 >
                   {isSelected ? "Remove" : "Add to booklet"}
                 </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setExpandedReleaseId(isInspecting ? null : release.id)
-                  }
-                  className="px-3 py-2 text-sm font-medium rounded-md border border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50 transition-colors"
+                <Link
+                  href={`/creators/${release.creatorProfile.slug}/releases/${release.id}`}
+                  className="block px-3 py-2 text-center text-sm font-medium rounded-md border border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50 transition-colors"
                 >
-                  {isInspecting
-                    ? "Hide release contents"
-                    : "Inspect release contents"}
-                </button>
+                  View release details
+                </Link>
               </div>
-
-              {isInspecting && (
-                <div className="space-y-2 rounded-md border border-neutral-200 bg-neutral-50 p-3">
-                  <p className="text-xs font-medium uppercase tracking-wide text-neutral-600">
-                    Release contents
-                  </p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {release.artworks.map(({ artwork }) => (
-                      <div key={artwork.id} className="space-y-1">
-                        <div className="relative aspect-square overflow-hidden rounded bg-neutral-100">
-                          <Image
-                            src={`/api/storage/${artwork.storageKey}`}
-                            alt={artwork.title}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                        <p
-                          className="truncate text-[11px] text-neutral-600"
-                          title={artwork.title}
-                        >
-                          {artwork.title}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {release.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1">

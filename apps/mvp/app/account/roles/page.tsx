@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { assignRole, revokeRole } from "@/lib/actions/roles";
 import { auth } from "@/lib/auth";
@@ -56,7 +57,7 @@ export default async function AccountRolesPage() {
                   <form action={revokeRole.bind(null, role)}>
                     <button
                       type="submit"
-                      className="rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-medium text-neutral-600 hover:bg-neutral-100 transition-colors"
+                      className="rounded-lg border border-neutral-300 px-3 py-1.5 text-xs font-medium text-neutral-600 transition-colors hover:bg-neutral-100"
                     >
                       Remove
                     </button>
@@ -65,7 +66,7 @@ export default async function AccountRolesPage() {
                   <form action={assignRole.bind(null, role)}>
                     <button
                       type="submit"
-                      className="rounded-lg bg-fuchsia-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-fuchsia-700 transition-colors"
+                      className="rounded-lg bg-fuchsia-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-fuchsia-700"
                     >
                       Add
                     </button>
@@ -75,12 +76,12 @@ export default async function AccountRolesPage() {
             );
           })}
         </div>
-        <a
-          href="/account"
+        <Link
+          href="/"
           className="block text-center text-sm text-neutral-500 hover:text-neutral-700"
         >
-          ← Back to account
-        </a>
+          ← Back to dashboard
+        </Link>
       </div>
     </main>
   );

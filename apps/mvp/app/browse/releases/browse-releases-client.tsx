@@ -111,7 +111,7 @@ export function BrowseReleasesClient({
           {initialReleases.map((release) => (
             <Link
               key={release.id}
-              href={`/creators/${release.creatorProfile.slug}`}
+              href={`/creators/${release.creatorProfile.slug}/releases/${release.id}`}
               className="group block bg-white rounded-lg border border-neutral-200 overflow-hidden hover:shadow-lg transition-shadow"
             >
               {release.artworks[0] && (

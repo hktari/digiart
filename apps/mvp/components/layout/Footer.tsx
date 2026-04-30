@@ -9,7 +9,7 @@ const footerLinks = {
   ],
   Account: [
     { href: "/auth/sign-in", label: "Sign in" },
-    { href: "/account", label: "My Account" },
+    { href: "/", label: "Dashboard" },
     { href: "/account/roles", label: "Manage Roles" },
   ],
   Legal: [

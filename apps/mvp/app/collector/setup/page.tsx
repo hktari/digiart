@@ -10,11 +10,6 @@ export default async function CollectorSetupPage() {
   }
 
   const profile = await getCollectorProfile(session.user.id);
-
-  if (profile && profile.onboardingState === "COMPLETE") {
-    redirect("/collector");
-  }
-
   return (
     <CollectorSetupForm
       initialData={
@@ -26,6 +21,7 @@ export default async function CollectorSetupPage() {
             }
           : undefined
       }
+      redirectTo="/"
     />
   );
 }

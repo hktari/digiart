@@ -169,9 +169,10 @@ export async function saveCreatorProfile(
     },
   });
 
+  revalidatePath("/");
   revalidatePath("/creator");
   revalidatePath("/creator/setup");
-  redirect("/creator");
+  redirect("/");
 }
 
 export async function getCreatorProfile(userId: string): Promise<any> {
@@ -223,6 +224,7 @@ export async function saveAvatar(
     data: { avatar: avatarUrl },
   });
 
+  revalidatePath("/");
   revalidatePath("/creator");
   revalidatePath("/creator/profile");
 
@@ -335,4 +337,107 @@ export async function getPublicCreatorProfile(slug: string): Promise<any> {
   });
 
   return profile;
+}
+
+export async function getPublicCreatorReleases(slug: string): Promise<any[]> {
+  const profile = await db.creatorProfile.findUnique({
+    where: { slug, status: "PUBLISHED" },
+    select: { id: true },
+  });
+
+  if (!profile) {
+    return [];
+  }
+
+  return db.release.findMany({
+    where: {
+      creatorProfileId: profile.id,
+      status: "PUBLISHED",
+    },
+    orderBy: { createdAt: "desc" },
+    include: {
+      artworks: {
+        include: {
+          artwork: {
+            select: {
+              id: true,
+              title: true,
+              storageKey: true,
+            },
+          },
+        },
+        orderBy: { sortOrder: "asc" },
+        take: 1,
+      },
+      _count: {
+        select: { artworks: true },
+      },
+    },
+  });
+}
+
+export async function getPublicReleaseDetail(
+  creatorSlug: string,
+  releaseId: string,
+): Promise<any> {
+  const profile = await db.creatorProfile.findUnique({
+    where: { slug: creatorSlug, status: "PUBLISHED" },
+    select: {
+      id: true,
+      slug: true,
+      displayName: true,
+      avatar: true,
+      bio: true,
+    },
+  });
+
+  if (!profile) {
+    return null;
+  }
+
+  const release = await db.release.findFirst({
+    where: {
+      id: releaseId,
+      creatorProfileId: profile.id,
+      status: "PUBLISHED",
+    },
+    include: {
+      artworks: {
+        include: {
+          artwork: {
+            select: {
+              id: true,
+              title: true,
+              storageKey: true,
+              orientation: true,
+            },
+          },
+        },
+        orderBy: { sortOrder: "asc" },
+      },
+      tags: {
+        include: { tag: true },
+      },
+      _count: {
+        select: { artworks: true },
+      },
+    },
+  });
+
+  if (!release) {
+    return null;
+  }
+
+  return {
+    ...release,
+    creatorProfile: profile,
+    artworks: release.artworks.map((item) => ({
+      ...item,
+      artwork: {
+        ...item.artwork,
+        imageUrl: getPublicStorageUrl(item.artwork.storageKey),
+      },
+    })),
+    tags: release.tags.map((item) => item.tag),
+  };
 }

@@ -46,5 +46,5 @@ export default async function CreatorSubscribePage({ params }: Props) {
     );
   }
 
-  redirect("/account");
+  redirect("/");
 }

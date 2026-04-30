@@ -15,13 +15,13 @@ export default async function CollectorSubscriptionsPage() {
 
   return (
     <div className="min-h-screen bg-neutral-50">
-      <div className="max-w-5xl mx-auto px-4 py-12">
+      <div className="mx-auto max-w-5xl px-4 py-12">
         <div className="mb-8">
           <Link
-            href="/account"
+            href="/"
             className="text-xs font-semibold uppercase tracking-widest text-neutral-400 hover:text-neutral-600"
           >
-            Workspace
+            Dashboard
           </Link>
           <h1 className="text-3xl font-bold text-neutral-900">
             Artists You Follow
@@ -33,11 +33,11 @@ export default async function CollectorSubscriptionsPage() {
         </div>
 
         {subscriptions.length === 0 ? (
-          <div className="bg-white rounded-lg border border-neutral-200 p-12 text-center">
-            <div className="max-w-md mx-auto space-y-4">
-              <div className="w-16 h-16 mx-auto rounded-full bg-fuchsia-100 flex items-center justify-center">
+          <div className="rounded-lg border border-neutral-200 bg-white p-12 text-center">
+            <div className="mx-auto max-w-md space-y-4">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-fuchsia-100">
                 <svg
-                  className="w-8 h-8 text-fuchsia-600"
+                  className="h-8 w-8 text-fuchsia-600"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -59,7 +59,7 @@ export default async function CollectorSubscriptionsPage() {
               </p>
               <Link
                 href="/browse/creators"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-fuchsia-600 hover:bg-fuchsia-700"
+                className="inline-flex items-center rounded-md border border-transparent bg-fuchsia-600 px-4 py-2 text-sm font-medium text-white hover:bg-fuchsia-700"
               >
                 Browse artists
               </Link>
@@ -70,7 +70,7 @@ export default async function CollectorSubscriptionsPage() {
             {subscriptions.map((subscription) => (
               <div
                 key={subscription.id}
-                className="bg-white rounded-lg border border-neutral-200 p-6 hover:border-fuchsia-300 hover:shadow-md transition-all"
+                className="rounded-lg border border-neutral-200 bg-white p-6 transition-all hover:border-fuchsia-300 hover:shadow-md"
               >
                 <div className="flex items-start gap-4">
                   <Link href={`/creators/${subscription.creatorProfile.slug}`}>
@@ -83,7 +83,7 @@ export default async function CollectorSubscriptionsPage() {
                         className="rounded-lg object-cover"
                       />
                     ) : (
-                      <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-fuchsia-100 to-ocean-100 flex items-center justify-center">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-gradient-to-br from-fuchsia-100 to-ocean-100">
                         <span className="text-2xl font-bold">
                           {subscription.creatorProfile.displayName
                             .charAt(0)
@@ -92,22 +92,22 @@ export default async function CollectorSubscriptionsPage() {
                       </div>
                     )}
                   </Link>
-                  <div className="flex-1 min-w-0">
+                  <div className="min-w-0 flex-1">
                     <Link
                       href={`/creators/${subscription.creatorProfile.slug}`}
                     >
-                      <h3 className="font-semibold text-neutral-900 truncate hover:text-fuchsia-700">
+                      <h3 className="truncate font-semibold text-neutral-900 hover:text-fuchsia-700">
                         {subscription.creatorProfile.displayName}
                       </h3>
                     </Link>
-                    <p className="text-sm text-neutral-500 mt-1 line-clamp-2">
+                    <p className="mt-1 line-clamp-2 text-sm text-neutral-500">
                       {subscription.creatorProfile.bio || "No bio available"}
                     </p>
                   </div>
                 </div>
                 <div className="mt-4 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-jade-100 text-jade-800">
+                    <span className="inline-flex items-center rounded-full bg-jade-100 px-2.5 py-0.5 text-xs font-medium text-jade-800">
                       Active
                     </span>
                     <span className="text-xs text-neutral-500">
@@ -127,7 +127,7 @@ export default async function CollectorSubscriptionsPage() {
         <div className="mt-8 flex justify-center">
           <Link
             href="/browse/creators"
-            className="text-sm text-fuchsia-600 hover:text-fuchsia-700 font-medium"
+            className="text-sm font-medium text-fuchsia-600 hover:text-fuchsia-700"
           >
             Discover more artists →
           </Link>

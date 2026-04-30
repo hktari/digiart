@@ -22,15 +22,15 @@ export default async function CreatorProfileEditPage() {
   const socialLinks = await getSocialLinks();
 
   return (
-    <div className="max-w-xl mx-auto px-4 py-10 space-y-10">
+    <div className="mx-auto max-w-xl space-y-10 px-4 py-10">
       <div>
         <Link
-          href="/account"
+          href="/"
           className="text-xs font-semibold uppercase tracking-widest text-neutral-400 hover:text-neutral-600"
         >
-          Workspace
+          Dashboard
         </Link>
-        <h1 className="text-2xl font-bold tracking-tight text-neutral-900 mb-6">
+        <h1 className="mb-6 text-2xl font-bold tracking-tight text-neutral-900">
           Profile and payouts
         </h1>
         <AvatarUpload
@@ -40,7 +40,7 @@ export default async function CreatorProfileEditPage() {
       </div>
 
       <div>
-        <h2 className="text-sm font-semibold uppercase tracking-widest text-neutral-400 mb-4">
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-neutral-400">
           Payout
         </h2>
         <PayoutForm
@@ -54,7 +54,7 @@ export default async function CreatorProfileEditPage() {
       </div>
 
       <div>
-        <h2 className="text-sm font-semibold uppercase tracking-widest text-neutral-400 mb-4">
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-neutral-400">
           Social links
         </h2>
         <SocialLinksForm initialLinks={socialLinks} />

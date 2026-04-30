@@ -97,10 +97,10 @@ export default async function CreatorProfilePage({ params }: Props) {
             <div className="pt-2">
               {isOwnProfile ? (
                 <Link
-                  href="/creator"
+                  href="/"
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-neutral-900 text-white font-medium hover:bg-neutral-800 transition-colors"
                 >
-                  Go to dashboard
+                  Go to your dashboard
                 </Link>
               ) : (
                 <Link
@@ -140,8 +140,9 @@ export default async function CreatorProfilePage({ params }: Props) {
                   : null;
 
                 return (
-                  <div
+                  <Link
                     key={release.id}
+                    href={`/creators/${slug}/releases/${release.id}`}
                     className="group rounded-xl border border-neutral-200 bg-white overflow-hidden hover:border-fuchsia-300 hover:shadow-lg transition-all"
                   >
                     {/* Cover image */}
@@ -175,7 +176,7 @@ export default async function CreatorProfilePage({ params }: Props) {
                         {release._count.artworks === 1 ? "artwork" : "artworks"}
                       </p>
                     </div>
-                  </div>
+                  </Link>
                 );
               })}
             </div>
