@@ -83,39 +83,38 @@ async function main() {
 
     const eligibleCodes = eligibleCountries.map((country) => country.code);
 
-    await db.$transaction([
-      ...eligibleCountries.map((country) =>
-        db.fulfillmentCountry.upsert({
-          where: { code: country.code },
-          create: {
-            code: country.code,
-            name: country.name,
-            region: country.region,
-            isActive: true,
-            source: "peecho",
-            syncedAt,
-          },
-          update: {
-            name: country.name,
-            region: country.region,
-            isActive: true,
-            source: "peecho",
-            syncedAt,
-          },
-        }),
-      ),
-      db.fulfillmentCountry.updateMany({
-        where: {
-          source: "peecho",
-          code: { notIn: eligibleCodes },
+    for (const country of eligibleCountries) {
+      await db.fulfillmentCountry.upsert({
+        where: { code: country.code },
+        create: {
+          code: country.code,
+          name: country.name,
+          region: country.region,
           isActive: true,
-        },
-        data: {
-          isActive: false,
+          source: "peecho",
           syncedAt,
         },
-      }),
-    ]);
+        update: {
+          name: country.name,
+          region: country.region,
+          isActive: true,
+          source: "peecho",
+          syncedAt,
+        },
+      });
+    }
+
+    await db.fulfillmentCountry.updateMany({
+      where: {
+        source: "peecho",
+        code: { notIn: eligibleCodes },
+        isActive: true,
+      },
+      data: {
+        isActive: false,
+        syncedAt,
+      },
+    });
 
     const euCount = eligibleCountries.filter(
       (country) => country.region === "EU",
