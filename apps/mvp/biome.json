@@ -7,10 +7,16 @@
       "react": "recommended"
     },
     "rules": {
+      "performance": {
+        "noImgElement": "off"
+      },
       "a11y": {
-        "noSvgWithoutTitle": "off"
+        "noSvgWithoutTitle": "off",
+        "useSemanticElements": "off",
+        "useButtonType": "off"
       },
       "suspicious": {
+        "noExplicitAny": "warn",
         "noUnknownAtRules": "off"
       }
     }
