@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import { toggleReleaseSelection } from "@/lib/actions/collector";
+import { dispatchCollectorCartUpdated } from "@/lib/cart-events";
 
 type ReleaseItem = {
   id: string;
@@ -21,10 +22,8 @@ type ReleaseItem = {
     };
   }>;
   tags: Array<{
-    tag: {
-      name: string;
-      slug: string;
-    };
+    name: string;
+    slug: string;
   }>;
   _count: {
     artworks: number;
@@ -48,6 +47,9 @@ export function CollectorDiscoverReleasesGrid({
   const [isPending, startTransition] = useTransition();
 
   const selectedCount = useMemo(() => selectedIds.size, [selectedIds]);
+  const [expandedReleaseId, setExpandedReleaseId] = useState<string | null>(
+    null,
+  );
 
   const onToggle = (releaseId: string) => {
     if (!cycleId) return;
@@ -63,7 +65,9 @@ export function CollectorDiscoverReleasesGrid({
       const result = await toggleReleaseSelection(releaseId, cycleId);
       if (!result.success) {
         setSelectedIds(new Set(selectedIds));
+        return;
       }
+      dispatchCollectorCartUpdated();
     });
   };
 
@@ -77,6 +81,7 @@ export function CollectorDiscoverReleasesGrid({
         {releases.map((release) => {
           const coverArtwork = release.artworks[0]?.artwork;
           const isSelected = selectedIds.has(release.id);
+          const isInspecting = expandedReleaseId === release.id;
 
           return (
             <div
@@ -120,7 +125,7 @@ export function CollectorDiscoverReleasesGrid({
                 <div className="flex items-center justify-between text-xs text-neutral-500">
                   <span>
                     {release._count.artworks}{" "}
-                    {release._count.artworks === 1 ? "artwork" : "artworks"}
+                    {release._count.artworks === 1 ? "page" : "pages"}
                   </span>
                   {isSelected && (
                     <span className="rounded-full bg-fuchsia-100 px-2 py-0.5 text-fuchsia-700">
@@ -133,10 +138,10 @@ export function CollectorDiscoverReleasesGrid({
                   <div className="flex flex-wrap gap-1">
                     {release.tags.slice(0, 3).map((rt) => (
                       <span
-                        key={rt.tag.slug}
+                        key={rt.slug}
                         className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-beige-100 text-beige-800"
                       >
-                        {rt.tag.name}
+                        {rt.name}
                       </span>
                     ))}
                     {release.tags.length > 3 && (
@@ -167,6 +172,46 @@ export function CollectorDiscoverReleasesGrid({
                     View Creator
                   </Link>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setExpandedReleaseId(isInspecting ? null : release.id)
+                  }
+                  className="w-full px-3 py-2 text-sm font-medium rounded-md border border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50 transition-colors"
+                >
+                  {isInspecting
+                    ? "Hide release contents"
+                    : "Inspect release contents"}
+                </button>
+
+                {isInspecting && (
+                  <div className="space-y-2 rounded-md border border-neutral-200 bg-neutral-50 p-3">
+                    <p className="text-xs font-medium uppercase tracking-wide text-neutral-600">
+                      Release contents
+                    </p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {release.artworks.map(({ artwork }) => (
+                        <div key={artwork.storageKey} className="space-y-1">
+                          <div className="relative aspect-square overflow-hidden rounded bg-neutral-100">
+                            <Image
+                              src={`/api/storage/${artwork.storageKey}`}
+                              alt={artwork.title}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                          <p
+                            className="truncate text-[11px] text-neutral-600"
+                            title={artwork.title}
+                          >
+                            {artwork.title}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           );

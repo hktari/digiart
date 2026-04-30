@@ -29,6 +29,11 @@ export function Header() {
   const isAdmin = session?.user?.roles?.includes("ADMIN") ?? false;
   const isCollector = session?.user?.roles?.includes("COLLECTOR") ?? false;
   const isCreator = session?.user?.roles?.includes("CREATOR") ?? false;
+  const hasWorkspace = isCreator || isCollector;
+  const isWorkspacePath =
+    pathname.startsWith("/account") ||
+    pathname.startsWith("/creator") ||
+    pathname.startsWith("/collector");
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -85,30 +90,17 @@ export function Header() {
                   {link.label}
                 </Link>
               ))}
-              {isCreator && (
+              {hasWorkspace && (
                 <Link
-                  href="/creator"
+                  href="/account"
                   className={`flex items-center gap-1.5 px-4 py-2 rounded text-sm font-medium transition-colors ${
-                    pathname.startsWith("/creator")
+                    isWorkspacePath
                       ? "bg-fuchsia-600 text-paper"
                       : "text-ink/70 hover:text-ink hover:bg-beige-100"
                   }`}
                 >
                   <Palette className="w-3.5 h-3.5" strokeWidth={1.5} />
-                  Creator
-                </Link>
-              )}
-              {isCollector && (
-                <Link
-                  href="/collector"
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded text-sm font-medium transition-colors ${
-                    pathname.startsWith("/collector")
-                      ? "bg-ocean-600 text-paper"
-                      : "text-ink/70 hover:text-ink hover:bg-beige-100"
-                  }`}
-                >
-                  <LayoutDashboard className="w-3.5 h-3.5" strokeWidth={1.5} />
-                  Collection
+                  Workspace
                 </Link>
               )}
               {isAdmin && (
@@ -210,32 +202,18 @@ export function Header() {
               {link.label}
             </Link>
           ))}
-          {isCreator && (
+          {hasWorkspace && (
             <Link
-              href="/creator"
+              href="/account"
               onClick={() => setMobileOpen(false)}
               className={`flex items-center gap-2 px-4 py-3 rounded text-sm font-medium transition-colors ${
-                pathname.startsWith("/creator")
+                isWorkspacePath
                   ? "bg-fuchsia-600 text-paper"
                   : "text-ink/80 hover:text-ink hover:bg-beige-100"
               }`}
             >
-              <Palette className="w-4 h-4" strokeWidth={1.5} />
-              Creator studio
-            </Link>
-          )}
-          {isCollector && (
-            <Link
-              href="/collector"
-              onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-2 px-4 py-3 rounded text-sm font-medium transition-colors ${
-                pathname.startsWith("/collector")
-                  ? "bg-ocean-600 text-paper"
-                  : "text-ink/80 hover:text-ink hover:bg-beige-100"
-              }`}
-            >
               <LayoutDashboard className="w-4 h-4" strokeWidth={1.5} />
-              My collection
+              Workspace
             </Link>
           )}
           {isAdmin && (

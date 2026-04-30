@@ -68,8 +68,14 @@ export default function CollectorLayout({
   return (
     <div className="flex min-h-[calc(100vh-4rem)]">
       <aside className="hidden md:flex flex-col w-56 shrink-0 border-r border-beige-200 bg-paper px-3 py-6 gap-1">
+        <Link
+          href="/account"
+          className="px-3 py-2 text-xs font-medium text-ink/50 hover:text-ink"
+        >
+          Workspace
+        </Link>
         <p className="text-xs font-semibold uppercase tracking-widest text-ink/40 px-3 mb-2">
-          Collector
+          Booklets
         </p>
         {collectorNavLinks.map((link) => {
           const active = link.exact

@@ -11,20 +11,20 @@ export default function HomePage() {
             Art subscription platform
           </div>
           <h1 className="font-serif text-4xl sm:text-5xl md:text-6xl font-bold text-ink leading-tight">
-            Monthly art booklets,{" "}
+            Release-led art booklets,{" "}
             <span className="text-ocean-600">delivered</span>
           </h1>
           <p className="mt-6 text-lg text-ink/60 leading-relaxed max-w-xl mx-auto">
-            Subscribe to your favourite digital artists and receive exclusive
-            printed booklets every month — curated, printed, and shipped for
-            you.
+            One account lets you publish releases, build a booklet from the
+            releases you love, and understand exactly how booklet pricing and
+            artist payouts are calculated.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row gap-3 justify-center">
             <Link
-              href="/browse/creators"
+              href="/browse/releases"
               className="inline-flex items-center justify-center gap-2 bg-ocean-600 text-paper text-sm font-medium px-6 py-3 rounded hover:bg-ocean-700 transition-colors"
             >
-              Browse artists
+              Browse releases
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
@@ -46,21 +46,21 @@ export default function HomePage() {
             {[
               {
                 icon: Palette,
-                title: "Artists curate",
+                title: "Artists publish releases",
                 description:
-                  "Digital artists select their best work and arrange it into a monthly booklet.",
+                  "Artists group their work into releases that can stand on their own and feed upcoming booklet cycles.",
               },
               {
                 icon: BookOpen,
-                title: "We print & ship",
+                title: "You build your booklet",
                 description:
-                  "We handle printing, binding, and worldwide shipping every month.",
+                  "Subscribers select complete releases instead of handpicking artworks one by one.",
               },
               {
                 icon: Package,
-                title: "You collect",
+                title: "Costs stay transparent",
                 description:
-                  "Receive a beautiful printed booklet from your favourite artist, every month.",
+                  "Every order makes the print, shipping, tax, platform fee, and artist payout contribution visible before checkout.",
               },
             ].map((step) => (
               <div
@@ -86,10 +86,11 @@ export default function HomePage() {
       <section className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 bg-paper">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="font-serif text-2xl md:text-3xl font-bold text-ink">
-            Ready to start collecting?
+            Ready to publish or collect?
           </h2>
           <p className="mt-4 text-ink/60">
-            Join thousands of collectors supporting independent artists.
+            Start with one account, then turn on the parts of the platform you
+            want to use.
           </p>
           <Link
             href="/auth/sign-up"

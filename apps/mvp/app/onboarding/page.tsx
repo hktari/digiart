@@ -20,7 +20,8 @@ export default async function OnboardingPage() {
             Welcome! How will you use the platform?
           </h1>
           <p className="text-sm text-neutral-500">
-            You can add both roles later from your account settings.
+            One account can publish releases, earn payouts, and build booklets.
+            You can turn on both capabilities later from account settings.
           </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -31,11 +32,11 @@ export default async function OnboardingPage() {
             >
               <div className="text-3xl mb-3">🎨</div>
               <div className="font-semibold group-hover:text-fuchsia-700">
-                Creator
+                Publish releases
               </div>
               <p className="mt-1 text-sm text-neutral-500">
-                Upload artworks, publish monthly releases, and build your
-                collector audience.
+                Organize your work into releases, publish them into cycles, and
+                earn from booklet demand.
               </p>
             </button>
           </form>
@@ -46,10 +47,11 @@ export default async function OnboardingPage() {
             >
               <div className="text-3xl mb-3">📬</div>
               <div className="font-semibold group-hover:text-fuchsia-700">
-                Collector
+                Build booklets
               </div>
               <p className="mt-1 text-sm text-neutral-500">
-                Subscribe to creators and receive a curated monthly art booklet.
+                Follow artists, select releases, and assemble a booklet that
+                matches your taste.
               </p>
             </button>
           </form>

@@ -1,45 +1,65 @@
 "use client";
 
+import { ChevronDown, ChevronUp, ShoppingBag } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useTransition,
+} from "react";
 import type { CollectorCartSummary } from "@/lib/actions/collector";
 import { toggleReleaseSelection } from "@/lib/actions/collector";
+import { COLLECTOR_CART_UPDATED_EVENT } from "@/lib/cart-events";
 
 function statusText(summary: CollectorCartSummary) {
   if (!summary.cycleId) return "No open cycle";
-  if (summary.artworksOver > 0) return `${summary.artworksOver} over limit`;
-  if (summary.artworksNeeded > 0) return `${summary.artworksNeeded} needed`;
-  if (!summary.isValidSubscribedCreatorRange) {
-    if (summary.totalSubscribedCreators < summary.minSubscribedCreators) {
-      return `${summary.minSubscribedCreators - summary.totalSubscribedCreators} creator subscription${summary.minSubscribedCreators - summary.totalSubscribedCreators === 1 ? "" : "s"} needed`;
-    }
-    return "Too many creator subscriptions";
-  }
+  if (summary.artworksOver > 0)
+    return `${summary.artworksOver} pages over target`;
+  if (summary.artworksNeeded > 0)
+    return `${summary.artworksNeeded} pages still needed`;
   return "Ready for checkout";
 }
 
 export function CollectorBookletCart() {
   const _pathname = usePathname();
+  const _searchParams = useSearchParams();
   const [summary, setSummary] = useState<CollectorCartSummary | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      const res = await fetch("/api/collector/cart-summary", {
-        cache: "no-store",
-      });
-      if (!res.ok) return;
-      const data = (await res.json()) as CollectorCartSummary;
-      if (!cancelled) setSummary(data);
-    }
-    load();
-    return () => {
-      cancelled = true;
-    };
+  const loadSummary = useCallback(async () => {
+    const res = await fetch("/api/collector/cart-summary", {
+      cache: "no-store",
+    });
+    if (!res.ok) return;
+    const data = (await res.json()) as CollectorCartSummary;
+    setSummary(data);
   }, []);
+
+  useEffect(() => {
+    void loadSummary();
+  }, [loadSummary]);
+
+  useEffect(() => {
+    setIsOpen(false);
+  }, []);
+
+  useEffect(() => {
+    const handleCartUpdated = () => {
+      void loadSummary();
+    };
+
+    window.addEventListener(COLLECTOR_CART_UPDATED_EVENT, handleCartUpdated);
+    return () => {
+      window.removeEventListener(
+        COLLECTOR_CART_UPDATED_EVENT,
+        handleCartUpdated,
+      );
+    };
+  }, [loadSummary]);
 
   const status = useMemo(
     () => (summary ? statusText(summary) : "Loading..."),
@@ -50,12 +70,7 @@ export function CollectorBookletCart() {
     if (!summary?.cycleId) return;
     startTransition(async () => {
       await toggleReleaseSelection(releaseId, summary.cycleId as string);
-      const res = await fetch("/api/collector/cart-summary", {
-        cache: "no-store",
-      });
-      if (!res.ok) return;
-      const data = (await res.json()) as CollectorCartSummary;
-      setSummary(data);
+      await loadSummary();
     });
   };
 
@@ -65,11 +80,11 @@ export function CollectorBookletCart() {
     <>
       <aside className="hidden lg:flex fixed right-0 top-16 h-[calc(100vh-4rem)] w-80 border-l border-beige-200 bg-paper/95 backdrop-blur-sm p-4 flex-col gap-3 overflow-y-auto">
         <h2 className="text-sm font-semibold uppercase tracking-widest text-ink/50">
-          Booklet Cart
+          Booklet Builder
         </h2>
         <p className="text-sm text-ink/80">
-          {summary.totalArtworks} artworks ({summary.minRequired}-
-          {summary.maxAllowed})
+          {summary.totalArtworks} pages from {summary.totalReleases} releases (
+          {summary.minRequired}-{summary.maxAllowed})
         </p>
         <p className="text-xs text-ink/60">{status}</p>
         <div className="space-y-2">
@@ -87,7 +102,7 @@ export function CollectorBookletCart() {
                   ? "Auto-added from subscription"
                   : "Manually added"}
               </p>
-              <div className="mt-2 flex items-center gap-3 text-xs">
+              <div className="mt-2 flex items-center text-xs">
                 <button
                   type="button"
                   disabled={isPending}
@@ -96,12 +111,6 @@ export function CollectorBookletCart() {
                 >
                   Remove
                 </button>
-                <Link
-                  href={`/collector/discover?view=releases`}
-                  className="text-ocean-700 hover:text-ocean-800"
-                >
-                  Replace
-                </Link>
               </div>
             </div>
           ))}
@@ -124,13 +133,25 @@ export function CollectorBookletCart() {
           onClick={() => setIsOpen((v) => !v)}
           className="w-full text-left"
         >
-          <p className="text-sm font-semibold text-ink">
-            Booklet cart · {summary.totalArtworks} artworks
-          </p>
-          <p className="text-xs text-ink/60">{status}</p>
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-ink flex items-center gap-2">
+                <ShoppingBag className="h-4 w-4 shrink-0" />
+                <span className="truncate">
+                  Booklet builder · {summary.totalReleases} releases
+                </span>
+              </p>
+              <p className="text-xs text-ink/60">{status}</p>
+            </div>
+            {isOpen ? (
+              <ChevronDown className="h-4 w-4 text-ink/60 shrink-0" />
+            ) : (
+              <ChevronUp className="h-4 w-4 text-ink/60 shrink-0" />
+            )}
+          </div>
         </button>
         {isOpen && (
-          <div className="mt-2 max-h-72 overflow-y-auto space-y-2 pb-2">
+          <div className="mt-2 max-h-[calc(100vh-11rem)] overflow-y-auto space-y-2 pb-2">
             {summary.selectedReleases.map((item) => (
               <div
                 key={item.releaseId}
@@ -145,7 +166,7 @@ export function CollectorBookletCart() {
                     ? "Auto-added from subscription"
                     : "Manually added"}
                 </p>
-                <div className="mt-2 flex items-center gap-3 text-xs">
+                <div className="mt-2 flex items-center text-xs">
                   <button
                     type="button"
                     disabled={isPending}
@@ -154,12 +175,6 @@ export function CollectorBookletCart() {
                   >
                     Remove
                   </button>
-                  <Link
-                    href={`/collector/discover?view=releases`}
-                    className="text-ocean-700 hover:text-ocean-800"
-                  >
-                    Replace
-                  </Link>
                 </div>
               </div>
             ))}

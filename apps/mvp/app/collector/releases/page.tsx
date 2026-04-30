@@ -30,10 +30,10 @@ export default async function CollectorReleasesPage() {
         <div className="max-w-5xl mx-auto px-4 py-12">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-neutral-900">
-              Release Selection
+              Booklet Release Selection
             </h1>
             <p className="mt-2 text-neutral-600">
-              Choose releases for your monthly booklet
+              Choose complete releases for your booklet
             </p>
           </div>
 
@@ -86,10 +86,11 @@ export default async function CollectorReleasesPage() {
           <div className="flex items-start justify-between">
             <div>
               <h1 className="text-3xl font-bold text-neutral-900">
-                Release Selection
+                Booklet Release Selection
               </h1>
               <p className="mt-2 text-neutral-600">
-                Choose releases for your {currentCycle.label} booklet
+                Build your {currentCycle.label} booklet by selecting releases,
+                not individual artworks
               </p>
             </div>
             <div className="text-right">

@@ -6,10 +6,10 @@ export default async function CreatorDashboardPage() {
 
   const stats = [
     {
-      label: "Active artworks",
+      label: "Source images",
       value: profile._count.artworks,
       href: "/creator/artworks",
-      cta: "Upload artwork",
+      cta: "Add images",
       ctaHref: "/creator/artworks/new",
       empty: profile._count.artworks === 0,
     },
@@ -38,14 +38,19 @@ export default async function CreatorDashboardPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
-      {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
+          <Link
+            href="/account"
+            className="text-xs font-semibold uppercase tracking-widest text-neutral-400 hover:text-neutral-600"
+          >
+            Workspace
+          </Link>
           <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
-            {profile.displayName}
+            Publishing
           </h1>
-          <p className="text-sm text-neutral-500 mt-0.5">
-            creators/{profile.slug}
+          <p className="mt-0.5 text-sm text-neutral-500">
+            {profile.displayName} · creators/{profile.slug}
           </p>
         </div>
         <Link
@@ -56,7 +61,6 @@ export default async function CreatorDashboardPage() {
         </Link>
       </div>
 
-      {/* Setup nudges */}
       {(!profileComplete || !payoutReady) && (
         <div className="space-y-2">
           {!profileComplete && (
@@ -88,7 +92,6 @@ export default async function CreatorDashboardPage() {
         </div>
       )}
 
-      {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         {stats.map((stat) => (
           <div
@@ -119,7 +122,6 @@ export default async function CreatorDashboardPage() {
         ))}
       </div>
 
-      {/* Quick actions */}
       <div>
         <h2 className="text-xs font-semibold uppercase tracking-widest text-neutral-400 mb-3">
           Quick actions
@@ -136,7 +138,9 @@ export default async function CreatorDashboardPage() {
               <p className="text-sm font-medium text-neutral-900">
                 Upload artwork
               </p>
-              <p className="text-xs text-neutral-500">JPEG or PNG</p>
+              <p className="text-xs text-neutral-500">
+                Add source images for future releases
+              </p>
             </div>
           </Link>
 
@@ -151,7 +155,9 @@ export default async function CreatorDashboardPage() {
               <p className="text-sm font-medium text-neutral-900">
                 New release
               </p>
-              <p className="text-xs text-neutral-500">Bundle artworks</p>
+              <p className="text-xs text-neutral-500">
+                Build the unit people select for booklets
+              </p>
             </div>
           </Link>
 
@@ -164,10 +170,10 @@ export default async function CreatorDashboardPage() {
             </span>
             <div>
               <p className="text-sm font-medium text-neutral-900">
-                Manage artworks
+                Manage source images
               </p>
               <p className="text-xs text-neutral-500">
-                {profile._count.artworks} active
+                {profile._count.artworks} available for releases
               </p>
             </div>
           </Link>
@@ -184,7 +190,7 @@ export default async function CreatorDashboardPage() {
                 View public profile
               </p>
               <p className="text-xs text-neutral-500">
-                See what collectors see
+                See what subscribers see
               </p>
             </div>
           </Link>

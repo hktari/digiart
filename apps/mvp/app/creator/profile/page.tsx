@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AvatarUpload } from "@/components/avatar-upload";
 import { PayoutForm } from "@/components/payout-form";
@@ -23,8 +24,14 @@ export default async function CreatorProfileEditPage() {
   return (
     <div className="max-w-xl mx-auto px-4 py-10 space-y-10">
       <div>
+        <Link
+          href="/account"
+          className="text-xs font-semibold uppercase tracking-widest text-neutral-400 hover:text-neutral-600"
+        >
+          Workspace
+        </Link>
         <h1 className="text-2xl font-bold tracking-tight text-neutral-900 mb-6">
-          Edit profile
+          Profile and payouts
         </h1>
         <AvatarUpload
           currentAvatar={profile.avatar}

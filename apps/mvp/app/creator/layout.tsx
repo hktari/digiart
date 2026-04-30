@@ -1,27 +1,14 @@
 "use client";
 
-import {
-  ImageIcon,
-  LayoutDashboard,
-  Package,
-  Share2,
-  User,
-  Wallet,
-} from "lucide-react";
+import { LayoutDashboard, Package, Share2, User, Wallet } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const creatorNavLinks = [
   { href: "/creator", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/creator/profile", label: "Profile", icon: User, exact: false },
-  {
-    href: "/creator/artworks",
-    label: "Artworks",
-    icon: ImageIcon,
-    exact: false,
-  },
   { href: "/creator/releases", label: "Releases", icon: Package, exact: false },
-  { href: "/creator/payout", label: "Payout", icon: Wallet, exact: false },
+  { href: "/creator/payout", label: "Payouts", icon: Wallet, exact: false },
   { href: "/creator/share", label: "Share", icon: Share2, exact: false },
 ];
 
@@ -35,8 +22,14 @@ export default function CreatorLayout({
   return (
     <div className="flex min-h-[calc(100vh-4rem)]">
       <aside className="hidden md:flex flex-col w-56 shrink-0 border-r border-beige-200 bg-paper px-3 py-6 gap-1">
+        <Link
+          href="/account"
+          className="px-3 py-2 text-xs font-medium text-ink/50 hover:text-ink"
+        >
+          Workspace
+        </Link>
         <p className="text-xs font-semibold uppercase tracking-widest text-ink/40 px-3 mb-2">
-          Creator
+          Publishing
         </p>
         {creatorNavLinks.map((link) => {
           const active = link.exact

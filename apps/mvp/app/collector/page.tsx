@@ -33,11 +33,16 @@ export default async function CollectorDashboardPage() {
     <div className="min-h-screen bg-neutral-50">
       <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-neutral-900">
-            Welcome back, {collectorProfile.displayName || "Collector"}
-          </h1>
+          <Link
+            href="/account"
+            className="text-xs font-semibold uppercase tracking-widest text-neutral-400 hover:text-neutral-600"
+          >
+            Workspace
+          </Link>
+          <h1 className="text-3xl font-bold text-neutral-900">Booklets</h1>
           <p className="mt-2 text-neutral-600">
-            Manage your subscriptions and monthly booklet selections
+            {collectorProfile.displayName || "Your account"} can follow artists,
+            select releases, and prepare the next booklet cycle.
           </p>
         </div>
 
@@ -45,7 +50,7 @@ export default async function CollectorDashboardPage() {
           <div className="bg-white rounded-lg border border-neutral-200 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-neutral-600">Subscriptions</p>
+                <p className="text-sm text-neutral-600">Artists followed</p>
                 <p className="text-3xl font-bold text-neutral-900 mt-1">
                   {subscriptions.length}
                 </p>
@@ -70,14 +75,14 @@ export default async function CollectorDashboardPage() {
               href="/collector/subscriptions"
               className="mt-4 text-sm text-fuchsia-600 hover:text-fuchsia-700 font-medium"
             >
-              View all →
+              Manage following →
             </Link>
           </div>
 
           <div className="bg-white rounded-lg border border-neutral-200 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-neutral-600">Selected Releases</p>
+                <p className="text-sm text-neutral-600">Releases selected</p>
                 <p className="text-3xl font-bold text-neutral-900 mt-1">
                   {selections.length}
                 </p>
@@ -102,7 +107,7 @@ export default async function CollectorDashboardPage() {
               href="/collector/releases"
               className="mt-4 text-sm text-ocean-600 hover:text-ocean-700 font-medium"
             >
-              Manage selections →
+              Build booklet →
             </Link>
           </div>
 
@@ -158,18 +163,18 @@ export default async function CollectorDashboardPage() {
                 </svg>
               </div>
               <h2 className="text-xl font-semibold text-neutral-900">
-                Start Your Collection
+                Start your booklet area
               </h2>
               <p className="text-neutral-600">
-                Discover creators and subscribe to their monthly releases to
-                build your personalized art booklet
+                Follow artists and select releases to shape the booklet you want
+                to receive.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link
                   href="/browse/creators"
                   className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-fuchsia-600 hover:bg-fuchsia-700"
                 >
-                  Browse Creators
+                  Browse artists
                 </Link>
                 <Link
                   href="/collector/discover"
@@ -184,7 +189,7 @@ export default async function CollectorDashboardPage() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-neutral-900">
-                Your Subscriptions
+                Artists you follow
               </h2>
               <Link
                 href="/collector/subscriptions"
@@ -252,11 +257,11 @@ export default async function CollectorDashboardPage() {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-neutral-900">
-                    Discover More Creators
+                    Discover more artists
                   </h3>
                   <p className="text-sm text-neutral-600 mt-1">
-                    Expand your collection by exploring more artists and their
-                    releases
+                    Expand the releases available for your next booklet by
+                    following more artists.
                   </p>
                   <Link
                     href="/collector/discover"

@@ -3,17 +3,17 @@
 ## Name candidates
 - Booklet drop
 
-Deliver a new way for fans of digital art creators to experience the work: artist-curated, high-quality printed booklet shipments that arrive on a recurring cadence. The initial audience is followers who already engage with creators on Instagram, Civitai, and similar platforms, but mostly consume that art in ephemeral digital feeds. Artists bring an existing audience; the platform turns that audience into a premium physical subscription experience without requiring the artist to manage print production or shipping.
-Problem: fans currently support creators through digital memberships, tips, platform-native mechanics, commissions, or one-off merch, but these channels rarely create a lasting, collectible experience. For creators, monetization is fragmented and often tied to platform algorithms, payout mechanics, or audience volatility. There is an opportunity to create a more durable product for fans and a more diversified revenue stream for artists.
-Vision: become the subscription layer for creator-led physical art experiences, starting with booklet-based drops inspired by premium softcover art books and zines. The default product is artist-curated rather than fan-assembled, because the primary value proposition is discovery, curation, and a recurring ritual, not a generic print store. Limited-edition or closed drops can amplify urgency and collectibility, but remain a secondary feature rather than the core reason to subscribe.
+Deliver a new way for people who love digital art to experience the work: release-led, high-quality printed booklets that arrive on a recurring cadence. The initial audience is followers who already engage with artists on Instagram, Civitai, and similar platforms, but mostly consume that art in ephemeral digital feeds. A single platform account should let someone publish releases, earn payouts, follow other artists, and build their own booklet from selected releases without maintaining separate account types.
+Problem: digital art fans currently support artists through memberships, tips, platform-native mechanics, commissions, or one-off merch, but these channels rarely create a lasting, collectible experience. For artists, monetization is fragmented and often tied to platform algorithms, opaque payout mechanics, or audience volatility. There is an opportunity to create a more durable product for fans and a more diversified revenue stream for artists, while making booklet pricing and payout logic legible instead of hidden.
+Vision: become the subscription layer for release-led physical art experiences, starting with booklet-based drops inspired by premium softcover art books and zines. The core interaction is selecting complete releases rather than handpicking individual artworks one by one, because the primary value proposition is curation, storytelling, and a recurring ritual, not a generic print store. Limited-edition or closed drops can amplify urgency and collectibility, but remain a secondary feature rather than the core reason to subscribe.
 
 **Target Audience and Personas**
-- Follower-Collector (Digital Art Fan)
-Needs: a tangible way to revisit art they already love; a premium artifact that feels worth keeping; consistent print quality; simple subscription controls; a sense that the creator meaningfully curated the issue.
-Scenario: discovers a creator's booklet subscription from a link in bio, subscribes to receive a monthly or bi-monthly issue, gets a curated booklet with artwork plus optional notes/process context, and keeps each issue as part of a growing personal collection.
-- Creator with an Existing Audience (Digital Illustrator / AI creator / concept artist / tattoo flash artist)
-Needs: diversify revenue beyond tips, memberships, Buzz, commissions, or marketplace mechanics; minimal operations overhead; clear issue deadlines; control over visual presentation; reliable third-party fulfillment that will not damage reputation.
-Scenario: curates a booklet from existing catalog work plus new pieces, uploads a print-ready issue, optionally adds commentary or theming, promotes the drop to followers, and receives payouts without handling inventory, packaging, or shipping.
+- Art Lover / Subscriber
+Needs: a tangible way to revisit art they already love; a premium artifact that feels worth keeping; consistent print quality; simple booklet controls; transparent pricing so they can see what they are paying for.
+Scenario: discovers an artist's release feed from a link in bio, selects releases for an upcoming booklet, sees a clear breakdown of printing, shipping, tax, and platform take, and receives a curated physical artifact they keep as part of a growing collection.
+- Artist with an Existing Audience (Digital Illustrator / AI creator / concept artist / tattoo flash artist)
+Needs: diversify revenue beyond tips, memberships, Buzz, commissions, or marketplace mechanics; minimal operations overhead; clear release deadlines; control over visual presentation; transparent payout reporting; reliable third-party fulfillment that will not damage reputation.
+Scenario: assembles a release from existing catalog work plus new pieces, optionally adds commentary or theming, publishes it for the active cycle, promotes it to followers, and sees exactly how supporter spend converts into payouts without handling inventory, packaging, or shipping.
 - Superfan / Completionist
 Needs: collecting incentives, issue continuity, occasional limited runs, archive access, and confidence that missing a drop means missing part of a broader set.
 Scenario: stays subscribed to avoid gaps in a creator's run, values issue numbering and shelf presence, and occasionally upgrades when a special edition or themed drop appears.
@@ -23,13 +23,15 @@ Scenario: receives batched orders for an issue cycle, prints softcover booklets 
 
 **Functional Requirements (Features)**
 Must-have
-- Creator-led subscription pages: shareable landing page (link-in-bio ready), clear value prop, preview gallery, sample spreads, shipping regions, delivery cadence.
-- Artist-curated subscription model: the default subscription experience is creator-curated, with research instrumentation to measure whether fan-selected variants are worth exploring later.
+- Release-led artist pages: shareable landing page (link-in-bio ready), clear value prop, preview gallery, sample spreads, shipping regions, delivery cadence, and current releases.
+- Unified account model: one account can publish releases, earn payouts, and assemble personal booklets; role/capability differences should not feel like separate products.
 - Booklet-first product flow: templates/specs for premium softcover booklets, automatic preflight checks (bleed, DPI, margins), proof/preview generation, and initial support for core provider options such as page-count ranges, paper types, and booklet styling.
+- Release-based booklet assembly: users build booklets by selecting complete releases rather than selecting artworks one by one.
 - Drop lifecycle & deadlines: monthly/bi-monthly cycle setup, cutoff dates, creator reminders, late/missed-drop handling policy (credit/skip/refund rules).
 - Subscription commerce: recurring billing, pause/skip/cancel, address management, VAT/tax handling (esp. EU), failed-payment recovery.
 - Fulfillment & tracking: order batching per drop, partner routing, shipment tracking, customer notifications, reprint workflow for defects/damage.
-- Payouts: transparent revenue split, automated creator payouts, downloadable statements, refunds/chargebacks handling, and reporting that helps creators see this as a diversification channel separate from platform-native monetization.
+- Payouts: transparent revenue split, automated creator payouts, downloadable statements, refunds/chargebacks handling, and reporting that helps artists see exactly how booklet revenue is calculated.
+- Pricing transparency: each booklet order shows a clear cost breakdown for product, shipping, tax, platform fee, and creator payout contribution before checkout.
 
 Should-have
 - Format research + expansion path: lightweight preference capture for format, binding, paper feel, and cadence; A/B testing booklet options; capability to add posters/prints later.
@@ -45,7 +47,7 @@ Could-have
 Won’t-have (initial release)
 - Full creator website builder (ArtSpan-style) as the primary product.
 - General-purpose POD marketplace optimized for one-off sales.
-- Build-your-own fully customized booklet per subscriber as the default product.
+- Build-your-own fully customized booklet by selecting individual artworks as the default product.
 - Scarcity/limited editions as the main positioning (kept as an occasional lever, not the headline value).
 
 **Validation Hypotheses**
@@ -57,10 +59,11 @@ Won’t-have (initial release)
 - H6 Fulfillment trust: third-party print and shipping is acceptable if quality and reliability are strong.
 - H7 Creator diversification: creators want revenue not tied to Civitai, Buzz, platform payouts, or algorithmic mechanics.
 - H8 Physical premium: fans will pay more for a curated physical booklet than for digital-only perks.
-- H9 Back-catalog viability: creators can sustain drops by curating from an existing body of work, not just brand-new pieces every month.
+- H9 Back-catalog viability: artists can sustain drops by curating from an existing body of work, not just brand-new pieces every month.
+- H10 Transparency: clearer pricing and payout breakdowns increase trust and conversion for both buyers and artists.
 
 **Scope (In and Out)**
-- In scope for validation: EU pilot customers, creator-led booklet subscriptions, premium softcover booklet formats, third-party print-and-ship fulfillment, monthly or bi-monthly cadence, and research into collector appetite for curated versus self-selected art.
+- In scope for validation: EU pilot customers, release-led booklet subscriptions, premium softcover booklet formats, third-party print-and-ship fulfillment, monthly or bi-monthly cadence, transparent pricing/payout reporting, and research into appetite for release selection versus artwork-level selection.
 - Out of scope for validation: global launch pricing, full marketplace behavior, broad merchandise catalogs, creator site-building tools, and individualized per-subscriber booklet assembly.
 
 **Open Questions: Shipping Costs & Regional Pricing**

@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { toggleReleaseSelection } from "@/lib/actions/collector";
+import { dispatchCollectorCartUpdated } from "@/lib/cart-events";
 
 type Release = {
   id: string;
@@ -41,6 +42,9 @@ export function ReleaseSelectionGrid({
   cycleId,
 }: ReleaseSelectionGridProps) {
   const [selectedIds, setSelectedIds] = useState(initialSelectedIds);
+  const [expandedReleaseId, setExpandedReleaseId] = useState<string | null>(
+    null,
+  );
   const [isPending, startTransition] = useTransition();
 
   const handleToggle = (releaseId: string) => {
@@ -54,7 +58,12 @@ export function ReleaseSelectionGrid({
 
     startTransition(async () => {
       try {
-        await toggleReleaseSelection(releaseId, cycleId);
+        const result = await toggleReleaseSelection(releaseId, cycleId);
+        if (!result.success) {
+          setSelectedIds(selectedIds);
+          return;
+        }
+        dispatchCollectorCartUpdated();
       } catch (error) {
         console.error("Failed to toggle selection:", error);
         setSelectedIds(selectedIds);
@@ -97,6 +106,7 @@ export function ReleaseSelectionGrid({
       {releases.map((release) => {
         const isSelected = selectedIds.has(release.id);
         const coverArtwork = release.artworks[0]?.artwork;
+        const isInspecting = expandedReleaseId === release.id;
 
         return (
           <div
@@ -152,24 +162,71 @@ export function ReleaseSelectionGrid({
                 </p>
               )}
 
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-neutral-500">
+              <div className="flex items-center justify-between text-xs text-neutral-500">
+                <span>
                   {release.artworks.length}{" "}
-                  {release.artworks.length === 1 ? "artwork" : "artworks"}
+                  {release.artworks.length === 1 ? "page" : "pages"}
                 </span>
+                {isSelected && (
+                  <span className="rounded-full bg-fuchsia-100 px-2 py-0.5 text-fuchsia-700">
+                    In booklet
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => handleToggle(release.id)}
                   disabled={isPending}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                     isSelected
-                      ? "bg-fuchsia-600 text-white hover:bg-fuchsia-700"
-                      : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
+                      ? "bg-red-50 text-red-700 border border-red-200 hover:bg-red-100"
+                      : "bg-fuchsia-600 text-white hover:bg-fuchsia-700"
                   } disabled:opacity-50`}
                 >
-                  {isSelected ? "Selected" : "Select"}
+                  {isSelected ? "Remove" : "Add to booklet"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setExpandedReleaseId(isInspecting ? null : release.id)
+                  }
+                  className="px-3 py-2 text-sm font-medium rounded-md border border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50 transition-colors"
+                >
+                  {isInspecting
+                    ? "Hide release contents"
+                    : "Inspect release contents"}
                 </button>
               </div>
+
+              {isInspecting && (
+                <div className="space-y-2 rounded-md border border-neutral-200 bg-neutral-50 p-3">
+                  <p className="text-xs font-medium uppercase tracking-wide text-neutral-600">
+                    Release contents
+                  </p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {release.artworks.map(({ artwork }) => (
+                      <div key={artwork.id} className="space-y-1">
+                        <div className="relative aspect-square overflow-hidden rounded bg-neutral-100">
+                          <Image
+                            src={`/api/storage/${artwork.storageKey}`}
+                            alt={artwork.title}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <p
+                          className="truncate text-[11px] text-neutral-600"
+                          title={artwork.title}
+                        >
+                          {artwork.title}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {release.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1">

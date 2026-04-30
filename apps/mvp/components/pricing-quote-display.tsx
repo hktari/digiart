@@ -61,7 +61,7 @@ export function PricingQuoteDisplay({
       {quote ? (
         <div className="bg-white border rounded-lg p-6">
           <div className="flex justify-between items-start mb-4">
-            <h2 className="text-xl font-semibold">Pricing Estimate</h2>
+            <h2 className="text-xl font-semibold">Cost Breakdown</h2>
             <button
               type="button"
               onClick={handleRefresh}
@@ -74,7 +74,7 @@ export function PricingQuoteDisplay({
 
           <div className="space-y-3">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Product Cost:</span>
+              <span className="text-gray-600">Print product:</span>
               <span className="font-medium">
                 {formatCurrency(quote.productAmount, quote.currency)}
               </span>
@@ -96,7 +96,7 @@ export function PricingQuoteDisplay({
 
             <div className="border-t pt-3">
               <div className="flex justify-between">
-                <span className="font-semibold">Total Estimate:</span>
+                <span className="font-semibold">Estimated total:</span>
                 <span className="text-xl font-bold text-fuchsia-600">
                   {formatCurrency(quote.totalEstimate, quote.currency)}
                 </span>
@@ -104,7 +104,11 @@ export function PricingQuoteDisplay({
             </div>
           </div>
 
-          <p className="text-xs text-gray-500 mt-4">
+          <p className="mt-4 text-xs text-gray-500">
+            Creator payout and platform-fee attribution will be surfaced
+            alongside this pricing breakdown as checkout is completed.
+          </p>
+          <p className="text-xs text-gray-500 mt-2">
             Last updated: {new Date(quote.quotedAt).toLocaleString()}
           </p>
         </div>

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Crimson_Pro, Manrope } from "next/font/google";
 import "./globals.css";
-import { DevRoleSwitcher } from "@/components/dev/DevRoleSwitcher";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { AuthProvider } from "@/components/providers/auth-provider";
@@ -21,7 +20,7 @@ const manrope = Manrope({
 export const metadata: Metadata = {
   title: "Booklet Drops — Art Subscription Platform",
   description:
-    "Discover and collect monthly printed art booklets from digital artists.",
+    "Publish releases, build custom booklets from releases, and see transparent pricing and payouts.",
 };
 
 export default function RootLayout({
@@ -38,7 +37,7 @@ export default function RootLayout({
           <Header />
           <main className="flex-1">{children}</main>
           <Footer />
-          {process.env.AUTH_BYPASS_TEST_USER_ID && <DevRoleSwitcher />}
+          {/* {process.env.AUTH_BYPASS_TEST_USER_ID && <DevRoleSwitcher />} */}
         </AuthProvider>
       </body>
     </html>

@@ -47,9 +47,10 @@ export default async function CollectorPricingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Pricing Estimate</h1>
+        <h1 className="text-3xl font-bold">Booklet Pricing</h1>
         <p className="text-gray-600 mt-1">
-          Your estimated monthly booklet cost based on current selections
+          Review the current booklet cost estimate and how the order value is
+          broken down
         </p>
       </div>
 
@@ -72,8 +73,9 @@ export default async function CollectorPricingPage() {
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-sm text-blue-800">
               <strong>Note:</strong> This is an estimate based on a default page
-              count of 20 pages. Your actual cost will depend on your final
-              selections and the number of pages in your booklet.
+              count of 20 pages. The goal is to make booklet pricing explicit so
+              users can see how print, shipping, and taxes shape the final
+              charge.
             </p>
           </div>
 

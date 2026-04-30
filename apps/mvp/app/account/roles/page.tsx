@@ -6,15 +6,15 @@ import { getUserRoles } from "@/lib/roles";
 const ALL_ROLES = [
   {
     role: "CREATOR" as const,
-    label: "Creator",
+    label: "Publish releases",
     emoji: "🎨",
-    description: "Upload artworks and publish monthly releases.",
+    description: "Publish releases, share them, and earn payouts.",
   },
   {
     role: "COLLECTOR" as const,
-    label: "Collector",
+    label: "Build booklets",
     emoji: "📬",
-    description: "Subscribe to creators and receive monthly art booklets.",
+    description: "Select releases and build upcoming booklets.",
   },
 ];
 
@@ -30,7 +30,7 @@ export default async function AccountRolesPage() {
         <div className="space-y-1">
           <h1 className="text-2xl font-bold">Your roles</h1>
           <p className="text-sm text-neutral-500">
-            One account can be both a creator and a collector.
+            One account can publish releases and build booklets.
           </p>
         </div>
         <div className="space-y-3">
