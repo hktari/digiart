@@ -53,6 +53,7 @@ describe("getQuote", () => {
       country: "US",
       pageCount: 30,
       offeringId: "peecho-ext-1",
+      countryStateCode: "CA",
     });
 
     expect(result).toEqual({
@@ -68,7 +69,14 @@ describe("getQuote", () => {
       offering_id: "peecho-ext-1",
       page_count: 30,
       country: "US",
+      country_state_code: "CA",
     });
+  });
+
+  it("throws when US quote is requested without state code", async () => {
+    await expect(
+      getQuote({ country: "US", pageCount: 30, offeringId: "ext-1" }),
+    ).rejects.toThrow("countryStateCode is required");
   });
 
   it("looks up default offering when offeringId not provided", async () => {
@@ -132,7 +140,7 @@ describe("getQuote", () => {
 
     vi.mocked(db.podOffering.findFirst).mockResolvedValue(null);
 
-    await expect(getQuote({ country: "US", pageCount: 999 })).rejects.toThrow(
+    await expect(getQuote({ country: "DE", pageCount: 999 })).rejects.toThrow(
       "No suitable offering found",
     );
   });

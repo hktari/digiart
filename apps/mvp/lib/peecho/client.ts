@@ -39,6 +39,7 @@ export interface PeechoQuoteParams {
   offering_id: string;
   page_count: number;
   country: string;
+  country_state_code?: string;
   quantity?: number;
   currency?: string;
 }
@@ -300,7 +301,17 @@ export class PeechoClient {
 
   async getQuote(params: PeechoQuoteParams): Promise<PeechoQuoteResponse> {
     try {
-      const data = await this.post<PeechoQuoteResponse>("/quote", {
+      const quotePayload: {
+        apiKey: string;
+        countryCode: string;
+        countryStateCode?: string;
+        currency: string;
+        items: Array<{
+          offeringId: number;
+          numberOfPages: number;
+          quantity: number;
+        }>;
+      } = {
         apiKey: this.merchantApiKey,
         countryCode: params.country,
         currency: params.currency ?? "EUR",
@@ -311,6 +322,14 @@ export class PeechoClient {
             quantity: params.quantity ?? 1,
           },
         ],
+      };
+
+      if (params.country_state_code) {
+        quotePayload.countryStateCode = params.country_state_code;
+      }
+
+      const data = await this.post<PeechoQuoteResponse>("/quote", {
+        ...quotePayload,
       });
       return data;
     } catch (error) {

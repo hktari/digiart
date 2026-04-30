@@ -34,7 +34,11 @@ describe("POST /api/pricing/quote", () => {
 
     const req = new Request("http://localhost/api/pricing/quote", {
       method: "POST",
-      body: JSON.stringify({ country: "US", pageCount: 30 }),
+      body: JSON.stringify({
+        country: "US",
+        countryStateCode: "CA",
+        pageCount: 30,
+      }),
     });
 
     const res = await POST(req);
@@ -47,6 +51,7 @@ describe("POST /api/pricing/quote", () => {
       country: "US",
       pageCount: 30,
       offeringId: undefined,
+      countryStateCode: "CA",
     });
   });
 
@@ -132,6 +137,7 @@ describe("POST /api/pricing/quote", () => {
       method: "POST",
       body: JSON.stringify({
         country: "US",
+        countryStateCode: "NY",
         pageCount: 30,
         offeringId: "specific-offering",
       }),
@@ -143,7 +149,27 @@ describe("POST /api/pricing/quote", () => {
       country: "US",
       pageCount: 30,
       offeringId: "specific-offering",
+      countryStateCode: "NY",
     });
+  });
+
+  it("returns 400 when US countryStateCode is missing", async () => {
+    const { auth } = await import("@/lib/auth");
+    vi.mocked(auth).mockResolvedValue({
+      user: { id: "user-1" },
+      expires: "2099-01-01",
+    });
+
+    const req = new Request("http://localhost/api/pricing/quote", {
+      method: "POST",
+      body: JSON.stringify({ country: "US", pageCount: 30 }),
+    });
+
+    const res = await POST(req);
+    const data = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(data.error).toContain("countryStateCode is required");
   });
 
   it("returns 500 when quote service throws", async () => {
@@ -160,7 +186,11 @@ describe("POST /api/pricing/quote", () => {
 
     const req = new Request("http://localhost/api/pricing/quote", {
       method: "POST",
-      body: JSON.stringify({ country: "US", pageCount: 30 }),
+      body: JSON.stringify({
+        country: "US",
+        countryStateCode: "CA",
+        pageCount: 30,
+      }),
     });
 
     const res = await POST(req);

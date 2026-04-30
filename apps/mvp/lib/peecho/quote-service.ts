@@ -4,6 +4,7 @@ export interface QuoteParams {
   country: string;
   pageCount: number;
   offeringId?: string;
+  countryStateCode?: string;
 }
 
 export interface QuoteResult {
@@ -17,6 +18,13 @@ export interface QuoteResult {
 
 export async function getQuote(params: QuoteParams): Promise<QuoteResult> {
   try {
+    const normalizedCountry = params.country.toUpperCase();
+    if (normalizedCountry === "US" && !params.countryStateCode) {
+      throw new Error(
+        "countryStateCode is required for US shipping quotes (e.g. CA, NY)",
+      );
+    }
+
     let offeringId: string;
 
     if (!params.offeringId) {
@@ -44,7 +52,8 @@ export async function getQuote(params: QuoteParams): Promise<QuoteResult> {
     const quote = await peechoClient.getQuote({
       offering_id: offeringId,
       page_count: params.pageCount,
-      country: params.country,
+      country: normalizedCountry,
+      country_state_code: params.countryStateCode,
     });
 
     const item = quote.quotedItems[0];

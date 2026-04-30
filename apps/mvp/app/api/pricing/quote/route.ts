@@ -7,6 +7,7 @@ const quoteRequestSchema = z.object({
   country: z.string().min(2).max(2),
   pageCount: z.number().min(1),
   offeringId: z.string().optional(),
+  countryStateCode: z.string().min(2).max(2).optional(),
 });
 
 export async function POST(request: Request) {
@@ -26,10 +27,24 @@ export async function POST(request: Request) {
       );
     }
 
+    const normalizedCountry = result.data.country.toUpperCase();
+    const normalizedStateCode = result.data.countryStateCode?.toUpperCase();
+
+    if (normalizedCountry === "US" && !normalizedStateCode) {
+      return NextResponse.json(
+        {
+          error:
+            "countryStateCode is required for US shipping quotes (e.g. CA, NY)",
+        },
+        { status: 400 },
+      );
+    }
+
     const quote = await getQuote({
-      country: result.data.country,
+      country: normalizedCountry,
       pageCount: result.data.pageCount,
       offeringId: result.data.offeringId,
+      countryStateCode: normalizedStateCode,
     });
 
     return NextResponse.json(quote);

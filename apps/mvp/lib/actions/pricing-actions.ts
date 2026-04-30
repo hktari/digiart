@@ -57,6 +57,17 @@ export async function fetchAndPersistQuote(pageCount: number = 20) {
       },
     };
   } catch (error) {
+    if (
+      collectorProfile.shippingCountry.toUpperCase() === "US" &&
+      error instanceof Error &&
+      error.message.includes("countryStateCode is required")
+    ) {
+      return {
+        error:
+          "US quotes require a shipping state code. Please contact support to complete US quote configuration.",
+      };
+    }
+
     return {
       error: error instanceof Error ? error.message : "Failed to fetch quote",
     };
