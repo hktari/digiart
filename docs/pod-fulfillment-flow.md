@@ -8,14 +8,14 @@ This document describes the complete print-on-demand (POD) fulfillment flow from
 
 ### Pricing Model
 
-**Pricing is flat-rate per subscription cycle.** The platform prices in a configurable maximum page count — collectors are not charged per page. The only variable in collector pricing is **destination country**, which affects shipping cost.
+**Fixed regional subscription price.** The platform charges a flat monthly fee based on collector's region (EU or USA). No dynamic pricing calculation at subscription time.
 
-- **Product Amount**: Fixed base cost of printing (covers up to platform-configured max pages)
-- **Shipping Amount**: Delivery cost based on destination country (€3–27 range for Peecho)
-- **Tax Amount**: VAT/tax calculated based on collector's region
-- **Total Estimate**: Sum of all charges in the agreed currency (default: EUR)
+- **Subscription Price**: Fixed amount per region (e.g., €25/month for EU, $24/month for USA)
+- **Regions**: EU + USA only (MVP launch)
+- **Payment**: Stripe subscription with delayed first charge (next lock date)
+- **Peecho Credits**: Admin manages merchant account balance manually in Peecho dashboard
 
-This pricing quote is locked in at subscription time and stored in `PricingQuoteSnapshot`. The collector is committed to this price for the cycle, regardless of any subsequent pricing changes by the POD provider.
+This fixed price is stored in `PricingQuoteSnapshot` at subscription time. The collector is committed to this price for the cycle.
 
 ### Booklet Content Selection
 
@@ -38,11 +38,10 @@ Collector Subscribes to Creator
             │
             ▼
 ┌─────────────────────────────┐
-│ 1. Fetch POD Pricing         │
-│    - Call Peecho/Prodigi API │
-│    - Pass: country, format   │
-│      (magazine, max pages)   │
-│    - Get: product + shipping │
+│ 1. Display Fixed Price       │
+│    Based on Region           │
+│    - EU: €19/month           │
+│    - USA: $24/month          │
 └─────────────────────────────┘
             │
             ▼
@@ -50,29 +49,26 @@ Collector Subscribes to Creator
 │ 2. Store PricingQuoteSnapshot│
 │    - collectorProfileId      │
 │    - cycleId (future cycle)  │
-│    - offeringId (product)    │
-│    - country                 │
-│    - shippingAmount          │
-│    - productAmount           │
-│    - taxAmount               │
-│    - totalEstimate           │
-│    - currency (EUR)          │
+│    - region (EU/USA)         │
+│    - fixedPrice              │
+│    - currency                │
 │    - quotedAt                │
 └─────────────────────────────┘
             │
             ▼
 ┌─────────────────────────────┐
-│ 3. Display to Collector      │
-│    "Your monthly booklet      │
-│     will cost €X (including   │
-│     €Y shipping to Z)"        │
+│ 3. Setup Payment Method      │
+│    via Stripe                │
+│    - Card/token saved         │
+│    - No charge yet            │
+│    - Scheduled for next lock │
 └─────────────────────────────┘
             │
             ▼
 ┌─────────────────────────────┐
-│ 4. Collector Confirms        │
-│    Subscription              │
-│    → Locks in pricing quote  │
+│ 4. Subscription Active       │
+│    - Collector sees content  │
+│    - Awaiting cycle          │
 └─────────────────────────────┘
 
 
@@ -153,18 +149,29 @@ PDF Generated & Ready
             │
             ▼
 ┌─────────────────────────────┐
-│ 2. Call POD API              │
-│    - Submit PDF URL          │
-│    - Submit shipping address │
-│    - Submit product spec      │
-│      (page count, format)    │
-│    - Submit locked pricing     │
-│      reference               │
+│ 2. Call Peecho Order API     │
+│    POST /rest/v3/order/      │
+│    - item_reference          │
+│    - offering_id             │
+│    - content_url (PDF)       │
+│    - number_of_pages         │
+│    - shipping_address        │
+│    Returns: order_id         │
 └─────────────────────────────┘
             │
             ▼
 ┌─────────────────────────────┐
-│ 3. POD Provider Processes    │
+│ 3. Pay Order via Credits     │
+│    POST /order/payment/      │
+│    - order_id                │
+│    - Uses merchant credits   │
+│    (Admin manages balance    │
+│     in Peecho dashboard)     │
+└─────────────────────────────┘
+            │
+            ▼
+┌─────────────────────────────┐
+│ 4. Peecho Processes          │
 │    - Receives order          │
 │    - Routes to nearest       │
 │      printer                 │
@@ -174,7 +181,7 @@ PDF Generated & Ready
             │
             ▼
 ┌─────────────────────────────┐
-│ 4. Webhook/Callback          │
+│ 5. Webhook/Callback          │
 │    - Order confirmed           │
 │    - Tracking number           │
 │    - Shipment status updates   │
@@ -182,7 +189,7 @@ PDF Generated & Ready
             │
             ▼
 ┌─────────────────────────────┐
-│ 5. Update Platform           │
+│ 6. Update Platform           │
 │    - Store tracking number     │
 │    - Update fulfillment status │
 │    - Notify collector          │
@@ -190,8 +197,17 @@ PDF Generated & Ready
             │
             ▼
 ┌─────────────────────────────┐
-│ 6. Collector Receives        │
+│ 7. Collector Receives        │
 │    Physical Booklet          │
+└─────────────────────────────┘
+            │
+            ▼
+┌─────────────────────────────┐
+│ 8. Creator Payout            │
+│    (7 days after shipment)   │
+│    - Calculate earnings      │
+│    - Disburse via PayPal     │
+│    - Safe buffer for retries │
 └─────────────────────────────┘
 ```
 
@@ -199,20 +215,16 @@ PDF Generated & Ready
 
 ### PricingQuoteSnapshot
 
-Stored when collector subscribes, locks in pricing for the cycle:
+Stored when collector subscribes, locks in fixed regional pricing:
 
 | Field                | Type     | Description                            |
 | -------------------- | -------- | -------------------------------------- |
 | `collectorProfileId` | String   | FK to CollectorProfile                 |
 | `cycleId`            | String   | FK to SubscriptionCycle (future cycle) |
-| `offeringId`         | String   | FK to PodOffering (product spec)       |
-| `country`            | String   | Destination country for shipping       |
-| `shippingAmount`     | Decimal  | Locked shipping cost (€3–27)           |
-| `productAmount`      | Decimal  | Locked product/printing cost (flat)    |
-| `taxAmount`          | Decimal  | Locked VAT/tax                         |
-| `totalEstimate`      | Decimal  | Total locked price                     |
-| `currency`           | String   | Default: "EUR"                         |
-| `quotedAt`           | DateTime | When quote was generated               |
+| `region`             | String   | "EU" or "USA"                          |
+| `fixedPrice`         | Decimal  | Locked subscription price              |
+| `currency`           | String   | "EUR" or "USD"                         |
+| `quotedAt`           | DateTime | When subscription was created          |
 
 ### GeneratedPrintFile
 
@@ -279,6 +291,15 @@ The only variable in collector pricing is destination country. Per Peecho/Prodig
 - Validate address at subscription time
 - Allow update until cycle lock date
 - Flag invalid addresses before ordering
+
+### Peecho Credit Management
+
+Peecho uses a **credit system** - the merchant account must have sufficient credits to place orders.
+
+- **Admin Responsibility**: Monitor Peecho merchant dashboard for credit balance
+- **Top-up Required**: Admin manually adds credits before each fulfillment cycle
+- **Insufficient Credits**: Order creation will fail → flag for manual retry after credits added
+- **Recommendation**: Maintain buffer of ~2x expected monthly orders
 
 ## Success Metrics
 
