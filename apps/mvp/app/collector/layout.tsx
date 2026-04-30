@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { CollectorBookletCart } from "@/components/collector-booklet-cart";
 
 const collectorNavLinks = [
   {
@@ -91,7 +92,7 @@ export default function CollectorLayout({
         })}
       </aside>
 
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 lg:pr-80 pb-20 lg:pb-0">
         <nav className="md:hidden flex gap-1 overflow-x-auto border-b border-beige-200 bg-paper px-4 py-2 no-scrollbar">
           {collectorNavLinks.map((link) => {
             const active = link.exact
@@ -115,6 +116,7 @@ export default function CollectorLayout({
         </nav>
         <div>{children}</div>
       </div>
+      <CollectorBookletCart />
     </div>
   );
 }

@@ -1,10 +1,13 @@
-# Sprint 5: MVP Fulfillment & Payment Setup
+# Sprint 5 & 6: Collector Selection, Fulfillment & Payment Plan
 
 ## Goal
 
-Deliver the MVP-ready physical booklet flow: collector subscription setup through Stripe Billing, automatic PDF generation at cycle lock, Peecho POD order submission, fulfillment status tracking, and creator payout readiness through PayPal.
+Deliver the MVP-ready physical booklet flow in two increments:
 
-This sprint completes the first operational version of the value loop: collectors can subscribe, the platform can generate and ship a booklet, and creators can onboard with enough payout information to be paid in Sprint 6.
+- **Sprint 5**: mobile-first collector selection experience ("booklet cart"), subscription constraints, and eligibility enforcement.
+- **Sprint 6**: billing, fulfillment orchestration, POD order lifecycle, and creator payout operations.
+
+This plan completes the operational value loop: collectors subscribe and curate a valid booklet, the platform charges and fulfills at cycle lock, and creators become payout-ready.
 
 ## Context & Decisions
 
@@ -20,8 +23,40 @@ This sprint completes the first operational version of the value loop: collector
 - **PDF generation is fully automatic** at cycle lock — no admin intervention required in the happy path.
 - **The only manual content edge case** is a creator who has not published a release for the cycle.
 - **Releases have variable size** — no fixed image count; collector booklet page count is determined by their final selection.
+- **Booklet validity rule** — collector selection must stay within **35-50 artworks** to be eligible for checkout/fulfillment.
+- **Collector cart UX** — always-on selection summary (mobile-first bottom sheet, desktop sidebar) with quick remove/replace actions.
+- **Creator subscription semantics** — subscribing to a creator means their latest eligible release is auto-assigned by default; collectors can still manually customize selections.
 - `requestedPageCount` is removed from `PricingQuoteSnapshot` — the schema field exists but is no longer populated or used.
 - Fulfillment phase (POD API ordering) is entirely new work.
+
+## Sprint Split
+
+### Sprint 5: Collector Selection & Checkout Eligibility
+
+Focus: implement the end-user selection journey and hard business constraints before payment/fulfillment automation.
+
+- Creator profile -> subscribe flow
+- Auto-add latest releases from subscribed creators
+- Always-on booklet cart UI
+- Artwork-range enforcement (`35-50`)
+- Validity-gated checkout CTA for upcoming cycle
+- Collector release management (select/deselect, quick remove/replace)
+
+### Sprint 5 Acceptance Model
+
+- **Low effort path**: collector subscribes to creators and gets default release assignments.
+- **Customization path**: collector can manually add standout releases from outside subscriptions and remove auto-assigned ones.
+- **Eligibility path**: booklet must remain within **35-50 artworks** at checkout time.
+
+### Sprint 6: Billing, Fulfillment & Payout Operations
+
+Focus: execute and operate the cycle once Sprint 5 selection data is reliable.
+
+- Stripe billing lifecycle + reconciliation
+- PDF generation at lock
+- Peecho order submission/payment + webhooks
+- Fulfillment status UI/admin operations
+- Creator payout ledger + PayPal disbursement
 
 ## MVP Payment Architecture
 
@@ -33,9 +68,104 @@ This sprint completes the first operational version of the value loop: collector
 | Creator payout readiness | PayPal | Store payout profile fields and validate PayPal email | Calculate and disburse PayPal payouts |
 | Creator payout ledger | Internal DB | Model preparation only if needed by Sprint 5 implementation | Full payout records, retries, statements, audit trail |
 
-## Tasks
+## Sprint 5 Tasks
 
-### T21: Schema — Remove `requestedPageCount`, Add `FulfillmentOrder`
+### S5-T1: Subscription Rules & Creator Limits
+
+**Effort: 4-6 hours**
+
+- Enforce collector subscription limits:
+  - minimum subscribed creators for eligibility: **3**
+  - maximum subscribed creators: **10**
+- Enforce in server actions (`subscribeToCreator`, unsubscribe edge cases) and UI messaging.
+- Clarify semantics in product copy: "Subscribe" means automatic release inclusion by default, not locked inclusion.
+- Block actions with explicit validation errors and revalidation.
+- Tests for limit edges (2->3, 10->11, unsubscribe below min eligibility behavior).
+
+---
+
+### S5-T2: Auto-Assignment of Latest Releases on Subscribe/Publish
+
+**Effort: 4-6 hours**
+
+- On subscribe, auto-select creator's latest published release for the current open cycle (idempotent).
+- On creator publish, auto-select for active subscribers (idempotent).
+- Keep manual deselect supported after auto-add.
+- Allow manual add of non-subscribed creators' releases.
+- Add deterministic ordering rules for release selections.
+
+---
+
+### S5-T3: Mobile-First Booklet Cart (Always-On Selection Summary)
+
+**Effort: 8-12 hours**
+
+- Implement collector cart surface:
+  - mobile: sticky bottom summary + expandable sheet
+  - desktop: persistent sidebar
+- Show:
+  - selected releases
+  - per-release artwork count
+  - total artwork count
+  - validity state (`<35` invalid, `35-50` valid, `>50` invalid)
+  - delta messaging (e.g. "5 artworks needed", "3 over limit")
+- Include quick actions:
+  - remove release
+  - replace release (jump into discover context with guided alternatives)
+- Label entries by source (`Auto-added from subscription` vs `Manually added`) for transparency.
+
+---
+
+### S5-T4: Release Selection Constraints & Guardrails
+
+**Effort: 6-8 hours**
+
+- Centralize server-side validation for booklet artwork range: **min 35 / max 50**.
+- Apply validation in:
+  - toggle selection
+  - auto-assignment
+  - checkout/subscribe CTA
+- Ensure manual customization cannot bypass 35-50 rule.
+- Expose summary endpoint/action (`totalArtworks`, `isValid`, `artworksNeeded` / `artworksOver`).
+- Ensure lock-date read-only behavior is honored.
+
+---
+
+### S5-T5: Checkout/Subscribe CTA for Upcoming Cycle
+
+**Effort: 5-7 hours**
+
+- Add collector CTA to confirm platform subscription/order for upcoming cycle.
+- Enable CTA only when:
+  - collector has valid subscription state
+  - booklet artwork count is within **35-50**
+  - cycle is open
+- CTA copy should reflect commitment to upcoming cycle fulfillment.
+- Persist cycle-bound checkout intent/snapshot for Sprint 6 fulfillment pipeline.
+- Add states for ineligible conditions (invalid range, cycle locked, missing payment setup).
+
+---
+
+### S5-T6: E2E Coverage for Full Collector Journey
+
+**Effort: 6-8 hours**
+
+- Cover end-to-end flow:
+  - start from creator profile
+  - subscribe
+  - auto-added release appears in cart
+  - manual deselect of auto-added release works
+  - manual add from non-subscribed creator works
+  - explore/add/remove/replace releases
+  - enforce 35-50 rule
+  - CTA enabled only in valid range
+- Add mobile viewport tests for cart interactions.
+
+## Sprint 6 Tasks
+
+## Existing Fulfillment/Payment Tasks (renumbered under Sprint 6)
+
+### S6-T1: Schema — Remove `requestedPageCount`, Add `FulfillmentOrder`
 
 **Effort: 2-3 hours**
 
@@ -64,7 +194,7 @@ This sprint completes the first operational version of the value loop: collector
 
 ---
 
-### T22: Stripe Collector Subscription Setup
+### S6-T2: Stripe Collector Subscription Setup
 
 **Effort: 6-8 hours**
 
@@ -97,11 +227,11 @@ Implement the MVP collector subscription flow with delayed first payment.
 
 ---
 
-### T23: Auto-Release Assignment to Collector Booklet
+### S6-T3: Auto-Release Assignment to Collector Booklet (Stabilization Only)
 
 **Effort: 3-4 hours**
 
-When a creator publishes a new release for the current open cycle, automatically create `CollectorReleaseSelection` records for all collectors subscribed to that creator who do not yet have a selection for this release.
+Finalize hardening/ops for Sprint 5 auto-assignment behavior. Do not change user semantics.
 
 - Server action / service: `assignReleaseToSubscribers(releaseId)`
   - Find all active, billing-valid `CollectorCreatorSubscription` records for the release's creator.
@@ -111,11 +241,11 @@ When a creator publishes a new release for the current open cycle, automatically
 
 ---
 
-### T24: Collector Booklet Selection UI
+### S6-T4: Collector Booklet Selection UI (Billing/Fulfillment Readiness Extensions)
 
 **Effort: 5-7 hours**
 
-Collector-facing page showing the current cycle booklet contents.
+Extend Sprint 5 collector selection UX with billing/fulfillment state visibility.
 
 - Route: `app/collector/booklet/page.tsx`
 - List auto-assigned releases grouped by creator.
@@ -127,7 +257,7 @@ Collector-facing page showing the current cycle booklet contents.
 
 ---
 
-### T25: PDF Generation Trigger at Cycle Lock
+### S6-T5: PDF Generation Trigger at Cycle Lock
 
 **Effort: 4-5 hours**
 
@@ -147,7 +277,7 @@ When a cycle transitions to `LOCKED` status, automatically trigger PDF generatio
 
 ---
 
-### T26: PDF Worker — Booklet Composition
+### S6-T6: PDF Worker — Booklet Composition
 
 **Effort: 8-10 hours**
 
@@ -163,7 +293,7 @@ Implement the BullMQ job handler in `apps/pdf-worker` that builds the actual PDF
 
 ---
 
-### T27: POD Order Submission & Payment
+### S6-T7: POD Order Submission & Payment
 
 **Effort: 8-10 hours**
 
@@ -188,7 +318,7 @@ After `GeneratedPrintFile.status = READY`, submit a print order to Peecho and pa
 
 ---
 
-### T28: Peecho Webhook Handler
+### S6-T8: Peecho Webhook Handler
 
 **Effort: 4-5 hours**
 
@@ -205,7 +335,7 @@ Handle inbound Peecho webhook events to track order progress.
 
 ---
 
-### T29: Collector Order Status & Tracking UI
+### S6-T9: Collector Order Status & Tracking UI
 
 **Effort: 3-4 hours**
 
@@ -218,7 +348,7 @@ Collector-facing view of their fulfillment status per cycle.
 
 ---
 
-### T30: Admin Fulfillment & Payment Dashboard
+### S6-T10: Admin Fulfillment & Payment Dashboard
 
 **Effort: 4-6 hours**
 
@@ -294,7 +424,7 @@ enum FulfillmentStatus {
 
 ---
 
-# Sprint 6: Subscription Operations & Creator Payouts
+# Sprint 6: Subscription Operations & Creator Payouts (Details)
 
 ## Goal
 
