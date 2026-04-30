@@ -37,7 +37,9 @@ export default async function CreatorSubscribePage({ params }: Props) {
     redirect(`/collector/setup?creator=${profile.id}`);
   }
 
-  const result = await subscribeToCreator(profile.id);
+  const result = await subscribeToCreator(profile.id, undefined, {
+    revalidate: false,
+  });
   if (!result.success) {
     redirect(
       `/creators/${slug}?subscriptionError=${encodeURIComponent(result.error ?? "Unable to subscribe")}`,

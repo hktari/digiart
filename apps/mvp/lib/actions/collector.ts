@@ -224,6 +224,7 @@ export async function getCollectorProfile(userId: string): Promise<any> {
 export async function subscribeToCreator(
   creatorProfileId: string,
   entryCreatorId?: string,
+  options?: { revalidate?: boolean },
 ) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -319,10 +320,12 @@ export async function subscribeToCreator(
       }
     }
 
-    revalidatePath("/collector");
-    revalidatePath("/collector/discover");
-    revalidatePath("/collector/subscriptions");
-    revalidatePath("/collector/releases");
+    if (options?.revalidate !== false) {
+      revalidatePath("/collector");
+      revalidatePath("/collector/discover");
+      revalidatePath("/collector/subscriptions");
+      revalidatePath("/collector/releases");
+    }
     return { success: true };
   } catch (error) {
     console.error("Failed to subscribe to creator:", error);
