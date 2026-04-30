@@ -53,7 +53,23 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
 
-    // 5. All other tests (auth, smoke, etc.) — no creator-flow dependency
+    // 5. Creator workflow journey (dashboard -> artworks -> release)
+    {
+      name: "creator-flow",
+      testMatch: "e2e/creator-flow.spec.ts",
+      dependencies: ["creator-onboarding"],
+      use: { ...devices["Desktop Chrome"] },
+    },
+
+    // 6. Collector workflow journey (setup -> dashboard -> navigation)
+    {
+      name: "collector-flow",
+      testMatch: "e2e/collector-flow.spec.ts",
+      dependencies: ["creator-onboarding"],
+      use: { ...devices["Desktop Chrome"] },
+    },
+
+    // 7. All other tests (auth, smoke, etc.) — no creator-flow dependency
     {
       name: "general",
       testIgnore: [
@@ -61,6 +77,8 @@ export default defineConfig({
         "e2e/creator-profile.spec.ts",
         "e2e/creator-release.spec.ts",
         "e2e/artwork-upload.spec.ts",
+        "e2e/creator-flow.spec.ts",
+        "e2e/collector-flow.spec.ts",
       ],
       use: { ...devices["Desktop Chrome"] },
     },

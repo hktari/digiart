@@ -87,6 +87,17 @@ async function resetAndSeed() {
       data: { userId: creatorUser.id, role: "CREATOR" },
     });
 
+    // Seed collector profile on the same test user so collector-flow E2E
+    // tests can exercise dashboard/navigation without depending on setup APIs.
+    await db.collectorProfile.create({
+      data: {
+        userId: creatorUser.id,
+        displayName: "E2E Collector",
+        shippingCountry: "SI",
+        onboardingState: "COMPLETE",
+      },
+    });
+
     // ---- No-role user (for onboarding tests) ------------------------------
     const noRoleSessionToken = randomUUID();
 

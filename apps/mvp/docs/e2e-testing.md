@@ -6,7 +6,7 @@ The Playwright configuration uses a **dependency-based test organization system*
 
 ### Test Projects
 
-The e2e tests are organized into 5 projects:
+The e2e tests are organized into 7 projects:
 
 1. **creator-onboarding** - Creates the CreatorProfile (runs first)
    - File: `e2e/creator-onboarding.spec.ts`
@@ -28,7 +28,17 @@ The e2e tests are organized into 5 projects:
    - Depends on: `creator-onboarding`
    - Requires existing CreatorProfile
 
-5. **general** - All other independent tests
+5. **creator-flow** - Creator dashboard journey (quick actions, artwork upload flow, release-entry behavior)
+   - File: `e2e/creator-flow.spec.ts`
+   - Depends on: `creator-onboarding`
+   - Covers the connected creator UX across core pages
+
+6. **collector-flow** - Collector dashboard and navigation journey
+   - File: `e2e/collector-flow.spec.ts`
+   - Depends on: `creator-onboarding`
+   - Covers collector dashboard and core collector app navigation
+
+7. **general** - All other independent tests
    - Matches any file not in `testIgnore` list
    - No dependencies
    - Includes: auth, smoke tests, public pages, etc.
@@ -72,6 +82,8 @@ testIgnore: [
   "e2e/creator-profile.spec.ts",
   "e2e/creator-release.spec.ts",
   "e2e/artwork-upload.spec.ts",
+  "e2e/creator-flow.spec.ts",
+  "e2e/collector-flow.spec.ts",
   "e2e/creator-subscriptions.spec.ts", // Add new file
 ],
 ```
