@@ -4,6 +4,8 @@
  * needed for E2E tests:
  *  - Creator test user (CREATOR role) + fresh session token
  *  - No-role user + fresh session token
+ *  - Published creator catalog for collector flow (profiles, releases, tags)
+ *  - Collector subscriptions + selections for seeded collector profile
  *  - BookletConstraint + open SubscriptionCycle
  *
  * User IDs are FIXED (hardcoded below) so AUTH_BYPASS_TEST_USER_ID can live
@@ -57,6 +59,7 @@ async function resetAndSeed() {
         "Account",
         "VerificationToken",
         "User",
+        "Tag",
         "SubscriptionCycle",
         "BookletConstraint"
       CASCADE
@@ -89,7 +92,7 @@ async function resetAndSeed() {
 
     // Seed collector profile on the same test user so collector-flow E2E
     // tests can exercise dashboard/navigation without depending on setup APIs.
-    await db.collectorProfile.create({
+    const seededCollectorProfile = await db.collectorProfile.create({
       data: {
         userId: creatorUser.id,
         displayName: "E2E Collector",
@@ -137,7 +140,7 @@ async function resetAndSeed() {
     const lockDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
     const fulfillmentDate = new Date(now.getTime() + 45 * 24 * 60 * 60 * 1000);
 
-    await db.subscriptionCycle.create({
+    const openCycle = await db.subscriptionCycle.create({
       data: {
         label: `${now.toLocaleString("default", { month: "long" })} ${year}`,
         month,
@@ -148,6 +151,130 @@ async function resetAndSeed() {
         status: "OPEN",
       },
     });
+
+    // ---- Published creator catalog for collector flow ---------------------
+    const tags = await Promise.all([
+      db.tag.create({ data: { name: "Illustration", slug: "illustration" } }),
+      db.tag.create({ data: { name: "Abstract", slug: "abstract" } }),
+      db.tag.create({ data: { name: "Portrait", slug: "portrait" } }),
+    ]);
+
+    const creators = [
+      {
+        email: "maya@test.digiart",
+        name: "Maya Flores",
+        slug: "maya-flores",
+        bio: "Color-rich abstract and figurative work.",
+        sourcePlatform: "Instagram,ArtStation",
+        tagSlugs: ["abstract", "illustration"],
+      },
+      {
+        email: "liam@test.digiart",
+        name: "Liam Park",
+        slug: "liam-park",
+        bio: "Editorial-style line work and portraits.",
+        sourcePlatform: "Behance",
+        tagSlugs: ["portrait", "illustration"],
+      },
+      {
+        email: "nora@test.digiart",
+        name: "Nora Kova",
+        slug: "nora-kova",
+        bio: "Contemporary mixed-media compositions.",
+        sourcePlatform: "DeviantArt",
+        tagSlugs: ["abstract"],
+      },
+    ] as const;
+
+    const tagBySlug = Object.fromEntries(tags.map((tag) => [tag.slug, tag.id]));
+
+    for (let i = 0; i < creators.length; i++) {
+      const creator = creators[i];
+
+      const creatorUserSeed = await db.user.create({
+        data: {
+          email: creator.email,
+          name: creator.name,
+          roles: {
+            create: {
+              role: "CREATOR",
+            },
+          },
+        },
+      });
+
+      const creatorProfile = await db.creatorProfile.create({
+        data: {
+          userId: creatorUserSeed.id,
+          slug: creator.slug,
+          displayName: creator.name,
+          bio: creator.bio,
+          sourcePlatform: creator.sourcePlatform,
+          status: "PUBLISHED",
+        },
+      });
+
+      const artworks = await Promise.all(
+        [1, 2, 3].map((n) =>
+          db.artwork.create({
+            data: {
+              creatorProfileId: creatorProfile.id,
+              title: `${creator.name} Artwork ${n}`,
+              storageKey: `seed/${creator.slug}/artwork-${n}.jpg`,
+              mimeType: "image/jpeg",
+              width: 1200,
+              height: 1600,
+              orientation: "PORTRAIT",
+              status: "ACTIVE",
+            },
+          }),
+        ),
+      );
+
+      const release = await db.release.create({
+        data: {
+          creatorProfileId: creatorProfile.id,
+          cycleId: openCycle.id,
+          title: `${creator.name} Monthly Selection`,
+          description: `Seeded published release for ${creator.name}.`,
+          status: "PUBLISHED",
+        },
+      });
+
+      await db.releaseArtwork.createMany({
+        data: artworks.map((artwork, index) => ({
+          releaseId: release.id,
+          artworkId: artwork.id,
+          sortOrder: index,
+        })),
+      });
+
+      await db.releaseTag.createMany({
+        data: creator.tagSlugs.map((slug) => ({
+          releaseId: release.id,
+          tagId: tagBySlug[slug],
+        })),
+      });
+
+      if (i < 2) {
+        await db.collectorCreatorSubscription.create({
+          data: {
+            collectorProfileId: seededCollectorProfile.id,
+            creatorProfileId: creatorProfile.id,
+            isActive: true,
+            entryCreatorId: creatorProfile.id,
+          },
+        });
+
+        await db.collectorReleaseSelection.create({
+          data: {
+            collectorProfileId: seededCollectorProfile.id,
+            releaseId: release.id,
+            cycleId: openCycle.id,
+          },
+        });
+      }
+    }
 
     // ---- Write session tokens to .env.test.local -------------------------
     // IDs are fixed so AUTH_BYPASS_TEST_USER_ID lives in .env.test permanently.
@@ -163,6 +290,8 @@ NO_ROLE_SESSION_TOKEN="${noRoleSessionToken}"
     console.log("🌱 Seed complete");
     console.log(`   Creator user:  ${creatorUser.email} (${creatorUser.id})`);
     console.log(`   No-role user:  ${noRoleUser.email} (${noRoleUser.id})`);
+    console.log("   Published creators: 3");
+    console.log("   Collector subscriptions: 2");
     console.log("   Cycle: OPEN");
     console.log("   BookletConstraint: 30-50 pages");
     console.log("");
