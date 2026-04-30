@@ -36,6 +36,7 @@ type CollectorCartRelease = {
   creatorDisplayName: string;
   creatorSlug: string;
   artworkCount: number;
+  source: "AUTO_SUBSCRIPTION" | "MANUAL";
 };
 
 export type CollectorCartSummary = {
@@ -546,6 +547,7 @@ export async function getCollectorCartSummary(
           title: true,
           creatorProfile: {
             select: {
+              id: true,
               displayName: true,
               slug: true,
             },
@@ -569,7 +571,30 @@ export async function getCollectorCartSummary(
     creatorDisplayName: s.release.creatorProfile.displayName,
     creatorSlug: s.release.creatorProfile.slug,
     artworkCount: s.release._count.artworks,
+    source: "MANUAL",
   }));
+
+  const subscribedCreatorIds = new Set(
+    (
+      await db.collectorCreatorSubscription.findMany({
+        where: {
+          collectorProfileId: collectorProfile.id,
+          isActive: true,
+        },
+        select: { creatorProfileId: true },
+      })
+    ).map((s) => s.creatorProfileId),
+  );
+
+  for (const item of selectedReleases) {
+    const selection = selections.find((s) => s.releaseId === item.releaseId);
+    if (
+      selection &&
+      subscribedCreatorIds.has(selection.release.creatorProfile.id)
+    ) {
+      item.source = "AUTO_SUBSCRIPTION";
+    }
+  }
 
   const totalArtworks = selectedReleases.reduce(
     (sum, item) => sum + item.artworkCount,

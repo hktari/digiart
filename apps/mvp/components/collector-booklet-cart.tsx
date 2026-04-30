@@ -82,6 +82,11 @@ export function CollectorBookletCart() {
               <p className="text-xs text-ink/60">
                 {item.creatorDisplayName} · {item.artworkCount} artworks
               </p>
+              <p className="text-[11px] text-ink/50 mt-0.5">
+                {item.source === "AUTO_SUBSCRIPTION"
+                  ? "Auto-added from subscription"
+                  : "Manually added"}
+              </p>
               <div className="mt-2 flex items-center gap-3 text-xs">
                 <button
                   type="button"
@@ -134,6 +139,11 @@ export function CollectorBookletCart() {
                 <p className="text-sm font-medium text-ink">{item.title}</p>
                 <p className="text-xs text-ink/60">
                   {item.creatorDisplayName} · {item.artworkCount} artworks
+                </p>
+                <p className="text-[11px] text-ink/50 mt-0.5">
+                  {item.source === "AUTO_SUBSCRIPTION"
+                    ? "Auto-added from subscription"
+                    : "Manually added"}
                 </p>
                 <div className="mt-2 flex items-center gap-3 text-xs">
                   <button

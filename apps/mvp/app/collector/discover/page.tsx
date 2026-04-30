@@ -1,12 +1,17 @@
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { CollectorDiscoverReleasesGrid } from "@/components/collector-discover-releases-grid";
 import {
   getAllPublishedCreators,
   getAllPublishedReleases,
   getAllTags,
 } from "@/lib/actions/browse";
-import { getCollectorProfile } from "@/lib/actions/collector";
+import {
+  getCollectorProfile,
+  getCollectorReleaseSelections,
+} from "@/lib/actions/collector";
+import { getCurrentCycle } from "@/lib/actions/cycles";
 import { auth } from "@/lib/auth";
 
 type Props = {
@@ -25,11 +30,19 @@ export default async function CollectorDiscoverPage({ searchParams }: Props) {
   }
 
   const { tag, view = "creators" } = await searchParams;
-  const [creators, releases, tags] = await Promise.all([
+  const [creators, releases, tags, currentCycle] = await Promise.all([
     view === "creators" ? getAllPublishedCreators(tag) : [],
     view === "releases" ? getAllPublishedReleases(tag) : [],
     getAllTags(),
+    view === "releases" ? getCurrentCycle() : null,
   ]);
+
+  const selectedReleaseIds =
+    view === "releases" && currentCycle
+      ? (
+          await getCollectorReleaseSelections(session.user.id, currentCycle.id)
+        ).map((selection) => selection.release.id)
+      : [];
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -199,83 +212,11 @@ export default async function CollectorDiscoverPage({ searchParams }: Props) {
               </div>
             </div>
           ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {releases.map((release) => {
-                const coverArtwork = release.artworks[0]?.artwork;
-
-                return (
-                  <div
-                    key={release.id}
-                    className="bg-white rounded-lg border border-neutral-200 overflow-hidden hover:border-fuchsia-300 hover:shadow-md transition-all"
-                  >
-                    {coverArtwork && (
-                      <div className="relative aspect-[4/3] bg-neutral-100">
-                        <Image
-                          src={`/api/storage/${coverArtwork.storageKey}`}
-                          alt={coverArtwork.title}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                    )}
-
-                    <div className="p-4 space-y-3">
-                      <div>
-                        <h3 className="font-semibold text-neutral-900 line-clamp-1">
-                          {release.title}
-                        </h3>
-                        <Link
-                          href={`/creators/${release.creatorProfile.slug}`}
-                          className="text-sm text-neutral-600 hover:text-fuchsia-600"
-                        >
-                          by {release.creatorProfile.displayName}
-                        </Link>
-                      </div>
-
-                      {release.description && (
-                        <p className="text-sm text-neutral-600 line-clamp-2">
-                          {release.description}
-                        </p>
-                      )}
-
-                      <div className="flex items-center justify-between text-xs text-neutral-500">
-                        <span>
-                          {release._count.artworks}{" "}
-                          {release._count.artworks === 1
-                            ? "artwork"
-                            : "artworks"}
-                        </span>
-                      </div>
-
-                      {release.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {release.tags.slice(0, 3).map((rt) => (
-                            <span
-                              key={rt.tag.slug}
-                              className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-beige-100 text-beige-800"
-                            >
-                              {rt.tag.name}
-                            </span>
-                          ))}
-                          {release.tags.length > 3 && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-neutral-100 text-neutral-600">
-                              +{release.tags.length - 3}
-                            </span>
-                          )}
-                        </div>
-                      )}
-
-                      <Link
-                        href={`/creators/${release.creatorProfile.slug}`}
-                        className="block w-full text-center px-4 py-2 text-sm font-medium text-fuchsia-600 border border-fuchsia-600 rounded-md hover:bg-fuchsia-50 transition-colors"
-                      >
-                        View Creator
-                      </Link>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <CollectorDiscoverReleasesGrid
+              releases={releases}
+              cycleId={currentCycle?.id ?? null}
+              initiallySelectedReleaseIds={selectedReleaseIds}
+            />
           ))}
       </div>
     </div>

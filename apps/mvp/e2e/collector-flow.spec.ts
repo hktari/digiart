@@ -38,4 +38,31 @@ test.describe("Collector flow", () => {
       page.getByRole("heading", { name: /pricing estimate/i }),
     ).toBeVisible();
   });
+
+  test("collector can add and remove release from discover", async ({
+    page,
+  }) => {
+    await page.goto("/collector/discover?view=releases");
+
+    const addButton = page
+      .getByRole("button", { name: /add to booklet/i })
+      .first();
+    await addButton.click();
+
+    await expect(
+      page.getByText(/selected in this view:\s*[1-9]/i),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /^remove$/i }).first(),
+    ).toBeVisible();
+
+    await page
+      .getByRole("button", { name: /^remove$/i })
+      .first()
+      .click();
+
+    await expect(
+      page.getByRole("button", { name: /add to booklet/i }).first(),
+    ).toBeVisible();
+  });
 });
