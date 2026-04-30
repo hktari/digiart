@@ -381,6 +381,20 @@ model FulfillmentCountry {
   @@index([region, isActive])
 }
 
+model FulfillmentState {
+  countryCode String
+  stateCode   String
+  name        String
+  isActive    Boolean  @default(true)
+  source      String   @default("peecho")
+  syncedAt    DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@id([countryCode, stateCode])
+  @@index([countryCode, isActive])
+}
+
 model PricingQuoteSnapshot {
   id                 String   @id @default(cuid())
   collectorProfileId String

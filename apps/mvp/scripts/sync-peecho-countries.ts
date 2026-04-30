@@ -57,6 +57,7 @@ async function main() {
     console.log("Fetching fulfillment countries from Peecho...");
 
     const peechoCountries = await peechoClient.getCountries();
+    const usStateCodes = await peechoClient.getUSStateCodes();
     const syncedAt = new Date();
     const eligibleCountries = peechoCountries
       .map((country) => ({
@@ -116,6 +117,41 @@ async function main() {
       },
     });
 
+    for (const stateCode of usStateCodes) {
+      await db.fulfillmentState.upsert({
+        where: {
+          countryCode_stateCode: { countryCode: "US", stateCode },
+        },
+        create: {
+          countryCode: "US",
+          stateCode,
+          name: stateCode,
+          isActive: true,
+          source: "peecho",
+          syncedAt,
+        },
+        update: {
+          name: stateCode,
+          isActive: true,
+          source: "peecho",
+          syncedAt,
+        },
+      });
+    }
+
+    await db.fulfillmentState.updateMany({
+      where: {
+        source: "peecho",
+        countryCode: "US",
+        stateCode: { notIn: usStateCodes },
+        isActive: true,
+      },
+      data: {
+        isActive: false,
+        syncedAt,
+      },
+    });
+
     const euCount = eligibleCountries.filter(
       (country) => country.region === "EU",
     ).length;
@@ -127,6 +163,13 @@ async function main() {
       `Synced ${eligibleCountries.length} fulfillment countries from Peecho (${euCount} EU, ${usCount} US).`,
     );
     console.log(`Active country codes: ${eligibleCodes.join(", ")}`);
+    if (usStateCodes.length > 0) {
+      console.log(
+        `Synced ${usStateCodes.length} US fulfillment states: ${usStateCodes.join(", ")}`,
+      );
+    } else {
+      console.log("No US fulfillment states returned by Peecho.");
+    }
   } finally {
     await db.$disconnect();
   }

@@ -151,6 +151,28 @@ export async function saveCollectorProfile(
       };
     }
 
+    if (shippingCountry === "US" && shippingStateCode) {
+      const fulfillmentState = await db.fulfillmentState.findUnique({
+        where: {
+          countryCode_stateCode: {
+            countryCode: "US",
+            stateCode: shippingStateCode,
+          },
+        },
+        select: { isActive: true },
+      });
+
+      if (!fulfillmentState?.isActive) {
+        return {
+          success: false,
+          errors: {
+            shippingStateCode:
+              "We do not currently support booklet fulfillment to this US state.",
+          },
+        };
+      }
+    }
+
     await db.collectorProfile.upsert({
       where: { userId: session.user.id },
       create: {

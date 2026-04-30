@@ -210,6 +210,25 @@ function normalizeCountriesResponse(
     .map((code) => ({ code, name: codeToName.get(code) || code }));
 }
 
+function extractUsStateCodes(data: PeechoCountriesApiResponse): string[] {
+  if (Array.isArray(data)) return [];
+  if ("countries" in data && Array.isArray(data.countries)) return [];
+
+  const stateCodes = new Set<string>();
+  for (const value of Object.values(data)) {
+    if (!Array.isArray(value)) continue;
+
+    for (const countryName of value) {
+      const match = countryName.match(/^United States of America-([A-Z]{2})$/);
+      if (match?.[1]) {
+        stateCodes.add(match[1]);
+      }
+    }
+  }
+
+  return [...stateCodes].sort((a, b) => a.localeCompare(b));
+}
+
 export class PeechoClient {
   private apiUrl: string;
   private merchantApiKey: string;
@@ -443,6 +462,52 @@ export class PeechoClient {
       return countries;
     } catch (error) {
       console.error("Failed to fetch Peecho countries:", error);
+      throw error;
+    }
+  }
+
+  async getUSStateCodes(): Promise<string[]> {
+    try {
+      const offeringIds =
+        this.offeringIds.length > 0
+          ? this.offeringIds
+          : (await this.getOfferings()).map((offering) =>
+              offering.id.toString(),
+            );
+
+      const data = await this.post<PeechoCountriesApiResponse>(
+        "/offering/countries",
+        {
+          merchantApiKey: this.merchantApiKey,
+          offeringsId: offeringIds,
+        },
+      );
+
+      let stateCodes = extractUsStateCodes(data);
+      if (stateCodes.length > 0) {
+        return stateCodes;
+      }
+
+      // Same fallback behavior as country sync when bulk calls are empty.
+      const merged = new Set<string>();
+      for (const offeringId of offeringIds) {
+        const singleData = await this.post<PeechoCountriesApiResponse>(
+          "/offering/countries",
+          {
+            merchantApiKey: this.merchantApiKey,
+            offeringsId: [offeringId],
+          },
+        );
+
+        for (const stateCode of extractUsStateCodes(singleData)) {
+          merged.add(stateCode);
+        }
+      }
+
+      stateCodes = [...merged].sort((a, b) => a.localeCompare(b));
+      return stateCodes;
+    } catch (error) {
+      console.error("Failed to fetch Peecho US state codes:", error);
       throw error;
     }
   }
