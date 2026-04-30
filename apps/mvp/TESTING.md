@@ -108,18 +108,19 @@ AUTH_URL="http://localhost:3000"
 dotenv -e .env.test -- pnpm db:push
 ```
 
-#### 4. Seed Test User
+#### 4. Reset + Seed Test Data
 
-This creates a test user with CREATOR role and generates auth credentials:
+This resets the test database and seeds deterministic E2E/dev data:
 
 ```bash
-pnpm test:seed
+pnpm test:reset
 ```
 
 This will output:
 
-- Test user email and ID
-- Session token
+- Creator user + no-role user IDs
+- Session tokens
+- Seeded catalog/subscriptions summary
 - Credentials written to `.env.test.local`
 
 ### Running E2E Tests
@@ -150,7 +151,7 @@ pnpm test:e2e e2e/auth.spec.ts
 **Note:**
 
 - The dev server must be running on port 3003 before executing tests
-- If tests fail with auth errors, re-run `pnpm test:seed` to regenerate credentials
+- If tests fail with auth/data errors, re-run `pnpm test:reset` to rebuild data and credentials
 - All development and testing uses port 3003
 
 ### How E2E Auth Works

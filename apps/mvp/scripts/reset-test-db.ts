@@ -32,6 +32,7 @@ const db = new PrismaClient({ adapter });
 // hardcoded in .env.test and the running server needs no restart after reset.
 const CREATOR_USER_ID = "00000000-e2e0-0000-0000-000000000001";
 const NO_ROLE_USER_ID = "00000000-e2e0-0000-0000-000000000002";
+const SEEDED_COLLECTOR_PROFILE_ID = "00000000-e2e0-0000-0000-000000000101";
 
 async function resetAndSeed() {
   try {
@@ -92,14 +93,20 @@ async function resetAndSeed() {
 
     // Seed collector profile on the same test user so collector-flow E2E
     // tests can exercise dashboard/navigation without depending on setup APIs.
-    const seededCollectorProfile = await db.collectorProfile.create({
-      data: {
-        userId: creatorUser.id,
-        displayName: "E2E Collector",
-        shippingCountry: "SI",
-        onboardingState: "COMPLETE",
-      },
-    });
+    // Use raw SQL so this seed stays resilient when Prisma client/schema and DB
+    // migration state are temporarily out of sync.
+    await db.$executeRawUnsafe(
+      `
+      INSERT INTO "CollectorProfile"
+      ("id", "userId", "displayName", "shippingCountry", "onboardingState", "createdAt", "updatedAt")
+      VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+      `,
+      SEEDED_COLLECTOR_PROFILE_ID,
+      creatorUser.id,
+      "E2E Collector",
+      "SI",
+      "COMPLETE",
+    );
 
     // ---- No-role user (for onboarding tests) ------------------------------
     const noRoleSessionToken = randomUUID();
@@ -184,6 +191,30 @@ async function resetAndSeed() {
         sourcePlatform: "DeviantArt",
         tagSlugs: ["abstract"],
       },
+      {
+        email: "elena@test.digiart",
+        name: "Elena Novak",
+        slug: "elena-novak",
+        bio: "Dreamy botanical scenes with layered textures.",
+        sourcePlatform: "Instagram",
+        tagSlugs: ["illustration", "portrait"],
+      },
+      {
+        email: "tomas@test.digiart",
+        name: "Tomas Reed",
+        slug: "tomas-reed",
+        bio: "Graphic compositions inspired by urban architecture.",
+        sourcePlatform: "Behance,ArtStation",
+        tagSlugs: ["abstract", "illustration"],
+      },
+      {
+        email: "ivy@test.digiart",
+        name: "Ivy Chen",
+        slug: "ivy-chen",
+        bio: "Character-focused portrait work with bold palettes.",
+        sourcePlatform: "DeviantArt,Instagram",
+        tagSlugs: ["portrait"],
+      },
     ] as const;
 
     const tagBySlug = Object.fromEntries(tags.map((tag) => [tag.slug, tag.id]));
@@ -214,8 +245,9 @@ async function resetAndSeed() {
         },
       });
 
+      const artworkCount = Math.min(Math.floor(Math.random() * 10) + 3, 10);
       const artworks = await Promise.all(
-        [1, 2, 3].map((n) =>
+        Array.from({ length: artworkCount }, (_, n) =>
           db.artwork.create({
             data: {
               creatorProfileId: creatorProfile.id,
@@ -259,7 +291,7 @@ async function resetAndSeed() {
       if (i < 2) {
         await db.collectorCreatorSubscription.create({
           data: {
-            collectorProfileId: seededCollectorProfile.id,
+            collectorProfileId: SEEDED_COLLECTOR_PROFILE_ID,
             creatorProfileId: creatorProfile.id,
             isActive: true,
             entryCreatorId: creatorProfile.id,
@@ -268,7 +300,7 @@ async function resetAndSeed() {
 
         await db.collectorReleaseSelection.create({
           data: {
-            collectorProfileId: seededCollectorProfile.id,
+            collectorProfileId: SEEDED_COLLECTOR_PROFILE_ID,
             releaseId: release.id,
             cycleId: openCycle.id,
           },
@@ -290,7 +322,7 @@ NO_ROLE_SESSION_TOKEN="${noRoleSessionToken}"
     console.log("🌱 Seed complete");
     console.log(`   Creator user:  ${creatorUser.email} (${creatorUser.id})`);
     console.log(`   No-role user:  ${noRoleUser.email} (${noRoleUser.id})`);
-    console.log("   Published creators: 3");
+    console.log(`   Published creators: ${creators.length}`);
     console.log("   Collector subscriptions: 2");
     console.log("   Cycle: OPEN");
     console.log("   BookletConstraint: 30-50 pages");

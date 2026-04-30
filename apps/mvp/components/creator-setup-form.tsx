@@ -1,6 +1,12 @@
 "use client";
 
-import { useActionState, useCallback, useEffect, useState } from "react";
+import {
+  useActionState,
+  useCallback,
+  useEffect,
+  useState,
+  useTransition,
+} from "react";
 import {
   type CheckSlugResult,
   checkSlugAvailability,
@@ -50,6 +56,7 @@ interface FormData {
 
 export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
   const [step, setStep] = useState<Step>("profile");
+  const [, startTransition] = useTransition();
   const [formData, setFormData] = useState<FormData>({
     displayName: initialData?.displayName ?? "",
     slug: initialData?.slug ?? "",
@@ -164,7 +171,9 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
     fd.append("paypalEmail", formData.paypalEmail);
 
     setHasTransitioned(false);
-    saveAction(fd);
+    startTransition(() => {
+      saveAction(fd);
+    });
   }, [formData, saveAction]);
 
   useEffect(() => {
@@ -380,10 +389,10 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
               )}
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
+            <fieldset>
+              <legend className="block text-sm font-medium text-neutral-700 mb-2">
                 Where do you currently share your art?
-              </label>
+              </legend>
               <div className="flex flex-wrap gap-2">
                 {SOURCE_PLATFORMS.map((platform) => {
                   const isSelected = formData.sourcePlatforms.includes(
@@ -409,7 +418,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                 Select all that apply. This helps us understand our creator
                 community better.
               </p>
-            </div>
+            </fieldset>
 
             <button
               type="button"
@@ -654,11 +663,15 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                <label
+                  htmlFor="creator-profile-link"
+                  className="block text-sm font-medium text-neutral-700 mb-1"
+                >
                   Your Profile Link
                 </label>
                 <div className="flex gap-2">
                   <input
+                    id="creator-profile-link"
                     type="text"
                     readOnly
                     value={`yourdomain.com/creators/${formData.slug}`}

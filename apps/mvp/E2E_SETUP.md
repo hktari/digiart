@@ -14,16 +14,18 @@ pnpm dev
 
 This starts Next.js on `http://localhost:3003`
 
-### 2. Seed test data (one time, or when needed)
+### 2. Reset + seed test data (before E2E runs)
 
 ```bash
-pnpm test:seed
+pnpm test:reset
 ```
 
-This creates:
+This resets and creates:
 
 - Test user with CREATOR role
-- Admin user
+- No-role user
+- Seeded collector profile + subscriptions/selections
+- Published creator catalog (profiles, releases, tags, artworks)
 - Subscription cycles
 - Auth credentials in `.env.test.local`
 
@@ -48,9 +50,9 @@ pnpm test:e2e
 - Ensure `pnpm dev` is running on port 3003
 - Check server logs for compilation errors
 
-**Auth errors:**
+**Auth/data errors:**
 
-- Run `pnpm test:seed` to regenerate credentials
+- Run `pnpm test:reset` to fully rebuild test data and credentials
 
 **Port conflicts:**
 

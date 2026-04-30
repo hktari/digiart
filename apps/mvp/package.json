@@ -21,7 +21,7 @@
     "test:smoke": "playwright test --config playwright.smoke.config.ts",
     "test:integration": "dotenv -e .env.test -- vitest run --config vitest.config.integration.ts",
     "test:integration:watch": "dotenv -e .env.test -- vitest --config vitest.config.integration.ts",
-    "test:seed": "dotenv -- tsx scripts/seed-test-user.ts",
+    "test:seed": "pnpm test:reset",
     "test:reset": "dotenv -e .env.test -- tsx scripts/reset-test-db.ts",
     "db:seed:production": "dotenv -- tsx scripts/seed-production.ts",
     "test:peecho": "dotenv -e .env.test -- tsx scripts/test-peecho-integration.ts",

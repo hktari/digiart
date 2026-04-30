@@ -135,12 +135,12 @@ Sprint 4 successfully implemented the platform control layer that enables admins
 
 ### Seed Scripts ✅
 
-**Development Seed (`scripts/seed-test-user.ts`):**
-- Creates test user with CREATOR role
-- Creates admin user with ADMIN role
-- Seeds initial booklet constraint (30-50 pages)
-- Creates two subscription cycles (OPEN and LOCKED)
-- Writes credentials to `.env.test.local`
+**Development/Test Seed (`scripts/reset-test-db.ts`):**
+- Resets test DB and seeds deterministic E2E/dev data
+- Creates creator user (CREATOR) and no-role user
+- Seeds collector profile, catalog data, subscriptions, and selections
+- Seeds booklet constraint and an OPEN subscription cycle
+- Writes session credentials to `.env.test.local`
 
 **Production Seed (`scripts/seed-production.ts`):**
 - Creates admin user from `ADMIN_EMAIL` env var
@@ -217,7 +217,7 @@ ADMIN_EMAIL=admin@yourplatform.com
 - `components/cycle-locked-banner.tsx`
 
 ### Scripts
-- `scripts/seed-test-user.ts` (modified)
+- `scripts/reset-test-db.ts` (modified)
 - `scripts/seed-production.ts`
 - `package.json` (modified - added seed scripts)
 

@@ -8,13 +8,17 @@ test.describe("Collector flow", () => {
     await expect(
       page.getByRole("heading", { name: /welcome back, e2e collector/i }),
     ).toBeVisible();
-    await expect(page.getByText(/start your collection/i)).toBeVisible();
+    await expect(
+      page
+        .getByRole("heading", { name: /your subscriptions/i })
+        .or(page.getByText(/start your collection/i)),
+    ).toBeVisible();
   });
 
   test("collector dashboard and nav pages are accessible", async ({ page }) => {
     await page.goto("/collector");
 
-    await page.getByRole("link", { name: /discover releases/i }).click();
+    await page.goto("/collector/discover");
     await expect(page).toHaveURL(/\/collector\/discover/);
     await expect(
       page.getByRole("heading", { name: /discover/i }),

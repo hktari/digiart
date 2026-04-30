@@ -201,7 +201,7 @@ export async function saveCollectorProfile(
   }
 }
 
-export async function getCollectorProfile(userId: string): Promise<any> {
+export async function getCollectorProfile(userId: string) {
   return db.collectorProfile.findUnique({
     where: { userId },
     include: {
@@ -340,12 +340,23 @@ export async function unsubscribeFromCreator(subscriptionId: string) {
   }
 
   try {
-    await db.collectorCreatorSubscription.update({
-      where: { id: subscriptionId },
+    const collectorProfile = await getCollectorProfileOrThrow(session.user.id);
+
+    const result = await db.collectorCreatorSubscription.updateMany({
+      where: {
+        id: subscriptionId,
+        collectorProfileId: collectorProfile.id,
+      },
       data: { isActive: false },
     });
 
+    if (result.count === 0) {
+      return { success: false, error: "Subscription not found." };
+    }
+
     revalidatePath("/collector");
+    revalidatePath("/collector/discover");
+    revalidatePath("/collector/releases");
     revalidatePath("/collector/subscriptions");
     return { success: true };
   } catch (error) {
@@ -388,7 +399,7 @@ export async function getCollectorSubscriptions(userId: string) {
 export async function getCollectorReleaseSelections(
   userId: string,
   cycleId?: string,
-): Promise<any[]> {
+) {
   const collectorProfile = await db.collectorProfile.findUnique({
     where: { userId },
   });
@@ -648,6 +659,6 @@ export async function getCollectorCartSummary(
     artworksOver,
     isValidArtworkRange,
     isValidSubscribedCreatorRange,
-    isValidForCheckout: isValidArtworkRange && isValidSubscribedCreatorRange,
+    isValidForCheckout: isValidArtworkRange,
   };
 }
