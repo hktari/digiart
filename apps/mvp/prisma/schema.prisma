@@ -362,6 +362,24 @@ model PodOffering {
   @@unique([providerId, externalId])
 }
 
+enum FulfillmentRegion {
+  EU
+  US
+}
+
+model FulfillmentCountry {
+  code      String            @id
+  name      String
+  region    FulfillmentRegion
+  isActive  Boolean           @default(true)
+  source    String            @default("peecho")
+  syncedAt  DateTime
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@index([region, isActive])
+}
+
 model PricingQuoteSnapshot {
   id                 String   @id @default(cuid())
   collectorProfileId String

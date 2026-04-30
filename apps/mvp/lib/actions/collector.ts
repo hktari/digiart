@@ -41,17 +41,32 @@ export async function saveCollectorProfile(
   const { displayName, shippingCountry } = parsed.data;
 
   try {
+    const fulfillmentCountry = await db.fulfillmentCountry.findUnique({
+      where: { code: shippingCountry.toUpperCase() },
+      select: { isActive: true },
+    });
+
+    if (!fulfillmentCountry?.isActive) {
+      return {
+        success: false,
+        errors: {
+          shippingCountry:
+            "We do not currently support booklet fulfillment to this country.",
+        },
+      };
+    }
+
     await db.collectorProfile.upsert({
       where: { userId: session.user.id },
       create: {
         userId: session.user.id,
         displayName,
-        shippingCountry,
+        shippingCountry: shippingCountry.toUpperCase(),
         onboardingState: "SHIPPING_SET",
       },
       update: {
         displayName,
-        shippingCountry,
+        shippingCountry: shippingCountry.toUpperCase(),
         onboardingState: "SHIPPING_SET",
       },
     });

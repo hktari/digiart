@@ -26,7 +26,8 @@
     "db:seed:production": "dotenv -- tsx scripts/seed-production.ts",
     "test:peecho": "dotenv -e .env.test -- tsx scripts/test-peecho-integration.ts",
     "test:coverage": "vitest run --coverage",
-    "test:backend": "vitest run lib/__tests__ app/api/__tests__"
+    "test:backend": "vitest run lib/__tests__ app/api/__tests__",
+    "pod:sync-countries": "dotenv -- tsx scripts/sync-peecho-countries.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.2",
