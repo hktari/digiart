@@ -30,6 +30,17 @@
 4. Platform fee (30%): -€1.03
 5. Creator pool (70%): **€2.39**
 
+productPrice = quantity _ (basePrice +(basePrice _ marginPercentage) + (pricePerPage + (basePrice _ marginPercentage)) _ numberOfPages)
+
+e.g.
+quantity = 1
+basePrice = 3.5€
+pricePerPage = 0.06€
+marginPercentage = 0.3
+
+marginPercentage is applied to basePrice and
+marginPercentage is further split into platformFee and creatorPayout
+
 ## Creator Earnings Example
 
 100 subscribers, 2 creators selected each = 200 total selections:

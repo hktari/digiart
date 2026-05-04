@@ -49,6 +49,17 @@ export async function sendCreatorPayoutsForCycle(
 ): Promise<SendPayoutsResult> {
   const result: SendPayoutsResult = { sent: 0, failed: 0, errors: [] };
 
+  // Idempotency check: already sent payouts for this cycle
+  const alreadySent = await db.creatorPayout.findFirst({
+    where: { cycleId, status: "SENT" },
+  });
+  if (alreadySent) {
+    result.errors.push(
+      `Payouts already sent for cycle ${cycleId} (batch: ${alreadySent.paypalBatchId})`,
+    );
+    return result;
+  }
+
   const pendingPayouts = await db.creatorPayout.findMany({
     where: {
       cycleId,

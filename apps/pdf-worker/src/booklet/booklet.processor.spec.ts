@@ -88,7 +88,9 @@ describe("BookletProcessor", () => {
       bytes: new Uint8Array([1, 2, 3]),
       pageCount: 4,
     });
-    mockStorage.uploadPdf.mockResolvedValue("https://s3.example.com/booklets/x.pdf");
+    mockStorage.uploadPdf.mockResolvedValue(
+      "https://s3.example.com/booklets/x.pdf",
+    );
 
     const result = await processor.process(makeJob(jobData));
 
@@ -178,7 +180,11 @@ describe("BookletProcessor", () => {
         release: {
           artworks: [
             {
-              artwork: { ...validArtwork, id: "art-2", storageKey: "art/2.jpg" },
+              artwork: {
+                ...validArtwork,
+                id: "art-2",
+                storageKey: "art/2.jpg",
+              },
               sortOrder: 0,
             },
           ],
@@ -190,7 +196,10 @@ describe("BookletProcessor", () => {
       ok: true,
       arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(8)),
     });
-    mockPdfBuilder.build.mockResolvedValue({ bytes: new Uint8Array([1]), pageCount: 4 });
+    mockPdfBuilder.build.mockResolvedValue({
+      bytes: new Uint8Array([1]),
+      pageCount: 4,
+    });
     mockStorage.uploadPdf.mockResolvedValue("https://s3.example.com/x.pdf");
 
     await processor.process(makeJob(jobData));

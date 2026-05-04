@@ -22,46 +22,54 @@ Booklet PDF generation is fully automatic once the cycle lock date is reached. T
 
 ## Flow Diagram
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         SUBSCRIPTION & PRICING PHASE                        │
-└─────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph PHASE1["1. SUBSCRIPTION & COMMITMENT PHASE"]
 
 Collector Subscribes to Creator
             │
             ▼
 ┌─────────────────────────────┐
-│ 1. Display Fixed Price       │
-│    Based on Region           │
-│    - EU: €19/month           │
-│    - USA: $24/month          │
+│ 1. Display Dynamic Quote     │
+│    Based on Inputs:          │
+│    - Delivery country        │
+│    - Estimated page count    │
+│    (from selected artworks)  │
+│    - Shows:                  │
+│      * Base production       │
+│      * Shipping amount       │
+│      * Platform markup       │
+│      * Estimated total       │
 └─────────────────────────────┘
             │
             ▼
 ┌─────────────────────────────┐
-│ 2. Store PricingQuoteSnapshot│
+│ 2. Collector Commits Booklet │
+│    - Persists CheckoutIntent │
 │    - collectorProfileId      │
 │    - cycleId (future cycle)  │
-│    - region (EU/USA)         │
-│    - fixedPrice              │
-│    - currency                │
-│    - quotedAt                │
+│    - quote input country     │
+│    - quote input page count  │
+│    - committedAt             │
+│    - Selection snapshot      │
 └─────────────────────────────┘
             │
             ▼
 ┌─────────────────────────────┐
 │ 3. Setup Payment Method      │
 │    via Stripe                │
-│    - Card/token saved         │
-│    - No charge yet            │
-│    - Scheduled for next lock │
+│    - Card/token saved        │
+│    - No charge yet           │
+│    - Charge scheduled for    │
+│      cycle lock (frozen qty) │
 └─────────────────────────────┘
             │
             ▼
 ┌─────────────────────────────┐
 │ 4. Subscription Active       │
 │    - Collector sees content  │
-│    - Awaiting cycle          │
+│    - Awaiting cycle lock     │
+│    - Quote shown as estimate │
 └─────────────────────────────┘
 
 
@@ -126,8 +134,51 @@ Cycle Lock Date Reached
 
 
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│               FULFILLMENT & ORDERING PHASE  [NOT YET IMPLEMENTED]           │
-│                           Planned for Sprint 5                               │
+│                           QUOTE FREEZE PHASE                                 │
+│                           (At Cycle Lock)                                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Cycle Lock Date Reached
+            │
+            ▼
+┌─────────────────────────────┐
+│ 1. Recompute Final Page     │
+│    Count                     │
+│    - From locked selections  │
+│    - Cover (1) + back (1)   │
+│    - Pad to even number      │
+└─────────────────────────────┘
+            │
+            ▼
+┌─────────────────────────────┐
+│ 2. Fetch Fresh POD Quote     │
+│    - With actual page count  │
+│    - With delivery country   │
+│    - Include platform markup │
+└─────────────────────────────┘
+            │
+            ▼
+┌─────────────────────────────┐
+│ 3. Persist QuoteFreeze       │
+│    - Immutable snapshot      │
+│    - baseAmount              │
+│    - shippingAmount          │
+│    - markupAmount            │
+│    - totalAmount             │
+│    - frozenAt timestamp      │
+└─────────────────────────────┘
+            │
+            ▼
+┌─────────────────────────────┐
+│ 4. Charge Collector         │
+│    - Stripe charge from      │
+│      frozen totalAmount      │
+│    - Off-session payment     │
+└─────────────────────────────┘
+
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│               FULFILLMENT & ORDERING PHASE  [IMPLEMENTED Sprint 6]          │
 └─────────────────────────────────────────────────────────────────────────────┘
 
 PDF Generated & Ready
@@ -206,18 +257,36 @@ PDF Generated & Ready
 
 ## Data Models
 
-### PricingQuoteSnapshot
+### CheckoutIntent
 
-Stored when collector subscribes, locks in fixed regional pricing:
+Stored when collector commits booklet for upcoming cycle:
 
-| Field                | Type     | Description                            |
-| -------------------- | -------- | -------------------------------------- |
-| `collectorProfileId` | String   | FK to CollectorProfile                 |
-| `cycleId`            | String   | FK to SubscriptionCycle (future cycle) |
-| `region`             | String   | "EU" or "USA"                          |
-| `fixedPrice`         | Decimal  | Locked subscription price              |
-| `currency`           | String   | "EUR" or "USD"                         |
-| `quotedAt`           | DateTime | When subscription was created          |
+| Field                | Type     | Description                                 |
+| -------------------- | -------- | ------------------------------------------- |
+| `collectorProfileId` | String   | FK to CollectorProfile                      |
+| `cycleId`            | String   | FK to SubscriptionCycle (future cycle)      |
+| `committedAt`        | DateTime | When collector committed booklet            |
+| `quoteCountry`       | String   | Delivery country from collector address     |
+| `quotePageCount`     | Int      | Estimated page count at commit time         |
+| `selectionSnapshot`  | JSON     | Snapshot of selected release IDs and counts |
+
+### QuoteFreeze
+
+Stored at cycle lock, immutable pricing snapshot:
+
+| Field                | Type     | Description                                    |
+| -------------------- | -------- | ---------------------------------------------- |
+| `collectorProfileId` | String   | FK to CollectorProfile                         |
+| `cycleId`            | String   | FK to SubscriptionCycle                        |
+| `destinationCountry` | String   | Delivery country                               |
+| `frozenPageCount`    | Int      | Final page count from locked selections        |
+| `providerQuoteRef`   | String?  | POD provider quote reference                   |
+| `baseAmount`         | Decimal  | Base production cost from POD quote            |
+| `shippingAmount`     | Decimal  | Shipping cost from POD quote                   |
+| `markupAmount`       | Decimal  | Platform markup (fixed fee)                    |
+| `totalAmount`        | Decimal  | Final charge amount (base + shipping + markup) |
+| `currency`           | String   | Currency code (e.g., "EUR", "USD")             |
+| `frozenAt`           | DateTime | When quote was frozen at cycle lock            |
 
 ### GeneratedPrintFile
 
@@ -235,9 +304,42 @@ Stored when PDF is generated:
 
 ## Pricing Strategy Notes
 
+### Dynamic Pricing Model
+
+Pricing is variable per collector per cycle, based on two inputs:
+
+- **Page count**: Calculated from selected artworks (1 page per artwork + cover + back cover, padded to even)
+- **Delivery country**: Determines shipping cost from POD provider
+
+### Quote Lifecycle
+
+1. **Estimate Phase** (during cycle selection window):
+   - Collector sees live quote based on current selections and address
+   - Quote is labeled as "Estimated" - not yet frozen
+   - Collector can change selections and address, quote updates dynamically
+
+2. **Freeze Phase** (at cycle lock):
+   - System recomputes final page count from locked selections
+   - Fetches fresh POD quote with actual delivery country
+   - Persists immutable `QuoteFreeze` snapshot
+   - This frozen total becomes the charge amount
+
+3. **Charge Phase** (after freeze):
+   - Stripe charges collector using frozen total amount
+   - No further price changes for that cycle
+
+### Quote Components
+
+Per POD provider response:
+
+- **Base production amount**: Cost of printing based on page count
+- **Shipping amount**: Cost based on delivery country
+- **Platform markup**: Fixed platform fee (configured via `PLATFORM_MARKUP_EUR`)
+- **Total**: Base + Shipping + Markup (final charge amount)
+
 ### Regional Shipping Variance
 
-The only variable in collector pricing is destination country. Per Peecho/Prodigi research:
+Shipping cost varies by destination country. Per Peecho/Prodigi research:
 
 | Tier   | Region           | Shipping Range |
 | ------ | ---------------- | -------------- |

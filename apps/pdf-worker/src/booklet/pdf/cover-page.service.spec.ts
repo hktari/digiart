@@ -30,7 +30,9 @@ describe("CoverPageService", () => {
 
     it("should return a page with correct dimensions", async () => {
       const { pdfDoc, font } = await setup();
-      const page = await service.addFrontCover(pdfDoc, font, "Issue #1", ["Alice"]);
+      const page = await service.addFrontCover(pdfDoc, font, "Issue #1", [
+        "Alice",
+      ]);
       const { width, height } = page.getSize();
       expect(width).toBeCloseTo(PAGE_WIDTH_PT, 1);
       expect(height).toBeCloseTo(PAGE_HEIGHT_PT, 1);
@@ -51,13 +53,18 @@ describe("CoverPageService", () => {
 
     it("should use single creator name as byline when exactly one creator", async () => {
       const { pdfDoc, font } = await setup();
-      const page = await service.addFrontCover(pdfDoc, font, "April 2025", ["Solo Artist"]);
+      const page = await service.addFrontCover(pdfDoc, font, "April 2025", [
+        "Solo Artist",
+      ]);
       expect(page).toBeDefined();
     });
 
     it("should use 'Selected Works' byline when multiple creators are provided", async () => {
       const { pdfDoc, font } = await setup();
-      const page = await service.addFrontCover(pdfDoc, font, "April 2025", ["Artist A", "Artist B"]);
+      const page = await service.addFrontCover(pdfDoc, font, "April 2025", [
+        "Artist A",
+        "Artist B",
+      ]);
       expect(page).toBeDefined();
     });
   });
