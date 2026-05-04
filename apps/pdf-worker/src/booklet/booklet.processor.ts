@@ -30,79 +30,109 @@ export class BookletProcessor extends WorkerHost {
       `Processing booklet job ${job.id} for collector=${collectorProfileId} cycle=${cycleId}`,
     );
 
-    const selections = await this.prisma.collectorReleaseSelection.findMany({
+    await this.prisma.generatedPrintFile.updateMany({
       where: { collectorProfileId, cycleId },
-      include: {
-        release: {
-          include: {
-            artworks: {
-              include: { artwork: true },
-              orderBy: { sortOrder: "asc" },
-            },
-            creatorProfile: { select: { displayName: true } },
-          },
-        },
-      },
+      data: { status: "GENERATING", errorMessage: null },
     });
 
-    const artworks = selections.flatMap((sel: (typeof selections)[number]) =>
-      sel.release.artworks.map(
-        (ra: (typeof sel.release.artworks)[number]) => ra.artwork,
-      ),
-    );
+    try {
+      const selections = await this.prisma.collectorReleaseSelection.findMany({
+        where: { collectorProfileId, cycleId },
+        include: {
+          release: {
+            include: {
+              artworks: {
+                include: { artwork: true },
+                orderBy: { sortOrder: "asc" },
+              },
+              creatorProfile: { select: { displayName: true } },
+            },
+          },
+        },
+      });
 
-    if (artworks.length === 0) {
-      throw new Error("No artworks found for this collector/cycle combination");
-    }
-
-    for (const artwork of artworks) {
-      if (
-        !artwork.width ||
-        !artwork.height ||
-        artwork.orientation === "UNKNOWN" ||
-        artwork.width < MIN_WIDTH_PX ||
-        artwork.height < MIN_HEIGHT_PX
-      ) {
-        throw new Error(
-          `Artwork "${artwork.title}" (${artwork.id}) failed validation: orientation=${artwork.orientation}, dims=${artwork.width}×${artwork.height}`,
-        );
-      }
-    }
-
-    const imageBuffers = new Map<string, Buffer>();
-    for (const artwork of artworks) {
-      const storageUrl = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION ?? "eu-west-1"}.amazonaws.com/${artwork.storageKey}`;
-      const res = await fetch(storageUrl);
-      if (!res.ok) {
-        throw new Error(
-          `Failed to download artwork ${artwork.id} from ${storageUrl}: ${res.status}`,
-        );
-      }
-      const arrayBuf = await res.arrayBuffer();
-      imageBuffers.set(artwork.id, Buffer.from(arrayBuf));
-    }
-
-    const creatorNames: string[] = [
-      ...new Set<string>(
-        selections.map(
-          (s: (typeof selections)[number]) =>
-            s.release.creatorProfile.displayName,
+      const artworks = selections.flatMap((sel: (typeof selections)[number]) =>
+        sel.release.artworks.map(
+          (ra: (typeof sel.release.artworks)[number]) => ra.artwork,
         ),
-      ),
-    ];
+      );
 
-    const { bytes, pageCount } = await this.pdfBuilder.build(
-      artworks,
-      imageBuffers,
-      issueLabel,
-      creatorNames,
-    );
+      if (artworks.length === 0) {
+        throw new Error(
+          "No artworks found for this collector/cycle combination",
+        );
+      }
 
-    const pdfUrl = await this.storage.uploadPdf(bytes);
-    this.logger.log(
-      `Booklet job ${job.id} complete: ${pageCount} pages → ${pdfUrl}`,
-    );
+      for (const artwork of artworks) {
+        if (
+          !artwork.width ||
+          !artwork.height ||
+          artwork.orientation === "UNKNOWN" ||
+          artwork.width < MIN_WIDTH_PX ||
+          artwork.height < MIN_HEIGHT_PX
+        ) {
+          throw new Error(
+            `Artwork "${artwork.title}" (${artwork.id}) failed validation: orientation=${artwork.orientation}, dims=${artwork.width}×${artwork.height}`,
+          );
+        }
+      }
 
-    return { pdfUrl, pageCount };
+      const imageBuffers = new Map<string, Buffer>();
+      for (const artwork of artworks) {
+        const storageUrl = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION ?? "eu-west-1"}.amazonaws.com/${artwork.storageKey}`;
+        const res = await fetch(storageUrl);
+        if (!res.ok) {
+          throw new Error(
+            `Failed to download artwork ${artwork.id} from ${storageUrl}: ${res.status}`,
+          );
+        }
+        const arrayBuf = await res.arrayBuffer();
+        imageBuffers.set(artwork.id, Buffer.from(arrayBuf));
+      }
+
+      const creatorNames: string[] = [
+        ...new Set<string>(
+          selections.map(
+            (s: (typeof selections)[number]) =>
+              s.release.creatorProfile.displayName,
+          ),
+        ),
+      ];
+
+      const { bytes, pageCount } = await this.pdfBuilder.build(
+        artworks,
+        imageBuffers,
+        issueLabel,
+        creatorNames,
+      );
+
+      const pdfUrl = await this.storage.uploadPdf(bytes);
+      this.logger.log(
+        `Booklet job ${job.id} complete: ${pageCount} pages → ${pdfUrl}`,
+      );
+
+      await this.prisma.generatedPrintFile.updateMany({
+        where: { collectorProfileId, cycleId },
+        data: {
+          status: "READY",
+          storageUrl: pdfUrl,
+          pageCount,
+          generatedAt: new Date(),
+          errorMessage: null,
+        },
+      });
+
+      return { pdfUrl, pageCount };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      this.logger.error(`Booklet job ${job.id} failed: ${message}`);
+
+      await this.prisma.generatedPrintFile.updateMany({
+        where: { collectorProfileId, cycleId },
+        data: { status: "FAILED", errorMessage: message },
+      });
+
+      throw error;
+    }
   }
 }

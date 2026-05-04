@@ -4,9 +4,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getCurrentCycle } from "@/lib/actions/cycles";
-import { enqueueAutoAssignRelease } from "@/lib/queue/auto-assign";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { enqueueAutoAssignRelease } from "@/lib/queue/auto-assign";
 import { getPublicStorageUrl } from "@/lib/s3";
 import { getReleaseTags, setReleaseTags } from "./tags";
 

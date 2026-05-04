@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 interface QuoteData {
   shippingAmount: number;
   productAmount: number;
+  baseAmount: number;
+  markupAmount: number;
   taxAmount: number;
   totalEstimate: number;
   currency: string;
@@ -42,6 +44,7 @@ export async function createQuoteSnapshot(
       shippingAmount: quoteData.shippingAmount,
       productAmount: quoteData.productAmount,
       taxAmount: quoteData.taxAmount,
+      markupAmount: quoteData.markupAmount,
       totalEstimate: quoteData.totalEstimate,
       currency: quoteData.currency,
     },

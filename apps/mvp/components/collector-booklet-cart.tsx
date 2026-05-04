@@ -1,7 +1,6 @@
 "use client";
 
 import { ChevronDown, ChevronUp, ShoppingBag } from "lucide-react";
-import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   Suspense,
@@ -12,8 +11,33 @@ import {
   useTransition,
 } from "react";
 import type { CollectorCartSummary } from "@/lib/actions/collector";
-import { toggleReleaseSelection } from "@/lib/actions/collector";
+import {
+  commitBookletForCycle,
+  toggleReleaseSelection,
+} from "@/lib/actions/collector";
 import { COLLECTOR_CART_UPDATED_EVENT } from "@/lib/cart-events";
+
+interface CartQuote {
+  baseAmount: number;
+  shippingAmount: number;
+  markupAmount: number;
+  taxAmount: number;
+  totalEstimate: number;
+  currency: string;
+  isFrozen: boolean;
+  quotedAt: Date | null;
+}
+
+interface CartCheckoutIntent {
+  committedAt: string;
+  acceptedEstimateDisclaimer: boolean;
+}
+
+interface CartData extends CollectorCartSummary {
+  quote: CartQuote | null;
+  checkoutIntent: CartCheckoutIntent | null;
+  cycleLockDate: string | null;
+}
 
 function statusText(summary: CollectorCartSummary) {
   if (!summary.cycleId) return "No open cycle";
@@ -27,16 +51,18 @@ function statusText(summary: CollectorCartSummary) {
 function CollectorBookletCartInner() {
   const _pathname = usePathname();
   const _searchParams = useSearchParams();
-  const [summary, setSummary] = useState<CollectorCartSummary | null>(null);
+  const [summary, setSummary] = useState<CartData | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [commitError, setCommitError] = useState<string | null>(null);
+  const [commitSuccess, setCommitSuccess] = useState(false);
 
   const loadSummary = useCallback(async () => {
     const res = await fetch("/api/collector/cart-summary", {
       cache: "no-store",
     });
     if (!res.ok) return;
-    const data = (await res.json()) as CollectorCartSummary;
+    const data = (await res.json()) as CartData;
     setSummary(data);
   }, []);
 
@@ -74,6 +100,34 @@ function CollectorBookletCartInner() {
       await loadSummary();
     });
   };
+
+  const handleCommit = () => {
+    setCommitError(null);
+    setCommitSuccess(false);
+    startTransition(async () => {
+      const result = await commitBookletForCycle();
+      if (result.success) {
+        setCommitSuccess(true);
+        await loadSummary();
+      } else {
+        setCommitError(result.error);
+      }
+    });
+  };
+
+  const formatCurrency = (amount: number, currency: string) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency || "EUR",
+    }).format(amount);
+  };
+
+  const lockDateFormatted = summary?.cycleLockDate
+    ? new Date(summary.cycleLockDate).toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+      })
+    : null;
 
   if (!summary) return null;
 
@@ -116,16 +170,100 @@ function CollectorBookletCartInner() {
             </div>
           ))}
         </div>
-        <Link
-          href="/collector/checkout"
+
+        {summary.quote && (
+          <div className="border-t border-beige-200 pt-3 space-y-1">
+            <div className="flex justify-between text-xs text-ink/70">
+              <span>Production</span>
+              <span>
+                {formatCurrency(
+                  summary.quote.baseAmount,
+                  summary.quote.currency,
+                )}
+              </span>
+            </div>
+            <div className="flex justify-between text-xs text-ink/70">
+              <span>Shipping</span>
+              <span>
+                {formatCurrency(
+                  summary.quote.shippingAmount,
+                  summary.quote.currency,
+                )}
+              </span>
+            </div>
+            {summary.quote.markupAmount > 0 && (
+              <div className="flex justify-between text-xs text-ink/70">
+                <span>Platform fee</span>
+                <span>
+                  {formatCurrency(
+                    summary.quote.markupAmount,
+                    summary.quote.currency,
+                  )}
+                </span>
+              </div>
+            )}
+            <div className="flex justify-between text-xs text-ink/70">
+              <span>Tax</span>
+              <span>
+                {formatCurrency(
+                  summary.quote.taxAmount,
+                  summary.quote.currency,
+                )}
+              </span>
+            </div>
+            <div className="flex justify-between text-sm font-semibold text-ink pt-1 border-t border-beige-100">
+              <span>
+                {summary.quote.isFrozen ? "Locked total" : "Estimated total"}
+              </span>
+              <span>
+                {formatCurrency(
+                  summary.quote.totalEstimate,
+                  summary.quote.currency,
+                )}
+              </span>
+            </div>
+            {!summary.quote.isFrozen && (
+              <p className="text-[11px] text-ink/50">
+                Final price is locked at cycle end based on your selections and
+                delivery address.
+              </p>
+            )}
+          </div>
+        )}
+
+        {summary.checkoutIntent && (
+          <div className="rounded bg-green-50 border border-green-200 p-2 text-xs text-green-800">
+            Booklet committed{" "}
+            {lockDateFormatted && `— charged on ${lockDateFormatted}`}
+          </div>
+        )}
+
+        {commitError && (
+          <div className="rounded bg-red-50 border border-red-200 p-2 text-xs text-red-700">
+            {commitError}
+          </div>
+        )}
+
+        {commitSuccess && !summary.checkoutIntent && (
+          <div className="rounded bg-green-50 border border-green-200 p-2 text-xs text-green-800">
+            Booklet committed successfully!
+          </div>
+        )}
+
+        <button
+          type="button"
+          disabled={isPending || !summary.isValidForCheckout}
+          onClick={handleCommit}
           className={`mt-auto rounded px-3 py-2 text-center text-sm font-semibold ${
             summary.isValidForCheckout
               ? "bg-fuchsia-600 text-white hover:bg-fuchsia-700"
-              : "bg-neutral-300 text-neutral-600 pointer-events-none"
+              : "bg-neutral-300 text-neutral-600 cursor-not-allowed"
           }`}
         >
-          Subscribe for upcoming cycle
-        </Link>
+          {summary.checkoutIntent
+            ? "Update commit"
+            : "Commit booklet — you'll be charged when the cycle closes"}
+        </button>
       </aside>
 
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-beige-200 bg-paper px-4 py-2">
@@ -179,16 +317,96 @@ function CollectorBookletCartInner() {
                 </div>
               </div>
             ))}
-            <Link
-              href="/collector/checkout"
-              className={`block rounded px-3 py-2 text-center text-sm font-semibold ${
+
+            {summary.quote && (
+              <div className="border-t border-beige-200 pt-2 space-y-1">
+                <div className="flex justify-between text-xs text-ink/70">
+                  <span>Production</span>
+                  <span>
+                    {formatCurrency(
+                      summary.quote.baseAmount,
+                      summary.quote.currency,
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs text-ink/70">
+                  <span>Shipping</span>
+                  <span>
+                    {formatCurrency(
+                      summary.quote.shippingAmount,
+                      summary.quote.currency,
+                    )}
+                  </span>
+                </div>
+                {summary.quote.markupAmount > 0 && (
+                  <div className="flex justify-between text-xs text-ink/70">
+                    <span>Platform fee</span>
+                    <span>
+                      {formatCurrency(
+                        summary.quote.markupAmount,
+                        summary.quote.currency,
+                      )}
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between text-xs text-ink/70">
+                  <span>Tax</span>
+                  <span>
+                    {formatCurrency(
+                      summary.quote.taxAmount,
+                      summary.quote.currency,
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm font-semibold text-ink pt-1 border-t border-beige-100">
+                  <span>
+                    {summary.quote.isFrozen
+                      ? "Locked total"
+                      : "Estimated total"}
+                  </span>
+                  <span>
+                    {formatCurrency(
+                      summary.quote.totalEstimate,
+                      summary.quote.currency,
+                    )}
+                  </span>
+                </div>
+                {!summary.quote.isFrozen && (
+                  <p className="text-[11px] text-ink/50">
+                    Final price is locked at cycle end based on your selections
+                    and delivery address.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {summary.checkoutIntent && (
+              <div className="rounded bg-green-50 border border-green-200 p-2 text-xs text-green-800">
+                Booklet committed{" "}
+                {lockDateFormatted && `— charged on ${lockDateFormatted}`}
+              </div>
+            )}
+
+            {commitError && (
+              <div className="rounded bg-red-50 border border-red-200 p-2 text-xs text-red-700">
+                {commitError}
+              </div>
+            )}
+
+            <button
+              type="button"
+              disabled={isPending || !summary.isValidForCheckout}
+              onClick={handleCommit}
+              className={`block w-full rounded px-3 py-2 text-center text-sm font-semibold ${
                 summary.isValidForCheckout
                   ? "bg-fuchsia-600 text-white"
-                  : "bg-neutral-300 text-neutral-600 pointer-events-none"
+                  : "bg-neutral-300 text-neutral-600"
               }`}
             >
-              Subscribe for upcoming cycle
-            </Link>
+              {summary.checkoutIntent
+                ? "Update commit"
+                : "Commit booklet — you'll be charged when the cycle closes"}
+            </button>
           </div>
         )}
       </div>

@@ -1,6 +1,18 @@
 {
   "version": 1,
   "skills": {
+    "designing-growth-loops": {
+      "source": "refoundai/lenny-skills",
+      "sourceType": "github",
+      "skillPath": "skills/designing-growth-loops/SKILL.md",
+      "computedHash": "6242d733e5e1755e4a6094ba9cb8f7cd57899e0314bcbaf255475fbed7d8b719"
+    },
+    "gtm-product-led-growth": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "skillPath": "skills/gtm-product-led-growth/SKILL.md",
+      "computedHash": "3b4c43f619bc1c294d5519a1bcaeb936e3690a90c57bfecbfaed15a6bc4dac4e"
+    },
     "neon-postgres": {
       "source": "neondatabase/agent-skills",
       "sourceType": "github",

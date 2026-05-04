@@ -107,6 +107,28 @@ async function getSubscribedCreatorsCount(collectorProfileId: string) {
   });
 }
 
+async function assertCycleOpen(cycleId: string): Promise<void> {
+  const { computeCycleStatus } = await import("@/lib/cycle-status");
+  const cycle = await db.subscriptionCycle.findUnique({
+    where: { id: cycleId },
+    select: {
+      lockDate: true,
+      status: true,
+      fulfillmentDate: true,
+      selectionOpenDate: true,
+    },
+  });
+  if (!cycle) {
+    throw new Error("Cycle not found");
+  }
+  const status = computeCycleStatus(cycle as any);
+  if (status !== "OPEN") {
+    throw new Error(
+      `The cycle is ${status.toLowerCase()} and no longer accepts changes.`,
+    );
+  }
+}
+
 async function getActiveArtworkRange(): Promise<ArtworkRange> {
   const activeConstraint = await db.bookletConstraint.findFirst({
     where: { isActive: true },
@@ -356,6 +378,11 @@ export async function subscribeToCreator(
   const collectorProfile = await getCollectorProfileOrThrow(session.user.id);
 
   try {
+    const currentCycle = await getCurrentCycle();
+    if (currentCycle) {
+      await assertCycleOpen(currentCycle.id);
+    }
+
     const existing = await db.collectorCreatorSubscription.findUnique({
       where: {
         collectorProfileId_creatorProfileId: {
@@ -399,7 +426,6 @@ export async function subscribeToCreator(
     let autoAssignmentSkipped = false;
 
     // Auto-assign this creator's latest published release for current cycle.
-    const currentCycle = await getCurrentCycle();
     if (currentCycle) {
       const artworkRange = await getActiveArtworkRange();
       const latestRelease = await db.release.findFirst({
@@ -473,6 +499,11 @@ export async function unsubscribeFromCreator(subscriptionId: string) {
   }
 
   try {
+    const currentCycle = await getCurrentCycle();
+    if (currentCycle) {
+      await assertCycleOpen(currentCycle.id);
+    }
+
     const collectorProfile = await getCollectorProfileOrThrow(session.user.id);
 
     const result = await db.collectorCreatorSubscription.updateMany({
@@ -612,6 +643,8 @@ export async function toggleReleaseSelection(
   const collectorProfile = await getCollectorProfileOrThrow(session.user.id);
 
   try {
+    await assertCycleOpen(cycleId);
+
     const existing = await db.collectorReleaseSelection.findUnique({
       where: {
         collectorProfileId_releaseId_cycleId: {
@@ -675,6 +708,154 @@ export async function toggleReleaseSelection(
     console.error("Failed to toggle release selection:", error);
     throw error;
   }
+}
+
+export type CommitBookletResult =
+  | {
+      success: true;
+      checkoutIntent: {
+        id: string;
+        committedAt: Date;
+        totalArtworks: number;
+        estimatedTotal: number | null;
+        currency: string;
+      };
+    }
+  | { success: false; error: string };
+
+export async function commitBookletForCycle(): Promise<CommitBookletResult> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    redirect("/auth/sign-in");
+  }
+
+  const collectorProfile = await getCollectorProfileOrThrow(session.user.id);
+
+  const currentCycle = await getCurrentCycle();
+  if (!currentCycle) {
+    return { success: false, error: "No active subscription cycle." };
+  }
+
+  const { computeCycleStatus } = await import("@/lib/cycle-status");
+  if (computeCycleStatus(currentCycle) !== "OPEN") {
+    return {
+      success: false,
+      error: "The current cycle is no longer open for commits.",
+    };
+  }
+
+  if (!collectorProfile.shippingCountry) {
+    return {
+      success: false,
+      error: "Please set your shipping address before committing.",
+    };
+  }
+
+  const selections = await db.collectorReleaseSelection.findMany({
+    where: {
+      collectorProfileId: collectorProfile.id,
+      cycleId: currentCycle.id,
+    },
+    include: {
+      release: {
+        include: {
+          _count: { select: { artworks: true } },
+        },
+      },
+    },
+  });
+
+  const totalArtworks = selections.reduce(
+    (sum, s) => sum + s.release._count.artworks,
+    0,
+  );
+
+  const artworkRange = await getActiveArtworkRange();
+  if (totalArtworks < artworkRange.minRequired) {
+    return {
+      success: false,
+      error: `You need at least ${artworkRange.minRequired} artworks. You currently have ${totalArtworks}.`,
+    };
+  }
+  if (totalArtworks > artworkRange.maxAllowed) {
+    return {
+      success: false,
+      error: `You have ${totalArtworks} artworks, exceeding the ${artworkRange.maxAllowed} limit.`,
+    };
+  }
+
+  const { computeBookletPageCount } = await import("@/lib/booklet/page-count");
+  const pageCountResult = computeBookletPageCount(selections as any);
+
+  let estimatedTotal: number | null = null;
+  let currency = "EUR";
+
+  try {
+    const { getQuote } = await import("@/lib/peecho/quote-service");
+    const quoteData = await getQuote({
+      country: collectorProfile.shippingCountry,
+      countryStateCode: collectorProfile.shippingStateCode ?? undefined,
+      pageCount: pageCountResult.totalPages,
+    });
+
+    const { createQuoteSnapshot } = await import(
+      "@/lib/pricing/quote-snapshot"
+    );
+    const snapshot = await createQuoteSnapshot(
+      collectorProfile.id,
+      currentCycle.id,
+      pageCountResult.totalPages,
+      quoteData,
+    );
+
+    estimatedTotal = Number(snapshot.totalEstimate);
+    currency = snapshot.currency;
+  } catch {
+    // Quote fetch is best-effort during commit; freeze will re-quote
+  }
+
+  const selectionSnapshot = selections.map((s) => ({
+    releaseId: s.releaseId,
+    artworkCount: s.release._count.artworks,
+  }));
+
+  const checkoutIntent = await db.checkoutIntent.upsert({
+    where: {
+      collectorProfileId_cycleId: {
+        collectorProfileId: collectorProfile.id,
+        cycleId: currentCycle.id,
+      },
+    },
+    create: {
+      collectorProfileId: collectorProfile.id,
+      cycleId: currentCycle.id,
+      selectionSnapshot,
+      quoteInputCountry: collectorProfile.shippingCountry,
+      quoteInputPageCount: pageCountResult.totalPages,
+      acceptedEstimateDisclaimer: true,
+    },
+    update: {
+      committedAt: new Date(),
+      selectionSnapshot,
+      quoteInputCountry: collectorProfile.shippingCountry,
+      quoteInputPageCount: pageCountResult.totalPages,
+      acceptedEstimateDisclaimer: true,
+    },
+  });
+
+  revalidatePath("/collector");
+  revalidatePath("/collector/discover");
+
+  return {
+    success: true,
+    checkoutIntent: {
+      id: checkoutIntent.id,
+      committedAt: checkoutIntent.committedAt,
+      totalArtworks,
+      estimatedTotal,
+      currency,
+    },
+  };
 }
 
 export async function getCollectorCartSummary(
