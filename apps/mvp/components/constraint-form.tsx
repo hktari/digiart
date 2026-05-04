@@ -56,7 +56,7 @@ export function ConstraintForm({
             type="number"
             id="minPages"
             name="minPages"
-            defaultValue={constraint?.minPages ?? 30}
+            defaultValue={constraint?.minPages ?? 18}
             required
             min="1"
             className="w-full px-3 py-2 border rounded-md"
@@ -71,7 +71,7 @@ export function ConstraintForm({
             type="number"
             id="maxPages"
             name="maxPages"
-            defaultValue={constraint?.maxPages ?? 50}
+            defaultValue={constraint?.maxPages ?? 500}
             required
             min="1"
             className="w-full px-3 py-2 border rounded-md"

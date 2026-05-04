@@ -46,5 +46,14 @@ export default async function CreatorSubscribePage({ params }: Props) {
     );
   }
 
-  redirect("/");
+  const searchParams = new URLSearchParams();
+  searchParams.set("subscribed", "1");
+  if (result.autoAssignedReleaseTitle) {
+    searchParams.set("autoAddedRelease", result.autoAssignedReleaseTitle);
+  }
+  if (result.autoAssignmentSkipped) {
+    searchParams.set("autoAddSkipped", "1");
+  }
+
+  redirect(`/creators/${slug}?${searchParams.toString()}`);
 }

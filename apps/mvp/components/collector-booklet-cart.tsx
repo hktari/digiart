@@ -4,6 +4,7 @@ import { ChevronDown, ChevronUp, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
+  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -23,7 +24,7 @@ function statusText(summary: CollectorCartSummary) {
   return "Ready for checkout";
 }
 
-export function CollectorBookletCart() {
+function CollectorBookletCartInner() {
   const _pathname = usePathname();
   const _searchParams = useSearchParams();
   const [summary, setSummary] = useState<CollectorCartSummary | null>(null);
@@ -192,5 +193,13 @@ export function CollectorBookletCart() {
         )}
       </div>
     </>
+  );
+}
+
+export function CollectorBookletCart() {
+  return (
+    <Suspense fallback={null}>
+      <CollectorBookletCartInner />
+    </Suspense>
   );
 }

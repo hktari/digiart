@@ -1,4 +1,4 @@
-export const MIN_BOOKLET_ARTWORKS = 35;
-export const MAX_BOOKLET_ARTWORKS = 50;
+export const MIN_BOOKLET_ARTWORKS = 18;
+export const MAX_BOOKLET_ARTWORKS = 500;
 export const MIN_SUBSCRIBED_CREATORS = 3;
 export const MAX_SUBSCRIBED_CREATORS = 10;

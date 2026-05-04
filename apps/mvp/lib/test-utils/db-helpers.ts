@@ -49,8 +49,8 @@ export async function seedTestData() {
   const constraint = await db.bookletConstraint.create({
     data: {
       id: "test-constraint-1",
-      minPages: 30,
-      maxPages: 50,
+      minPages: 18,
+      maxPages: 500,
       isActive: true,
       version: 1,
     },

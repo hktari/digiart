@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { autoAssignPublishedReleaseToActiveSubscribers } from "@/lib/actions/collector";
+import { getCurrentCycle } from "@/lib/actions/cycles";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getPublicStorageUrl } from "@/lib/s3";
@@ -282,6 +284,15 @@ export async function publishRelease(
     where: { id: releaseId },
     data: { status: "PUBLISHED" },
   });
+
+  const currentCycle = await getCurrentCycle();
+  if (currentCycle) {
+    await autoAssignPublishedReleaseToActiveSubscribers(
+      releaseId,
+      creatorProfileId,
+      currentCycle.id,
+    );
+  }
 
   revalidatePath("/creator/releases");
   revalidatePath(`/creator/releases/${releaseId}`);

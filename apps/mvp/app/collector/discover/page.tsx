@@ -141,12 +141,14 @@ export default async function CollectorDiscoverPage({ searchParams }: Props) {
           ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {creators.map((creator) => (
-                <Link
+                <div
                   key={creator.id}
-                  href={`/creators/${creator.slug}`}
                   className="bg-white rounded-lg border border-neutral-200 p-6 hover:border-fuchsia-300 hover:shadow-md transition-all"
                 >
-                  <div className="flex items-start gap-4">
+                  <Link
+                    href={`/creators/${creator.slug}`}
+                    className="flex items-start gap-4"
+                  >
                     {creator.avatar ? (
                       <Image
                         src={creator.avatar}
@@ -171,13 +173,19 @@ export default async function CollectorDiscoverPage({ searchParams }: Props) {
                         {creator._count.releases === 1 ? "release" : "releases"}
                       </p>
                     </div>
-                  </div>
+                  </Link>
                   {creator.bio && (
                     <p className="mt-4 text-sm text-neutral-600 line-clamp-3">
                       {creator.bio}
                     </p>
                   )}
-                </Link>
+                  <Link
+                    href={`/creators/${creator.slug}/subscribe`}
+                    className="mt-4 block w-full text-center px-4 py-2 rounded-lg bg-fuchsia-600 text-white font-medium hover:bg-fuchsia-700 transition-colors"
+                  >
+                    Subscribe
+                  </Link>
+                </div>
               ))}
             </div>
           ))}

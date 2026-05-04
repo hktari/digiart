@@ -23,7 +23,7 @@ export default async function CreatorReleasesPage({ params }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="bg-neutral-50">
       <div className="max-w-6xl mx-auto px-4 py-12 space-y-8">
         <div className="space-y-2">
           <Link

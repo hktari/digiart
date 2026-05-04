@@ -39,8 +39,8 @@ export function createTestConstraint(
 
   return {
     id: `test-constraint-${Date.now()}`,
-    minPages: 30,
-    maxPages: 50,
+    minPages: 18,
+    maxPages: 500,
     maxCreators: null,
     maxReleases: null,
     isActive: true,

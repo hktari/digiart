@@ -8,14 +8,7 @@ This document describes the complete print-on-demand (POD) fulfillment flow from
 
 ### Pricing Model
 
-**Fixed regional subscription price.** The platform charges a flat monthly fee based on collector's region (EU or USA). No dynamic pricing calculation at subscription time.
-
-- **Subscription Price**: Fixed amount per region (e.g., €25/month for EU, $24/month for USA)
-- **Regions**: EU + USA only (MVP launch)
-- **Payment**: Stripe subscription with delayed first charge (next lock date)
-- **Peecho Credits**: Admin manages merchant account balance manually in Peecho dashboard
-
-This fixed price is stored in `PricingQuoteSnapshot` at subscription time. The collector is committed to this price for the cycle.
+Variable pricing based on page count + country of delivery
 
 ### Booklet Content Selection
 
@@ -242,16 +235,6 @@ Stored when PDF is generated:
 
 ## Pricing Strategy Notes
 
-### Flat-Rate Model
-
-The platform charges a fixed subscription price per cycle. This covers printing up to a **platform-configured maximum page count**. The platform absorbs any cost difference between a collector's actual booklet size and the maximum — there is no per-page billing.
-
-This simplifies:
-
-- Collector UX (single predictable price)
-- Billing implementation (no per-cycle recalculation)
-- Creator incentive (no reason to limit release size)
-
 ### Regional Shipping Variance
 
 The only variable in collector pricing is destination country. Per Peecho/Prodigi research:
@@ -263,13 +246,6 @@ The only variable in collector pricing is destination country. Per Peecho/Prodig
 | Tier 3 | UK/Europe non-EU | €11–16         |
 | Tier 4 | North America    | €17–22         |
 | Tier 5 | Asia-Pacific     | €23–27         |
-
-### Quote Lock-In Benefits
-
-1. **Price Transparency**: Collector knows exact cost before subscribing
-2. **No Surprises**: Shipping fluctuations don't affect committed subscribers
-3. **Creator Revenue Predictability**: Platform can calculate margins upfront
-4. **Simplified Billing**: Single charge per cycle, not per-order
 
 ## Error Handling
 

@@ -56,6 +56,16 @@ export type CollectorCartSummary = {
   isValidForCheckout: boolean;
 };
 
+type ArtworkRange = {
+  minRequired: number;
+  maxAllowed: number;
+};
+
+type AutoAssignPublishedReleaseResult = {
+  assignedCount: number;
+  skippedAtLimitCount: number;
+};
+
 async function getCollectorProfileOrThrow(userId: string) {
   const collectorProfile = await db.collectorProfile.findUnique({
     where: { userId },
@@ -95,6 +105,118 @@ async function getSubscribedCreatorsCount(collectorProfileId: string) {
       isActive: true,
     },
   });
+}
+
+async function getActiveArtworkRange(): Promise<ArtworkRange> {
+  const activeConstraint = await db.bookletConstraint.findFirst({
+    where: { isActive: true },
+    select: {
+      minPages: true,
+      maxPages: true,
+    },
+    orderBy: { updatedAt: "desc" },
+  });
+
+  return {
+    minRequired: activeConstraint?.minPages ?? MIN_BOOKLET_ARTWORKS,
+    maxAllowed: activeConstraint?.maxPages ?? MAX_BOOKLET_ARTWORKS,
+  };
+}
+
+export async function autoAssignPublishedReleaseToActiveSubscribers(
+  releaseId: string,
+  creatorProfileId: string,
+  cycleId: string,
+): Promise<AutoAssignPublishedReleaseResult> {
+  const release = await db.release.findUnique({
+    where: { id: releaseId },
+    include: {
+      _count: {
+        select: {
+          artworks: true,
+        },
+      },
+    },
+  });
+
+  if (!release || release.status !== "PUBLISHED") {
+    return { assignedCount: 0, skippedAtLimitCount: 0 };
+  }
+
+  const artworkRange = await getActiveArtworkRange();
+
+  const subscriptions = await db.collectorCreatorSubscription.findMany({
+    where: {
+      creatorProfileId,
+      isActive: true,
+    },
+    select: {
+      collectorProfile: {
+        select: {
+          id: true,
+          userId: true,
+        },
+      },
+    },
+  });
+
+  let assignedCount = 0;
+  let skippedAtLimitCount = 0;
+  const notifiedUserIds: string[] = [];
+
+  for (const subscription of subscriptions) {
+    const collectorProfileId = subscription.collectorProfile.id;
+
+    const existingSelection = await db.collectorReleaseSelection.findUnique({
+      where: {
+        collectorProfileId_releaseId_cycleId: {
+          collectorProfileId,
+          releaseId,
+          cycleId,
+        },
+      },
+      select: { id: true },
+    });
+
+    if (existingSelection) {
+      continue;
+    }
+
+    const currentArtworkCount = await countSelectedArtworks(
+      collectorProfileId,
+      cycleId,
+    );
+    const projectedArtworkCount = currentArtworkCount + release._count.artworks;
+
+    if (projectedArtworkCount > artworkRange.maxAllowed) {
+      skippedAtLimitCount += 1;
+      continue;
+    }
+
+    await db.collectorReleaseSelection.create({
+      data: {
+        collectorProfileId,
+        releaseId,
+        cycleId,
+      },
+    });
+
+    assignedCount += 1;
+    notifiedUserIds.push(subscription.collectorProfile.userId);
+  }
+
+  if (notifiedUserIds.length > 0) {
+    await db.emailNotificationLog.createMany({
+      data: notifiedUserIds.map((userId) => ({
+        userId,
+        type: "COLLECTOR_SELECTION_REMINDER",
+        cycleId,
+        status: "PENDING",
+      })),
+    });
+  }
+
+  return { assignedCount, skippedAtLimitCount };
 }
 
 export async function saveCollectorProfile(
@@ -273,9 +395,13 @@ export async function subscribeToCreator(
       },
     });
 
+    let autoAssignedReleaseTitle: string | null = null;
+    let autoAssignmentSkipped = false;
+
     // Auto-assign this creator's latest published release for current cycle.
     const currentCycle = await getCurrentCycle();
     if (currentCycle) {
+      const artworkRange = await getActiveArtworkRange();
       const latestRelease = await db.release.findFirst({
         where: {
           creatorProfileId,
@@ -300,7 +426,7 @@ export async function subscribeToCreator(
         const projectedArtworkCount =
           currentArtworkCount + latestRelease._count.artworks;
 
-        if (projectedArtworkCount <= MAX_BOOKLET_ARTWORKS) {
+        if (projectedArtworkCount <= artworkRange.maxAllowed) {
           await db.collectorReleaseSelection.upsert({
             where: {
               collectorProfileId_releaseId_cycleId: {
@@ -316,6 +442,9 @@ export async function subscribeToCreator(
             },
             update: {},
           });
+          autoAssignedReleaseTitle = latestRelease.title;
+        } else {
+          autoAssignmentSkipped = true;
         }
       }
     }
@@ -326,7 +455,11 @@ export async function subscribeToCreator(
       revalidatePath("/collector/subscriptions");
       revalidatePath("/collector/releases");
     }
-    return { success: true };
+    return {
+      success: true,
+      autoAssignedReleaseTitle,
+      autoAssignmentSkipped,
+    };
   } catch (error) {
     console.error("Failed to subscribe to creator:", error);
     throw error;
@@ -363,6 +496,31 @@ export async function unsubscribeFromCreator(subscriptionId: string) {
     console.error("Failed to unsubscribe from creator:", error);
     throw error;
   }
+}
+
+export async function isUserSubscribedToCreator(
+  userId: string,
+  creatorProfileId: string,
+): Promise<boolean> {
+  const collectorProfile = await db.collectorProfile.findUnique({
+    where: { userId },
+  });
+
+  if (!collectorProfile) {
+    return false;
+  }
+
+  const subscription = await db.collectorCreatorSubscription.findUnique({
+    where: {
+      collectorProfileId_creatorProfileId: {
+        collectorProfileId: collectorProfile.id,
+        creatorProfileId,
+      },
+    },
+    select: { isActive: true },
+  });
+
+  return subscription?.isActive ?? false;
 }
 
 export async function getCollectorSubscriptions(userId: string) {
@@ -488,13 +646,14 @@ export async function toggleReleaseSelection(
         collectorProfile.id,
         cycleId,
       );
+      const artworkRange = await getActiveArtworkRange();
       if (
         currentArtworkCount + release._count.artworks >
-        MAX_BOOKLET_ARTWORKS
+        artworkRange.maxAllowed
       ) {
         return {
           success: false,
-          error: `Adding this release would exceed the ${MAX_BOOKLET_ARTWORKS} artwork limit.`,
+          error: `Adding this release would exceed the ${artworkRange.maxAllowed} artwork limit.`,
         };
       }
 
@@ -521,6 +680,8 @@ export async function toggleReleaseSelection(
 export async function getCollectorCartSummary(
   userId: string,
 ): Promise<CollectorCartSummary> {
+  const artworkRange = await getActiveArtworkRange();
+
   const collectorProfile = await db.collectorProfile.findUnique({
     where: { userId },
     select: { id: true },
@@ -533,11 +694,11 @@ export async function getCollectorCartSummary(
       totalArtworks: 0,
       totalReleases: 0,
       totalSubscribedCreators: 0,
-      minRequired: MIN_BOOKLET_ARTWORKS,
-      maxAllowed: MAX_BOOKLET_ARTWORKS,
+      minRequired: artworkRange.minRequired,
+      maxAllowed: artworkRange.maxAllowed,
       minSubscribedCreators: MIN_SUBSCRIBED_CREATORS,
       maxSubscribedCreators: MAX_SUBSCRIBED_CREATORS,
-      artworksNeeded: MIN_BOOKLET_ARTWORKS,
+      artworksNeeded: artworkRange.minRequired,
       artworksOver: 0,
       isValidArtworkRange: false,
       isValidSubscribedCreatorRange: false,
@@ -557,11 +718,11 @@ export async function getCollectorCartSummary(
       totalArtworks: 0,
       totalReleases: 0,
       totalSubscribedCreators,
-      minRequired: MIN_BOOKLET_ARTWORKS,
-      maxAllowed: MAX_BOOKLET_ARTWORKS,
+      minRequired: artworkRange.minRequired,
+      maxAllowed: artworkRange.maxAllowed,
       minSubscribedCreators: MIN_SUBSCRIBED_CREATORS,
       maxSubscribedCreators: MAX_SUBSCRIBED_CREATORS,
-      artworksNeeded: MIN_BOOKLET_ARTWORKS,
+      artworksNeeded: artworkRange.minRequired,
       artworksOver: 0,
       isValidArtworkRange: false,
       isValidSubscribedCreatorRange:
@@ -636,11 +797,11 @@ export async function getCollectorCartSummary(
     (sum, item) => sum + item.artworkCount,
     0,
   );
-  const artworksNeeded = Math.max(0, MIN_BOOKLET_ARTWORKS - totalArtworks);
-  const artworksOver = Math.max(0, totalArtworks - MAX_BOOKLET_ARTWORKS);
+  const artworksNeeded = Math.max(0, artworkRange.minRequired - totalArtworks);
+  const artworksOver = Math.max(0, totalArtworks - artworkRange.maxAllowed);
   const isValidArtworkRange =
-    totalArtworks >= MIN_BOOKLET_ARTWORKS &&
-    totalArtworks <= MAX_BOOKLET_ARTWORKS;
+    totalArtworks >= artworkRange.minRequired &&
+    totalArtworks <= artworkRange.maxAllowed;
   const isValidSubscribedCreatorRange =
     totalSubscribedCreators >= MIN_SUBSCRIBED_CREATORS &&
     totalSubscribedCreators <= MAX_SUBSCRIBED_CREATORS;
@@ -651,8 +812,8 @@ export async function getCollectorCartSummary(
     totalArtworks,
     totalReleases: selectedReleases.length,
     totalSubscribedCreators,
-    minRequired: MIN_BOOKLET_ARTWORKS,
-    maxAllowed: MAX_BOOKLET_ARTWORKS,
+    minRequired: artworkRange.minRequired,
+    maxAllowed: artworkRange.maxAllowed,
     minSubscribedCreators: MIN_SUBSCRIBED_CREATORS,
     maxSubscribedCreators: MAX_SUBSCRIBED_CREATORS,
     artworksNeeded,

@@ -1,16 +1,27 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { isUserSubscribedToCreator } from "@/lib/actions/collector";
 import { getPublicCreatorProfile } from "@/lib/actions/creator";
 import { auth } from "@/lib/auth";
 import { getPublicStorageUrl } from "@/lib/s3";
 
 type Props = {
   params: Promise<{ slug: string }>;
+  searchParams?: Promise<{
+    subscribed?: string;
+    autoAddedRelease?: string;
+    autoAddSkipped?: string;
+    subscriptionError?: string;
+  }>;
 };
 
-export default async function CreatorProfilePage({ params }: Props) {
+export default async function CreatorProfilePage({
+  params,
+  searchParams,
+}: Props) {
   const { slug } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const profile = await getPublicCreatorProfile(slug);
 
   if (!profile) {
@@ -19,9 +30,12 @@ export default async function CreatorProfilePage({ params }: Props) {
 
   const session = await auth();
   const isOwnProfile = session?.user?.id === profile.userId;
+  const isSubscribed = session?.user?.id
+    ? await isUserSubscribedToCreator(session.user.id, profile.id)
+    : false;
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="bg-neutral-50">
       <div className="max-w-5xl mx-auto px-4 py-12 space-y-12">
         {/* Header */}
         <div className="flex flex-col md:flex-row gap-8 items-start">
@@ -46,6 +60,33 @@ export default async function CreatorProfilePage({ params }: Props) {
 
           {/* Info */}
           <div className="flex-1 space-y-4">
+            {resolvedSearchParams?.subscriptionError && (
+              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {resolvedSearchParams.subscriptionError}
+              </div>
+            )}
+
+            {resolvedSearchParams?.subscribed === "1" && (
+              <div className="rounded-lg border border-jade-200 bg-jade-50 px-4 py-3 text-sm text-jade-800">
+                <p className="font-medium">Subscribed successfully.</p>
+                {resolvedSearchParams.autoAddedRelease ? (
+                  <p>
+                    Added{" "}
+                    <strong>{resolvedSearchParams.autoAddedRelease}</strong> to
+                    your booklet for this cycle.
+                  </p>
+                ) : resolvedSearchParams.autoAddSkipped === "1" ? (
+                  <p>
+                    Your creator is now followed. The latest release was not
+                    auto-added because your booklet is already at the current
+                    maximum.
+                  </p>
+                ) : (
+                  <p>Your creator is now followed.</p>
+                )}
+              </div>
+            )}
+
             <div>
               <h1 className="text-4xl font-bold tracking-tight text-neutral-900">
                 {profile.displayName}
@@ -101,6 +142,13 @@ export default async function CreatorProfilePage({ params }: Props) {
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-neutral-900 text-white font-medium hover:bg-neutral-800 transition-colors"
                 >
                   Go to your dashboard
+                </Link>
+              ) : isSubscribed ? (
+                <Link
+                  href="/collector/subscriptions"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-jade-600 text-jade-700 font-medium hover:bg-jade-50 transition-colors"
+                >
+                  ✓ Subscribed
                 </Link>
               ) : (
                 <Link
