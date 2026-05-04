@@ -21,17 +21,32 @@ export interface PeechoOffering {
   pagesIncludedInBasePrice: number;
 }
 
+/**
+ * Peecho Quote item pricing fields (verified against actual API responses):
+ *
+ * productPrice = quantity * (basePrice + pricePerPage * numberOfPages)
+ * totalItemPrice = productPrice + shippingWholesale - totalQuantityDiscount
+ *
+ * Note: basePrice and pricePerPage already include any profit markup
+ * configured in the Peecho dashboard. There is no separate markup field.
+ */
 export interface PeechoQuoteItem {
   offeringId: number;
   numberOfPages: number;
   quantity: number;
+  /** Per-unit base price (includes Peecho dashboard profit markup). */
   basePrice: number;
+  /** Per-page wholesale price. */
   pricePerPage: number;
+  /** = quantity * (basePrice + pricePerPage * numberOfPages) */
   productPrice: number;
+  /** Shipping cost for the full quantity. */
   shippingWholesale: number;
+  /** Volume discount applied to the item. */
   totalQuantityDiscount: number;
   vatPercentage: number;
   vat: number;
+  /** = productPrice + shippingWholesale - totalQuantityDiscount */
   totalItemPrice: number;
 }
 

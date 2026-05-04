@@ -15,6 +15,9 @@ vi.mock("../peecho/client", () => ({
   },
 }));
 
+// Mock platform markup
+process.env.PLATFORM_MARKUP_EUR = "5.00";
+
 describe("getQuote", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -59,6 +62,8 @@ describe("getQuote", () => {
     expect(result).toEqual({
       shippingAmount: 5.0,
       productAmount: 12.5,
+      baseAmount: 7.5, // productPrice - markup (12.5 - 5.0)
+      markupAmount: 5.0, // fixed platform markup
       taxAmount: 1.75,
       totalEstimate: 19.25,
       currency: "USD",
@@ -196,6 +201,8 @@ describe("getQuote", () => {
       offeringId: "ext-1",
     });
 
+    expect(result.markupAmount).toBe(5.0); // fixed platform markup
+    expect(result.baseAmount).toBe(15.0); // productPrice - markup (20.0 - 5.0)
     expect(result.productAmount).toBe(20.0);
     expect(result.shippingAmount).toBe(8.5);
     expect(result.taxAmount).toBe(2.85);

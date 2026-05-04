@@ -10,6 +10,8 @@ export interface QuoteParams {
 export interface QuoteResult {
   shippingAmount: number;
   productAmount: number;
+  baseAmount: number;
+  markupAmount: number;
   taxAmount: number;
   totalEstimate: number;
   currency: string;
@@ -61,9 +63,18 @@ export async function getQuote(params: QuoteParams): Promise<QuoteResult> {
       throw new Error("No quote items returned from Peecho");
     }
 
+    // Markup is a fixed platform fee for UX transparency (configurable via PLATFORM_MARKUP_EUR)
+    const platformMarkup = parseFloat(process.env.PLATFORM_MARKUP_EUR || "0");
+    const markupAmount = platformMarkup;
+
+    // baseAmount = productPrice - markupAmount (shows Peecho wholesale cost before platform fee)
+    const baseAmount = item.productPrice - markupAmount;
+
     return {
       shippingAmount: item.shippingWholesale,
       productAmount: item.productPrice,
+      baseAmount,
+      markupAmount,
       taxAmount: item.vat,
       totalEstimate: item.totalItemPrice,
       currency: quote.quoteDetails.currency,
