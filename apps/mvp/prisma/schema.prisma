@@ -111,6 +111,7 @@ model CreatorProfile {
   artworks     Artwork[]
   releases     Release[]
   subscriptions CollectorCreatorSubscription[]
+  payouts       CreatorPayout[]
 }
 
 model CreatorPayoutProfile {
@@ -148,20 +149,24 @@ enum OnboardingState {
 }
 
 model CollectorProfile {
-  id              String          @id @default(cuid())
-  userId          String          @unique
-  displayName     String?
-  shippingCountry String?
+  id                String          @id @default(cuid())
+  userId            String          @unique
+  displayName       String?
+  shippingCountry   String?
   shippingStateCode String?
-  onboardingState OnboardingState @default(PENDING)
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  stripeCustomerId  String?
+  onboardingState   OnboardingState @default(PENDING)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
 
   user                User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
   subscriptions       CollectorCreatorSubscription[]
   selections          CollectorReleaseSelection[]
   priceQuotes         PricingQuoteSnapshot[]
   generatedPrintFiles GeneratedPrintFile[]
+  checkoutIntents     CheckoutIntent[]
+  billingRecords      BillingRecord[]
+  fulfillmentOrders   FulfillmentOrder[]
 }
 
 // ---------------------------------------------------------------------------
@@ -306,6 +311,11 @@ model SubscriptionCycle {
   quotes              PricingQuoteSnapshot[]
   emailLogs           EmailNotificationLog[]
   generatedPrintFiles GeneratedPrintFile[]
+  checkoutIntents     CheckoutIntent[]
+  billingRecords      BillingRecord[]
+  fulfillmentOrders   FulfillmentOrder[]
+  payoutCalculations  PayoutCalculation[]
+  creatorPayouts      CreatorPayout[]
 
   @@unique([month, year])
 }
@@ -396,22 +406,28 @@ model FulfillmentState {
 }
 
 model PricingQuoteSnapshot {
-  id                 String   @id @default(cuid())
+  id                 String    @id @default(cuid())
   collectorProfileId String
   cycleId            String
   offeringId         String
   country            String
   requestedPageCount Int
-  shippingAmount     Decimal  @db.Decimal(10, 2)
-  productAmount      Decimal  @db.Decimal(10, 2)
-  taxAmount          Decimal  @db.Decimal(10, 2)
-  totalEstimate      Decimal  @db.Decimal(10, 2)
-  currency           String   @default("EUR")
-  quotedAt           DateTime @default(now())
+  shippingAmount     Decimal   @db.Decimal(10, 2)
+  productAmount      Decimal   @db.Decimal(10, 2)
+  taxAmount          Decimal   @db.Decimal(10, 2)
+  markupAmount       Decimal?  @db.Decimal(10, 2)
+  totalEstimate      Decimal   @db.Decimal(10, 2)
+  currency           String    @default("EUR")
+  isFrozen           Boolean   @default(false)
+  frozenAt           DateTime?
+  quoteMetadataHash  String?
+  quotedAt           DateTime  @default(now())
 
   collectorProfile CollectorProfile  @relation(fields: [collectorProfileId], references: [id], onDelete: Cascade)
   cycle            SubscriptionCycle @relation(fields: [cycleId], references: [id])
   offering         PodOffering       @relation(fields: [offeringId], references: [id])
+  billingRecords   BillingRecord[]
+  fulfillmentOrders FulfillmentOrder[]
 }
 
 // ---------------------------------------------------------------------------
@@ -439,8 +455,152 @@ model GeneratedPrintFile {
 
   collectorProfile CollectorProfile  @relation(fields: [collectorProfileId], references: [id], onDelete: Cascade)
   cycle            SubscriptionCycle @relation(fields: [cycleId], references: [id])
+  fulfillmentOrder FulfillmentOrder?
 
   @@unique([collectorProfileId, cycleId])
+}
+
+// ---------------------------------------------------------------------------
+// Checkout intent (Sprint 5 → Sprint 6 bridge)
+// ---------------------------------------------------------------------------
+
+model CheckoutIntent {
+  id                 String   @id @default(cuid())
+  collectorProfileId String
+  cycleId            String
+  committedAt        DateTime @default(now())
+  selectionSnapshot  Json
+  quoteInputCountry  String?
+  quoteInputPageCount Int?
+  acceptedEstimateDisclaimer Boolean @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  collectorProfile CollectorProfile  @relation(fields: [collectorProfileId], references: [id], onDelete: Cascade)
+  cycle            SubscriptionCycle @relation(fields: [cycleId], references: [id])
+
+  @@unique([collectorProfileId, cycleId])
+}
+
+// ---------------------------------------------------------------------------
+// Billing
+// ---------------------------------------------------------------------------
+
+enum BillingStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELED
+  GRACE_PERIOD
+}
+
+model BillingRecord {
+  id                    String        @id @default(cuid())
+  collectorProfileId    String
+  cycleId               String
+  quoteSnapshotId       String
+  stripePaymentIntentId String?
+  stripeInvoiceId       String?
+  amount                Decimal       @db.Decimal(10, 2)
+  currency              String        @default("EUR")
+  status                BillingStatus @default(PENDING)
+  paidAt                DateTime?
+  errorMessage          String?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  collectorProfile CollectorProfile    @relation(fields: [collectorProfileId], references: [id], onDelete: Cascade)
+  cycle            SubscriptionCycle   @relation(fields: [cycleId], references: [id])
+  quoteSnapshot    PricingQuoteSnapshot @relation(fields: [quoteSnapshotId], references: [id])
+
+  @@unique([collectorProfileId, cycleId])
+}
+
+model StripeWebhookEvent {
+  id          String   @id
+  processedAt DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Fulfillment
+// ---------------------------------------------------------------------------
+
+enum FulfillmentStatus {
+  PENDING
+  SUBMITTED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  FAILED
+}
+
+model FulfillmentOrder {
+  id                    String             @id @default(cuid())
+  collectorProfileId    String
+  cycleId               String
+  generatedPrintFileId  String             @unique
+  quoteSnapshotId       String
+  providerOrderId       String?
+  status                FulfillmentStatus  @default(PENDING)
+  trackingNumber        String?
+  trackingUrl           String?
+  errorMessage          String?
+  submittedAt           DateTime?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  collectorProfile  CollectorProfile    @relation(fields: [collectorProfileId], references: [id], onDelete: Cascade)
+  cycle             SubscriptionCycle   @relation(fields: [cycleId], references: [id])
+  generatedPrintFile GeneratedPrintFile @relation(fields: [generatedPrintFileId], references: [id])
+  quoteSnapshot     PricingQuoteSnapshot @relation(fields: [quoteSnapshotId], references: [id])
+
+  @@unique([collectorProfileId, cycleId])
+}
+
+// ---------------------------------------------------------------------------
+// Creator payouts
+// ---------------------------------------------------------------------------
+
+enum PayoutStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model PayoutCalculation {
+  id                      String   @id @default(cuid())
+  cycleId                 String
+  totalMarkupPool         Decimal  @db.Decimal(10, 2)
+  totalPaidCollectors     Int
+  totalFulfilledCollectors Int
+  calculationSnapshot     Json
+  calculatedAt            DateTime @default(now())
+  createdAt               DateTime @default(now())
+
+  cycle SubscriptionCycle @relation(fields: [cycleId], references: [id])
+
+  @@unique([cycleId])
+}
+
+model CreatorPayout {
+  id               String       @id @default(cuid())
+  creatorProfileId String
+  cycleId          String
+  amount           Decimal      @db.Decimal(10, 2)
+  currency         String       @default("EUR")
+  status           PayoutStatus @default(PENDING)
+  paypalBatchId    String?
+  paypalPayoutId   String?
+  calculatedAt     DateTime     @default(now())
+  sentAt           DateTime?
+  errorMessage     String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  creatorProfile CreatorProfile   @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  cycle          SubscriptionCycle @relation(fields: [cycleId], references: [id])
+
+  @@unique([creatorProfileId, cycleId])
 }
 
 // ---------------------------------------------------------------------------
