@@ -83,11 +83,84 @@ model CreatorProfile {
   releases  Release[]
 }
 
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  collectorProfile        CollectorProfile?
+  emailNotificationLogs   EmailNotificationLog[]
+}
+
 model CollectorProfile {
   id String @id @default(cuid())
+  userId String? @unique
 
   selections          CollectorReleaseSelection[]
   generatedPrintFiles GeneratedPrintFile[]
+  subscriptions       CollectorCreatorSubscription[]
+  user                User?                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CollectorCreatorSubscription {
+  id               String   @id @default(cuid())
+  collectorProfileId String
+  creatorProfileId  String
+  isActive          Boolean  @default(true)
+  entryCreatorId    String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  collectorProfile CollectorProfile @relation(fields: [collectorProfileId], references: [id], onDelete: Cascade)
+  creatorProfile   CreatorProfile   @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([collectorProfileId, creatorProfileId])
+}
+
+model BookletConstraint {
+  id          String   @id @default(cuid())
+  minPages    Int
+  maxPages    Int
+  maxCreators Int?
+  maxReleases Int?
+  isActive    Boolean  @default(true)
+  version     Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum EmailNotificationType {
+  COLLECTOR_SETUP_REMINDER
+  COLLECTOR_PRICE_ESTIMATE
+  COLLECTOR_SELECTION_REMINDER
+  COLLECTOR_LOCK_REMINDER
+  COLLECTOR_LOCK_CONFIRMED
+  COLLECTOR_CREATOR_AT_RISK
+  COLLECTOR_FULFILLMENT_BLOCKED
+}
+
+enum EmailNotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model EmailNotificationLog {
+  id         String                  @id @default(cuid())
+  userId     String
+  type       EmailNotificationType
+  cycleId    String?
+  status     EmailNotificationStatus @default(PENDING)
+  sentAt     DateTime?
+  errorMsg   String?
+  createdAt  DateTime                @default(now())
+
+  user  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cycle SubscriptionCycle? @relation(fields: [cycleId], references: [id])
 }
 
 model SubscriptionCycle {
@@ -98,6 +171,7 @@ model SubscriptionCycle {
 
   selections          CollectorReleaseSelection[]
   generatedPrintFiles GeneratedPrintFile[]
+  emailLogs           EmailNotificationLog[]
 
   @@unique([month, year])
 }

@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { autoAssignPublishedReleaseToActiveSubscribers } from "@/lib/actions/collector";
 import { getCurrentCycle } from "@/lib/actions/cycles";
+import { enqueueAutoAssignRelease } from "@/lib/queue/auto-assign";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getPublicStorageUrl } from "@/lib/s3";
@@ -287,11 +287,11 @@ export async function publishRelease(
 
   const currentCycle = await getCurrentCycle();
   if (currentCycle) {
-    await autoAssignPublishedReleaseToActiveSubscribers(
+    await enqueueAutoAssignRelease({
       releaseId,
       creatorProfileId,
-      currentCycle.id,
-    );
+      cycleId: currentCycle.id,
+    });
   }
 
   revalidatePath("/creator/releases");
