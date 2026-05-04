@@ -35,6 +35,100 @@ Operationalize cycle execution after Sprint 5 selection readiness:
 6. Reconcile paid/fulfilled rows.
 7. Calculate creator payout pool from realized markup split and disburse via PayPal.
 
+## Sprint 5 Carry-Over (Prerequisites for Sprint 6)
+
+These items were partially implemented in Sprint 5 and are required before the freeze → charge → fulfill pipeline can execute.
+
+### S6-T0a: Checkout Commit Action & Intent Snapshot
+
+**Effort: 3-4 hours**
+
+- Implement the commit action that bridges selection (Sprint 5) to freeze/charge (Sprint 6).
+- Persist a cycle-bound `CheckoutIntent` record per collector/cycle:
+  - collector profile id
+  - cycle id
+  - committed at timestamp
+  - snapshot of current selections (release ids + artwork counts)
+  - quote input context (country, page count at commit time)
+  - acceptance of estimate-vs-final disclaimer
+- Mark collector as "committed" — this is the signal `freezeCollectorCycleQuote` iterates over.
+- Allow recommit (update snapshot) while cycle is still open; freeze to last commit at lock.
+- Server action: `commitBookletForCycle(cycleId)`.
+
+---
+
+### S6-T0b: Deterministic Release Ordering Rules
+
+**Effort: 1-2 hours**
+
+- Define and implement deterministic ordering for booklet composition:
+  - primary: creator `joinedAt` ascending (earliest creators first)
+  - secondary: release `publishedAt` ascending within each creator
+  - tertiary: artwork `position` or `id` ascending within each release
+- Apply ordering in:
+  - booklet cart display
+  - PDF composition handler (S6-T6)
+  - quote page-count calculation (S6-T0d)
+- Encode as a shared utility so all consumers produce identical order.
+
+---
+
+### S6-T0c: Lock-Date Read-Only Enforcement
+
+**Effort: 2-3 hours**
+
+- Prevent selection mutations after cycle lock date:
+  - subscribe/unsubscribe blocked
+  - add/remove release blocked
+  - recommit blocked
+- Server-side guard on all collector mutation endpoints and server actions.
+- Return clear error with lock date and next-cycle info.
+- UX: disable interactive controls in cart/selection UI post-lock with tooltip explaining why.
+- Admin override for exceptional cases (with audit log).
+
+---
+
+### S6-T0d: Dynamic Page Count Calculation
+
+**Effort: 2-3 hours**
+
+- Replace fixed page count assumption with real calculation from selected artworks.
+- Implement `computeBookletPageCount(selections, layoutRules)`:
+  - 1 page per artwork (full-bleed)
+  - +1 cover page
+  - +1 back cover
+  - pad to even page count if needed (booklet binding requirement)
+- Use in:
+  - quote preview (S5-T5 / cart surfaces)
+  - freeze job (S6-T3)
+  - PDF composition (S6-T6)
+- Unit tests for edge cases: 0 selections, odd count, large booklets.
+
+---
+
+### S6-T0e: Quote Context Persistence, Markup Display & UX Copy
+
+**Effort: 3-4 hours**
+
+- Persist full quote input context for later freeze binding:
+  - delivery country (from collector address)
+  - computed page count (from S6-T0d)
+  - provider quote reference/id when available
+  - estimate timestamp
+- Display complete markup breakdown in quote preview UI:
+  - base production amount
+  - shipping amount
+  - **platform markup amount** (provider-configured, shown as separate line item)
+  - estimated total
+- UX copy throughout the commit/checkout flow:
+  - Cart: label total as **"Estimated total"** with tooltip: "Final price is locked at cycle end based on your selections and delivery address."
+  - Commit CTA: **"Commit booklet — you'll be charged when the cycle closes"**
+  - Post-commit confirmation: "Your booklet is locked in. We'll charge [estimated total] on [lock date]. The final amount may vary slightly based on live production costs."
+  - Ineligible states: clear reason messaging ("Add X more artworks", "Set delivery address", "Country not supported")
+- Ensure estimate state is visually distinct from frozen/final state (e.g., "Estimated" badge vs "Locked" badge).
+
+---
+
 ## Sprint 6 Tasks
 
 ### S6-T1: Schema — Quote Freeze, Billing, and Fulfillment Models
@@ -268,18 +362,23 @@ Operationalize cycle execution after Sprint 5 selection readiness:
 
 ## Effort Estimate
 
-| Task      | Effort                              |
-| --------- | ----------------------------------- |
-| S6-T1     | 4-6 hours                           |
-| S6-T2     | 6-8 hours                           |
-| S6-T3     | 5-7 hours                           |
-| S6-T4     | 4-6 hours                           |
-| S6-T5     | 4-5 hours                           |
-| S6-T6     | 8-10 hours                          |
-| S6-T7     | 8-10 hours                          |
-| S6-T8     | 4-5 hours                           |
-| S6-T9     | 3-4 hours                           |
-| S6-T10    | 5-7 hours                           |
-| S6-T11    | 6-8 hours                           |
-| S6-T12    | 6-8 hours                           |
-| **Total** | **63-84 hours (8-11 working days)** |
+| Task      | Effort                                |
+| --------- | ------------------------------------- |
+| S6-T0a    | 3-4 hours                             |
+| S6-T0b    | 1-2 hours                             |
+| S6-T0c    | 2-3 hours                             |
+| S6-T0d    | 2-3 hours                             |
+| S6-T0e    | 3-4 hours                             |
+| S6-T1     | 4-6 hours                             |
+| S6-T2     | 6-8 hours                             |
+| S6-T3     | 5-7 hours                             |
+| S6-T4     | 4-6 hours                             |
+| S6-T5     | 4-5 hours                             |
+| S6-T6     | 8-10 hours                            |
+| S6-T7     | 8-10 hours                            |
+| S6-T8     | 4-5 hours                             |
+| S6-T9     | 3-4 hours                             |
+| S6-T10    | 5-7 hours                             |
+| S6-T11    | 6-8 hours                             |
+| S6-T12    | 6-8 hours                             |
+| **Total** | **74-100 hours (10-13 working days)** |
