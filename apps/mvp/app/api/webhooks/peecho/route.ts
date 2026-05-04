@@ -1,32 +1,60 @@
-import { headers } from "next/headers";
+import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
-export async function POST(request: Request) {
-  const body = await request.text();
-  const signature = (await headers()).get("x-peecho-signature");
+interface PeechoWebhookPayload {
+  signature: string;
+  order_id: string;
+  order_reference: string;
+  old_status: string;
+  new_status: string;
+  tracking_code?: string;
+  tracking_url?: string;
+}
 
-  if (!signature) {
-    return NextResponse.json({ error: "Missing signature" }, { status: 400 });
+function verifySignature(
+  payload: PeechoWebhookPayload,
+  secretKey: string,
+): boolean {
+  const expectedSignature = createHash("sha256")
+    .update(`${secretKey}${payload.order_id}`)
+    .digest("hex");
+  return payload.signature === expectedSignature;
+}
+
+export async function POST(request: Request) {
+  const secretKey = process.env.PEECHO_SECRET_KEY;
+
+  if (!secretKey) {
+    console.error("PEECHO_SECRET_KEY not configured");
+    return NextResponse.json(
+      { error: "Webhook not configured" },
+      { status: 500 },
+    );
   }
 
-  let payload: {
-    orderId: string;
-    status: string;
-    trackingNumber?: string;
-    trackingUrl?: string;
-    error?: string;
-  };
+  let payload: PeechoWebhookPayload;
 
   try {
-    payload = JSON.parse(body);
+    payload = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
+  if (!payload.signature || !payload.order_id) {
+    return NextResponse.json(
+      { error: "Missing required fields" },
+      { status: 400 },
+    );
+  }
+
+  if (!verifySignature(payload, secretKey)) {
+    return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+  }
+
   try {
     const fulfillmentOrder = await db.fulfillmentOrder.findFirst({
-      where: { providerOrderId: String(payload.orderId) },
+      where: { providerOrderId: String(payload.order_id) },
     });
 
     if (!fulfillmentOrder) {
@@ -37,21 +65,20 @@ export async function POST(request: Request) {
       string,
       "PROCESSING" | "SHIPPED" | "DELIVERED" | "FAILED"
     > = {
-      processing: "PROCESSING",
+      in_production: "PROCESSING",
       shipped: "SHIPPED",
       delivered: "DELIVERED",
       failed: "FAILED",
     };
 
-    const newStatus = statusMap[payload.status.toLowerCase()];
+    const newStatus = statusMap[payload.new_status.toLowerCase()];
     if (newStatus) {
       await db.fulfillmentOrder.update({
         where: { id: fulfillmentOrder.id },
         data: {
           status: newStatus,
-          trackingNumber: payload.trackingNumber ?? undefined,
-          trackingUrl: payload.trackingUrl ?? undefined,
-          errorMessage: payload.error ?? undefined,
+          trackingNumber: payload.tracking_code ?? undefined,
+          trackingUrl: payload.tracking_url ?? undefined,
         },
       });
     }
