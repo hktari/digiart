@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/db", () => ({
   db: {
+    platformConfig: { findFirst: vi.fn() },
     billingRecord: { findMany: vi.fn() },
     fulfillmentOrder: { findMany: vi.fn() },
     collectorReleaseSelection: { findMany: vi.fn() },
@@ -21,6 +22,7 @@ describe("calculateCreatorEarningsForCycle", () => {
   });
 
   it("returns empty payouts when no eligible records", async () => {
+    vi.mocked(db.platformConfig.findFirst).mockResolvedValue(null);
     vi.mocked(db.billingRecord.findMany).mockResolvedValue([]);
     vi.mocked(db.fulfillmentOrder.findMany).mockResolvedValue([]);
     vi.mocked(db.collectorReleaseSelection.findMany).mockResolvedValue([]);
@@ -29,10 +31,14 @@ describe("calculateCreatorEarningsForCycle", () => {
 
     const r = await calc("cycle-1");
     expect(r.payouts).toEqual([]);
-    expect(r.totalMarkupPool).toBe(0);
+    expect(r.totalMarginPool).toBe(0);
   });
 
   it("calculates pro-rata markup split across creators", async () => {
+    vi.mocked(db.platformConfig.findFirst).mockResolvedValue({
+      creatorPayoutSplit: 1.0,
+      platformFeeSplit: 0.0,
+    } as any);
     vi.mocked(db.billingRecord.findMany).mockResolvedValue([
       {
         collectorProfileId: "cp1",
@@ -65,7 +71,7 @@ describe("calculateCreatorEarningsForCycle", () => {
     vi.mocked(db.payoutCalculation.create).mockResolvedValue({} as any);
 
     const r = await calc("cycle-1");
-    expect(r.totalMarkupPool).toBe(10);
+    expect(r.totalMarginPool).toBe(10);
     expect(r.payouts.length).toBe(2);
     const c1 = r.payouts.find((p: any) => p.creatorId === "creator-1")!;
     const c2 = r.payouts.find((p: any) => p.creatorId === "creator-2")!;
@@ -74,6 +80,7 @@ describe("calculateCreatorEarningsForCycle", () => {
   });
 
   it("skips payout calculation when existing calculation found (idempotent)", async () => {
+    vi.mocked(db.platformConfig.findFirst).mockResolvedValue(null);
     vi.mocked(db.billingRecord.findMany).mockResolvedValue([
       {
         collectorProfileId: "cp1",
@@ -101,6 +108,7 @@ describe("calculateCreatorEarningsForCycle", () => {
   });
 
   it("filters out non-fulfilled collectors from earnings", async () => {
+    vi.mocked(db.platformConfig.findFirst).mockResolvedValue(null);
     vi.mocked(db.billingRecord.findMany).mockResolvedValue([
       {
         collectorProfileId: "cp1",
@@ -131,7 +139,7 @@ describe("calculateCreatorEarningsForCycle", () => {
     vi.mocked(db.payoutCalculation.create).mockResolvedValue({} as any);
 
     const r = await calc("cycle-1");
-    expect(r.totalMarkupPool).toBe(5);
+    expect(r.totalMarginPool).toBe(5);
     expect(r.fulfilledCollectors).toBe(1);
   });
 });

@@ -28,7 +28,6 @@ CREATE TABLE "StripeWebhookEvent" (
 -- CreateTable
 CREATE TABLE "PlatformConfig" (
     "id" TEXT NOT NULL,
-    "marginPercentage" DOUBLE PRECISION NOT NULL DEFAULT 0.3,
     "creatorPayoutSplit" DOUBLE PRECISION NOT NULL DEFAULT 0.7,
     "platformFeeSplit" DOUBLE PRECISION NOT NULL DEFAULT 0.3,
     "updatedAt" TIMESTAMP(3) NOT NULL,
