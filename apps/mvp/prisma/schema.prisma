@@ -154,6 +154,11 @@ model CollectorProfile {
   displayName       String?
   shippingCountry   String?
   shippingStateCode String?
+  shippingName      String?
+  shippingAddressLine1 String?
+  shippingAddressLine2 String?
+  shippingCity      String?
+  shippingZip       String?
   stripeCustomerId  String?
   onboardingState   OnboardingState @default(PENDING)
   createdAt         DateTime        @default(now())

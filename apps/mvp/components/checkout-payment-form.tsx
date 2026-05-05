@@ -1,13 +1,14 @@
 "use client";
 
 import {
+  AddressElement,
   Elements,
   PaymentElement,
   useElements,
   useStripe,
 } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
-import { AlertCircle, CheckCircle, Lock } from "lucide-react";
+import { AlertCircle, Lock, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
@@ -15,7 +16,7 @@ const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
 );
 
-interface PriceSummary {
+interface EstimateSummary {
   baseAmount: number;
   shippingAmount: number;
   markupAmount: number;
@@ -24,10 +25,25 @@ interface PriceSummary {
   currency: string;
 }
 
-interface CheckoutFormInnerProps {
+interface ExactPrice {
+  amount: number;
+  currency: string;
+}
+
+interface DefaultAddress {
+  name?: string;
+  line1?: string;
+  city?: string;
+  state?: string;
+  postal_code?: string;
+  country?: string;
+}
+
+export interface CheckoutPaymentFormProps {
   cycleLockDate: string | null;
-  priceSummary: PriceSummary | null;
-  alreadyHasPaymentMethod: boolean;
+  estimateSummary: EstimateSummary | null;
+  defaultAddress: DefaultAddress | null;
+  allowedCountries: string[];
 }
 
 function formatCurrency(amount: number, currency: string) {
@@ -37,14 +53,14 @@ function formatCurrency(amount: number, currency: string) {
   }).format(amount);
 }
 
-function PriceSummaryBlock({
-  quote,
+function EstimateBlock({
+  estimate,
   cycleLockDate,
 }: {
-  quote: PriceSummary;
+  estimate: EstimateSummary;
   cycleLockDate: string | null;
 }) {
-  const lockDateFormatted = cycleLockDate
+  const lockDate = cycleLockDate
     ? new Date(cycleLockDate).toLocaleDateString("en-US", {
         month: "long",
         day: "numeric",
@@ -54,79 +70,176 @@ function PriceSummaryBlock({
 
   return (
     <div className="rounded-lg border border-beige-200 bg-white p-5 space-y-2">
-      <h2 className="text-sm font-semibold uppercase tracking-widest text-ink/50 mb-3">
-        Price Estimate
-      </h2>
+      <div className="flex items-center justify-between mb-1">
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-ink/50">
+          Price Estimate
+        </h2>
+        <span className="text-[10px] font-medium uppercase tracking-wider text-amber-600 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">
+          Estimate
+        </span>
+      </div>
       <div className="flex justify-between text-sm text-ink/70">
         <span>Production</span>
-        <span>{formatCurrency(quote.baseAmount, quote.currency)}</span>
+        <span>{formatCurrency(estimate.baseAmount, estimate.currency)}</span>
       </div>
-      {quote.shippingAmount > 0 && (
+      {estimate.shippingAmount > 0 && (
         <div className="flex justify-between text-sm text-ink/70">
           <span>Shipping</span>
-          <span>{formatCurrency(quote.shippingAmount, quote.currency)}</span>
+          <span>
+            {formatCurrency(estimate.shippingAmount, estimate.currency)}
+          </span>
         </div>
       )}
-      {quote.markupAmount > 0 && (
+      {estimate.markupAmount > 0 && (
         <div className="flex justify-between text-sm text-ink/70">
           <span>Platform fee</span>
-          <span>{formatCurrency(quote.markupAmount, quote.currency)}</span>
+          <span>
+            {formatCurrency(estimate.markupAmount, estimate.currency)}
+          </span>
         </div>
       )}
-      {quote.taxAmount > 0 && (
+      {estimate.taxAmount > 0 && (
         <div className="flex justify-between text-sm text-ink/70">
           <span>Tax</span>
-          <span>{formatCurrency(quote.taxAmount, quote.currency)}</span>
+          <span>{formatCurrency(estimate.taxAmount, estimate.currency)}</span>
         </div>
       )}
       <div className="flex justify-between text-base font-semibold text-ink pt-2 border-t border-beige-200">
         <span>Estimated total</span>
-        <span>{formatCurrency(quote.totalEstimate, quote.currency)}</span>
+        <span>{formatCurrency(estimate.totalEstimate, estimate.currency)}</span>
       </div>
-      <p className="text-xs text-ink/50 pt-1">
-        This is an estimate. The final amount is calculated at cycle lock
-        {lockDateFormatted ? ` on ${lockDateFormatted}` : ""} based on your
-        final selections and delivery address.{" "}
-        <strong>Your card will not be charged until then.</strong>
+      <p className="text-xs text-amber-700 bg-amber-50 rounded p-2 mt-1">
+        This is an estimate based on your current selections and shipping
+        country. The exact amount is calculated after you confirm your delivery
+        address below.
+        {lockDate && (
+          <>
+            {" "}
+            Your card will not be charged until <strong>{lockDate}</strong>.
+          </>
+        )}
       </p>
     </div>
   );
 }
 
-function CardFormInner({
+function ExactPriceBlock({
+  exact,
   cycleLockDate,
-  priceSummary,
 }: {
+  exact: ExactPrice;
   cycleLockDate: string | null;
-  priceSummary: PriceSummary | null;
 }) {
+  const lockDate = cycleLockDate
+    ? new Date(cycleLockDate).toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      })
+    : null;
+
+  return (
+    <div className="rounded-lg border border-jade-300 bg-jade-50 p-5 space-y-2">
+      <div className="flex items-center justify-between mb-1">
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-jade-700">
+          Confirmed Price
+        </h2>
+        <span className="text-[10px] font-medium uppercase tracking-wider text-jade-700 bg-jade-100 border border-jade-300 rounded px-1.5 py-0.5">
+          Exact
+        </span>
+      </div>
+      <div className="flex justify-between text-2xl font-bold text-jade-800">
+        <span>{formatCurrency(exact.amount, exact.currency)}</span>
+      </div>
+      <p className="text-xs text-jade-700">
+        This is the exact amount you will be charged at cycle lock
+        {lockDate ? ` on ${lockDate}` : ""}.{" "}
+        <strong>
+          Changing your release selections before then will update this amount.
+        </strong>
+      </p>
+    </div>
+  );
+}
+
+function CheckoutFormInner({
+  cycleLockDate,
+  estimateSummary,
+  defaultAddress,
+  allowedCountries,
+}: CheckoutPaymentFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
 
-  const lockDateFormatted = cycleLockDate
+  // step: "address+card" → calculating order → "confirm" (show exact) → "submitting" → done
+  const [step, setStep] = useState<"form" | "confirm">("form");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [exactPrice, setExactPrice] = useState<ExactPrice | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isCalculating, setIsCalculating] = useState(false);
+
+  const lockDate = cycleLockDate
     ? new Date(cycleLockDate).toLocaleDateString("en-US", {
         month: "long",
         day: "numeric",
       })
     : null;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Phase 1: user fills address + card, clicks "Calculate exact price"
+  const handleCalculate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!stripe || !elements) return;
+    if (!elements) return;
 
-    setIsSubmitting(true);
     setError(null);
+    setIsCalculating(true);
 
     const { error: submitError } = await elements.submit();
     if (submitError) {
-      setError(submitError.message ?? "Please check your card details.");
-      setIsSubmitting(false);
+      setError(submitError.message ?? "Please check your details.");
+      setIsCalculating(false);
       return;
     }
+
+    const addressElement = elements.getElement(AddressElement);
+    if (!addressElement) {
+      setError("Address form not ready.");
+      setIsCalculating(false);
+      return;
+    }
+
+    const { complete, value: addressValue } = await addressElement.getValue();
+    if (!complete) {
+      setError("Please complete your delivery address.");
+      setIsCalculating(false);
+      return;
+    }
+
+    const orderRes = await fetch("/api/collector/create-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ address: addressValue.address }),
+    });
+
+    if (!orderRes.ok) {
+      const data = await orderRes.json();
+      setError(data.error ?? "Failed to calculate price.");
+      setIsCalculating(false);
+      return;
+    }
+
+    const orderData = await orderRes.json();
+    setExactPrice(orderData.exactPrice);
+    setStep("confirm");
+    setIsCalculating(false);
+  };
+
+  // Phase 2: user sees exact price, clicks "Confirm & save card"
+  const handleConfirm = async () => {
+    if (!stripe || !elements) return;
+
+    setError(null);
+    setIsSubmitting(true);
 
     const setupRes = await fetch("/api/collector/setup-intent", {
       method: "POST",
@@ -163,39 +276,103 @@ function CardFormInner({
 
       if (!confirmRes.ok) {
         const data = await confirmRes.json();
-        setError(data.error ?? "Failed to finalize your booklet commitment.");
+        setError(data.error ?? "Failed to finalise commitment.");
         setIsSubmitting(false);
         return;
       }
 
-      setSuccess(true);
       router.push("/collector/checkout/complete");
     }
   };
 
-  if (success) {
+  if (step === "confirm" && exactPrice) {
     return (
-      <div className="rounded-lg border border-jade-200 bg-jade-50 p-6 flex items-start gap-3">
-        <CheckCircle className="h-5 w-5 text-jade-600 shrink-0 mt-0.5" />
-        <div>
-          <p className="font-semibold text-jade-800">Booklet committed!</p>
-          <p className="text-sm text-jade-700 mt-1">Redirecting…</p>
+      <div className="space-y-5">
+        <ExactPriceBlock exact={exactPrice} cycleLockDate={cycleLockDate} />
+
+        <div className="rounded-lg border border-beige-100 bg-beige-50 p-4 text-sm text-ink/70">
+          <p className="flex items-center gap-2 font-medium text-ink/80 mb-1">
+            <Lock className="h-3.5 w-3.5" />
+            No charge today
+          </p>
+          <p>
+            Your card will be saved securely. You will only be charged{" "}
+            {lockDate ? `on ${lockDate}` : "at cycle lock"}, after your final
+            selections are confirmed. You can still modify your booklet until
+            then.
+          </p>
+        </div>
+
+        {error && (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-3 flex items-start gap-2 text-sm text-red-700">
+            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              setStep("form");
+              setExactPrice(null);
+            }}
+            className="flex-1 rounded-lg border border-beige-200 px-4 py-3 text-sm font-medium text-ink/70 hover:bg-beige-50 transition-colors"
+          >
+            Edit address / card
+          </button>
+          <button
+            type="button"
+            onClick={handleConfirm}
+            disabled={isSubmitting}
+            className="flex-2 rounded-lg bg-fuchsia-600 px-4 py-3 text-sm font-semibold text-white hover:bg-fuchsia-700 disabled:opacity-50 transition-colors"
+          >
+            {isSubmitting ? (
+              <span className="flex items-center justify-center gap-2">
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                Saving…
+              </span>
+            ) : (
+              <>Confirm & save card{lockDate ? ` — charged ${lockDate}` : ""}</>
+            )}
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleCalculate} className="space-y-5">
+      <div className="rounded-lg border border-beige-200 bg-white p-5">
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-ink/50 mb-4">
+          Delivery Address
+        </h2>
+        <AddressElement
+          options={{
+            mode: "shipping",
+            allowedCountries:
+              allowedCountries.length > 0 ? allowedCountries : undefined,
+            defaultValues: defaultAddress
+              ? {
+                  name: defaultAddress.name ?? "",
+                  address: {
+                    line1: defaultAddress.line1 ?? "",
+                    city: defaultAddress.city ?? "",
+                    state: defaultAddress.state ?? "",
+                    postal_code: defaultAddress.postal_code ?? "",
+                    country: defaultAddress.country ?? "",
+                  },
+                }
+              : undefined,
+          }}
+        />
+      </div>
+
       <div className="rounded-lg border border-beige-200 bg-white p-5">
         <h2 className="text-sm font-semibold uppercase tracking-widest text-ink/50 mb-4">
           Payment Method
         </h2>
-        <PaymentElement
-          options={{
-            layout: "tabs",
-          }}
-        />
+        <PaymentElement options={{ layout: "tabs" }} />
       </div>
 
       {error && (
@@ -205,40 +382,32 @@ function CardFormInner({
         </div>
       )}
 
-      <div className="rounded-lg border border-beige-100 bg-beige-50 p-4 text-sm text-ink/70 space-y-1">
-        <p className="flex items-center gap-2 font-medium text-ink/80">
-          <Lock className="h-3.5 w-3.5" />
-          No charge today
-        </p>
-        <p>
-          Your card will be saved securely. You will only be charged
-          {lockDateFormatted ? ` on ${lockDateFormatted}` : " at cycle lock"},
-          after your final selections are confirmed. You can still modify your
-          booklet until then.
-        </p>
-      </div>
-
       <button
         type="submit"
-        disabled={isSubmitting || !stripe || !elements}
+        disabled={isCalculating || !stripe || !elements}
         className="w-full rounded-lg bg-fuchsia-600 px-4 py-3 text-sm font-semibold text-white hover:bg-fuchsia-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
-        {isSubmitting
-          ? "Saving…"
-          : `Save card & commit booklet${lockDateFormatted ? ` — charged on ${lockDateFormatted}` : ""}`}
+        {isCalculating ? (
+          <span className="flex items-center justify-center gap-2">
+            <RefreshCw className="h-4 w-4 animate-spin" />
+            Calculating exact price…
+          </span>
+        ) : (
+          "Calculate exact price & review"
+        )}
       </button>
+
+      <p className="text-xs text-ink/50 text-center">
+        No charge today. We calculate your exact price from your address, then
+        you confirm before we save your card.
+      </p>
     </form>
   );
 }
 
-export function CheckoutPaymentForm({
-  cycleLockDate,
-  priceSummary,
-  alreadyHasPaymentMethod,
-}: CheckoutFormInnerProps) {
+export function CheckoutPaymentForm(props: CheckoutPaymentFormProps) {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const _router = useRouter();
 
   useEffect(() => {
     fetch("/api/collector/setup-intent", { method: "POST" })
@@ -270,19 +439,13 @@ export function CheckoutPaymentForm({
     [clientSecret],
   );
 
-  if (alreadyHasPaymentMethod) {
-    return (
-      <AlreadyHasCardForm
-        cycleLockDate={cycleLockDate}
-        priceSummary={priceSummary}
-      />
-    );
-  }
-
   return (
     <div className="space-y-5">
-      {priceSummary && (
-        <PriceSummaryBlock quote={priceSummary} cycleLockDate={cycleLockDate} />
+      {props.estimateSummary && (
+        <EstimateBlock
+          estimate={props.estimateSummary}
+          cycleLockDate={props.cycleLockDate}
+        />
       )}
 
       {loadError && (
@@ -292,85 +455,14 @@ export function CheckoutPaymentForm({
       )}
 
       {!clientSecret && !loadError && (
-        <div className="rounded-lg border border-beige-200 bg-white p-5 animate-pulse h-40" />
+        <div className="rounded-lg border border-beige-200 bg-white p-5 animate-pulse h-48" />
       )}
 
       {clientSecret && options && (
         <Elements stripe={stripePromise} options={options}>
-          <CardFormInner
-            cycleLockDate={cycleLockDate}
-            priceSummary={priceSummary}
-          />
+          <CheckoutFormInner {...props} />
         </Elements>
       )}
-    </div>
-  );
-}
-
-function AlreadyHasCardForm({
-  cycleLockDate,
-  priceSummary,
-}: {
-  cycleLockDate: string | null;
-  priceSummary: PriceSummary | null;
-}) {
-  const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const lockDateFormatted = cycleLockDate
-    ? new Date(cycleLockDate).toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-      })
-    : null;
-
-  const handleCommit = async () => {
-    setIsSubmitting(true);
-    setError(null);
-    const res = await fetch("/collector/api/commit", { method: "POST" });
-    if (!res.ok) {
-      const data = await res.json();
-      setError(data.error ?? "Failed to commit.");
-      setIsSubmitting(false);
-      return;
-    }
-    router.push("/collector/checkout/complete");
-  };
-
-  return (
-    <div className="space-y-5">
-      {priceSummary && (
-        <PriceSummaryBlock quote={priceSummary} cycleLockDate={cycleLockDate} />
-      )}
-
-      <div className="rounded-lg border border-beige-100 bg-beige-50 p-4 text-sm text-ink/70 space-y-1">
-        <p className="flex items-center gap-2 font-medium text-ink/80">
-          <Lock className="h-3.5 w-3.5" />
-          Card already saved
-        </p>
-        <p>
-          You have a saved payment method. It will be charged
-          {lockDateFormatted ? ` on ${lockDateFormatted}` : " at cycle lock"}.
-        </p>
-      </div>
-
-      {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-
-      <button
-        type="button"
-        disabled={isSubmitting}
-        onClick={handleCommit}
-        className="w-full rounded-lg bg-fuchsia-600 px-4 py-3 text-sm font-semibold text-white hover:bg-fuchsia-700 disabled:opacity-50 transition-colors"
-      >
-        {isSubmitting
-          ? "Committing…"
-          : `Commit booklet${lockDateFormatted ? ` — charged on ${lockDateFormatted}` : ""}`}
-      </button>
     </div>
   );
 }

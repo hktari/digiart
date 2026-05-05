@@ -18,13 +18,18 @@ const collectorSetupSchema = z.object({
   displayName: z.string().min(1, "Display name is required").max(100),
   shippingCountry: z.string().length(2, "Shipping country is required"),
   shippingStateCode: z
-    .string()
-    .trim()
-    .transform((value) => value.toUpperCase())
-    .refine((value) => value === "" || /^[A-Z]{2}$/.test(value), {
-      message: "State code must be a 2-letter code (e.g. CA, NY)",
-    })
-    .optional(),
+    .union([z.string(), z.null()])
+    .transform((value) => (value === null ? "" : value))
+    .pipe(
+      z
+        .string()
+        .trim()
+        .transform((value) => value.toUpperCase())
+        .refine((value) => value === "" || /^[A-Z]{2}$/.test(value), {
+          message: "State code must be a 2-letter code (e.g. CA, NY)",
+        })
+        .optional(),
+    ),
 });
 
 export type CollectorSetupResult =

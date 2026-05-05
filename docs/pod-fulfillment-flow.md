@@ -334,7 +334,7 @@ Per POD provider response:
 
 - **Base production amount**: Cost of printing based on page count
 - **Shipping amount**: Cost based on delivery country
-- **Platform markup**: Fixed platform fee (configured via `PLATFORM_MARKUP_EUR`)
+- **Platform markup**: Fixed platform fee (configured via Peecho Dashboard)
 - **Total**: Base + Shipping + Markup (final charge amount)
 
 ### Regional Shipping Variance
