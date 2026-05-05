@@ -2,42 +2,36 @@
 
 import { revalidatePath } from "next/cache";
 import { calculateCreatorEarningsForCycle } from "@/lib/billing/payout-service";
+import { reconcilePayPalPayoutsForCycle } from "@/lib/billing/paypal-reconciliation-service";
 import { sendCreatorPayoutsForCycle } from "@/lib/billing/paypal-service";
-import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/roles";
 
 export type PayoutActionResult =
-  | { success: true; data: Record<string, unknown> }
+  | { success: true; message: string }
   | { success: false; error: string };
 
-export async function calculatePayouts(
+export async function calculatePayoutsAction(
   cycleId: string,
 ): Promise<PayoutActionResult> {
   await requireAdmin();
 
   try {
     const result = await calculateCreatorEarningsForCycle(cycleId);
-
     revalidatePath("/admin/payouts");
     revalidatePath(`/admin/payouts/${cycleId}`);
-
     return {
       success: true,
-      data: {
-        payouts: result.payouts.length,
-        totalMarkupPool: result.totalMarkupPool,
-        paidCollectors: result.paidCollectors,
-        fulfilledCollectors: result.fulfilledCollectors,
-      },
+      message: `Calculated payouts for ${result.payouts.length} creators. Pool: ${result.totalMarkupPool} EUR (${result.fulfilledCollectors}/${result.paidCollectors} collectors fulfilled).`,
     };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to calculate payouts";
-    return { success: false, error: message };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
   }
 }
 
-export async function sendPayouts(
+export async function sendPayoutsAction(
   cycleId: string,
 ): Promise<PayoutActionResult> {
   await requireAdmin();
@@ -45,93 +39,41 @@ export async function sendPayouts(
   try {
     const result = await sendCreatorPayoutsForCycle(cycleId);
 
+    if (result.errors.length > 0 && result.sent === 0) {
+      return { success: false, error: result.errors.join("; ") };
+    }
+
     revalidatePath("/admin/payouts");
     revalidatePath(`/admin/payouts/${cycleId}`);
-
     return {
       success: true,
-      data: {
-        sent: result.sent,
-        failed: result.failed,
-        batchId: result.batchId,
-        errors: result.errors,
-      },
+      message: `Sent ${result.sent} payouts via PayPal (batch: ${result.batchId ?? "n/a"}). Failed: ${result.failed}.${result.errors.length ? ` Warnings: ${result.errors.join("; ")}` : ""}`,
     };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to send payouts";
-    return { success: false, error: message };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
   }
 }
 
-export async function getCyclePayoutData(cycleId: string) {
+export async function reconcilePayoutsAction(
+  cycleId: string,
+): Promise<PayoutActionResult> {
   await requireAdmin();
 
-  const [cycle, calculation, payouts] = await Promise.all([
-    db.subscriptionCycle.findUnique({
-      where: { id: cycleId },
-      include: {
-        _count: {
-          select: {
-            releases: true,
-            selections: true,
-            billingRecords: true,
-            fulfillmentOrders: true,
-          },
-        },
-      },
-    }),
-    db.payoutCalculation.findUnique({ where: { cycleId } }),
-    db.creatorPayout.findMany({
-      where: { cycleId },
-      include: {
-        creatorProfile: {
-          select: {
-            id: true,
-            displayName: true,
-            slug: true,
-            payoutProfile: {
-              select: { paypalEmail: true, isReady: true },
-            },
-          },
-        },
-      },
-      orderBy: { amount: "desc" },
-    }),
-  ]);
-
-  return { cycle, calculation, payouts };
-}
-
-export async function getAllCyclesPayoutSummary() {
-  await requireAdmin();
-
-  const cycles = await db.subscriptionCycle.findMany({
-    orderBy: [{ year: "desc" }, { month: "desc" }],
-    include: {
-      payoutCalculations: {
-        select: {
-          totalMarkupPool: true,
-          totalPaidCollectors: true,
-          totalFulfilledCollectors: true,
-          calculatedAt: true,
-        },
-      },
-      creatorPayouts: {
-        select: {
-          status: true,
-          amount: true,
-        },
-      },
-      _count: {
-        select: {
-          releases: true,
-          selections: true,
-          billingRecords: true,
-        },
-      },
-    },
-  });
-
-  return cycles;
+  try {
+    const result = await reconcilePayPalPayoutsForCycle(cycleId);
+    revalidatePath("/admin/payouts");
+    revalidatePath(`/admin/payouts/${cycleId}`);
+    return {
+      success: true,
+      message: `Checked ${result.checked} payouts, updated ${result.updated}.${result.errors.length ? ` Errors: ${result.errors.join("; ")}` : ""}`,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
 }

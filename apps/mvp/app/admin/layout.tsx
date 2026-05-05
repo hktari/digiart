@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Package,
   Users,
+  Wallet,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -28,6 +29,12 @@ const adminNavLinks = [
     href: "/admin/cycles",
     label: "Cycles",
     icon: CalendarClock,
+    exact: false,
+  },
+  {
+    href: "/admin/payouts",
+    label: "Payouts",
+    icon: Wallet,
     exact: false,
   },
   {

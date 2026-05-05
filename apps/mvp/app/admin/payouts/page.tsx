@@ -1,110 +1,126 @@
 import Link from "next/link";
-import { getAllCyclesPayoutSummary } from "@/lib/actions/payout-actions";
+import { db } from "@/lib/db";
 import { requireAdmin } from "@/lib/roles";
 
 export default async function AdminPayoutsPage() {
   await requireAdmin();
-  const cycles = await getAllCyclesPayoutSummary();
+
+  const cycles = await db.subscriptionCycle.findMany({
+    orderBy: [{ year: "desc" }, { month: "desc" }],
+    include: {
+      payoutCalculations: true,
+      creatorPayouts: {
+        select: { status: true, amount: true, currency: true },
+      },
+    },
+  });
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Creator Payouts</h1>
-        <p className="text-gray-600 mt-1">
-          Calculate and send creator earnings per cycle
+        <p className="text-ink/60 mt-1">
+          Manage payout calculations and disbursements per cycle
         </p>
       </div>
 
       {cycles.length === 0 ? (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-          <p className="text-gray-600">No cycles created yet.</p>
+        <div className="bg-beige-50 border border-beige-200 rounded-lg p-8 text-center">
+          <p className="text-ink/60">No cycles found.</p>
         </div>
       ) : (
-        <div className="bg-white border rounded-lg overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b">
+        <div className="bg-white border border-beige-200 rounded-lg overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-beige-50 border-b border-beige-200">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
+                <th className="px-6 py-3 text-left font-medium text-ink/60">
                   Cycle
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
-                  Markup Pool
+                <th className="px-6 py-3 text-left font-medium text-ink/60">
+                  Pool
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
-                  Payouts
+                <th className="px-6 py-3 text-left font-medium text-ink/60">
+                  Creators
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
-                  Status
+                <th className="px-6 py-3 text-left font-medium text-ink/60">
+                  PENDING
                 </th>
-                <th className="px-6 py-3 text-right text-sm font-medium text-gray-900">
-                  Actions
+                <th className="px-6 py-3 text-left font-medium text-ink/60">
+                  SENT
                 </th>
+                <th className="px-6 py-3 text-left font-medium text-ink/60">
+                  FAILED
+                </th>
+                <th className="px-6 py-3 text-right font-medium text-ink/60"></th>
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody className="divide-y divide-beige-100">
               {cycles.map((cycle) => {
-                const calc = cycle.payoutCalculations[0];
                 const payouts = cycle.creatorPayouts;
-                const sentCount = payouts.filter(
-                  (p) => p.status === "SENT",
-                ).length;
-                const pendingCount = payouts.filter(
+                const pending = payouts.filter(
                   (p) => p.status === "PENDING",
                 ).length;
-                const failedCount = payouts.filter(
+                const sent = payouts.filter((p) => p.status === "SENT").length;
+                const failed = payouts.filter(
                   (p) => p.status === "FAILED",
                 ).length;
-                const totalAmount = payouts.reduce(
-                  (s, p) => s + Number(p.amount),
-                  0,
-                );
+                const calc = cycle.payoutCalculations[0];
+                const pool = calc ? Number(calc.totalMarkupPool) : null;
 
                 return (
-                  <tr key={cycle.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm font-medium">
+                  <tr
+                    key={cycle.id}
+                    className="hover:bg-beige-50 transition-colors"
+                  >
+                    <td className="px-6 py-4 font-medium text-ink">
                       {cycle.label}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {calc
-                        ? `€${Number(calc.totalMarkupPool).toFixed(2)}`
-                        : "—"}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {payouts.length > 0
-                        ? `${payouts.length} creators · €${totalAmount.toFixed(2)}`
-                        : "—"}
-                    </td>
-                    <td className="px-6 py-4">
-                      {payouts.length === 0 ? (
-                        <span className="text-xs text-gray-400">
-                          Not calculated
+                    <td className="px-6 py-4 text-ink/70">
+                      {pool !== null ? (
+                        <span className="font-mono">
+                          {pool.toFixed(2)}{" "}
+                          <span className="text-xs text-ink/40">EUR</span>
                         </span>
                       ) : (
-                        <div className="flex gap-1.5">
-                          {sentCount > 0 && (
-                            <span className="inline-flex px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                              {sentCount} sent
-                            </span>
-                          )}
-                          {pendingCount > 0 && (
-                            <span className="inline-flex px-2 py-0.5 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
-                              {pendingCount} pending
-                            </span>
-                          )}
-                          {failedCount > 0 && (
-                            <span className="inline-flex px-2 py-0.5 text-xs font-medium rounded-full bg-red-100 text-red-800">
-                              {failedCount} failed
-                            </span>
-                          )}
-                        </div>
+                        <span className="text-ink/30">—</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-sm text-right">
+                    <td className="px-6 py-4 text-ink/70">
+                      {payouts.length || <span className="text-ink/30">—</span>}
+                    </td>
+                    <td className="px-6 py-4">
+                      {pending > 0 ? (
+                        <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          {pending}
+                        </span>
+                      ) : (
+                        <span className="text-ink/30">—</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      {sent > 0 ? (
+                        <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          {sent}
+                        </span>
+                      ) : (
+                        <span className="text-ink/30">—</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      {failed > 0 ? (
+                        <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          {failed}
+                        </span>
+                      ) : (
+                        <span className="text-ink/30">—</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-right">
                       <Link
                         href={`/admin/payouts/${cycle.id}`}
-                        className="text-fuchsia-600 hover:underline"
+                        className="text-fuchsia-600 hover:underline text-sm"
                       >
-                        Manage
+                        Manage →
                       </Link>
                     </td>
                   </tr>
