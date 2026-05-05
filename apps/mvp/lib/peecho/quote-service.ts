@@ -64,18 +64,17 @@ export async function getQuote(params: QuoteParams): Promise<QuoteResult> {
       throw new Error("No quote items returned from Peecho");
     }
 
-    // Markup is a fixed platform fee for UX transparency (configurable via PLATFORM_MARKUP_EUR)
-    const platformMarkup = parseFloat(process.env.PLATFORM_MARKUP_EUR || "0");
-    const markupAmount = platformMarkup;
-
-    // baseAmount = productPrice - markupAmount (shows Peecho wholesale cost before platform fee)
-    const baseAmount = item.productPrice - markupAmount;
+    // Quotes are estimates only - final price comes from order-based pricing
+    // Peecho's quote includes their configured margin in productPrice
+    // The margin (productPrice - wholesale) is split between creators and platform
+    const wholesalePrice = item.productPrice - item.vat; // Approximate wholesale before tax
+    const marginEstimate = item.productPrice - wholesalePrice;
 
     return {
       shippingAmount: item.shippingWholesale,
       productAmount: item.productPrice,
-      baseAmount,
-      markupAmount,
+      baseAmount: wholesalePrice, // Approximate wholesale cost
+      markupAmount: marginEstimate, // Estimated margin (Peecho's cut)
       taxAmount: item.vat,
       totalEstimate: item.totalItemPrice,
       currency: quote.quoteDetails.currency,

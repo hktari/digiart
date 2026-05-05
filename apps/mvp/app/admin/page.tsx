@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { ProfitMetrics } from "@/components/admin/profit-metrics";
 import { computeCycleStatus } from "@/lib/cycle-status";
 import { getTimeUntilLock } from "@/lib/cycle-utils";
 import { db } from "@/lib/db";
+import { calculateProfitMetrics } from "@/lib/profit-metrics";
 import { requireAdmin } from "@/lib/roles";
 
 export default async function AdminDashboardPage() {
@@ -9,7 +11,7 @@ export default async function AdminDashboardPage() {
 
   const now = new Date();
 
-  const [currentCycle, totalCycles, activeConstraint, podProvider] =
+  const [currentCycle, totalCycles, activeConstraint, podProvider, profitData] =
     await Promise.all([
       db.subscriptionCycle.findFirst({
         where: {
@@ -27,6 +29,7 @@ export default async function AdminDashboardPage() {
         where: { provider: "Peecho" },
         include: { _count: { select: { offerings: true } } },
       }),
+      calculateProfitMetrics(),
     ]);
 
   const cycleStatus = currentCycle ? computeCycleStatus(currentCycle) : null;
@@ -46,6 +49,25 @@ export default async function AdminDashboardPage() {
       <div>
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
         <p className="text-gray-600 mt-1">Platform overview and quick links</p>
+      </div>
+
+      {/* Platform Profit Insights */}
+      <div className="bg-white border border-beige-200 rounded-lg p-8">
+        <div className="flex justify-between items-start mb-6">
+          <div>
+            <h2 className="text-xl font-semibold text-ink">Platform Profit</h2>
+            <p className="text-sm text-ink/60 mt-1">
+              Financial overview from paid orders and payouts
+            </p>
+          </div>
+          <Link
+            href="/admin/payouts"
+            className="text-sm text-fuchsia-600 hover:underline"
+          >
+            View payouts →
+          </Link>
+        </div>
+        <ProfitMetrics data={profitData} />
       </div>
 
       {/* Current Cycle Highlight */}

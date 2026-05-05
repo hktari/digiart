@@ -30,7 +30,7 @@ async function seedProduction() {
     const adminUser = await db.user.upsert({
       where: { email: ADMIN_EMAIL },
       create: {
-        email: ADMIN_EMAIL,
+        email: ADMIN_EMAIL!,
         name: "Platform Admin",
       },
       update: {},
