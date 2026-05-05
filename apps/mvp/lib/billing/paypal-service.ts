@@ -132,9 +132,20 @@ export async function sendCreatorPayoutsForCycle(
 
     const payoutResponse = (await response.json()) as {
       batch_header: { payout_batch_id: string; batch_status: string };
+      items: Array<{
+        payout_item_id: string;
+        sender_item_id: string;
+        transaction_status: string;
+      }>;
     };
 
     const batchId = payoutResponse.batch_header.payout_batch_id;
+
+    // Build map of sender_item_id (our payout.id) -> payout_item_id (PayPal's ID)
+    const itemIdMap = new Map<string, string>();
+    for (const item of payoutResponse.items || []) {
+      itemIdMap.set(item.sender_item_id, item.payout_item_id);
+    }
 
     for (const payout of validPayouts) {
       await db.creatorPayout.update({
@@ -142,6 +153,7 @@ export async function sendCreatorPayoutsForCycle(
         data: {
           status: "SENT",
           paypalBatchId: batchId,
+          paypalPayoutId: itemIdMap.get(payout.id) || null,
           sentAt: new Date(),
         },
       });

@@ -84,6 +84,13 @@ describe("sendCreatorPayoutsForCycle", () => {
               payout_batch_id: "batch-1",
               batch_status: "SUCCESS",
             },
+            items: [
+              {
+                payout_item_id: "pp-1",
+                sender_item_id: "p1",
+                transaction_status: "SUCCESS",
+              },
+            ],
           }),
       });
 
