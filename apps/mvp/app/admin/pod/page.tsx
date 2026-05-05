@@ -160,6 +160,9 @@ export default function AdminPodPage() {
                         Name
                       </th>
                       <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
+                        Peecho ID
+                      </th>
+                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
                         Pages
                       </th>
                       <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
@@ -181,6 +184,9 @@ export default function AdminPodPage() {
                       <tr key={offering.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 text-sm font-medium">
                           {offering.name}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600 font-mono">
+                          {offering.externalId}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-600">
                           {offering.minPages} - {offering.maxPages}
