@@ -68,7 +68,6 @@ export async function syncPeechoOfferings(): Promise<{
     // Sync offerings
     const offerings = await peechoClient.getOfferings({
       categoryFilter: "MA",
-      subCategoryFilter: "GM",
     });
 
     const syncedExternalIds = new Set<string>();
