@@ -7,6 +7,151 @@ type ProviderWithOfferings = PodProviderConfig & {
   offerings: PodOffering[];
 };
 
+type PeechoCountry = { code: string; name: string };
+
+type CountriesState = {
+  loading: boolean;
+  data: PeechoCountry[] | null;
+  error: string | null;
+};
+
+function OfferingRow({
+  offering,
+  onToggle,
+}: {
+  offering: PodOffering;
+  onToggle: (id: string, isActive: boolean) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const [countries, setCountries] = useState<CountriesState>({
+    loading: false,
+    data: null,
+    error: null,
+  });
+
+  const loadCountries = useCallback(async () => {
+    if (countries.data !== null || countries.loading) return;
+    setCountries((s) => ({ ...s, loading: true, error: null }));
+    try {
+      const res = await fetch(
+        `/api/admin/pod/offerings/${offering.id}/countries`,
+      );
+      if (!res.ok) throw new Error("Failed to fetch");
+      const json = await res.json();
+      setCountries({ loading: false, data: json.countries, error: null });
+    } catch {
+      setCountries({
+        loading: false,
+        data: null,
+        error: "Failed to load countries",
+      });
+    }
+  }, [offering.id, countries.data, countries.loading]);
+
+  const handleExpand = () => {
+    const next = !expanded;
+    setExpanded(next);
+    if (next) loadCountries();
+  };
+
+  return (
+    <>
+      <tr className="hover:bg-gray-50">
+        <td className="px-6 py-4 text-sm font-medium">
+          <button
+            type="button"
+            onClick={handleExpand}
+            className="flex items-center gap-1 text-left hover:text-fuchsia-700"
+            title="Toggle countries"
+          >
+            <span
+              className={`inline-block transition-transform text-gray-400 ${expanded ? "rotate-90" : ""}`}
+            >
+              ▶
+            </span>
+            {offering.name}
+          </button>
+        </td>
+        <td className="px-6 py-4 text-sm text-gray-600 font-mono">
+          {offering.externalId}
+        </td>
+        <td className="px-6 py-4 text-sm text-gray-600">
+          {offering.minPages} - {offering.maxPages}
+        </td>
+        <td className="px-6 py-4 text-sm text-gray-600">
+          {offering.widthMm && offering.heightMm
+            ? `${offering.widthMm} × ${offering.heightMm} mm`
+            : "-"}
+        </td>
+        <td className="px-6 py-4 text-sm text-gray-600">
+          {offering.syncedAt
+            ? new Date(offering.syncedAt).toLocaleString()
+            : "Never"}
+        </td>
+        <td className="px-6 py-4">
+          <span
+            className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+              offering.isActive
+                ? "bg-green-100 text-green-800"
+                : "bg-gray-100 text-gray-800"
+            }`}
+          >
+            {offering.isActive ? "Active" : "Inactive"}
+          </span>
+        </td>
+        <td className="px-6 py-4 text-sm text-right">
+          <button
+            type="button"
+            onClick={() => onToggle(offering.id, offering.isActive)}
+            className="text-fuchsia-600 hover:underline"
+          >
+            {offering.isActive ? "Deactivate" : "Activate"}
+          </button>
+        </td>
+      </tr>
+      {expanded && (
+        <tr className="bg-gray-50 border-t">
+          <td colSpan={7} className="px-8 py-4">
+            {countries.loading && (
+              <p className="text-sm text-gray-500">Loading countries…</p>
+            )}
+            {countries.error && (
+              <p className="text-sm text-red-600">{countries.error}</p>
+            )}
+            {countries.data && (
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                  Supported countries ({countries.data.length})
+                </p>
+                {countries.data.length === 0 ? (
+                  <p className="text-sm text-gray-500">
+                    No countries returned by Peecho for this offering.
+                  </p>
+                ) : (
+                  <div className="flex flex-wrap gap-1.5">
+                    {countries.data.map((c) => (
+                      <span
+                        key={c.code}
+                        title={c.name}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded bg-white border border-gray-200 text-gray-700 font-mono"
+                      >
+                        {c.code}
+                        <span className="font-sans text-gray-400">
+                          {c.name}
+                        </span>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </td>
+        </tr>
+      )}
+    </>
+  );
+}
+
 export default function AdminPodPage() {
   const [provider, setProvider] = useState<ProviderWithOfferings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -152,85 +297,50 @@ export default function AdminPodPage() {
                 </p>
               </div>
             ) : (
-              <div className="overflow-hidden border rounded-lg">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
-                        Name
-                      </th>
-                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
-                        Peecho ID
-                      </th>
-                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
-                        Pages
-                      </th>
-                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
-                        Dimensions
-                      </th>
-                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
-                        Last Synced
-                      </th>
-                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-right text-sm font-medium text-gray-900">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {provider.offerings.map((offering) => (
-                      <tr key={offering.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 text-sm font-medium">
-                          {offering.name}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-600 font-mono">
-                          {offering.externalId}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-600">
-                          {offering.minPages} - {offering.maxPages}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-600">
-                          {offering.widthMm && offering.heightMm
-                            ? `${offering.widthMm} × ${offering.heightMm} mm`
-                            : "-"}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-600">
-                          {offering.syncedAt
-                            ? new Date(offering.syncedAt).toLocaleString()
-                            : "Never"}
-                        </td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                              offering.isActive
-                                ? "bg-green-100 text-green-800"
-                                : "bg-gray-100 text-gray-800"
-                            }`}
-                          >
-                            {offering.isActive ? "Active" : "Inactive"}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-sm text-right">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleToggleOffering(
-                                offering.id,
-                                offering.isActive,
-                              )
-                            }
-                            className="text-fuchsia-600 hover:underline"
-                          >
-                            {offering.isActive ? "Deactivate" : "Activate"}
-                          </button>
-                        </td>
+              <>
+                <p className="text-xs text-gray-500 mb-3">
+                  Click an offering name to inspect supported countries (live
+                  from Peecho).
+                </p>
+                <div className="overflow-hidden border rounded-lg">
+                  <table className="w-full">
+                    <thead className="bg-gray-50 border-b">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
+                          Name
+                        </th>
+                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
+                          Peecho ID
+                        </th>
+                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
+                          Pages
+                        </th>
+                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
+                          Dimensions
+                        </th>
+                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
+                          Last Synced
+                        </th>
+                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
+                          Status
+                        </th>
+                        <th className="px-6 py-3 text-right text-sm font-medium text-gray-900">
+                          Actions
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y">
+                      {provider.offerings.map((offering) => (
+                        <OfferingRow
+                          key={offering.id}
+                          offering={offering}
+                          onToggle={handleToggleOffering}
+                        />
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
           </div>
         </>
