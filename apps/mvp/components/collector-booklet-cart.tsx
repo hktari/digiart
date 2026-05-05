@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown, ChevronUp, ShoppingBag } from "lucide-react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Suspense,
   useCallback,
@@ -11,10 +11,7 @@ import {
   useTransition,
 } from "react";
 import type { CollectorCartSummary } from "@/lib/actions/collector";
-import {
-  commitBookletForCycle,
-  toggleReleaseSelection,
-} from "@/lib/actions/collector";
+import { toggleReleaseSelection } from "@/lib/actions/collector";
 import { COLLECTOR_CART_UPDATED_EVENT } from "@/lib/cart-events";
 
 interface CartQuote {
@@ -51,11 +48,10 @@ function statusText(summary: CollectorCartSummary) {
 function CollectorBookletCartInner() {
   const _pathname = usePathname();
   const _searchParams = useSearchParams();
+  const router = useRouter();
   const [summary, setSummary] = useState<CartData | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const [commitError, setCommitError] = useState<string | null>(null);
-  const [commitSuccess, setCommitSuccess] = useState(false);
 
   const loadSummary = useCallback(async () => {
     const res = await fetch("/api/collector/cart-summary", {
@@ -102,17 +98,7 @@ function CollectorBookletCartInner() {
   };
 
   const handleCommit = () => {
-    setCommitError(null);
-    setCommitSuccess(false);
-    startTransition(async () => {
-      const result = await commitBookletForCycle();
-      if (result.success) {
-        setCommitSuccess(true);
-        await loadSummary();
-      } else {
-        setCommitError(result.error);
-      }
-    });
+    router.push("/collector/checkout");
   };
 
   const formatCurrency = (amount: number, currency: string) => {
@@ -238,18 +224,6 @@ function CollectorBookletCartInner() {
           </div>
         )}
 
-        {commitError && (
-          <div className="rounded bg-red-50 border border-red-200 p-2 text-xs text-red-700">
-            {commitError}
-          </div>
-        )}
-
-        {commitSuccess && !summary.checkoutIntent && (
-          <div className="rounded bg-green-50 border border-green-200 p-2 text-xs text-green-800">
-            Booklet committed successfully!
-          </div>
-        )}
-
         <button
           type="button"
           disabled={isPending || !summary.isValidForCheckout}
@@ -261,7 +235,7 @@ function CollectorBookletCartInner() {
           }`}
         >
           {summary.checkoutIntent
-            ? "Update commit"
+            ? "Update — go to checkout"
             : "Commit booklet — you'll be charged when the cycle closes"}
         </button>
       </aside>
@@ -387,12 +361,6 @@ function CollectorBookletCartInner() {
               </div>
             )}
 
-            {commitError && (
-              <div className="rounded bg-red-50 border border-red-200 p-2 text-xs text-red-700">
-                {commitError}
-              </div>
-            )}
-
             <button
               type="button"
               disabled={isPending || !summary.isValidForCheckout}
@@ -404,7 +372,7 @@ function CollectorBookletCartInner() {
               }`}
             >
               {summary.checkoutIntent
-                ? "Update commit"
+                ? "Update — go to checkout"
                 : "Commit booklet — you'll be charged when the cycle closes"}
             </button>
           </div>

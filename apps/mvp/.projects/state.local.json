@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "project": {
+    "merchantId": "acct_1OwMHqP0eWmK75dk",
+    "merchantDisplayName": null,
+    "projectId": "project_61Ud6W3hulR97S6NC16Q5kFD0HQGYRko3Yry1k1eaImm",
+    "projectName": "digiart-mvp",
+    "initializedAt": "2026-05-05T12:58:43.778Z"
+  },
+  "providers": {},
+  "resources": {}
+}

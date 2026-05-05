@@ -11,8 +11,10 @@ export async function POST() {
     if (result.success) {
       return NextResponse.json({
         success: true,
-        message: `Successfully synced ${result.syncedCount} offerings`,
+        message: `Successfully synced ${result.syncedCount} offerings, ${result.countryCount} countries, ${result.stateCount} states`,
         syncedCount: result.syncedCount,
+        countryCount: result.countryCount,
+        stateCount: result.stateCount,
       });
     }
 

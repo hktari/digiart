@@ -1,5 +1,6 @@
 "use client";
 
+import type { FulfillmentCountry, FulfillmentState } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import type { CollectorSetupResult } from "@/lib/actions/collector";
@@ -14,35 +15,6 @@ interface CollectorSetupFormProps {
   redirectTo?: string;
 }
 
-// TODO: Replace with dynamic country list from Peecho API (Sprint 4 / T18)
-// This hardcoded list is temporary - should fetch from PodOffering or Peecho API
-const COUNTRIES = [
-  { code: "US", name: "United States" },
-  { code: "GB", name: "United Kingdom" },
-  { code: "CA", name: "Canada" },
-  { code: "AU", name: "Australia" },
-  { code: "DE", name: "Germany" },
-  { code: "FR", name: "France" },
-  { code: "IT", name: "Italy" },
-  { code: "ES", name: "Spain" },
-  { code: "NL", name: "Netherlands" },
-  { code: "BE", name: "Belgium" },
-  { code: "AT", name: "Austria" },
-  { code: "CH", name: "Switzerland" },
-  { code: "SE", name: "Sweden" },
-  { code: "NO", name: "Norway" },
-  { code: "DK", name: "Denmark" },
-  { code: "FI", name: "Finland" },
-  { code: "IE", name: "Ireland" },
-  { code: "PT", name: "Portugal" },
-  { code: "PL", name: "Poland" },
-  { code: "CZ", name: "Czech Republic" },
-  { code: "JP", name: "Japan" },
-  { code: "KR", name: "South Korea" },
-  { code: "SG", name: "Singapore" },
-  { code: "NZ", name: "New Zealand" },
-];
-
 export function CollectorSetupForm({
   initialData,
   redirectTo = "/",
@@ -51,6 +23,10 @@ export function CollectorSetupForm({
   const [shippingCountry, setShippingCountry] = useState(
     initialData?.shippingCountry || "",
   );
+  const [countries, setCountries] = useState<FulfillmentCountry[]>([]);
+  const [states, setStates] = useState<FulfillmentState[]>([]);
+  const [isLoadingCountries, setIsLoadingCountries] = useState(true);
+  const [isLoadingStates, setIsLoadingStates] = useState(false);
   const [state, formAction, isPending] = useActionState<
     CollectorSetupResult,
     FormData
@@ -61,6 +37,47 @@ export function CollectorSetupForm({
       router.push(redirectTo);
     }
   }, [state.success, router, redirectTo]);
+
+  useEffect(() => {
+    async function fetchCountries() {
+      try {
+        const response = await fetch("/api/peecho/countries");
+        if (response.ok) {
+          const data = await response.json();
+          setCountries(data);
+        }
+      } catch {
+        // Silently fail - form will show empty country list
+      } finally {
+        setIsLoadingCountries(false);
+      }
+    }
+    fetchCountries();
+  }, []);
+
+  useEffect(() => {
+    async function fetchStates() {
+      if (shippingCountry !== "US") {
+        setStates([]);
+        return;
+      }
+      setIsLoadingStates(true);
+      try {
+        const response = await fetch(
+          `/api/peecho/states?country=${shippingCountry}`,
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setStates(data);
+        }
+      } catch {
+        // Silently fail - form will show empty state list
+      } finally {
+        setIsLoadingStates(false);
+      }
+    }
+    fetchStates();
+  }, [shippingCountry]);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
@@ -108,11 +125,14 @@ export function CollectorSetupForm({
               name="shippingCountry"
               defaultValue={initialData?.shippingCountry}
               required
+              disabled={isLoadingCountries}
               onChange={(event) => setShippingCountry(event.target.value)}
-              className="mt-1 block w-full rounded-md border border-neutral-300 px-3 py-2 shadow-sm focus:border-fuchsia-500 focus:outline-none focus:ring-1 focus:ring-fuchsia-500"
+              className="mt-1 block w-full rounded-md border border-neutral-300 px-3 py-2 shadow-sm focus:border-fuchsia-500 focus:outline-none focus:ring-1 focus:ring-fuchsia-500 disabled:opacity-50"
             >
-              <option value="">Select your country</option>
-              {COUNTRIES.map((country) => (
+              <option value="">
+                {isLoadingCountries ? "Loading..." : "Select your country"}
+              </option>
+              {countries.map((country) => (
                 <option key={country.code} value={country.code}>
                   {country.name}
                 </option>
@@ -131,21 +151,25 @@ export function CollectorSetupForm({
                 htmlFor="shippingStateCode"
                 className="block text-sm font-medium text-neutral-700"
               >
-                State Code (US only)
+                State (US only)
               </label>
-              <input
-                type="text"
+              <select
                 id="shippingStateCode"
                 name="shippingStateCode"
                 defaultValue={initialData?.shippingStateCode}
                 required
-                maxLength={2}
-                className="mt-1 block w-full rounded-md border border-neutral-300 px-3 py-2 uppercase shadow-sm focus:border-fuchsia-500 focus:outline-none focus:ring-1 focus:ring-fuchsia-500"
-                placeholder="CA"
-              />
-              <p className="mt-1 text-xs text-neutral-500">
-                Use 2-letter USPS code, e.g. CA, NY, TX.
-              </p>
+                disabled={isLoadingStates}
+                className="mt-1 block w-full rounded-md border border-neutral-300 px-3 py-2 shadow-sm focus:border-fuchsia-500 focus:outline-none focus:ring-1 focus:ring-fuchsia-500 disabled:opacity-50"
+              >
+                <option value="">
+                  {isLoadingStates ? "Loading..." : "Select your state"}
+                </option>
+                {states.map((state) => (
+                  <option key={state.stateCode} value={state.stateCode}>
+                    {state.name}
+                  </option>
+                ))}
+              </select>
               {!state.success && state.errors.shippingStateCode && (
                 <p className="mt-1 text-sm text-red-600">
                   {state.errors.shippingStateCode}

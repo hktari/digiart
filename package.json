@@ -20,7 +20,16 @@
     "overrides": {
       "@types/react": "19.2.14",
       "@types/react-dom": "19.2.3"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "@nestjs/core",
+      "@prisma/engines",
+      "@sentry/cli",
+      "esbuild",
+      "msgpackr-extract",
+      "prisma",
+      "sharp"
+    ]
   },
   "engines": {
     "node": ">=20",
