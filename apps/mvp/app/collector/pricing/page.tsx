@@ -1,10 +1,12 @@
+import { CreditCard } from "lucide-react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { PricingQuoteDisplay } from "@/components/pricing-quote-display";
-import { fetchAndPersistQuote } from "@/lib/actions/pricing-actions";
+import { getCollectorCartSummary } from "@/lib/actions/collector";
 import { auth } from "@/lib/auth";
+import { computeBookletPageCount } from "@/lib/booklet/page-count";
 import { getCurrentCycle } from "@/lib/cycle-utils";
 import { db } from "@/lib/db";
-import { getLatestQuote } from "@/lib/pricing/quote-snapshot";
 
 export default async function CollectorPricingPage() {
   const session = await auth();
@@ -14,6 +16,13 @@ export default async function CollectorPricingPage() {
 
   const collectorProfile = await db.collectorProfile.findUnique({
     where: { userId: session.user.id },
+    select: {
+      id: true,
+      shippingCountry: true,
+      shippingCity: true,
+      shippingAddressLine1: true,
+      shippingZip: true,
+    },
   });
 
   if (!collectorProfile) {
@@ -21,72 +30,117 @@ export default async function CollectorPricingPage() {
   }
 
   const currentCycle = await getCurrentCycle();
+  const summary = await getCollectorCartSummary(session.user.id);
 
-  let latestQuote: {
-    shippingAmount: number;
-    productAmount: number;
-    taxAmount: number;
-    totalEstimate: number;
-    currency: string;
-    quotedAt: Date;
-  } | null = null;
-  if (currentCycle) {
-    const quote = await getLatestQuote(collectorProfile.id, currentCycle.id);
-    if (quote) {
-      latestQuote = {
-        shippingAmount: Number(quote.shippingAmount),
-        productAmount: Number(quote.productAmount),
-        taxAmount: Number(quote.taxAmount),
-        totalEstimate: Number(quote.totalEstimate),
-        currency: quote.currency,
-        quotedAt: quote.quotedAt,
-      };
+  // Get committed checkout intent with exact Peecho order pricing
+  const checkoutIntent =
+    currentCycle && summary.cycleId
+      ? await db.checkoutIntent.findUnique({
+          where: {
+            collectorProfileId_cycleId: {
+              collectorProfileId: collectorProfile.id,
+              cycleId: currentCycle.id,
+            },
+          },
+          select: {
+            committedAt: true,
+            peechoOrderId: true,
+            retailTotalAmount: true,
+            wholesaleTotalAmount: true,
+            platformMarkupAmount: true,
+            quoteInputPageCount: true,
+            updatedAt: true,
+          },
+        })
+      : null;
+
+  // Calculate current live page count from selections
+  let currentPageCount = 0;
+  if (currentCycle && summary.cycleId && summary.totalArtworks > 0) {
+    const selections = await db.collectorReleaseSelection.findMany({
+      where: {
+        collectorProfileId: collectorProfile.id,
+        cycleId: currentCycle.id,
+      },
+      include: {
+        release: {
+          include: {
+            artworks: { include: { artwork: { select: { id: true } } } },
+          },
+        },
+      },
+    });
+    if (selections.length > 0) {
+      const { totalPages } = computeBookletPageCount(selections as any);
+      currentPageCount = totalPages;
     }
   }
 
+  const isCommitted =
+    !!checkoutIntent?.committedAt &&
+    !!checkoutIntent.retailTotalAmount &&
+    !!checkoutIntent.peechoOrderId;
+
   return (
-    <div className="space-y-6">
+    <div className="max-w-xl space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Booklet Pricing</h1>
-        <p className="text-gray-600 mt-1">
-          Review the current booklet cost estimate and how the order value is
-          broken down
+        <h1 className="text-2xl font-bold text-ink">Booklet Pricing</h1>
+        <p className="text-sm text-ink/60 mt-1">
+          Current amount due at cycle lock based on your selections and delivery
+          address.
         </p>
       </div>
 
       {!collectorProfile.shippingCountry ? (
-        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded">
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
           Please set your shipping country in{" "}
-          <a href="/collector/setup" className="underline font-medium">
+          <Link href="/collector/setup" className="underline font-medium">
             profile settings
-          </a>{" "}
+          </Link>{" "}
           to get a pricing estimate.
         </div>
       ) : !currentCycle ? (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-          <p className="text-gray-600">
-            No active subscription cycle available.
-          </p>
+        <div className="rounded-lg border border-beige-200 bg-white p-8 text-center text-sm text-ink/60">
+          No active subscription cycle.
+        </div>
+      ) : !isCommitted ? (
+        <div className="rounded-lg border border-beige-200 bg-white p-6 space-y-3">
+          <div className="flex items-start gap-3">
+            <CreditCard className="h-5 w-5 text-ink/40 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-ink">
+                No committed order yet
+              </p>
+              <p className="text-sm text-ink/60 mt-1">
+                Complete checkout to commit your booklet. An exact price based
+                on your delivery address and current selections will be shown
+                here.
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/collector/checkout"
+            className="inline-block rounded-lg bg-fuchsia-600 px-4 py-2 text-sm font-semibold text-white hover:bg-fuchsia-700 transition-colors"
+          >
+            Go to checkout
+          </Link>
         </div>
       ) : (
-        <>
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-blue-800">
-              <strong>Note:</strong> This is an estimate based on a default page
-              count of 20 pages. The goal is to make booklet pricing explicit so
-              users can see how print, shipping, and taxes shape the final
-              charge.
-            </p>
-          </div>
-
-          <PricingQuoteDisplay
-            initialQuote={latestQuote}
-            onRefresh={async () => {
-              "use server";
-              return fetchAndPersistQuote(20);
-            }}
-          />
-        </>
+        <PricingQuoteDisplay
+          committed={true}
+          initialPricing={{
+            retailTotalAmount: Number(checkoutIntent.retailTotalAmount),
+            wholesaleTotalAmount: Number(checkoutIntent.wholesaleTotalAmount),
+            platformMarkupAmount: Number(checkoutIntent.platformMarkupAmount),
+            currency: "EUR",
+            pageCount: checkoutIntent.quoteInputPageCount ?? currentPageCount,
+            updatedAt: checkoutIntent.updatedAt,
+            peechoOrderId: checkoutIntent.peechoOrderId!,
+          }}
+          cycleLockDate={currentCycle.lockDate?.toISOString() ?? null}
+          totalReleases={summary.totalReleases}
+          totalPages={currentPageCount}
+        />
       )}
     </div>
   );
