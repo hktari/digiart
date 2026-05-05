@@ -1,3 +1,6 @@
+// REST endpoint for external/automated payout triggering (e.g. Railway cron job).
+// The admin UI uses server actions (lib/actions/payout-actions.ts) instead.
+// Keep this route for future automation: POST { cycleId } with admin credentials.
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { sendCreatorPayoutsForCycle } from "@/lib/billing/paypal-service";
