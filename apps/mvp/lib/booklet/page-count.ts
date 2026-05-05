@@ -25,6 +25,12 @@ export function computeBookletPageCount(
   selections: SelectionWithRelease[],
 ): PageCountResult {
   const artworkPages = selections.reduce((total, selection) => {
+    if (!selection.release.artworks) {
+      console.warn(
+        `Missing artworks for release ${selection.release.id}, selection ${selection.id}`,
+      );
+      return total;
+    }
     return total + selection.release.artworks.length;
   }, 0);
 
