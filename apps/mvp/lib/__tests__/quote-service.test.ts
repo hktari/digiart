@@ -15,9 +15,6 @@ vi.mock("../peecho/client", () => ({
   },
 }));
 
-// Mock platform markup
-process.env.PLATFORM_MARKUP_EUR = "5.00";
-
 describe("getQuote", () => {
   beforeEach(() => {
     vi.clearAllMocks();

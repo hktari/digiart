@@ -97,7 +97,7 @@ export async function refreshCommittedOrder(): Promise<
 
   const collectorProfile = await db.collectorProfile.findUnique({
     where: { userId: session.user.id },
-    include: { user: { select: { email: true } } },
+    include: { user: { select: { email: true, name: true } } },
   });
 
   if (!collectorProfile) {

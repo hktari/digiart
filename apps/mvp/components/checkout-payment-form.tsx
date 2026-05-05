@@ -459,7 +459,7 @@ export function CheckoutPaymentForm(props: CheckoutPaymentFormProps) {
       )}
 
       {clientSecret && options && (
-        <Elements stripe={stripePromise} options={options}>
+        <Elements key={clientSecret} stripe={stripePromise} options={options}>
           <CheckoutFormInner {...props} />
         </Elements>
       )}

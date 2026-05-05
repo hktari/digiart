@@ -37,7 +37,7 @@ export async function POST(request: Request) {
 
   const collectorProfile = await db.collectorProfile.findUnique({
     where: { userId: session.user.id },
-    include: { user: { select: { email: true } } },
+    include: { user: { select: { email: true, name: true } } },
   });
 
   if (!collectorProfile) {
@@ -53,7 +53,10 @@ export async function POST(request: Request) {
   }
 
   // Save full address to CollectorProfile
-  const nameParts = address.name.trim().split(" ");
+  // Note: Stripe AddressElement doesn't return name, use profile displayName or user name
+  const displayName =
+    collectorProfile.user.name ?? collectorProfile.displayName ?? "Collector";
+  const nameParts = displayName.trim().split(" ");
   const firstName = nameParts[0] ?? "";
   const lastName = nameParts.slice(1).join(" ");
 
@@ -110,6 +113,18 @@ export async function POST(request: Request) {
     );
   }
 
+  // Validate offering has a valid Peecho externalId
+  const offeringId = parseInt(offering.externalId, 10);
+  if (Number.isNaN(offeringId) || offeringId === 0) {
+    return NextResponse.json(
+      {
+        error:
+          "Offerings not synced with Peecho. Please contact support or run admin sync.",
+      },
+      { status: 500 },
+    );
+  }
+
   // Check for existing order to orphan it
   const existingIntent = await db.checkoutIntent.findUnique({
     where: {
@@ -127,7 +142,7 @@ export async function POST(request: Request) {
     item_details: [
       {
         item_reference: `booklet-${collectorProfile.id}-${currentCycle.id}`,
-        offering_id: parseInt(offering.externalId, 10),
+        offering_id: offeringId,
         quantity: 1,
       },
     ],
