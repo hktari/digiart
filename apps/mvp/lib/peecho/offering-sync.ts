@@ -25,7 +25,10 @@ export async function syncPeechoOfferings(): Promise<{
       });
     }
 
-    const offerings = await peechoClient.getOfferings();
+    const offerings = await peechoClient.getOfferings({
+      categoryFilter: "MA",
+      subCategoryFilter: "GM",
+    });
 
     for (const offering of offerings) {
       await db.podOffering.upsert({

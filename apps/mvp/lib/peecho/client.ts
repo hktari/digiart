@@ -407,11 +407,27 @@ export class PeechoClient {
     return response.json();
   }
 
-  async getOfferings(): Promise<PeechoOffering[]> {
+  async getOfferings(filters?: {
+    categoryFilter?: string;
+    subCategoryFilter?: string;
+  }): Promise<PeechoOffering[]> {
     try {
-      const data = await this.get<OfferingsApiResponse>("/offering/list", {
+      const params: Record<string, string> = {
         merchantApiKey: this.merchantApiKey,
-      });
+      };
+
+      if (filters?.categoryFilter) {
+        params.categoryFilter = filters.categoryFilter;
+      }
+
+      if (filters?.subCategoryFilter) {
+        params.subCategoryFilter = filters.subCategoryFilter;
+      }
+
+      const data = await this.get<OfferingsApiResponse>(
+        "/offering/list",
+        params,
+      );
 
       const offerings: PeechoOffering[] = [];
       for (const categories of Object.values(data)) {
