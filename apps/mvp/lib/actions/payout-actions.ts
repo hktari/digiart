@@ -21,7 +21,7 @@ export async function calculatePayoutsAction(
     revalidatePath(`/admin/payouts/${cycleId}`);
     return {
       success: true,
-      message: `Calculated payouts for ${result.payouts.length} creators. Pool: ${result.totalMarkupPool} EUR (${result.fulfilledCollectors}/${result.paidCollectors} collectors fulfilled).`,
+      message: `Calculated payouts for ${result.payouts.length} creators. Pool: ${result.totalMarginPool} EUR (${result.fulfilledCollectors}/${result.paidCollectors} collectors fulfilled).`,
     };
   } catch (error) {
     return {

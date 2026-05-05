@@ -13,7 +13,7 @@
  *   uncomment the Sentry import and calls below.
  */
 
-// import * as Sentry from "@sentry/nextjs";
+import * as Sentry from "@sentry/nextjs";
 
 type Context = Record<string, unknown>;
 
@@ -26,20 +26,18 @@ export const logger = {
   error(message: string, error?: unknown, context?: Context): void {
     console.error(`[ERROR] ${message}`, error ?? "", context ?? "");
 
-    // Sentry.captureException(toError(error ?? message), {
-    //   extra: { message, ...context },
-    // });
+    Sentry.captureException(_toError(error ?? message), {
+      extra: { message, ...context },
+    });
   },
 
   warn(message: string, context?: Context): void {
     console.warn(`[WARN] ${message}`, context ?? "");
-
-    // Sentry.addBreadcrumb({ level: "warning", message, data: context });
+    Sentry.addBreadcrumb({ level: "warning", message, data: context });
   },
 
   info(message: string, context?: Context): void {
     console.info(`[INFO] ${message}`, context ?? "");
-
-    // Sentry.addBreadcrumb({ level: "info", message, data: context });
+    Sentry.addBreadcrumb({ level: "info", message, data: context });
   },
 };
