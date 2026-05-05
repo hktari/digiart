@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 import { peechoClient } from "./client";
 
 export interface QuoteParams {
@@ -81,7 +82,11 @@ export async function getQuote(params: QuoteParams): Promise<QuoteResult> {
       offeringId,
     };
   } catch (error) {
-    console.error("Failed to get quote:", error);
+    logger.error("Failed to get quote", error, {
+      country: params.country,
+      pageCount: params.pageCount,
+      offeringId: params.offeringId,
+    });
     throw new Error(
       error instanceof Error
         ? error.message

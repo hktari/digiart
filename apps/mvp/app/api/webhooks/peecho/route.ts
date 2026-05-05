@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { logger } from "@/lib/logger";
 
 interface PeechoWebhookPayload {
   signature: string;
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
   const secretKey = process.env.PEECHO_SECRET_KEY;
 
   if (!secretKey) {
-    console.error("PEECHO_SECRET_KEY not configured");
+    logger.error("PEECHO_SECRET_KEY not configured - webhook unavailable");
     return NextResponse.json(
       { error: "Webhook not configured" },
       { status: 500 },
@@ -85,7 +86,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error("Peecho webhook error:", error);
+    logger.error("Peecho webhook handler error", error, {
+      orderId: payload?.order_id,
+      newStatus: payload?.new_status,
+    });
     return NextResponse.json(
       { error: "Webhook handler failed" },
       { status: 500 },

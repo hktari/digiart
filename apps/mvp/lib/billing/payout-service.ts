@@ -6,20 +6,39 @@ interface EarningsCalculation {
   currency: string;
 }
 
+/**
+ * Calculate creator earnings based on the margin (retail - wholesale)
+ * from order-based pricing, split according to PlatformConfig.
+ */
 export async function calculateCreatorEarningsForCycle(
   cycleId: string,
 ): Promise<{
   payouts: EarningsCalculation[];
-  totalMarkupPool: number;
+  totalMarginPool: number;
+  totalCreatorPayout: number;
+  totalPlatformFee: number;
   paidCollectors: number;
   fulfilledCollectors: number;
 }> {
+  // Get platform config for payout split
+  const platformConfig = await db.platformConfig.findFirst();
+  const creatorPayoutSplit = platformConfig?.creatorPayoutSplit ?? 0.7;
+  const platformFeeSplit = platformConfig?.platformFeeSplit ?? 0.3;
+
+  // Get paid billing records with order-based pricing data
   const paidBillingRecords = await db.billingRecord.findMany({
     where: {
       cycleId,
       status: "PAID",
     },
-    include: {
+    select: {
+      id: true,
+      collectorProfileId: true,
+      retailTotalAmount: true,
+      wholesaleTotalAmount: true,
+      platformMarkupAmount: true,
+      creatorPayoutAmount: true,
+      currency: true,
       quoteSnapshot: {
         select: {
           id: true,
@@ -43,17 +62,25 @@ export async function calculateCreatorEarningsForCycle(
     fulfilledOrders.map((o) => o.collectorProfileId),
   );
 
-  const eligibleRecords = paidBillingRecords.filter(
-    (r) =>
-      r.quoteSnapshot?.isFrozen &&
-      fulfilledCollectorIds.has(r.collectorProfileId),
+  const eligibleRecords = paidBillingRecords.filter((r) =>
+    fulfilledCollectorIds.has(r.collectorProfileId),
   );
 
-  const totalMarkupPool = eligibleRecords.reduce((sum, r) => {
+  // Calculate total margin from order-based pricing (retail - wholesale)
+  // or fall back to the old quote-based markup if order pricing not available
+  const totalMarginPool = eligibleRecords.reduce((sum, r) => {
+    if (r.retailTotalAmount && r.wholesaleTotalAmount) {
+      return sum + Number(r.retailTotalAmount) - Number(r.wholesaleTotalAmount);
+    }
+    // Fallback to old quote-based markup
     return sum + Number(r.quoteSnapshot?.markupAmount ?? 0);
   }, 0);
 
-  const currency = eligibleRecords[0]?.quoteSnapshot?.currency ?? "EUR";
+  // Calculate creator and platform shares
+  const totalCreatorPayout = totalMarginPool * creatorPayoutSplit;
+  const totalPlatformFee = totalMarginPool * platformFeeSplit;
+
+  const currency = eligibleRecords[0]?.currency ?? "EUR";
 
   const selections = await db.collectorReleaseSelection.findMany({
     where: {
@@ -90,7 +117,8 @@ export async function calculateCreatorEarningsForCycle(
   for (const [creatorId, artworkCount] of creatorArtworkCounts) {
     if (totalArtworks === 0) continue;
     const share = artworkCount / totalArtworks;
-    const amount = Math.round(totalMarkupPool * share * 100) / 100;
+    // Creator's share of the total margin pool
+    const amount = Math.round(totalCreatorPayout * share * 100) / 100;
 
     payouts.push({
       creatorId,
@@ -107,10 +135,17 @@ export async function calculateCreatorEarningsForCycle(
     await db.payoutCalculation.create({
       data: {
         cycleId,
-        totalMarkupPool,
+        totalMarkupPool: totalCreatorPayout, // Store creator payout pool for backwards compatibility
         totalPaidCollectors: paidBillingRecords.length,
         totalFulfilledCollectors: fulfilledCollectorIds.size,
-        calculationSnapshot: payouts as any,
+        calculationSnapshot: {
+          payouts,
+          totalMarginPool,
+          totalCreatorPayout,
+          totalPlatformFee,
+          creatorPayoutSplit,
+          platformFeeSplit,
+        } as any,
       },
     });
   }
@@ -140,7 +175,9 @@ export async function calculateCreatorEarningsForCycle(
 
   return {
     payouts,
-    totalMarkupPool,
+    totalMarginPool,
+    totalCreatorPayout,
+    totalPlatformFee,
     paidCollectors: paidBillingRecords.length,
     fulfilledCollectors: fulfilledCollectorIds.size,
   };

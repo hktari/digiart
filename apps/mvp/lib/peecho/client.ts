@@ -1,3 +1,5 @@
+import { logger } from "@/lib/logger";
+
 const PEECHO_API_URL =
   process.env.PEECHO_API_URL || "https://test.www.peecho.com/rest/v3";
 
@@ -80,11 +82,13 @@ export interface PeechoOrderItem {
   item_reference: string;
   offering_id: number;
   quantity: number;
-  file_details: {
+  // file_details is optional for async creation (files attached later via /order/files)
+  file_details?: {
     content_url: string;
     content_width: number;
     content_height: number;
     number_of_pages: number;
+    cover_url?: string;
     spine_details?: {
       dynamic_spine_details?: {
         text_font?: string;
@@ -124,6 +128,95 @@ export interface PeechoCreateOrderResponse {
 
 export interface PeechoPayOrderResponse {
   order_state: string;
+}
+
+// Order details response from GET /rest/v3/order/details
+export interface PeechoOrderDetails {
+  order_id: number;
+  order_reference: string;
+  order_state: string;
+  currency: string;
+  total_wholesale_price_inc_taxes: number;
+  total_retail_price_inc_taxes: number;
+  total_shipping_price: number;
+  vat_summary: Array<{
+    vat_percentage: number;
+    vat_amount: number;
+  }>;
+  items: Array<{
+    item_id: number;
+    item_reference: string;
+    offering_id: number;
+    quantity: number;
+    number_of_pages: number;
+    state: string;
+  }>;
+  shipping_address: {
+    first_name: string;
+    last_name: string;
+    address_line_1: string;
+    address_line_2?: string;
+    zip_code: string;
+    city: string;
+    state?: string;
+    country_code: string;
+  };
+  billing_address?: {
+    first_name: string;
+    last_name: string;
+    address_line_1: string;
+    address_line_2?: string;
+    zip_code: string;
+    city: string;
+    state?: string;
+    country_code: string;
+  };
+  email_address: string;
+}
+
+// Address update params for POST /rest/v3/order/address
+export interface PeechoAddressDetails {
+  email_address: string;
+  shipping_address: {
+    first_name: string;
+    last_name: string;
+    address_line_1: string;
+    address_line_2?: string;
+    zip_code: string;
+    city: string;
+    state?: string | null;
+    country_code: string;
+  };
+  billing_address?: {
+    first_name: string;
+    last_name: string;
+    address_line_1: string;
+    address_line_2?: string;
+    zip_code: string;
+    city: string;
+    state?: string | null;
+    country_code: string;
+  };
+}
+
+// File attachment params for POST /rest/v3/order/files
+export interface PeechoFileDetails {
+  content_url: string;
+  content_width: number;
+  content_height: number;
+  number_of_pages: number;
+  cover_url?: string;
+  spine_details?: {
+    custom_spine_url?: string;
+    dynamic_spine_details?: {
+      text_font?: string;
+      text_size?: number;
+      text_colour?: string;
+      text_top?: string;
+      text_center?: string;
+      text_bottom?: string;
+    };
+  };
 }
 
 export interface PeechoCountry {
@@ -261,7 +354,7 @@ export class PeechoClient {
       process.env.PEECHO_OFFERING_IDS?.split(",").map((id) => id.trim()) || [];
 
     if (!this.merchantApiKey) {
-      console.warn(
+      logger.warn(
         "PEECHO_MERCHANT_API_KEY is not set. Peecho integration will not work.",
       );
     }
@@ -328,7 +421,7 @@ export class PeechoClient {
       }
       return offerings;
     } catch (error) {
-      console.error("Failed to fetch Peecho offerings:", error);
+      logger.error("Failed to fetch Peecho offerings", error);
       throw error;
     }
   }
@@ -367,7 +460,11 @@ export class PeechoClient {
       });
       return data;
     } catch (error) {
-      console.error("Failed to get Peecho quote:", error);
+      logger.error("Failed to get Peecho quote", error, {
+        country: params.country,
+        pageCount: params.page_count,
+        offeringId: params.offering_id,
+      });
       throw error;
     }
   }
@@ -385,7 +482,9 @@ export class PeechoClient {
       });
       return data;
     } catch (error) {
-      console.error("Failed to create Peecho order:", error);
+      logger.error("Failed to create Peecho order", error, {
+        orderReference: params.order_reference,
+      });
       throw error;
     }
   }
@@ -407,7 +506,64 @@ export class PeechoClient {
       });
       return data;
     } catch (error) {
-      console.error("Failed to pay Peecho order:", error);
+      logger.error("Failed to pay Peecho order", error, { orderId });
+      throw error;
+    }
+  }
+
+  async getOrderDetails(orderId: number): Promise<PeechoOrderDetails> {
+    try {
+      const data = await this.get<PeechoOrderDetails>("/order/details", {
+        merchantApiKey: this.merchantApiKey,
+        orderId: String(orderId),
+      });
+      return data;
+    } catch (error) {
+      logger.error("Failed to get Peecho order details", error, { orderId });
+      throw error;
+    }
+  }
+
+  async updateOrderAddress(
+    orderId: number,
+    addressDetails: PeechoAddressDetails,
+  ): Promise<{ success: boolean; message?: string }> {
+    try {
+      const data = await this.post<{ success: boolean; message?: string }>(
+        "/order/address",
+        {
+          order_id: orderId,
+          merchant_api_key: this.merchantApiKey,
+          address_details: addressDetails,
+        },
+      );
+      return data;
+    } catch (error) {
+      logger.error("Failed to update Peecho order address", error, { orderId });
+      throw error;
+    }
+  }
+
+  async attachOrderFiles(
+    orderId: number,
+    itemReference: string,
+    fileDetails: PeechoFileDetails,
+  ): Promise<{ success: boolean }> {
+    try {
+      const data = await this.post<{ success: boolean }>("/order/files", {
+        order_id: orderId,
+        merchant_api_key: this.merchantApiKey,
+        file_details: {
+          item_reference: itemReference,
+          ...fileDetails,
+        },
+      });
+      return data;
+    } catch (error) {
+      logger.error("Failed to attach files to Peecho order", error, {
+        orderId,
+        itemReference,
+      });
       throw error;
     }
   }
@@ -476,7 +632,7 @@ export class PeechoClient {
 
       return countries;
     } catch (error) {
-      console.error("Failed to fetch Peecho countries:", error);
+      logger.error("Failed to fetch Peecho countries", error);
       throw error;
     }
   }
@@ -522,7 +678,7 @@ export class PeechoClient {
       stateCodes = [...merged].sort((a, b) => a.localeCompare(b));
       return stateCodes;
     } catch (error) {
-      console.error("Failed to fetch Peecho US state codes:", error);
+      logger.error("Failed to fetch Peecho US state codes", error);
       throw error;
     }
   }

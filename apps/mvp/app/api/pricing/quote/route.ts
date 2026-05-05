@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
+import { logger } from "@/lib/logger";
 import { getQuote } from "@/lib/peecho/quote-service";
 
 const quoteRequestSchema = z.object({
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(quote);
   } catch (error) {
-    console.error("Quote API error:", error);
+    logger.error("Quote API error", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to get quote" },
       { status: 500 },

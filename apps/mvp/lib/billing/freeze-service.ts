@@ -1,7 +1,10 @@
 import { computeBookletPageCount } from "@/lib/booklet/page-count";
 import { db } from "@/lib/db";
+import { logger } from "@/lib/logger";
+import { peechoClient } from "@/lib/peecho/client";
 import { getQuote } from "@/lib/peecho/quote-service";
 import { createQuoteSnapshot } from "@/lib/pricing/quote-snapshot";
+import { attachFilesToOrder } from "./checkout-service";
 
 interface FreezeResult {
   frozen: number;
@@ -70,6 +73,7 @@ export async function freezeCollectorCycleQuotes(
 
       const pageCountResult = computeBookletPageCount(selections as any);
 
+      // Get quote for quote snapshot (used for historical reference)
       const quoteData = await getQuote({
         country: intent.collectorProfile.shippingCountry,
         countryStateCode:
@@ -91,6 +95,59 @@ export async function freezeCollectorCycleQuotes(
           frozenAt: new Date(),
         },
       });
+
+      // If we have an existing Peecho order, update it with final page count
+      // by attaching the file (which includes page count in metadata)
+      if (intent.peechoOrderId) {
+        try {
+          // Get or create the generated print file
+          const printFile = await db.generatedPrintFile.findUnique({
+            where: {
+              collectorProfileId_cycleId: {
+                collectorProfileId: collectorId,
+                cycleId,
+              },
+            },
+          });
+
+          if (printFile?.storageUrl && printFile.status === "READY") {
+            // Attach the PDF to the existing order
+            await attachFilesToOrder(
+              intent.peechoOrderId,
+              `booklet-${collectorId}-${cycleId}`,
+              printFile.storageUrl,
+              printFile.pageCount ?? pageCountResult.totalPages,
+            );
+
+            // Fetch final order details to confirm price
+            const orderDetails = await peechoClient.getOrderDetails(
+              parseInt(intent.peechoOrderId, 10),
+            );
+
+            // Update checkout intent with final pricing
+            await db.checkoutIntent.update({
+              where: { id: intent.id },
+              data: {
+                wholesaleTotalAmount:
+                  orderDetails.total_wholesale_price_inc_taxes,
+                retailTotalAmount: orderDetails.total_retail_price_inc_taxes,
+              },
+            });
+          }
+        } catch (error) {
+          logger.warn(
+            "Failed to attach files to order during freeze (will retry at fulfillment)",
+            {
+              collectorId,
+              cycleId,
+              peechoOrderId: intent.peechoOrderId,
+              error: String(error),
+            },
+          );
+          // Don't fail the freeze process if file attachment fails
+          // The fulfillment service will retry later
+        }
+      }
 
       result.frozen += 1;
     } catch (error) {

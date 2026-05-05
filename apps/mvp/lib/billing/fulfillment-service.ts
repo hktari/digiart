@@ -1,5 +1,7 @@
 import { db } from "@/lib/db";
+import { logger } from "@/lib/logger";
 import { peechoClient } from "@/lib/peecho/client";
+import { attachFilesToOrder } from "./checkout-service";
 
 type SubmitOrderResult =
   | {
@@ -44,18 +46,37 @@ export async function submitFulfillmentOrder(
     return { success: false, error: "Print file has no storage URL" };
   }
 
-  const quoteSnapshot = await db.pricingQuoteSnapshot.findFirst({
+  // Look up the checkout intent to get the Peecho order ID
+  const checkoutIntent = await db.checkoutIntent.findUnique({
     where: {
-      collectorProfileId: printFile.collectorProfileId,
-      cycleId: printFile.cycleId,
-      isFrozen: true,
+      collectorProfileId_cycleId: {
+        collectorProfileId: printFile.collectorProfileId,
+        cycleId: printFile.cycleId,
+      },
     },
-    orderBy: { quotedAt: "desc" },
-    include: { offering: true },
   });
 
-  if (!quoteSnapshot) {
-    return { success: false, error: "No frozen quote found" };
+  if (!checkoutIntent?.peechoOrderId) {
+    return { success: false, error: "No Peecho order found for this checkout" };
+  }
+
+  // Ensure files are attached (idempotent - safe to call again)
+  if (printFile.storageUrl && printFile.status === "READY") {
+    try {
+      await attachFilesToOrder(
+        checkoutIntent.peechoOrderId,
+        `booklet-${printFile.collectorProfileId}-${printFile.cycleId}`,
+        printFile.storageUrl,
+        printFile.pageCount ?? 20,
+      );
+    } catch (error) {
+      logger.warn("Failed to attach files (may already be attached)", {
+        generatedPrintFileId,
+        peechoOrderId: checkoutIntent.peechoOrderId,
+        error: String(error),
+      });
+      // Continue - files might already be attached from freeze-service
+    }
   }
 
   const existingOrder = await db.fulfillmentOrder.findUnique({
@@ -80,46 +101,38 @@ export async function submitFulfillmentOrder(
     };
   }
 
+  // Get quote snapshot for reference (required for fulfillment order)
+  const quoteSnapshot = await db.pricingQuoteSnapshot.findFirst({
+    where: {
+      collectorProfileId: printFile.collectorProfileId,
+      cycleId: printFile.cycleId,
+      isFrozen: true,
+    },
+    orderBy: { quotedAt: "desc" },
+  });
+
+  if (!quoteSnapshot) {
+    return { success: false, error: "No frozen quote found" };
+  }
+
+  // Pay the existing Peecho order (already created at checkout, files attached at freeze)
   try {
-    const orderResponse = await peechoClient.createOrder({
-      currency: quoteSnapshot.currency,
-      order_reference: `mvp-${printFile.collectorProfileId}-${printFile.cycleId}`,
-      item_details: [
-        {
-          item_reference: `booklet-${printFile.id}`,
-          offering_id: parseInt(quoteSnapshot.offering.externalId, 10),
-          quantity: 1,
-          file_details: {
-            content_url: printFile.storageUrl,
-            content_width: 210,
-            content_height: 297,
-            number_of_pages: printFile.pageCount ?? 20,
-          },
-        },
-      ],
-      address_details: {
-        email_address: printFile.collectorProfile.user.email ?? "",
-        shipping_address: {
-          first_name:
-            printFile.collectorProfile.user.name ??
-            printFile.collectorProfile.displayName ??
-            "",
-          last_name: "",
-          address_line_1: printFile.collectorProfile.shippingCountry ?? "",
-          zip_code: "00000",
-          city: "Unknown",
-          state: printFile.collectorProfile.shippingStateCode ?? null,
-          country_code: printFile.collectorProfile.shippingCountry ?? "",
-        },
-      },
-    });
+    const secretKey = process.env.PEECHO_SECRET_KEY;
+    if (!secretKey) {
+      throw new Error("PEECHO_SECRET_KEY not configured");
+    }
+
+    const _payResponse = await peechoClient.payOrder(
+      parseInt(checkoutIntent.peechoOrderId, 10),
+      secretKey,
+    );
 
     const fulfillmentOrder = existingOrder
       ? await db.fulfillmentOrder.update({
           where: { id: existingOrder.id },
           data: {
             status: "SUBMITTED",
-            providerOrderId: String(orderResponse.order_id),
+            providerOrderId: checkoutIntent.peechoOrderId,
             submittedAt: new Date(),
             errorMessage: null,
           },
@@ -131,7 +144,7 @@ export async function submitFulfillmentOrder(
             generatedPrintFileId: printFile.id,
             quoteSnapshotId: quoteSnapshot.id,
             status: "SUBMITTED",
-            providerOrderId: String(orderResponse.order_id),
+            providerOrderId: checkoutIntent.peechoOrderId,
             submittedAt: new Date(),
           },
         });
@@ -139,7 +152,7 @@ export async function submitFulfillmentOrder(
     return {
       success: true,
       fulfillmentOrderId: fulfillmentOrder.id,
-      providerOrderId: fulfillmentOrder.providerOrderId ?? "",
+      providerOrderId: checkoutIntent.peechoOrderId,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";

@@ -473,6 +473,13 @@ model CheckoutIntent {
   quoteInputCountry  String?
   quoteInputPageCount Int?
   acceptedEstimateDisclaimer Boolean @default(false)
+
+  // Peecho order-based pricing fields
+  peechoOrderId          String?
+  retailTotalAmount      Decimal? @db.Decimal(10, 2)
+  wholesaleTotalAmount   Decimal? @db.Decimal(10, 2)
+  platformMarkupAmount   Decimal? @db.Decimal(10, 2)
+
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
@@ -506,6 +513,14 @@ model BillingRecord {
   status                BillingStatus @default(PENDING)
   paidAt                DateTime?
   errorMessage          String?
+
+  // Peecho order-based pricing fields (from order details at cycle lock)
+  peechoOrderId          String?
+  retailTotalAmount      Decimal? @db.Decimal(10, 2)
+  wholesaleTotalAmount   Decimal? @db.Decimal(10, 2)
+  platformMarkupAmount   Decimal? @db.Decimal(10, 2)
+  creatorPayoutAmount    Decimal? @db.Decimal(10, 2)
+
   createdAt             DateTime      @default(now())
   updatedAt             DateTime      @updatedAt
 
@@ -519,6 +534,22 @@ model BillingRecord {
 model StripeWebhookEvent {
   id          String   @id
   processedAt DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Platform configuration (singleton, admin-managed)
+// ---------------------------------------------------------------------------
+
+model PlatformConfig {
+  id                  String   @id @default(cuid())
+  // Note: Margin is configured via Peecho dashboard, not here
+  // The margin (retail - wholesale) is split between creators and platform
+  creatorPayoutSplit  Float    @default(0.7)   // fraction of margin going to creators
+  platformFeeSplit    Float    @default(0.3)   // fraction of margin kept as platform fee
+  updatedAt           DateTime @updatedAt
+  updatedBy           String?                     // admin user ID who last updated
+
+  @@index([updatedAt])
 }
 
 // ---------------------------------------------------------------------------

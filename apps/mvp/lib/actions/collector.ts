@@ -11,6 +11,7 @@ import {
   MIN_SUBSCRIBED_CREATORS,
 } from "@/lib/constants/booklet";
 import { db } from "@/lib/db";
+import { logger } from "@/lib/logger";
 import { getCurrentCycle } from "./cycles";
 
 const collectorSetupSchema = z.object({
@@ -337,7 +338,9 @@ export async function saveCollectorProfile(
     revalidatePath("/collector/setup");
     return { success: true };
   } catch (error) {
-    console.error("Failed to save collector profile:", error);
+    logger.error("Failed to save collector profile", error, {
+      userId: session?.user?.id,
+    });
     return {
       success: false,
       errors: { _form: "Failed to save profile. Please try again." },
@@ -487,7 +490,10 @@ export async function subscribeToCreator(
       autoAssignmentSkipped,
     };
   } catch (error) {
-    console.error("Failed to subscribe to creator:", error);
+    logger.error("Failed to subscribe to creator", error, {
+      creatorProfileId,
+      collectorProfileId: collectorProfile?.id,
+    });
     throw error;
   }
 }
@@ -524,7 +530,9 @@ export async function unsubscribeFromCreator(subscriptionId: string) {
     revalidatePath("/collector/subscriptions");
     return { success: true };
   } catch (error) {
-    console.error("Failed to unsubscribe from creator:", error);
+    logger.error("Failed to unsubscribe from creator", error, {
+      subscriptionId,
+    });
     throw error;
   }
 }
@@ -705,7 +713,7 @@ export async function toggleReleaseSelection(
     revalidatePath("/collector/releases");
     return { success: true };
   } catch (error) {
-    console.error("Failed to toggle release selection:", error);
+    logger.error("Failed to toggle release selection", error);
     throw error;
   }
 }

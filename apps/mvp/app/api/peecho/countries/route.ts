@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { logger } from "@/lib/logger";
 
 export async function GET() {
   try {
@@ -15,7 +16,7 @@ export async function GET() {
 
     return NextResponse.json(countries);
   } catch (error) {
-    console.error("Failed to fetch fulfillment countries:", error);
+    logger.error("Failed to fetch fulfillment countries", error);
     return NextResponse.json(
       { error: "Failed to fetch fulfillment countries" },
       { status: 500 },

@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { logger } from "@/lib/logger";
 import { peechoClient } from "./client";
 
 export async function syncPeechoOfferings(): Promise<{
@@ -63,7 +64,7 @@ export async function syncPeechoOfferings(): Promise<{
       syncedCount: offerings.length,
     };
   } catch (error) {
-    console.error("Failed to sync Peecho offerings:", error);
+    logger.error("Failed to sync Peecho offerings", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error",
