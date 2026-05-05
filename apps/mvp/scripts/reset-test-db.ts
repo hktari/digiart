@@ -45,8 +45,14 @@ async function resetAndSeed() {
         "CollectorCreatorSubscription",
         "ReleaseArtwork",
         "ReleaseTag",
+        "FulfillmentOrder",
+        "BillingRecord",
+        "CheckoutIntent",
         "GeneratedPrintFile",
         "PricingQuoteSnapshot",
+        "CreatorPayout",
+        "PayoutCalculation",
+        "PlatformConfig",
         "Release",
         "Artwork",
         "CreatorSocialLink",
@@ -62,7 +68,9 @@ async function resetAndSeed() {
         "User",
         "Tag",
         "SubscriptionCycle",
-        "BookletConstraint"
+        "BookletConstraint",
+        "PodOffering",
+        "PodProviderConfig"
       CASCADE
     `);
 
@@ -308,6 +316,158 @@ async function resetAndSeed() {
       }
     }
 
+    // ---- Payout seed data (dev testing of /admin/payouts) ----------------
+    // Seeds: PlatformConfig, PayPal profiles on creators, a PAID billing
+    // record + SHIPPED fulfillment order for the seeded collector, then
+    // PayoutCalculation + PENDING CreatorPayout rows ready to send.
+
+    const podProvider = await db.podProviderConfig.create({
+      data: { provider: "Peecho", environment: "SANDBOX", isActive: true },
+    });
+
+    const podOffering = await db.podOffering.create({
+      data: {
+        providerId: podProvider.id,
+        externalId: "test-product-1",
+        name: "A5 Softcover Booklet",
+        minPages: 18,
+        maxPages: 500,
+        isActive: true,
+      },
+    });
+
+    await db.platformConfig.create({
+      data: { creatorPayoutSplit: 0.7, platformFeeSplit: 0.3 },
+    });
+
+    // Give each seeded creator a PayPal payout profile
+    const seededCreatorProfiles = await db.creatorProfile.findMany({
+      where: { status: "PUBLISHED" },
+      select: { id: true, slug: true },
+    });
+
+    for (const profile of seededCreatorProfiles) {
+      await db.creatorPayoutProfile.create({
+        data: {
+          creatorProfileId: profile.id,
+          legalName: `Test Legal Name (${profile.slug})`,
+          paypalEmail: `${profile.slug}@paypal-test.digiart`,
+          isReady: true,
+        },
+      });
+    }
+
+    // Create a frozen PricingQuoteSnapshot for the seeded collector
+    const quoteSnapshot = await db.pricingQuoteSnapshot.create({
+      data: {
+        collectorProfileId: SEEDED_COLLECTOR_PROFILE_ID,
+        cycleId: openCycle.id,
+        offeringId: podOffering.id,
+        country: "SI",
+        requestedPageCount: 32,
+        shippingAmount: 3.5,
+        productAmount: 12.0,
+        taxAmount: 3.1,
+        markupAmount: 4.5,
+        totalEstimate: 23.1,
+        currency: "EUR",
+        isFrozen: true,
+        frozenAt: new Date(),
+      },
+    });
+
+    // PAID BillingRecord with realistic order-based pricing fields
+    await db.billingRecord.create({
+      data: {
+        collectorProfileId: SEEDED_COLLECTOR_PROFILE_ID,
+        cycleId: openCycle.id,
+        quoteSnapshotId: quoteSnapshot.id,
+        amount: 23.1,
+        currency: "EUR",
+        status: "PAID",
+        paidAt: new Date(),
+        retailTotalAmount: 23.1,
+        wholesaleTotalAmount: 14.6,
+        platformMarkupAmount: 4.5,
+        peechoOrderId: "test-peecho-order-001",
+      },
+    });
+
+    // SHIPPED FulfillmentOrder (makes collector eligible for payout)
+    const printFile = await db.generatedPrintFile.create({
+      data: {
+        collectorProfileId: SEEDED_COLLECTOR_PROFILE_ID,
+        cycleId: openCycle.id,
+        storageUrl: "https://storage.test/seed/booklet.pdf",
+        pageCount: 32,
+        status: "READY",
+        generatedAt: new Date(),
+      },
+    });
+
+    await db.fulfillmentOrder.create({
+      data: {
+        collectorProfileId: SEEDED_COLLECTOR_PROFILE_ID,
+        cycleId: openCycle.id,
+        generatedPrintFileId: printFile.id,
+        quoteSnapshotId: quoteSnapshot.id,
+        providerOrderId: "test-peecho-order-001",
+        status: "SHIPPED",
+        submittedAt: new Date(),
+      },
+    });
+
+    // PayoutCalculation + PENDING CreatorPayout rows
+    // Margin pool = retail - wholesale = 23.1 - 14.6 = 8.5
+    // Creator pool (70%) = 5.95, platform fee (30%) = 2.55
+    const marginPool = 23.1 - 14.6; // 8.5
+    const creatorPoolTotal = marginPool * 0.7; // 5.95
+
+    const payoutCalcSnapshot = {
+      payouts: seededCreatorProfiles.map((p) => ({
+        creatorId: p.id,
+        amount:
+          Math.round((creatorPoolTotal / seededCreatorProfiles.length) * 100) /
+          100,
+        currency: "EUR",
+      })),
+      totalMarginPool: marginPool,
+      totalCreatorPayout: creatorPoolTotal,
+      totalPlatformFee: marginPool * 0.3,
+      creatorPayoutSplit: 0.7,
+      platformFeeSplit: 0.3,
+    };
+
+    await db.payoutCalculation.create({
+      data: {
+        cycleId: openCycle.id,
+        totalMarkupPool: creatorPoolTotal,
+        totalPaidCollectors: 1,
+        totalFulfilledCollectors: 1,
+        calculationSnapshot: payoutCalcSnapshot,
+      },
+    });
+
+    const perCreator =
+      Math.round((creatorPoolTotal / seededCreatorProfiles.length) * 100) / 100;
+
+    await db.creatorPayout.createMany({
+      data: seededCreatorProfiles.map((profile) => ({
+        creatorProfileId: profile.id,
+        cycleId: openCycle.id,
+        amount: perCreator,
+        currency: "EUR",
+        status: "PENDING",
+      })),
+    });
+
+    console.log(
+      `   Payout seed: ${seededCreatorProfiles.length} PENDING creator payouts @ €${perCreator} each`,
+    );
+    console.log(
+      `   Margin pool: €${marginPool.toFixed(2)} → creator pool €${creatorPoolTotal.toFixed(2)}`,
+    );
+
     // ---- Write session tokens to .env.test.local -------------------------
     // IDs are fixed so AUTH_BYPASS_TEST_USER_ID lives in .env.test permanently.
     // Only the rotating session tokens go here.
@@ -325,7 +485,7 @@ NO_ROLE_SESSION_TOKEN="${noRoleSessionToken}"
     console.log(`   Published creators: ${creators.length}`);
     console.log("   Collector subscriptions: 2");
     console.log("   Cycle: OPEN");
-    console.log("   BookletConstraint: 30-50 pages");
+    console.log("   BookletConstraint: 18-500 pages");
     console.log("");
     console.log("📝 Written to .env.test.local (session tokens only)");
     console.log(
