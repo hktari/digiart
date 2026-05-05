@@ -71,17 +71,22 @@ export async function syncPeechoOfferings(): Promise<{
       subCategoryFilter: "GM",
     });
 
+    const syncedExternalIds = new Set<string>();
+
     for (const offering of offerings) {
+      const externalId = offering.id.toString();
+      syncedExternalIds.add(externalId);
+
       await db.podOffering.upsert({
         where: {
           providerId_externalId: {
             providerId: providerConfig.id,
-            externalId: offering.id.toString(),
+            externalId,
           },
         },
         create: {
           providerId: providerConfig.id,
-          externalId: offering.id.toString(),
+          externalId,
           name: offering.name,
           minPages: offering.minNumberOfPages,
           maxPages: offering.maxNumberOfPages,
@@ -98,10 +103,20 @@ export async function syncPeechoOfferings(): Promise<{
           widthMm: offering.dimensionWidth,
           heightMm: offering.dimensionHeight,
           pricingMeta: offering.pricingDto as object | undefined,
+          isActive: true,
           syncedAt: new Date(),
         },
       });
     }
+
+    // Deactivate offerings not in this sync (e.g., old test data)
+    await db.podOffering.updateMany({
+      where: {
+        providerId: providerConfig.id,
+        externalId: { notIn: Array.from(syncedExternalIds) },
+      },
+      data: { isActive: false },
+    });
 
     // Sync countries and states
     const syncedAt = new Date();
@@ -109,9 +124,24 @@ export async function syncPeechoOfferings(): Promise<{
       where: { providerId: providerConfig.id, isActive: true },
       select: { externalId: true },
     });
-    const offeringIds = activeOfferings.map((o) => o.externalId);
-    const peechoCountries = await peechoClient.getCountries(offeringIds);
-    const usStateCodes = await peechoClient.getUSStateCodes(offeringIds);
+
+    // Filter to only valid numeric offering IDs (skip test/invalid ones)
+    const offeringIds = activeOfferings
+      .map((o) => o.externalId)
+      .filter((id) => {
+        const parsed = parseInt(id, 10);
+        return !Number.isNaN(parsed) && parsed > 0;
+      });
+
+    // Only query countries/states if we have valid offerings
+    let peechoCountries: Awaited<ReturnType<typeof peechoClient.getCountries>> =
+      [];
+    let usStateCodes: Awaited<ReturnType<typeof peechoClient.getUSStateCodes>> =
+      [];
+    if (offeringIds.length > 0) {
+      peechoCountries = await peechoClient.getCountries(offeringIds);
+      usStateCodes = await peechoClient.getUSStateCodes(offeringIds);
+    }
 
     const eligibleCountries = peechoCountries
       .map((country) => ({
