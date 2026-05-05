@@ -51,10 +51,6 @@ async function main() {
     console.log(`  pricing: ${formatPrice(offering)}`);
     console.log("");
   }
-
-  console.log(
-    `PEECHO_OFFERING_IDS="${sortedOfferings.map((offering) => offering.id).join(",")}"`,
-  );
 }
 
 main().catch((error) => {

@@ -340,7 +340,6 @@ function extractUsStateCodes(data: PeechoCountriesApiResponse): string[] {
 export class PeechoClient {
   private apiUrl: string;
   private merchantApiKey: string;
-  private offeringIds: string[];
   private countriesCache: {
     data: PeechoCountry[] | null;
     timestamp: number | null;
@@ -350,8 +349,6 @@ export class PeechoClient {
   constructor() {
     this.apiUrl = process.env.PEECHO_API_URL || PEECHO_API_URL;
     this.merchantApiKey = process.env.PEECHO_MERCHANT_API_KEY || "";
-    this.offeringIds =
-      process.env.PEECHO_OFFERING_IDS?.split(",").map((id) => id.trim()) || [];
 
     if (!this.merchantApiKey) {
       logger.warn(
@@ -584,7 +581,7 @@ export class PeechoClient {
     }
   }
 
-  async getCountries(): Promise<PeechoCountry[]> {
+  async getCountries(offeringIds?: string[]): Promise<PeechoCountry[]> {
     // Check cache
     const now = Date.now();
     if (
@@ -596,9 +593,9 @@ export class PeechoClient {
     }
 
     try {
-      const offeringIds =
-        this.offeringIds.length > 0
-          ? this.offeringIds
+      const resolvedOfferingIds =
+        offeringIds && offeringIds.length > 0
+          ? offeringIds
           : (await this.getOfferings()).map((offering) =>
               offering.id.toString(),
             );
@@ -607,17 +604,17 @@ export class PeechoClient {
         "/offering/countries",
         {
           merchantApiKey: this.merchantApiKey,
-          offeringsId: offeringIds,
+          offeringsId: resolvedOfferingIds,
         },
       );
       let countries = normalizeCountriesResponse(data);
 
       // Some merchant catalogues return no countries for bulk offering lookups.
       // Fallback to per-offering requests and merge results.
-      if (countries.length === 0 && offeringIds.length > 1) {
+      if (countries.length === 0 && resolvedOfferingIds.length > 1) {
         const merged = new Map<string, PeechoCountry>();
 
-        for (const offeringId of offeringIds) {
+        for (const offeringId of resolvedOfferingIds) {
           const singleData = await this.post<PeechoCountriesApiResponse>(
             "/offering/countries",
             {
@@ -653,11 +650,11 @@ export class PeechoClient {
     }
   }
 
-  async getUSStateCodes(): Promise<string[]> {
+  async getUSStateCodes(offeringIds?: string[]): Promise<string[]> {
     try {
-      const offeringIds =
-        this.offeringIds.length > 0
-          ? this.offeringIds
+      const resolvedOfferingIds =
+        offeringIds && offeringIds.length > 0
+          ? offeringIds
           : (await this.getOfferings()).map((offering) =>
               offering.id.toString(),
             );
@@ -666,7 +663,7 @@ export class PeechoClient {
         "/offering/countries",
         {
           merchantApiKey: this.merchantApiKey,
-          offeringsId: offeringIds,
+          offeringsId: resolvedOfferingIds,
         },
       );
 
@@ -677,7 +674,7 @@ export class PeechoClient {
 
       // Same fallback behavior as country sync when bulk calls are empty.
       const merged = new Set<string>();
-      for (const offeringId of offeringIds) {
+      for (const offeringId of resolvedOfferingIds) {
         const singleData = await this.post<PeechoCountriesApiResponse>(
           "/offering/countries",
           {

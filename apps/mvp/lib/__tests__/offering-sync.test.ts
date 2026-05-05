@@ -9,6 +9,15 @@ vi.mock("@/lib/db", () => ({
     },
     podOffering: {
       upsert: vi.fn(),
+      findMany: vi.fn(),
+    },
+    fulfillmentCountry: {
+      upsert: vi.fn(),
+      updateMany: vi.fn(),
+    },
+    fulfillmentState: {
+      upsert: vi.fn(),
+      updateMany: vi.fn(),
     },
   },
 }));
@@ -16,6 +25,8 @@ vi.mock("@/lib/db", () => ({
 vi.mock("../peecho/client", () => ({
   peechoClient: {
     getOfferings: vi.fn(),
+    getCountries: vi.fn(),
+    getUSStateCodes: vi.fn(),
   },
 }));
 
@@ -54,6 +65,13 @@ describe("syncPeechoOfferings", () => {
       mockOfferings as never,
     );
     vi.mocked(db.podOffering.upsert).mockResolvedValue({} as never);
+    vi.mocked(db.podOffering.findMany).mockResolvedValue([] as never);
+    vi.mocked(peechoClient.getCountries).mockResolvedValue([]);
+    vi.mocked(peechoClient.getUSStateCodes).mockResolvedValue([]);
+    vi.mocked(db.fulfillmentCountry.upsert).mockResolvedValue({} as never);
+    vi.mocked(db.fulfillmentCountry.updateMany).mockResolvedValue({} as never);
+    vi.mocked(db.fulfillmentState.upsert).mockResolvedValue({} as never);
+    vi.mocked(db.fulfillmentState.updateMany).mockResolvedValue({} as never);
 
     const result = await syncPeechoOfferings();
 
@@ -79,6 +97,13 @@ describe("syncPeechoOfferings", () => {
       existingProvider as never,
     );
     vi.mocked(peechoClient.getOfferings).mockResolvedValue([]);
+    vi.mocked(db.podOffering.findMany).mockResolvedValue([] as never);
+    vi.mocked(peechoClient.getCountries).mockResolvedValue([]);
+    vi.mocked(peechoClient.getUSStateCodes).mockResolvedValue([]);
+    vi.mocked(db.fulfillmentCountry.upsert).mockResolvedValue({} as never);
+    vi.mocked(db.fulfillmentCountry.updateMany).mockResolvedValue({} as never);
+    vi.mocked(db.fulfillmentState.upsert).mockResolvedValue({} as never);
+    vi.mocked(db.fulfillmentState.updateMany).mockResolvedValue({} as never);
 
     await syncPeechoOfferings();
 
@@ -129,6 +154,13 @@ describe("syncPeechoOfferings", () => {
       mockOfferings as never,
     );
     vi.mocked(db.podOffering.upsert).mockResolvedValue({} as never);
+    vi.mocked(db.podOffering.findMany).mockResolvedValue([] as never);
+    vi.mocked(peechoClient.getCountries).mockResolvedValue([]);
+    vi.mocked(peechoClient.getUSStateCodes).mockResolvedValue([]);
+    vi.mocked(db.fulfillmentCountry.upsert).mockResolvedValue({} as never);
+    vi.mocked(db.fulfillmentCountry.updateMany).mockResolvedValue({} as never);
+    vi.mocked(db.fulfillmentState.upsert).mockResolvedValue({} as never);
+    vi.mocked(db.fulfillmentState.updateMany).mockResolvedValue({} as never);
 
     const result = await syncPeechoOfferings();
 
@@ -146,6 +178,13 @@ describe("syncPeechoOfferings", () => {
       provider as never,
     );
     vi.mocked(peechoClient.getOfferings).mockResolvedValue([]);
+    vi.mocked(db.podOffering.findMany).mockResolvedValue([] as never);
+    vi.mocked(peechoClient.getCountries).mockResolvedValue([]);
+    vi.mocked(peechoClient.getUSStateCodes).mockResolvedValue([]);
+    vi.mocked(db.fulfillmentCountry.upsert).mockResolvedValue({} as never);
+    vi.mocked(db.fulfillmentCountry.updateMany).mockResolvedValue({} as never);
+    vi.mocked(db.fulfillmentState.upsert).mockResolvedValue({} as never);
+    vi.mocked(db.fulfillmentState.updateMany).mockResolvedValue({} as never);
 
     const result = await syncPeechoOfferings();
 
@@ -180,6 +219,13 @@ describe("syncPeechoOfferings", () => {
       id: "p1",
     } as never);
     vi.mocked(peechoClient.getOfferings).mockResolvedValue([]);
+    vi.mocked(db.podOffering.findMany).mockResolvedValue([] as never);
+    vi.mocked(peechoClient.getCountries).mockResolvedValue([]);
+    vi.mocked(peechoClient.getUSStateCodes).mockResolvedValue([]);
+    vi.mocked(db.fulfillmentCountry.upsert).mockResolvedValue({} as never);
+    vi.mocked(db.fulfillmentCountry.updateMany).mockResolvedValue({} as never);
+    vi.mocked(db.fulfillmentState.upsert).mockResolvedValue({} as never);
+    vi.mocked(db.fulfillmentState.updateMany).mockResolvedValue({} as never);
 
     await syncPeechoOfferings();
 

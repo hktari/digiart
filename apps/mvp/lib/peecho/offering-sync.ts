@@ -105,8 +105,13 @@ export async function syncPeechoOfferings(): Promise<{
 
     // Sync countries and states
     const syncedAt = new Date();
-    const peechoCountries = await peechoClient.getCountries();
-    const usStateCodes = await peechoClient.getUSStateCodes();
+    const activeOfferings = await db.podOffering.findMany({
+      where: { providerId: providerConfig.id, isActive: true },
+      select: { externalId: true },
+    });
+    const offeringIds = activeOfferings.map((o) => o.externalId);
+    const peechoCountries = await peechoClient.getCountries(offeringIds);
+    const usStateCodes = await peechoClient.getUSStateCodes(offeringIds);
 
     const eligibleCountries = peechoCountries
       .map((country) => ({

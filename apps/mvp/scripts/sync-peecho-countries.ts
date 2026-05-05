@@ -56,8 +56,20 @@ async function main() {
   try {
     console.log("Fetching fulfillment countries from Peecho...");
 
-    const peechoCountries = await peechoClient.getCountries();
-    const usStateCodes = await peechoClient.getUSStateCodes();
+    const activeOfferings = await db.podOffering.findMany({
+      where: { isActive: true },
+      select: { externalId: true },
+    });
+    const offeringIds = activeOfferings.map((o) => o.externalId);
+
+    if (offeringIds.length === 0) {
+      console.warn(
+        "No active PodOfferings found in database. Run offering sync first.",
+      );
+    }
+
+    const peechoCountries = await peechoClient.getCountries(offeringIds);
+    const usStateCodes = await peechoClient.getUSStateCodes(offeringIds);
     const syncedAt = new Date();
     const eligibleCountries = peechoCountries
       .map((country) => ({
