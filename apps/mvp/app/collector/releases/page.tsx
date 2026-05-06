@@ -1,6 +1,4 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ReleaseSelectionGrid } from "@/components/release-selection-grid";
 import {
   getCollectorProfile,
   getCollectorReleaseSelections,
@@ -10,6 +8,7 @@ import {
   getCurrentCycle,
 } from "@/lib/actions/cycles";
 import { auth } from "@/lib/auth";
+import { CollectorReleasesClient } from "./collector-releases-client";
 
 export default async function CollectorReleasesPage() {
   const session = await auth();
@@ -80,71 +79,14 @@ export default async function CollectorReleasesPage() {
   );
 
   return (
-    <div className="min-h-screen bg-neutral-50">
-      <div className="max-w-5xl mx-auto px-4 py-12">
-        <div className="mb-8">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-neutral-900">
-                Booklet Release Selection
-              </h1>
-              <p className="mt-2 text-neutral-600">
-                Build your {currentCycle.label} booklet by selecting releases,
-                not individual artworks
-              </p>
-            </div>
-            <div className="text-right">
-              <div className="text-sm text-neutral-600">Selected</div>
-              <div className="text-2xl font-bold text-fuchsia-600">
-                {selectedReleaseIds.size}
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <svg
-                className="w-5 h-5 text-neutral-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                role="img"
-              >
-                <title>Calendar icon</title>
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-              <span className="text-neutral-600">
-                Lock date:{" "}
-                <span className="font-medium text-neutral-900">
-                  {new Date(currentCycle.lockDate).toLocaleDateString()}
-                </span>
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <ReleaseSelectionGrid
-          releases={availableReleases}
-          selectedReleaseIds={selectedReleaseIds}
-          cycleId={currentCycle.id}
-        />
-
-        {availableReleases.length > 0 && (
-          <div className="mt-8 text-center">
-            <Link
-              href="/collector/discover"
-              className="text-sm text-fuchsia-600 hover:text-fuchsia-700 font-medium"
-            >
-              Discover more releases →
-            </Link>
-          </div>
-        )}
-      </div>
-    </div>
+    <CollectorReleasesClient
+      initialReleases={availableReleases}
+      initialSelectedReleaseIds={selectedReleaseIds}
+      currentCycle={{
+        id: currentCycle.id,
+        label: currentCycle.label,
+        lockDate: currentCycle.lockDate.toISOString(),
+      }}
+    />
   );
 }

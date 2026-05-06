@@ -218,6 +218,7 @@ model Release {
   cycleId          String?
   title            String
   description      String?       @db.Text
+  artworkLimit     Int           @default(10)
   status           PublishStatus @default(DRAFT)
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt

@@ -4,8 +4,19 @@
 
 # E2E testing
 
-1. pnpm test:e2e:server # start Next.js on port 3003 with test env
-2. pnpm test:e2e # run all Playwright tests (auto-resets DB if needed)
+**Commands:**
+
+- `pnpm test:e2e:server` — start Next.js on port 3003 with test env
+- `pnpm test:e2e` — run all Playwright tests (auto-resets DB if needed)
+
+**Conditional DB Reset Design:**
+
+- `.env.test` — fixed user IDs (committed)
+- `.env.test.local` — rotating session tokens (auto-generated)
+- Reset triggers when `TEST_SESSION_TOKEN` missing → `scripts/reset-test-db.ts` runs
+- Reset truncates all tables, reseeds with fixed UUIDs, writes fresh tokens
+- Tests do NOT clean up; use Playwright project dependencies instead
+- Delete `.env.test.local` to force reset when: schema changes, seed changes, data pollution suspected
 
 <!-- stripe-projects-cli managed:agents-md:start -->
 

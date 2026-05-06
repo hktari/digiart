@@ -223,6 +223,151 @@ async function resetAndSeed() {
         sourcePlatform: "DeviantArt,Instagram",
         tagSlugs: ["portrait"],
       },
+      // Additional creators for infinite scroll testing
+      {
+        email: "alex@test.digiart",
+        name: "Alex Rivera",
+        slug: "alex-rivera",
+        bio: "Digital landscapes and environmental art.",
+        sourcePlatform: "ArtStation",
+        tagSlugs: ["illustration", "abstract"],
+      },
+      {
+        email: "sam@test.digiart",
+        name: "Sam Thompson",
+        slug: "sam-thompson",
+        bio: "Minimalist geometric compositions.",
+        sourcePlatform: "Behance",
+        tagSlugs: ["abstract"],
+      },
+      {
+        email: "jordan@test.digiart",
+        name: "Jordan Lee",
+        slug: "jordan-lee",
+        bio: "Traditional portrait paintings with modern twists.",
+        sourcePlatform: "Instagram",
+        tagSlugs: ["portrait", "illustration"],
+      },
+      {
+        email: "casey@test.digiart",
+        name: "Casey Morgan",
+        slug: "casey-morgan",
+        bio: "Fantasy illustration and concept art.",
+        sourcePlatform: "ArtStation,DeviantArt",
+        tagSlugs: ["illustration"],
+      },
+      {
+        email: "taylor@test.digiart",
+        name: "Taylor Kim",
+        slug: "taylor-kim",
+        bio: "Abstract expressionism and texture studies.",
+        sourcePlatform: "Behance,Instagram",
+        tagSlugs: ["abstract", "illustration"],
+      },
+      {
+        email: "morgan@test.digiart",
+        name: "Morgan Blake",
+        slug: "morgan-blake",
+        bio: "Portrait photography and digital manipulation.",
+        sourcePlatform: "Instagram",
+        tagSlugs: ["portrait"],
+      },
+      {
+        email: "riley@test.digiart",
+        name: "Riley Santos",
+        slug: "riley-santos",
+        bio: "Surrealist digital paintings.",
+        sourcePlatform: "DeviantArt",
+        tagSlugs: ["illustration", "abstract"],
+      },
+      {
+        email: "quinn@test.digiart",
+        name: "Quinn Patel",
+        slug: "quinn-patel",
+        bio: "Character design and visual storytelling.",
+        sourcePlatform: "ArtStation",
+        tagSlugs: ["illustration", "portrait"],
+      },
+      {
+        email: "avery@test.digiart",
+        name: "Avery Cooper",
+        slug: "avery-cooper",
+        bio: "Bold abstract compositions with vibrant colors.",
+        sourcePlatform: "Behance",
+        tagSlugs: ["abstract"],
+      },
+      {
+        email: "skyler@test.digiart",
+        name: "Skyler Wright",
+        slug: "skyler-wright",
+        bio: "Contemporary portrait art with emotional depth.",
+        sourcePlatform: "Instagram,ArtStation",
+        tagSlugs: ["portrait"],
+      },
+      {
+        email: "dakota@test.digiart",
+        name: "Dakota Foster",
+        slug: "dakota-foster",
+        bio: "Mixed media illustrations exploring nature themes.",
+        sourcePlatform: "DeviantArt,Behance",
+        tagSlugs: ["illustration", "abstract"],
+      },
+      {
+        email: "reese@test.digiart",
+        name: "Reese Bennett",
+        slug: "reese-bennett",
+        bio: "Modern abstract art with geometric influences.",
+        sourcePlatform: "ArtStation",
+        tagSlugs: ["abstract", "portrait"],
+      },
+      {
+        email: "hayden@test.digiart",
+        name: "Hayden Morris",
+        slug: "hayden-morris",
+        bio: "Illustrative storytelling through sequential art.",
+        sourcePlatform: "Instagram",
+        tagSlugs: ["illustration"],
+      },
+      {
+        email: "blake@test.digiart",
+        name: "Blake Anderson",
+        slug: "blake-anderson",
+        bio: "Portrait studies focusing on human emotion.",
+        sourcePlatform: "Behance",
+        tagSlugs: ["portrait", "illustration"],
+      },
+      {
+        email: "cameron@test.digiart",
+        name: "Cameron Ross",
+        slug: "cameron-ross",
+        bio: "Experimental abstract digital art.",
+        sourcePlatform: "DeviantArt",
+        tagSlugs: ["abstract"],
+      },
+      {
+        email: "drew@test.digiart",
+        name: "Drew Coleman",
+        slug: "drew-coleman",
+        bio: "Fantasy portraits and character illustrations.",
+        sourcePlatform: "ArtStation,Instagram",
+        tagSlugs: ["portrait", "illustration"],
+      },
+      {
+        email: "ellis@test.digiart",
+        name: "Ellis Bailey",
+        slug: "ellis-bailey",
+        bio: "Abstract textures and pattern design.",
+        sourcePlatform: "Behance,DeviantArt",
+        tagSlugs: ["abstract", "illustration"],
+      },
+      {
+        email: "finley@test.digiart",
+        name: "Finley Murray",
+        slug: "finley-murray",
+        bio: "Contemporary portrait and figure studies.",
+        sourcePlatform: "Instagram",
+        tagSlugs: ["portrait"],
+      },
     ] as const;
 
     const tagBySlug = Object.fromEntries(tags.map((tag) => [tag.slug, tag.id]));
@@ -482,7 +627,9 @@ NO_ROLE_SESSION_TOKEN="${noRoleSessionToken}"
     console.log("🌱 Seed complete");
     console.log(`   Creator user:  ${creatorUser.email} (${creatorUser.id})`);
     console.log(`   No-role user:  ${noRoleUser.email} (${noRoleUser.id})`);
-    console.log(`   Published creators: ${creators.length}`);
+    console.log(
+      `   Published creators: ${creators.length} (24 for infinite scroll testing)`,
+    );
     console.log("   Collector subscriptions: 2");
     console.log("   Cycle: OPEN");
     console.log("   BookletConstraint: 18-500 pages");
