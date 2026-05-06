@@ -368,6 +368,182 @@ export async function getPublicCreatorReleases(slug: string): Promise<any[]> {
   });
 }
 
+export async function recordProfileView(
+  creatorProfileId: string,
+  cycleId?: string,
+): Promise<void> {
+  await db.creatorProfileView.create({
+    data: { creatorProfileId, cycleId: cycleId ?? null },
+  });
+}
+
+export type CreatorDashboardStats = {
+  totalSubscribers: number;
+  newSubscribersThisCycle: number;
+  churnedThisCycle: number;
+  selectionsThisCycle: number;
+  profileViewsThisCycle: number;
+  lastConfirmedPayout: { amount: string; cycleLabel: string } | null;
+  pendingPayout: { amount: string } | null;
+  artworkCount: number;
+  releaseCount: number;
+  selectionsBreakdown: { releaseId: string; title: string; count: number }[];
+  currentCycle: {
+    id: string;
+    label: string;
+    lockDate: Date;
+    selectionOpenDate: Date;
+  } | null;
+};
+
+export async function getCreatorDashboardStats(): Promise<CreatorDashboardStats | null> {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/auth/sign-in");
+
+  const profile = await db.creatorProfile.findUnique({
+    where: { userId: session.user.id },
+    select: { id: true },
+  });
+  if (!profile) return null;
+
+  const currentCycle = await db.subscriptionCycle.findFirst({
+    where: { status: "OPEN" },
+    orderBy: { lockDate: "asc" },
+  });
+
+  const [
+    totalSubscribers,
+    newSubscribersThisCycle,
+    churnedThisCycle,
+    selectionsThisCycle,
+    profileViewsThisCycle,
+    lastConfirmedPayout,
+    pendingPayout,
+    counts,
+    selectionsByRelease,
+  ] = await Promise.all([
+    db.collectorCreatorSubscription.count({
+      where: { creatorProfileId: profile.id, isActive: true },
+    }),
+    currentCycle
+      ? db.collectorCreatorSubscription.count({
+          where: {
+            creatorProfileId: profile.id,
+            isActive: true,
+            createdAt: { gte: currentCycle.selectionOpenDate },
+          },
+        })
+      : 0,
+    currentCycle
+      ? db.collectorCreatorSubscription.count({
+          where: {
+            creatorProfileId: profile.id,
+            isActive: false,
+            updatedAt: { gte: currentCycle.selectionOpenDate },
+          },
+        })
+      : 0,
+    currentCycle
+      ? db.collectorReleaseSelection.count({
+          where: {
+            release: { creatorProfileId: profile.id },
+            cycleId: currentCycle.id,
+          },
+        })
+      : 0,
+    currentCycle
+      ? db.creatorProfileView.count({
+          where: {
+            creatorProfileId: profile.id,
+            cycleId: currentCycle.id,
+          },
+        })
+      : 0,
+    db.creatorPayout.findFirst({
+      where: { creatorProfileId: profile.id, status: "SENT" },
+      orderBy: { sentAt: "desc" },
+      include: { cycle: { select: { label: true } } },
+    }),
+    currentCycle
+      ? db.creatorPayout.findFirst({
+          where: {
+            creatorProfileId: profile.id,
+            cycleId: currentCycle.id,
+            status: "PENDING",
+          },
+        })
+      : null,
+    db.creatorProfile.findUnique({
+      where: { id: profile.id },
+      select: {
+        _count: {
+          select: {
+            artworks: { where: { status: "ACTIVE" } },
+            releases: true,
+          },
+        },
+      },
+    }),
+    currentCycle
+      ? db.collectorReleaseSelection.groupBy({
+          by: ["releaseId"],
+          where: {
+            release: { creatorProfileId: profile.id },
+            cycleId: currentCycle.id,
+          },
+          _count: { id: true },
+        })
+      : [],
+  ]);
+
+  let selectionsBreakdown: {
+    releaseId: string;
+    title: string;
+    count: number;
+  }[] = [];
+  if (selectionsByRelease.length > 0) {
+    const releaseIds = selectionsByRelease.map((s) => s.releaseId);
+    const releases = await db.release.findMany({
+      where: { id: { in: releaseIds } },
+      select: { id: true, title: true },
+    });
+    const titleMap = new Map(releases.map((r) => [r.id, r.title]));
+    selectionsBreakdown = selectionsByRelease.map((s) => ({
+      releaseId: s.releaseId,
+      title: titleMap.get(s.releaseId) ?? "Unknown",
+      count: s._count.id,
+    }));
+  }
+
+  return {
+    totalSubscribers,
+    newSubscribersThisCycle,
+    churnedThisCycle,
+    selectionsThisCycle,
+    profileViewsThisCycle,
+    lastConfirmedPayout: lastConfirmedPayout
+      ? {
+          amount: lastConfirmedPayout.amount.toString(),
+          cycleLabel: lastConfirmedPayout.cycle.label,
+        }
+      : null,
+    pendingPayout: pendingPayout
+      ? { amount: pendingPayout.amount.toString() }
+      : null,
+    artworkCount: counts?._count.artworks ?? 0,
+    releaseCount: counts?._count.releases ?? 0,
+    selectionsBreakdown,
+    currentCycle: currentCycle
+      ? {
+          id: currentCycle.id,
+          label: currentCycle.label,
+          lockDate: currentCycle.lockDate,
+          selectionOpenDate: currentCycle.selectionOpenDate,
+        }
+      : null,
+  };
+}
+
 export async function getPublicReleaseDetail(
   creatorSlug: string,
   releaseId: string,

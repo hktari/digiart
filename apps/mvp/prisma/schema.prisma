@@ -112,21 +112,22 @@ model CreatorProfile {
   releases      Release[]
   subscriptions CollectorCreatorSubscription[]
   payouts       CreatorPayout[]
+  profileViews  CreatorProfileView[]
 }
 
 model CreatorPayoutProfile {
-  id                String   @id @default(cuid())
-  creatorProfileId  String   @unique
-  legalName         String?
-  taxId             String?
-  bankAccountInfo   String?  @db.Text
-  paypalEmail       String?
-  paypalAccountId   String?  // PayPal payer_id from OAuth verification
-  isPayPalVerified  Boolean  @default(false)
-  payPalVerifiedAt  DateTime?
-  isReady           Boolean  @default(false)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id               String    @id @default(cuid())
+  creatorProfileId String    @unique
+  legalName        String?
+  taxId            String?
+  bankAccountInfo  String?   @db.Text
+  paypalEmail      String?
+  paypalAccountId  String? // PayPal payer_id from OAuth verification
+  isPayPalVerified Boolean   @default(false)
+  payPalVerifiedAt DateTime?
+  isReady          Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
 }
@@ -324,6 +325,7 @@ model SubscriptionCycle {
   fulfillmentOrders   FulfillmentOrder[]
   payoutCalculations  PayoutCalculation[]
   creatorPayouts      CreatorPayout[]
+  profileViews        CreatorProfileView[]
 
   @@unique([month, year])
 }
@@ -556,7 +558,7 @@ model PlatformConfig {
   // an accurate price estimate, we add `quoteMarginAmount` on top of the
   // wholesale product price. This value must be kept in sync with whatever
   // margin is configured in the Peecho merchant dashboard.
-  quoteMarginAmount  Float    @default(5.0) // fixed platform margin added to quote estimates (currency matches subscription)
+  quoteMarginAmount  Float    @default(0.3) // fractional margin rate (e.g. 0.3 = 30%); markup = (productPrice + vat) * rate
   creatorPayoutSplit Float    @default(0.7) // fraction of margin going to creators
   platformFeeSplit   Float    @default(0.3) // fraction of margin kept as platform fee
   updatedAt          DateTime @updatedAt
@@ -645,6 +647,20 @@ model CreatorPayout {
   cycle          SubscriptionCycle @relation(fields: [cycleId], references: [id])
 
   @@unique([creatorProfileId, cycleId])
+}
+
+// ---------------------------------------------------------------------------
+// Creator profile views
+// ---------------------------------------------------------------------------
+
+model CreatorProfileView {
+  id               String   @id @default(cuid())
+  creatorProfileId String
+  viewedAt         DateTime @default(now())
+  cycleId          String?
+
+  creatorProfile CreatorProfile     @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  cycle          SubscriptionCycle? @relation(fields: [cycleId], references: [id])
 }
 
 // ---------------------------------------------------------------------------

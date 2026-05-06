@@ -26,9 +26,11 @@ export interface QuoteResult {
 // configured in the Peecho merchant dashboard under "markup" or "margin").
 //
 // Consequence: to show collectors an accurate price estimate before checkout,
-// we must manually add `PlatformConfig.quoteMarginAmount` on top of the
-// wholesale product price returned by the quote API. This value must be kept
-// in sync with the margin configured in the Peecho merchant dashboard.
+// we must manually calculate the markup using `PlatformConfig.quoteMarginAmount`
+// (a fractional percentage, e.g. 0.3 = 30%) applied to the gross wholesale
+// price (productPrice + vat): markup = (productPrice + vat) * margin.
+// This margin must be kept in sync with the margin configured in the Peecho
+// merchant dashboard.
 //
 // References:
 //   - Peecho /v1/print/order/quote  → wholesale, no markup
@@ -68,10 +70,10 @@ export async function getQuote(params: QuoteParams): Promise<QuoteResult> {
       offeringId = params.offeringId;
     }
 
-    // Read platform margin to add on top of Peecho wholesale quote price.
-    // Falls back to 5.0 if no PlatformConfig row exists yet.
+    // Read platform margin percentage (e.g. 0.3 = 30%).
+    // Falls back to 0.3 if no PlatformConfig row exists yet.
     const platformConfig = await db.platformConfig.findFirst();
-    const marginAmount = platformConfig?.quoteMarginAmount ?? 5.0;
+    const margin = platformConfig?.quoteMarginAmount ?? 0.3;
 
     const quote = await peechoClient.getQuote({
       offering_id: offeringId,
@@ -85,14 +87,18 @@ export async function getQuote(params: QuoteParams): Promise<QuoteResult> {
       throw new Error("No quote items returned from Peecho");
     }
 
-    // baseAmount = wholesale cost before margin (productPrice is wholesale-only from Peecho)
-    const baseAmount = item.productPrice - marginAmount;
+    // markup = (productPrice + vat) * margin  — gross wholesale × margin rate
+    // baseAmount = productPrice - markup  (pre-markup wholesale product cost)
+    const markupAmount =
+      Math.round((item.productPrice + item.vat) * margin * 10000) / 10000;
+    const baseAmount =
+      Math.round((item.productPrice - markupAmount) * 10000) / 10000;
 
     return {
       shippingAmount: item.shippingWholesale,
       productAmount: item.productPrice,
       baseAmount,
-      markupAmount: marginAmount,
+      markupAmount,
       taxAmount: item.vat,
       totalEstimate: item.totalItemPrice,
       currency: quote.quoteDetails.currency,

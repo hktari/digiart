@@ -29,7 +29,7 @@ describe("getQuote", () => {
 
     vi.mocked(db.platformConfig.findFirst).mockResolvedValue({
       id: "cfg-1",
-      quoteMarginAmount: 5.0,
+      quoteMarginAmount: 0.3,
       creatorPayoutSplit: 0.7,
       platformFeeSplit: 0.3,
       updatedAt: new Date(),
@@ -69,11 +69,12 @@ describe("getQuote", () => {
       countryStateCode: "CA",
     });
 
+    // markup = (12.5 + 1.75) * 0.3 = 4.275, baseAmount = 12.5 - 4.275 = 8.225
     expect(result).toEqual({
       shippingAmount: 5.0,
       productAmount: 12.5,
-      baseAmount: 7.5, // productPrice - markup (12.5 - 5.0)
-      markupAmount: 5.0, // fixed platform markup
+      baseAmount: 8.225,
+      markupAmount: 4.275,
       taxAmount: 1.75,
       totalEstimate: 19.25,
       currency: "USD",
@@ -184,7 +185,7 @@ describe("getQuote", () => {
 
     vi.mocked(db.platformConfig.findFirst).mockResolvedValue({
       id: "cfg-1",
-      quoteMarginAmount: 5.0,
+      quoteMarginAmount: 0.3,
       creatorPayoutSplit: 0.7,
       platformFeeSplit: 0.3,
       updatedAt: new Date(),
@@ -227,8 +228,9 @@ describe("getQuote", () => {
       offeringId: "ext-1",
     });
 
-    expect(result.markupAmount).toBe(5.0); // fixed platform markup
-    expect(result.baseAmount).toBe(15.0); // productPrice - markup (20.0 - 5.0)
+    // markup = (20.0 + 2.85) * 0.3 = 6.855, baseAmount = 20.0 - 6.855 = 13.145
+    expect(result.markupAmount).toBe(6.855);
+    expect(result.baseAmount).toBe(13.145);
     expect(result.productAmount).toBe(20.0);
     expect(result.shippingAmount).toBe(8.5);
     expect(result.taxAmount).toBe(2.85);

@@ -2,7 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isUserSubscribedToCreator } from "@/lib/actions/collector";
-import { getPublicCreatorProfile } from "@/lib/actions/creator";
+import {
+  getPublicCreatorProfile,
+  recordProfileView,
+} from "@/lib/actions/creator";
+import { getCurrentCycle } from "@/lib/actions/cycles";
 import { auth } from "@/lib/auth";
 import { getPublicStorageUrl } from "@/lib/s3";
 
@@ -29,6 +33,9 @@ export default async function CreatorProfilePage({
   }
 
   const session = await auth();
+  const currentCycle = await getCurrentCycle();
+  void recordProfileView(profile.id, currentCycle?.id);
+
   const isOwnProfile = session?.user?.id === profile.userId;
   const isSubscribed = session?.user?.id
     ? await isUserSubscribedToCreator(session.user.id, profile.id)
