@@ -11,7 +11,12 @@ const STATUS_BADGE: Record<string, string> = {
   ARCHIVED: "bg-beige-100 text-beige-600",
 };
 
-export default async function CreatorReleasesPage() {
+export default async function CreatorReleasesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
   const releases = await getReleases();
   const currentCycle = await getCurrentCycle();
   const cycleStatus = currentCycle ? computeCycleStatus(currentCycle) : null;
@@ -19,6 +24,11 @@ export default async function CreatorReleasesPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10">
+      {error && (
+        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-sm text-red-800">{error}</p>
+        </div>
+      )}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
@@ -47,6 +57,15 @@ export default async function CreatorReleasesPage() {
       {currentCycle && cycleStatus === "OPEN" && (
         <div className="mb-6">
           <CycleLockCountdown lockDate={currentCycle.lockDate} />
+        </div>
+      )}
+
+      {!currentCycle && (
+        <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <p className="text-sm text-yellow-800">
+            <strong>No active cycle:</strong> New releases cannot be created at
+            this time.
+          </p>
         </div>
       )}
 

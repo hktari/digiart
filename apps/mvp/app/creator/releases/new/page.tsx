@@ -10,7 +10,10 @@ export default async function CreatorReleaseNewPage() {
   const cycleStatus = currentCycle ? computeCycleStatus(currentCycle) : null;
 
   if (!currentCycle || cycleStatus !== "OPEN") {
-    redirect("/creator/releases");
+    const errorMessage = !currentCycle
+      ? "No active cycle available"
+      : `Cycle ${cycleStatus?.toLowerCase()}: New releases cannot be created at this time`;
+    redirect(`/creator/releases?error=${encodeURIComponent(errorMessage)}`);
   }
 
   return (
