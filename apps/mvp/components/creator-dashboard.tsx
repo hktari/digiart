@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { Eye, Lock, Plus, Settings, Users } from "lucide-react";
+import Link from "next/link";
 import type { CreatorDashboardStats } from "@/lib/actions/creator";
 
 type Props = {
@@ -64,7 +64,9 @@ export function CreatorDashboard({ stats, creatorProfile }: Props) {
       {/* Hero stat row */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          icon={<Users className="h-4 w-4 text-fuchsia-500" strokeWidth={1.5} />}
+          icon={
+            <Users className="h-4 w-4 text-fuchsia-500" strokeWidth={1.5} />
+          }
           label="Subscribers"
           value={String(stats.totalSubscribers)}
           accent="fuchsia"
@@ -175,7 +177,10 @@ export function CreatorDashboard({ stats, creatorProfile }: Props) {
           href={creatorProfile ? "/creator/releases/new" : "/creator/setup"}
           className="flex items-start gap-3 rounded-xl border border-neutral-200 px-4 py-4 transition-colors hover:border-fuchsia-300 hover:bg-fuchsia-50/30"
         >
-          <Plus className="mt-0.5 h-4 w-4 shrink-0 text-fuchsia-500" strokeWidth={2} />
+          <Plus
+            className="mt-0.5 h-4 w-4 shrink-0 text-fuchsia-500"
+            strokeWidth={2}
+          />
           <div>
             <p className="text-sm font-semibold text-neutral-900">
               Create release
@@ -189,7 +194,10 @@ export function CreatorDashboard({ stats, creatorProfile }: Props) {
           href={creatorProfile ? "/creator/releases" : "/creator/setup"}
           className="flex items-start gap-3 rounded-xl border border-neutral-200 px-4 py-4 transition-colors hover:border-fuchsia-300 hover:bg-fuchsia-50/30"
         >
-          <Eye className="mt-0.5 h-4 w-4 shrink-0 text-fuchsia-500" strokeWidth={1.5} />
+          <Eye
+            className="mt-0.5 h-4 w-4 shrink-0 text-fuchsia-500"
+            strokeWidth={1.5}
+          />
           <div>
             <p className="text-sm font-semibold text-neutral-900">
               Manage releases
@@ -203,7 +211,10 @@ export function CreatorDashboard({ stats, creatorProfile }: Props) {
           href={creatorProfile ? "/creator/profile" : "/creator/setup"}
           className="flex items-start gap-3 rounded-xl border border-neutral-200 px-4 py-4 transition-colors hover:border-fuchsia-300 hover:bg-fuchsia-50/30"
         >
-          <Settings className="mt-0.5 h-4 w-4 shrink-0 text-fuchsia-500" strokeWidth={1.5} />
+          <Settings
+            className="mt-0.5 h-4 w-4 shrink-0 text-fuchsia-500"
+            strokeWidth={1.5}
+          />
           <div>
             <p className="text-sm font-semibold text-neutral-900">
               Edit profile
@@ -243,16 +254,12 @@ function StatCard({
         <p className="text-xs font-semibold uppercase tracking-widest text-neutral-400">
           {label}
         </p>
-        <span className="flex h-6 w-6 items-center justify-center">
-          {icon}
-        </span>
+        <span className="flex h-6 w-6 items-center justify-center">{icon}</span>
       </div>
       <p className="mt-3 text-3xl font-bold tracking-tight text-neutral-900">
         {value}
       </p>
-      {subLabel && (
-        <p className="mt-1 text-xs text-neutral-500">{subLabel}</p>
-      )}
+      {subLabel && <p className="mt-1 text-xs text-neutral-500">{subLabel}</p>}
     </div>
   );
 }

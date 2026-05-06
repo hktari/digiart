@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { useState } from "react";
 import type { CreatorDashboardStats } from "@/lib/actions/creator";
-import { CreatorDashboard } from "./creator-dashboard";
 import { CollectorDashboard } from "./collector-dashboard";
+import { CreatorDashboard } from "./creator-dashboard";
 
 type CollectorData = {
   collectorProfile: any;
