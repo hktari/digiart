@@ -9,6 +9,8 @@ import {
   recordProfileView,
 } from "@/lib/actions/creator";
 import { getCurrentCycle } from "@/lib/actions/cycles";
+import { captureAttribution } from "@/lib/analytics/attribution";
+import { trackPageView } from "@/lib/analytics/events";
 import { auth } from "@/lib/auth";
 
 type Props = {
@@ -36,6 +38,21 @@ export default async function CreatorProfilePage({
   const session = await auth();
   const currentCycle = await getCurrentCycle();
   void recordProfileView(profile.id, currentCycle?.id);
+
+  // Capture attribution and track page view
+  const searchParamsObj = new URLSearchParams();
+  if (resolvedSearchParams) {
+    for (const [key, value] of Object.entries(resolvedSearchParams)) {
+      if (typeof value === "string") {
+        searchParamsObj.set(key, value);
+      }
+    }
+  }
+  void captureAttribution(searchParamsObj, `/creators/${slug}`);
+  void trackPageView(`/creators/${slug}`, {
+    isAnonymous: !session?.user?.id,
+    userId: session?.user?.id,
+  });
 
   const isOwnProfile = session?.user?.id === profile.userId;
   const isSubscribed = session?.user?.id

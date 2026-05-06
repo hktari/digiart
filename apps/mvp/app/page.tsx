@@ -9,6 +9,8 @@ import {
 } from "@/lib/actions/collector";
 import { getCreatorDashboardStats } from "@/lib/actions/creator";
 import { getCurrentCycle } from "@/lib/actions/cycles";
+import { captureAttribution } from "@/lib/analytics/attribution";
+import { trackPageView } from "@/lib/analytics/events";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
@@ -116,10 +118,24 @@ function PublicHomePage() {
   );
 }
 
-export default async function HomePage() {
-  const session = await auth();
+type HomePageProps = {
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+};
 
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const session = await auth();
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+
+  // Capture attribution for anonymous users
   if (!session?.user?.id) {
+    const searchParamsObj = new URLSearchParams();
+    for (const [key, value] of Object.entries(resolvedSearchParams)) {
+      if (typeof value === "string") {
+        searchParamsObj.set(key, value);
+      }
+    }
+    void captureAttribution(searchParamsObj, "/");
+    void trackPageView("/", { isAnonymous: true });
     return <PublicHomePage />;
   }
 
@@ -213,6 +229,9 @@ export default async function HomePage() {
     description: string;
     href: string;
   }>;
+
+  // Track page view for authenticated users
+  void trackPageView("/", { userId: session.user.id });
 
   return (
     <main className="min-h-screen bg-neutral-50">

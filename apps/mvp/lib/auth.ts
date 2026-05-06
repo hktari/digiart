@@ -3,6 +3,9 @@ import type { Role } from "@prisma/client";
 import { cookies } from "next/headers";
 import NextAuth, { type NextAuthResult } from "next-auth";
 import Resend from "next-auth/providers/resend";
+import { linkAttributionToLead } from "@/lib/analytics/attribution";
+import { AnalyticsEvents, trackUserEvent } from "@/lib/analytics/events";
+import { clearAnonymousId, getAnonymousId } from "@/lib/analytics/identity";
 import { DEV_ROLES_COOKIE } from "@/lib/constants/dev";
 import { db } from "@/lib/db";
 import { getUserRoles } from "@/lib/roles";
@@ -29,6 +32,26 @@ const nextAuthResult: NextAuthResult = NextAuth({
     async redirect({ url, baseUrl }) {
       if (url.startsWith(baseUrl) || url.startsWith("/")) return url;
       return baseUrl;
+    },
+    async signIn({ user }) {
+      // Track auth completion and link attribution
+      if (user.id) {
+        const anonymousId = await getAnonymousId();
+        if (anonymousId) {
+          // Find or create lead and link attribution
+          const session = await db.attributionSession.findUnique({
+            where: { anonymousId },
+          });
+          if (session) {
+            await linkAttributionToLead(anonymousId, session.leadId ?? "");
+          }
+        }
+        await trackUserEvent(user.id, AnalyticsEvents.AUTH_COMPLETED, {
+          email: user.email ?? "",
+        });
+        await clearAnonymousId();
+      }
+      return true;
     },
   },
 });

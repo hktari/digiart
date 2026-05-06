@@ -1,4 +1,5 @@
 import { sendMagicLink } from "@/lib/actions/auth";
+import { AnalyticsEvents, trackAnonymousEvent } from "@/lib/analytics/events";
 
 export default async function SignInPage({
   searchParams,
@@ -6,6 +7,12 @@ export default async function SignInPage({
   searchParams: Promise<{ error?: string }>;
 }) {
   const { error } = await searchParams;
+
+  // Track sign-in started
+  void trackAnonymousEvent(AnalyticsEvents.AUTH_SIGNIN_STARTED, {
+    pathname: "/auth/sign-in",
+  });
+
   return (
     <main className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-6">

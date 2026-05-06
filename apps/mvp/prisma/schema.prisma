@@ -28,6 +28,7 @@ model User {
 
   notificationPreference NotificationPreference?
   emailNotificationLogs  EmailNotificationLog[]
+  lead                   Lead?
 }
 
 model Account {
@@ -113,6 +114,7 @@ model CreatorProfile {
   subscriptions CollectorCreatorSubscription[]
   payouts       CreatorPayout[]
   profileViews  CreatorProfileView[]
+  leads         Lead[]
 }
 
 model CreatorPayoutProfile {
@@ -714,4 +716,99 @@ model EmailNotificationLog {
 
   user  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   cycle SubscriptionCycle? @relation(fields: [cycleId], references: [id])
+}
+
+// ---------------------------------------------------------------------------
+// GTM Analytics - Lead Tracking and Attribution
+// ---------------------------------------------------------------------------
+
+enum LeadType {
+  CREATOR
+  COLLECTOR
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  REPLIED
+  QUALIFIED
+  DISQUALIFIED
+  SIGNED_UP
+  ACTIVATED
+}
+
+enum EntryPageType {
+  HOME
+  CREATOR_PAGE
+  BROWSE
+  OTHER
+}
+
+model Lead {
+  id               String     @id @default(cuid())
+  email            String?
+  type             LeadType
+  status           LeadStatus @default(NEW)
+  source           String? // instagram_dm, creator_link, deviantart_outreach
+  campaign         String?
+  utmSource        String?
+  utmMedium        String?
+  utmCampaign      String?
+  utmContent       String?
+  utmTerm          String?
+  referrerUrl      String?
+  landingPath      String?
+  creatorProfileId String?
+  ownerUserId      String?    @unique
+  notes            String?    @db.Text
+  firstSeenAt      DateTime   @default(now())
+  lastSeenAt       DateTime   @updatedAt
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  creatorProfile CreatorProfile?    @relation(fields: [creatorProfileId], references: [id])
+  ownerUser      User?              @relation(fields: [ownerUserId], references: [id])
+  events         LeadEvent[]
+  sessions       AttributionSession[]
+
+  @@index([type, status])
+  @@index([creatorProfileId])
+  @@index([source])
+}
+
+model LeadEvent {
+  id         String   @id @default(cuid())
+  leadId     String
+  eventName  String
+  eventValue String?
+  metadata   Json?
+  occurredAt DateTime @default(now())
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId, eventName])
+  @@index([occurredAt])
+}
+
+model AttributionSession {
+  id               String        @id @default(cuid())
+  anonymousId      String        @unique
+  leadId           String?
+  firstPath        String
+  lastPath         String
+  referrerUrl      String?
+  utmSource        String?
+  utmMedium        String?
+  utmCampaign      String?
+  utmContent       String?
+  utmTerm          String?
+  creatorProfileId String?
+  entryPageType    EntryPageType @default(OTHER)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  lead Lead? @relation(fields: [leadId], references: [id])
+
+  @@index([anonymousId])
+  @@index([leadId])
 }

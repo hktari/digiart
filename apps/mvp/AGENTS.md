@@ -2,6 +2,11 @@
 - use vitest + playwright for testing
 - MVP is deployed on Railway
 
+# Database
+
+- use the `db:migrate` script inside package.json to run migrations during development
+- when using pnpm prisma you always need to prefix the command with `dotenv -- `
+
 # E2E testing
 
 **Commands:**
