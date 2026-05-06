@@ -22,8 +22,8 @@ This guide covers deploying the Art Subscription Platform MVP to Railway and the
 2. **Configure Service**
    - Railway will detect the monorepo structure
    - **Root Directory**: `apps/mvp`
-   - **Build Command**: `pnpm install && pnpm build`
-   - **Start Command**: `pnpm start`
+   - The `railway.toml` in `apps/mvp` configures build and deploy commands automatically
+   - On every deploy, Railway will run: migrations → seed → start
 
 3. **Set Environment Variables**
 
@@ -56,7 +56,7 @@ This guide covers deploying the Art Subscription Platform MVP to Railway and the
 
 4. **Deploy**
    - Railway will build and deploy your MVP
-   - First deployment runs database migrations automatically
+   - Every deployment automatically runs `prisma migrate deploy` then `seed-production.ts` (idempotent) before starting
 
 ### Post-Deployment
 
@@ -124,8 +124,8 @@ This guide covers deploying the Art Subscription Platform MVP to Railway and the
 5. **Get Public URL**
    - In Railway service settings, generate a public domain
    - Copy the URL (e.g., `https://your-worker.railway.app`)
-   - Update `PDF_WORKER_URL` in Vercel environment variables
-   - Redeploy MVP on Vercel
+   - Update `PDF_WORKER_URL` in the MVP Railway service environment variables
+   - Redeploy MVP on Railway
 
 ### Post-Deployment
 
@@ -137,11 +137,11 @@ This guide covers deploying the Art Subscription Platform MVP to Railway and the
 
 ### Initial Setup
 
-Migrations run automatically on first Vercel deployment. For manual migration:
+Migrations run automatically on every Railway deployment via `railway.toml`. For manual migration:
 
 ```bash
 # From your local machine
-DATABASE_URL=<production-database-url> pnpm --filter mvp db:migrate
+DATABASE_URL=<production-database-url> pnpm --filter mvp db:migrate:deploy
 ```
 
 ### Future Migrations
@@ -149,12 +149,12 @@ DATABASE_URL=<production-database-url> pnpm --filter mvp db:migrate
 1. Create migration locally:
 
    ```bash
-   pnpm --filter mvp db:migrate:dev --name <migration-name>
+   pnpm --filter mvp db:migrate
    ```
 
 2. Commit the migration files
 
-3. Deploy to Vercel (migrations run automatically)
+3. Deploy to Railway — migrations and seed run automatically
 
 ## 4. Redis Setup
 
@@ -202,11 +202,6 @@ Cloudflare R2 is S3-compatible and more cost-effective:
 
 ## 6. Monitoring & Logs
 
-### Vercel
-
-- View logs in Vercel dashboard → Deployments → Logs
-- Set up log drains for external monitoring (optional)
-
 ### Railway
 
 - View logs in Railway dashboard → Service → Logs
@@ -214,11 +209,12 @@ Cloudflare R2 is S3-compatible and more cost-effective:
 
 ## 7. Environment Variables Checklist
 
-### MVP (Vercel)
+### MVP (Railway)
 
 - [ ] `DATABASE_URL`
 - [ ] `NEXTAUTH_URL`
-- [ ] `NEXTAUTH_SECRET`
+- [ ] `AUTH_SECRET`
+- [ ] `ADMIN_EMAIL` (required for seed script)
 - [ ] `AWS_REGION`
 - [ ] `AWS_ACCESS_KEY_ID`
 - [ ] `AWS_SECRET_ACCESS_KEY`
@@ -240,11 +236,12 @@ Cloudflare R2 is S3-compatible and more cost-effective:
 
 ## 8. Troubleshooting
 
-### MVP won't build on Vercel
+### MVP won't build on Railway
 
-- Check build logs for errors
-- Verify `apps/mvp` directory exists and has `package.json`
+- Check Railway build logs for errors
+- Verify root directory is set to `apps/mvp`
 - Ensure all dependencies are in `package.json`
+- Confirm `ADMIN_EMAIL` env var is set (required by seed script)
 
 ### PDF Worker fails to start on Railway
 
@@ -262,10 +259,10 @@ Cloudflare R2 is S3-compatible and more cost-effective:
 
 ## 9. Cost Estimates
 
-### Vercel
+### MVP (Railway)
 
-- **Hobby**: Free (good for MVP testing)
-- **Pro**: $20/month (recommended for production)
+- **Hobby**: $5/month
+- **Pro**: Pay-as-you-go (recommended for production)
 
 ### Railway
 
@@ -287,7 +284,7 @@ Cloudflare R2 is S3-compatible and more cost-effective:
 
 ## 10. Next Steps
 
-- [ ] Set up custom domain on Vercel
+- [ ] Set up custom domain on Railway
 - [ ] Configure monitoring and alerts
 - [ ] Set up automated backups for Postgres
 - [ ] Implement error tracking (Sentry, LogRocket, etc.)

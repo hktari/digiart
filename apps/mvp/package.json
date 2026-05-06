@@ -24,6 +24,8 @@
     "test:integration:watch": "dotenv -e .env.test -- vitest --config vitest.config.integration.ts",
     "test:reset": "dotenv -e .env.test -- tsx scripts/reset-test-db.ts",
     "db:seed:production": "dotenv -- tsx scripts/seed-production.ts",
+    "db:seed:production:railway": "tsx scripts/seed-production.ts",
+    "db:migrate:deploy": "prisma migrate deploy",
     "test:peecho": "dotenv -e .env.test -- tsx scripts/test-peecho-integration.ts",
     "test:coverage": "vitest run --coverage",
     "test:backend": "vitest run lib/__tests__ app/api/__tests__",
