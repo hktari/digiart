@@ -65,16 +65,13 @@ export async function getQuote(params: QuoteParams): Promise<QuoteResult> {
     }
 
     // Quotes are estimates only - final price comes from order-based pricing
-    // Peecho's quote includes their configured margin in productPrice
-    // The margin (productPrice - wholesale) is split between creators and platform
     const wholesalePrice = item.productPrice - item.vat; // Approximate wholesale before tax
-    const marginEstimate = item.productPrice - wholesalePrice;
 
     return {
       shippingAmount: item.shippingWholesale,
       productAmount: item.productPrice,
       baseAmount: wholesalePrice, // Approximate wholesale cost
-      markupAmount: marginEstimate, // Estimated margin (Peecho's cut)
+      markupAmount: 0, // TODO: calculate from admin panel configuration
       taxAmount: item.vat,
       totalEstimate: item.totalItemPrice,
       currency: quote.quoteDetails.currency,

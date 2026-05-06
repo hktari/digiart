@@ -6,7 +6,7 @@ import { CreatorSetupForm } from "../creator-setup-form";
 // Mock the server actions
 vi.mock("@/lib/actions/creator", () => ({
   checkSlugAvailability: vi.fn(),
-  saveCreatorProfile: vi.fn(),
+  saveCreatorProfile: vi.fn().mockResolvedValue({ success: true }),
 }));
 
 describe("CreatorSetupForm - Artwork Upload Step", () => {

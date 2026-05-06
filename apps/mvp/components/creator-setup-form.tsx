@@ -39,7 +39,6 @@ interface CreatorSetupFormProps {
     bio?: string;
     sourcePlatforms?: string[];
     legalName?: string;
-    taxId?: string;
     paypalEmail?: string;
   };
 }
@@ -50,7 +49,6 @@ interface FormData {
   bio: string;
   sourcePlatforms: string[];
   legalName: string;
-  taxId: string;
   paypalEmail: string;
 }
 
@@ -63,7 +61,6 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
     bio: initialData?.bio ?? "",
     sourcePlatforms: initialData?.sourcePlatforms ?? [],
     legalName: initialData?.legalName ?? "",
-    taxId: initialData?.taxId ?? "",
     paypalEmail: initialData?.paypalEmail ?? "",
   });
   const [_isComplete, _setIsComplete] = useState(false);
@@ -143,9 +140,11 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
 
     // Validate PayPal email if provided
     if (formData.paypalEmail) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      // RFC 5322 compliant email regex for better validation
+      const emailRegex =
+        /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
       if (!emailRegex.test(formData.paypalEmail)) {
-        errors.paypalEmail = "Please enter a valid email address";
+        errors.paypalEmail = "Please enter a valid PayPal email address";
       }
     }
 
@@ -167,7 +166,6 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
     fd.append("bio", formData.bio);
     fd.append("sourcePlatforms", JSON.stringify(formData.sourcePlatforms));
     fd.append("legalName", formData.legalName);
-    fd.append("taxId", formData.taxId);
     fd.append("paypalEmail", formData.paypalEmail);
 
     setHasTransitioned(false);
@@ -271,7 +269,6 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
           value={JSON.stringify(formData.sourcePlatforms)}
         />
         <input type="hidden" name="legalName" value={formData.legalName} />
-        <input type="hidden" name="taxId" value={formData.taxId} />
         <input type="hidden" name="paypalEmail" value={formData.paypalEmail} />
 
         {/* Step 1: Profile */}
@@ -341,7 +338,8 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                 </button>
               </div>
               <p className="mt-1 text-xs text-neutral-500">
-                yourdomain.com/creators/{formData.slug || "your-name"}
+                {process.env.NEXT_PUBLIC_APP_URL}/creators/
+                {formData.slug || "your-name"}
               </p>
               {allErrors.slug && (
                 <p className="mt-1 text-sm text-red-600">{allErrors.slug}</p>
@@ -469,24 +467,6 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
 
             <div>
               <label
-                htmlFor="taxId"
-                className="block text-sm font-medium text-neutral-700 mb-1"
-              >
-                Tax ID / VAT Number
-              </label>
-              <input
-                type="text"
-                id="taxId"
-                name="taxId"
-                value={formData.taxId}
-                onChange={(e) => updateField("taxId", e.target.value)}
-                placeholder="Tax identification number"
-                className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
-              />
-            </div>
-
-            <div>
-              <label
                 htmlFor="paypalEmail"
                 className="block text-sm font-medium text-neutral-700 mb-1"
               >
@@ -548,7 +528,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                   Profile URL
                 </p>
                 <p className="text-sm text-neutral-900">
-                  yourdomain.com/creators/{formData.slug}
+                  {process.env.NEXT_PUBLIC_APP_URL}/creators/{formData.slug}
                 </p>
               </div>
               {formData.bio && (
@@ -674,14 +654,14 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                     id="creator-profile-link"
                     type="text"
                     readOnly
-                    value={`yourdomain.com/creators/${formData.slug}`}
+                    value={`${process.env.NEXT_PUBLIC_APP_URL}/creators/${formData.slug}`}
                     className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm bg-neutral-50 text-neutral-600"
                   />
                   <button
                     type="button"
                     onClick={() => {
                       navigator.clipboard.writeText(
-                        `yourdomain.com/creators/${formData.slug}`,
+                        `${process.env.NEXT_PUBLIC_APP_URL}/creators/${formData.slug}`,
                       );
                       // Could add toast notification here
                     }}
@@ -694,7 +674,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
 
               <div className="grid grid-cols-2 gap-3">
                 <a
-                  href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out my art on this new platform! yourdomain.com/creators/${formData.slug}`)}`}
+                  href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out my art on this new platform! ${process.env.NEXT_PUBLIC_APP_URL}/creators/${formData.slug}`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="rounded-lg border border-neutral-300 px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors text-center"
@@ -702,7 +682,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                   Share on Twitter/X
                 </a>
                 <a
-                  href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`yourdomain.com/creators/${formData.slug}`)}`}
+                  href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`${process.env.NEXT_PUBLIC_APP_URL}/creators/${formData.slug}`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="rounded-lg border border-neutral-300 px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors text-center"

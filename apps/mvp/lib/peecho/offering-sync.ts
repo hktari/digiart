@@ -138,8 +138,19 @@ export async function syncPeechoOfferings(): Promise<{
     let usStateCodes: Awaited<ReturnType<typeof peechoClient.getUSStateCodes>> =
       [];
     if (offeringIds.length > 0) {
+      logger.info("Fetching Peecho countries for offering IDs", {
+        offeringIds,
+      });
       peechoCountries = await peechoClient.getCountries(offeringIds);
+      logger.info("Peecho countries fetched", {
+        count: peechoCountries.length,
+      });
       usStateCodes = await peechoClient.getUSStateCodes(offeringIds);
+      logger.info("Peecho US state codes fetched", {
+        count: usStateCodes.length,
+      });
+    } else {
+      logger.warn("No valid offering IDs found, skipping country sync");
     }
 
     const eligibleCountries = peechoCountries
@@ -160,6 +171,10 @@ export async function syncPeechoOfferings(): Promise<{
       .sort((a, b) => a.code.localeCompare(b.code));
 
     const eligibleCodes = eligibleCountries.map((country) => country.code);
+    logger.info("Eligible countries after region filter", {
+      count: eligibleCountries.length,
+      codes: eligibleCodes,
+    });
 
     for (const country of eligibleCountries) {
       await db.fulfillmentCountry.upsert({

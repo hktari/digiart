@@ -56,7 +56,6 @@ const saveCreatorProfileSchema = z.object({
   bio: z.string().max(500, "Bio must be at most 500 characters").optional(),
   sourcePlatforms: z.array(z.string()).optional(),
   legalName: z.string().max(100).optional(),
-  taxId: z.string().max(50).optional(),
   paypalEmail: z.string().email().optional().or(z.literal("")),
 });
 
@@ -109,7 +108,6 @@ export async function saveCreatorProfile(
     bio,
     sourcePlatforms: selectedPlatforms,
     legalName,
-    taxId,
     paypalEmail,
   } = parsed.data;
 
@@ -139,7 +137,6 @@ export async function saveCreatorProfile(
       payoutProfile: {
         create: {
           legalName: legalName || null,
-          taxId: taxId || null,
           paypalEmail: paypalEmail || null,
           isReady: !!(legalName && paypalEmail),
         },
@@ -154,13 +151,11 @@ export async function saveCreatorProfile(
         upsert: {
           create: {
             legalName: legalName || null,
-            taxId: taxId || null,
             paypalEmail: paypalEmail || null,
             isReady: !!(legalName && paypalEmail),
           },
           update: {
             legalName: legalName || null,
-            taxId: taxId || null,
             paypalEmail: paypalEmail || null,
             isReady: !!(legalName && paypalEmail),
           },
@@ -172,7 +167,8 @@ export async function saveCreatorProfile(
   revalidatePath("/");
   revalidatePath("/creator");
   revalidatePath("/creator/setup");
-  redirect("/");
+
+  return { success: true };
 }
 
 export async function getCreatorProfile(userId: string): Promise<any> {
@@ -233,7 +229,6 @@ export async function saveAvatar(
 
 const payoutSchema = z.object({
   legalName: z.string().max(100).optional(),
-  taxId: z.string().max(50).optional(),
   paypalEmail: z
     .string()
     .email("Enter a valid PayPal email")
@@ -254,7 +249,6 @@ export async function savePayoutProfile(
 
   const parsed = payoutSchema.safeParse({
     legalName: formData.get("legalName") || undefined,
-    taxId: formData.get("taxId") || undefined,
     paypalEmail: formData.get("paypalEmail") || "",
   });
 
@@ -266,7 +260,7 @@ export async function savePayoutProfile(
     return { success: false, errors };
   }
 
-  const { legalName, taxId, paypalEmail } = parsed.data;
+  const { legalName, paypalEmail } = parsed.data;
 
   const profile = await db.creatorProfile.findUnique({
     where: { userId: session.user.id },
@@ -279,13 +273,11 @@ export async function savePayoutProfile(
     create: {
       creatorProfileId: profile.id,
       legalName: legalName || null,
-      taxId: taxId || null,
       paypalEmail: paypalEmail || null,
       isReady: !!(legalName && paypalEmail),
     },
     update: {
       legalName: legalName || null,
-      taxId: taxId || null,
       paypalEmail: paypalEmail || null,
       isReady: !!(legalName && paypalEmail),
     },

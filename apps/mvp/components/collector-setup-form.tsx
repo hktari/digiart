@@ -25,7 +25,7 @@ export function CollectorSetupForm({
   );
   const [countries, setCountries] = useState<FulfillmentCountry[]>([]);
   const [states, setStates] = useState<FulfillmentState[]>([]);
-  const [isLoadingCountries, setIsLoadingCountries] = useState(true);
+  const [isLoadingCountries, setIsLoadingCountries] = useState(false);
   const [isLoadingStates, setIsLoadingStates] = useState(false);
   const [state, formAction, isPending] = useActionState<
     CollectorSetupResult,
@@ -40,6 +40,7 @@ export function CollectorSetupForm({
 
   useEffect(() => {
     async function fetchCountries() {
+      setIsLoadingCountries(true);
       try {
         const response = await fetch("/api/peecho/countries");
         if (response.ok) {

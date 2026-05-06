@@ -46,7 +46,6 @@ export default async function CreatorProfileEditPage() {
         <PayoutForm
           initialData={{
             legalName: profile.payoutProfile?.legalName,
-            taxId: profile.payoutProfile?.taxId,
             paypalEmail: profile.payoutProfile?.paypalEmail,
             isReady: profile.payoutProfile?.isReady,
           }}

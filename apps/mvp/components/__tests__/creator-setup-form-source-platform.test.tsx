@@ -6,7 +6,7 @@ import { CreatorSetupForm } from "../creator-setup-form";
 // Mock the server actions
 vi.mock("@/lib/actions/creator", () => ({
   checkSlugAvailability: vi.fn(),
-  saveCreatorProfile: vi.fn(),
+  saveCreatorProfile: vi.fn().mockResolvedValue({ success: true }),
 }));
 
 describe("CreatorSetupForm - Source Platform & Share Step", () => {
@@ -120,7 +120,7 @@ describe("CreatorSetupForm - Source Platform & Share Step", () => {
       await userEvent.click(screen.getByRole("button", { name: /Review/i }));
 
       expect(
-        screen.getByText(/Please enter a valid email address/i),
+        screen.getByText(/Please enter a valid PayPal email address/i),
       ).toBeInTheDocument();
     });
 
@@ -276,9 +276,7 @@ describe("CreatorSetupForm - Source Platform & Share Step", () => {
 
       // Check profile link
       await waitFor(() => {
-        const linkInput = screen.getByDisplayValue(
-          /yourdomain.com\/creators\/my-slug/i,
-        );
+        const linkInput = screen.getByDisplayValue(/creators\/my-slug/i);
         expect(linkInput).toBeInTheDocument();
       });
     });

@@ -6,7 +6,7 @@ import { CreatorSetupForm } from "../creator-setup-form";
 // Mock the server actions
 vi.mock("@/lib/actions/creator", () => ({
   checkSlugAvailability: vi.fn(),
-  saveCreatorProfile: vi.fn(),
+  saveCreatorProfile: vi.fn().mockResolvedValue({ success: true }),
 }));
 
 describe("CreatorSetupForm", () => {
@@ -197,7 +197,6 @@ describe("CreatorSetupForm", () => {
 
       await waitFor(() => {
         expect(screen.getByLabelText(/Legal Name/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/Tax ID/i)).toBeInTheDocument();
         expect(screen.getByLabelText(/PayPal Email/i)).toBeInTheDocument();
       });
     });
