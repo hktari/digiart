@@ -28,7 +28,7 @@ const nextAuthResult: NextAuthResult = NextAuth({
     },
     async redirect({ url, baseUrl }) {
       if (url.startsWith(baseUrl) || url.startsWith("/")) return url;
-      return `${baseUrl}/onboarding`;
+      return baseUrl;
     },
   },
 });
