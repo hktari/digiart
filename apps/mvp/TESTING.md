@@ -108,15 +108,15 @@ AUTH_URL="http://localhost:3000"
 dotenv -e .env.test -- pnpm db:push
 ```
 
-#### 4. Reset + Seed Test Data
+#### 4. Reset + Seed Test Data (Auto-Run)
 
-This resets the test database and seeds deterministic E2E/dev data:
+The test database is automatically reset when running E2E tests if credentials are missing. To manually reset:
 
 ```bash
 pnpm test:reset
 ```
 
-This will output:
+This resets the test database and seeds deterministic E2E/dev data:
 
 - Creator user + no-role user IDs
 - Session tokens
@@ -138,7 +138,7 @@ This starts Next.js on port 3003.
 2. **Run the tests** (in another terminal):
 
 ```bash
-# Run all E2E tests
+# Run all E2E tests (auto-resets DB if credentials are missing)
 pnpm test:e2e
 
 # Run with UI mode
@@ -151,7 +151,8 @@ pnpm test:e2e e2e/auth.spec.ts
 **Note:**
 
 - The dev server must be running on port 3003 before executing tests
-- If tests fail with auth/data errors, re-run `pnpm test:reset` to rebuild data and credentials
+- The test database auto-resets if `TEST_SESSION_TOKEN` is missing (fresh checkout, expired token)
+- To manually reset: `pnpm test:reset`
 - All development and testing uses port 3003
 
 ### How E2E Auth Works

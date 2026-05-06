@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { chromium, type FullConfig } from "@playwright/test";
@@ -36,34 +37,57 @@ async function globalSetup(config: FullConfig) {
   const noRoleSessionToken = process.env.NO_ROLE_SESSION_TOKEN;
 
   if (!sessionToken || !testUserId) {
-    console.error("");
-    console.error("❌ Missing test credentials!");
-    console.error("");
-    console.error("Please run the following command first:");
-    console.error("  pnpm test:reset");
-    console.error("");
-    throw new Error(
-      "TEST_SESSION_TOKEN and AUTH_BYPASS_TEST_USER_ID must be set. Run 'pnpm test:reset' first.",
+    console.log("");
+    console.log("🔧 Missing test credentials — running database reset...");
+    console.log("");
+
+    const reset = spawnSync(
+      "npx",
+      ["dotenv-cli", "-e", ".env.test", "tsx", "scripts/reset-test-db.ts"],
+      {
+        cwd: resolve(__dirname, ".."),
+        stdio: "inherit",
+        shell: true,
+      },
     );
+
+    if (reset.status !== 0) {
+      throw new Error("Database reset failed. See output above.");
+    }
+
+    // Reload environment after reset wrote new tokens
+    loadEnv({ path: resolve(__dirname, "../.env.test.local"), override: true });
+  }
+
+  // Re-read tokens after potential reset
+  const finalSessionToken = process.env.TEST_SESSION_TOKEN;
+  const finalNoRoleSessionToken = process.env.NO_ROLE_SESSION_TOKEN;
+
+  if (!finalSessionToken) {
+    throw new Error("TEST_SESSION_TOKEN not available after reset");
   }
 
   const baseURL = config.projects[0].use.baseURL as string;
 
   mkdirSync("playwright/.auth", { recursive: true });
 
-  await saveSessionState(baseURL, sessionToken, "playwright/.auth/user.json");
+  await saveSessionState(
+    baseURL,
+    finalSessionToken,
+    "playwright/.auth/user.json",
+  );
 
-  if (noRoleSessionToken) {
+  if (finalNoRoleSessionToken) {
     await saveSessionState(
       baseURL,
-      noRoleSessionToken,
+      finalNoRoleSessionToken,
       "playwright/.auth/no-role-user.json",
     );
     console.log("✅ No-role user auth state saved");
   }
 
   console.log("✅ Playwright auth setup complete");
-  console.log(`   Test User ID: ${testUserId}`);
+  console.log(`   Test User ID: ${process.env.AUTH_BYPASS_TEST_USER_ID}`);
 }
 
 export default globalSetup;
