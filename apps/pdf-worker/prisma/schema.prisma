@@ -36,7 +36,7 @@ model Artwork {
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
-  creatorProfile CreatorProfile   @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  creatorProfile  CreatorProfile   @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
   releaseArtworks ReleaseArtwork[]
 }
 
@@ -68,7 +68,7 @@ model Release {
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
-  creatorProfile CreatorProfile             @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  creatorProfile CreatorProfile              @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
   artworks       ReleaseArtwork[]
   selections     CollectorReleaseSelection[]
 }
@@ -79,8 +79,9 @@ model CreatorProfile {
   slug        String @unique
   displayName String
 
-  artworks  Artwork[]
-  releases  Release[]
+  artworks                      Artwork[]
+  releases                      Release[]
+  collectorCreatorSubscriptions CollectorCreatorSubscription[]
 }
 
 model User {
@@ -92,28 +93,28 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  collectorProfile        CollectorProfile?
-  emailNotificationLogs   EmailNotificationLog[]
+  collectorProfile      CollectorProfile?
+  emailNotificationLogs EmailNotificationLog[]
 }
 
 model CollectorProfile {
-  id String @id @default(cuid())
+  id     String  @id @default(cuid())
   userId String? @unique
 
   selections          CollectorReleaseSelection[]
   generatedPrintFiles GeneratedPrintFile[]
   subscriptions       CollectorCreatorSubscription[]
-  user                User?                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                User?                          @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model CollectorCreatorSubscription {
-  id               String   @id @default(cuid())
+  id                 String   @id @default(cuid())
   collectorProfileId String
-  creatorProfileId  String
-  isActive          Boolean  @default(true)
-  entryCreatorId    String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  creatorProfileId   String
+  isActive           Boolean  @default(true)
+  entryCreatorId     String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   collectorProfile CollectorProfile @relation(fields: [collectorProfileId], references: [id], onDelete: Cascade)
   creatorProfile   CreatorProfile   @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
@@ -150,14 +151,14 @@ enum EmailNotificationStatus {
 }
 
 model EmailNotificationLog {
-  id         String                  @id @default(cuid())
-  userId     String
-  type       EmailNotificationType
-  cycleId    String?
-  status     EmailNotificationStatus @default(PENDING)
-  sentAt     DateTime?
-  errorMsg   String?
-  createdAt  DateTime                @default(now())
+  id        String                  @id @default(cuid())
+  userId    String
+  type      EmailNotificationType
+  cycleId   String?
+  status    EmailNotificationStatus @default(PENDING)
+  sentAt    DateTime?
+  errorMsg  String?
+  createdAt DateTime                @default(now())
 
   user  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   cycle SubscriptionCycle? @relation(fields: [cycleId], references: [id])
