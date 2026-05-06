@@ -4,12 +4,17 @@ vi.mock("@/lib/db", () => ({
   db: {
     generatedPrintFile: { findUnique: vi.fn() },
     pricingQuoteSnapshot: { findFirst: vi.fn() },
+    checkoutIntent: { findUnique: vi.fn() },
     fulfillmentOrder: { findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
   },
 }));
 
 vi.mock("@/lib/peecho/client", () => ({
-  peechoClient: { createOrder: vi.fn() },
+  peechoClient: { payOrder: vi.fn() },
+}));
+
+vi.mock("@/lib/billing/checkout-service", () => ({
+  attachFilesToOrder: vi.fn(),
 }));
 
 describe("submitFulfillmentOrder", () => {
@@ -67,13 +72,19 @@ describe("submitFulfillmentOrder", () => {
         user: { email: "t@t.com", name: "T" },
       },
     } as any);
+    vi.mocked(db.checkoutIntent.findUnique).mockResolvedValue({
+      id: "ci1",
+      peechoOrderId: "123",
+      collectorProfileId: "cp1",
+      cycleId: "c1",
+    } as any);
     vi.mocked(db.pricingQuoteSnapshot.findFirst).mockResolvedValue({
       id: "qs1",
       currency: "USD",
       offering: { externalId: "1" },
     } as any);
     vi.mocked(db.fulfillmentOrder.findUnique).mockResolvedValue(null);
-    peechoClient.createOrder.mockResolvedValue({ order_id: 123 });
+    peechoClient.payOrder.mockResolvedValue({ status: "paid" });
     vi.mocked(db.fulfillmentOrder.create).mockResolvedValue({
       id: "fo1",
       providerOrderId: "123",
@@ -100,10 +111,11 @@ describe("submitFulfillmentOrder", () => {
         user: { email: "t@t.com", name: "T" },
       },
     } as any);
-    vi.mocked(db.pricingQuoteSnapshot.findFirst).mockResolvedValue({
-      id: "qs1",
-      currency: "USD",
-      offering: { externalId: "1" },
+    vi.mocked(db.checkoutIntent.findUnique).mockResolvedValue({
+      id: "ci1",
+      peechoOrderId: "123",
+      collectorProfileId: "cp1",
+      cycleId: "c1",
     } as any);
     vi.mocked(db.fulfillmentOrder.findUnique).mockResolvedValue({
       id: "fo1",
@@ -114,6 +126,6 @@ describe("submitFulfillmentOrder", () => {
     const r = await submit("pf-1");
     expect(r.success).toBe(true);
     expect(r.fulfillmentOrderId).toBe("fo1");
-    expect(peechoClient.createOrder).not.toHaveBeenCalled();
+    expect(peechoClient.payOrder).not.toHaveBeenCalled();
   });
 });

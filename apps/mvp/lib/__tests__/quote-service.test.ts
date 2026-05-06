@@ -6,6 +6,9 @@ vi.mock("@/lib/db", () => ({
     podOffering: {
       findFirst: vi.fn(),
     },
+    platformConfig: {
+      findFirst: vi.fn(),
+    },
   },
 }));
 
@@ -21,7 +24,17 @@ describe("getQuote", () => {
   });
 
   it("fetches quote with explicit offeringId", async () => {
+    const { db } = await import("@/lib/db");
     const { peechoClient } = await import("../peecho/client");
+
+    vi.mocked(db.platformConfig.findFirst).mockResolvedValue({
+      id: "cfg-1",
+      quoteMarginAmount: 5.0,
+      creatorPayoutSplit: 0.7,
+      platformFeeSplit: 0.3,
+      updatedAt: new Date(),
+      updatedBy: null,
+    });
 
     vi.mocked(peechoClient.getQuote).mockResolvedValue({
       quoteDetails: { countryCode: "US", currency: "USD", exchangeRate: "1" },
@@ -76,6 +89,8 @@ describe("getQuote", () => {
   });
 
   it("throws when US quote is requested without state code", async () => {
+    const { db } = await import("@/lib/db");
+    vi.mocked(db.platformConfig.findFirst).mockResolvedValue(null);
     await expect(
       getQuote({ country: "US", pageCount: 30, offeringId: "ext-1" }),
     ).rejects.toThrow("countryStateCode is required");
@@ -85,6 +100,7 @@ describe("getQuote", () => {
     const { db } = await import("@/lib/db");
     const { peechoClient } = await import("../peecho/client");
 
+    vi.mocked(db.platformConfig.findFirst).mockResolvedValue(null);
     vi.mocked(db.podOffering.findFirst).mockResolvedValue({
       id: "db-offering-1",
       externalId: "peecho-ext-2",
@@ -140,6 +156,7 @@ describe("getQuote", () => {
   it("throws when no suitable offering found", async () => {
     const { db } = await import("@/lib/db");
 
+    vi.mocked(db.platformConfig.findFirst).mockResolvedValue(null);
     vi.mocked(db.podOffering.findFirst).mockResolvedValue(null);
 
     await expect(getQuote({ country: "DE", pageCount: 999 })).rejects.toThrow(
@@ -148,8 +165,10 @@ describe("getQuote", () => {
   });
 
   it("throws when Peecho client fails", async () => {
+    const { db } = await import("@/lib/db");
     const { peechoClient } = await import("../peecho/client");
 
+    vi.mocked(db.platformConfig.findFirst).mockResolvedValue(null);
     vi.mocked(peechoClient.getQuote).mockRejectedValue(
       new Error("Peecho API error: 500 Internal Server Error"),
     );
@@ -160,7 +179,17 @@ describe("getQuote", () => {
   });
 
   it("maps all fields correctly from Peecho response", async () => {
+    const { db } = await import("@/lib/db");
     const { peechoClient } = await import("../peecho/client");
+
+    vi.mocked(db.platformConfig.findFirst).mockResolvedValue({
+      id: "cfg-1",
+      quoteMarginAmount: 5.0,
+      creatorPayoutSplit: 0.7,
+      platformFeeSplit: 0.3,
+      updatedAt: new Date(),
+      updatedBy: null,
+    });
 
     vi.mocked(peechoClient.getQuote).mockResolvedValue({
       quoteDetails: {

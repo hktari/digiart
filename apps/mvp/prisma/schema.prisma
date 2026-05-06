@@ -19,11 +19,11 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts      Account[]
-  sessions      Session[]
-  roles         UserRole[]
+  accounts Account[]
+  sessions Session[]
+  roles    UserRole[]
 
-  creatorProfile  CreatorProfile?
+  creatorProfile   CreatorProfile?
   collectorProfile CollectorProfile?
 
   notificationPreference NotificationPreference?
@@ -100,40 +100,40 @@ model CreatorProfile {
   displayName    String
   avatar         String?
   bio            String?       @db.Text
-  sourcePlatform String?       // Where creator is coming from (ArtStation, DeviantArt, Instagram, etc.)
+  sourcePlatform String? // Where creator is coming from (ArtStation, DeviantArt, Instagram, etc.)
   status         PublishStatus @default(DRAFT)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
-  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User                           @relation(fields: [userId], references: [id], onDelete: Cascade)
   payoutProfile CreatorPayoutProfile?
-  socialLinks  CreatorSocialLink[]
-  artworks     Artwork[]
-  releases     Release[]
+  socialLinks   CreatorSocialLink[]
+  artworks      Artwork[]
+  releases      Release[]
   subscriptions CollectorCreatorSubscription[]
   payouts       CreatorPayout[]
 }
 
 model CreatorPayoutProfile {
-  id              String   @id @default(cuid())
-  creatorProfileId String  @unique
-  legalName       String?
-  taxId           String?
-  bankAccountInfo String?  @db.Text
-  paypalEmail     String?
-  isReady         Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id               String   @id @default(cuid())
+  creatorProfileId String   @unique
+  legalName        String?
+  taxId            String?
+  bankAccountInfo  String?  @db.Text
+  paypalEmail      String?
+  isReady          Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
 }
 
 model CreatorSocialLink {
-  id              String @id @default(cuid())
+  id               String @id @default(cuid())
   creatorProfileId String
-  label           String
-  url             String
-  sortOrder       Int    @default(0)
+  label            String
+  url              String
+  sortOrder        Int    @default(0)
 
   creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
 }
@@ -149,22 +149,22 @@ enum OnboardingState {
 }
 
 model CollectorProfile {
-  id                String          @id @default(cuid())
-  userId            String          @unique
-  displayName       String?
-  shippingCountry   String?
-  shippingStateCode String?
-  shippingName      String?
+  id                   String          @id @default(cuid())
+  userId               String          @unique
+  displayName          String?
+  shippingCountry      String?
+  shippingStateCode    String?
+  shippingName         String?
   shippingAddressLine1 String?
   shippingAddressLine2 String?
-  shippingCity      String?
-  shippingZip       String?
-  stripeCustomerId  String?
-  onboardingState   OnboardingState @default(PENDING)
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
+  shippingCity         String?
+  shippingZip          String?
+  stripeCustomerId     String?
+  onboardingState      OnboardingState @default(PENDING)
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
 
-  user                User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                User                           @relation(fields: [userId], references: [id], onDelete: Cascade)
   subscriptions       CollectorCreatorSubscription[]
   selections          CollectorReleaseSelection[]
   priceQuotes         PricingQuoteSnapshot[]
@@ -191,38 +191,38 @@ enum Orientation {
 }
 
 model Artwork {
-  id              String        @id @default(cuid())
+  id               String        @id @default(cuid())
   creatorProfileId String
-  title           String
-  storageKey      String
-  mimeType        String?
-  fileSize        Int?
-  width           Int?
-  height          Int?
-  orientation     Orientation   @default(UNKNOWN)
-  status          ArtworkStatus @default(ACTIVE)
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  title            String
+  storageKey       String
+  mimeType         String?
+  fileSize         Int?
+  width            Int?
+  height           Int?
+  orientation      Orientation   @default(UNKNOWN)
+  status           ArtworkStatus @default(ACTIVE)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
-  creatorProfile CreatorProfile   @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  creatorProfile  CreatorProfile   @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
   releaseArtworks ReleaseArtwork[]
 }
 
 model Release {
-  id              String        @id @default(cuid())
+  id               String        @id @default(cuid())
   creatorProfileId String
-  cycleId         String?
-  title           String
-  description     String?       @db.Text
-  status          PublishStatus @default(DRAFT)
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  cycleId          String?
+  title            String
+  description      String?       @db.Text
+  status           PublishStatus @default(DRAFT)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
-  creatorProfile  CreatorProfile             @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
-  cycle           SubscriptionCycle?         @relation(fields: [cycleId], references: [id])
-  artworks        ReleaseArtwork[]
-  tags            ReleaseTag[]
-  selections      CollectorReleaseSelection[]
+  creatorProfile CreatorProfile              @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  cycle          SubscriptionCycle?          @relation(fields: [cycleId], references: [id])
+  artworks       ReleaseArtwork[]
+  tags           ReleaseTag[]
+  selections     CollectorReleaseSelection[]
 }
 
 model ReleaseArtwork {
@@ -260,13 +260,13 @@ model ReleaseTag {
 // ---------------------------------------------------------------------------
 
 model CollectorCreatorSubscription {
-  id               String   @id @default(cuid())
+  id                 String   @id @default(cuid())
   collectorProfileId String
-  creatorProfileId  String
-  isActive          Boolean  @default(true)
-  entryCreatorId    String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  creatorProfileId   String
+  isActive           Boolean  @default(true)
+  entryCreatorId     String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   collectorProfile CollectorProfile @relation(fields: [collectorProfileId], references: [id], onDelete: Cascade)
   creatorProfile   CreatorProfile   @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
@@ -300,16 +300,16 @@ enum CycleStatus {
 }
 
 model SubscriptionCycle {
-  id                    String      @id @default(cuid())
-  label                 String
-  month                 Int
-  year                  Int
-  selectionOpenDate     DateTime
-  lockDate              DateTime
-  fulfillmentDate       DateTime
-  status                CycleStatus @default(OPEN)
-  createdAt             DateTime    @default(now())
-  updatedAt             DateTime    @updatedAt
+  id                String      @id @default(cuid())
+  label             String
+  month             Int
+  year              Int
+  selectionOpenDate DateTime
+  lockDate          DateTime
+  fulfillmentDate   DateTime
+  status            CycleStatus @default(OPEN)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
 
   releases            Release[]
   selections          CollectorReleaseSelection[]
@@ -358,19 +358,19 @@ model PodProviderConfig {
 }
 
 model PodOffering {
-  id               String   @id @default(cuid())
-  providerId       String
-  externalId       String
-  name             String
-  minPages         Int
-  maxPages         Int
-  widthMm          Float?
-  heightMm         Float?
-  pricingMeta      Json?
-  isActive         Boolean  @default(true)
-  syncedAt         DateTime?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id          String    @id @default(cuid())
+  providerId  String
+  externalId  String
+  name        String
+  minPages    Int
+  maxPages    Int
+  widthMm     Float?
+  heightMm    Float?
+  pricingMeta Json?
+  isActive    Boolean   @default(true)
+  syncedAt    DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   provider PodProviderConfig      @relation(fields: [providerId], references: [id])
   quotes   PricingQuoteSnapshot[]
@@ -428,10 +428,10 @@ model PricingQuoteSnapshot {
   quoteMetadataHash  String?
   quotedAt           DateTime  @default(now())
 
-  collectorProfile CollectorProfile  @relation(fields: [collectorProfileId], references: [id], onDelete: Cascade)
-  cycle            SubscriptionCycle @relation(fields: [cycleId], references: [id])
-  offering         PodOffering       @relation(fields: [offeringId], references: [id])
-  billingRecords   BillingRecord[]
+  collectorProfile  CollectorProfile   @relation(fields: [collectorProfileId], references: [id], onDelete: Cascade)
+  cycle             SubscriptionCycle  @relation(fields: [cycleId], references: [id])
+  offering          PodOffering        @relation(fields: [offeringId], references: [id])
+  billingRecords    BillingRecord[]
   fulfillmentOrders FulfillmentOrder[]
 }
 
@@ -470,23 +470,23 @@ model GeneratedPrintFile {
 // ---------------------------------------------------------------------------
 
 model CheckoutIntent {
-  id                 String   @id @default(cuid())
-  collectorProfileId String
-  cycleId            String
-  committedAt        DateTime @default(now())
-  selectionSnapshot  Json
-  quoteInputCountry  String?
-  quoteInputPageCount Int?
-  acceptedEstimateDisclaimer Boolean @default(false)
+  id                         String   @id @default(cuid())
+  collectorProfileId         String
+  cycleId                    String
+  committedAt                DateTime @default(now())
+  selectionSnapshot          Json
+  quoteInputCountry          String?
+  quoteInputPageCount        Int?
+  acceptedEstimateDisclaimer Boolean  @default(false)
 
   // Peecho order-based pricing fields
-  peechoOrderId          String?
-  retailTotalAmount      Decimal? @db.Decimal(10, 2)
-  wholesaleTotalAmount   Decimal? @db.Decimal(10, 2)
-  platformMarkupAmount   Decimal? @db.Decimal(10, 2)
+  peechoOrderId        String?
+  retailTotalAmount    Decimal? @db.Decimal(10, 2)
+  wholesaleTotalAmount Decimal? @db.Decimal(10, 2)
+  platformMarkupAmount Decimal? @db.Decimal(10, 2)
 
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   collectorProfile CollectorProfile  @relation(fields: [collectorProfileId], references: [id], onDelete: Cascade)
   cycle            SubscriptionCycle @relation(fields: [cycleId], references: [id])
@@ -520,17 +520,17 @@ model BillingRecord {
   errorMessage          String?
 
   // Peecho order-based pricing fields (from order details at cycle lock)
-  peechoOrderId          String?
-  retailTotalAmount      Decimal? @db.Decimal(10, 2)
-  wholesaleTotalAmount   Decimal? @db.Decimal(10, 2)
-  platformMarkupAmount   Decimal? @db.Decimal(10, 2)
-  creatorPayoutAmount    Decimal? @db.Decimal(10, 2)
+  peechoOrderId        String?
+  retailTotalAmount    Decimal? @db.Decimal(10, 2)
+  wholesaleTotalAmount Decimal? @db.Decimal(10, 2)
+  platformMarkupAmount Decimal? @db.Decimal(10, 2)
+  creatorPayoutAmount  Decimal? @db.Decimal(10, 2)
 
-  createdAt             DateTime      @default(now())
-  updatedAt             DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  collectorProfile CollectorProfile    @relation(fields: [collectorProfileId], references: [id], onDelete: Cascade)
-  cycle            SubscriptionCycle   @relation(fields: [cycleId], references: [id])
+  collectorProfile CollectorProfile     @relation(fields: [collectorProfileId], references: [id], onDelete: Cascade)
+  cycle            SubscriptionCycle    @relation(fields: [cycleId], references: [id])
   quoteSnapshot    PricingQuoteSnapshot @relation(fields: [quoteSnapshotId], references: [id])
 
   @@unique([collectorProfileId, cycleId])
@@ -546,13 +546,18 @@ model StripeWebhookEvent {
 // ---------------------------------------------------------------------------
 
 model PlatformConfig {
-  id                  String   @id @default(cuid())
-  // Note: Margin is configured via Peecho dashboard, not here
-  // The margin (retail - wholesale) is split between creators and platform
-  creatorPayoutSplit  Float    @default(0.7)   // fraction of margin going to creators
-  platformFeeSplit    Float    @default(0.3)   // fraction of margin kept as platform fee
-  updatedAt           DateTime @updatedAt
-  updatedBy           String?                     // admin user ID who last updated
+  id                 String   @id @default(cuid())
+  // NOTE (Peecho quirk): The Peecho /quote endpoint returns wholesale prices
+  // only — it does NOT include platform markup. The /order endpoint DOES
+  // include the final retail price with markup baked in. To show collectors
+  // an accurate price estimate, we add `quoteMarginAmount` on top of the
+  // wholesale product price. This value must be kept in sync with whatever
+  // margin is configured in the Peecho merchant dashboard.
+  quoteMarginAmount  Float    @default(5.0) // fixed platform margin added to quote estimates (currency matches subscription)
+  creatorPayoutSplit Float    @default(0.7) // fraction of margin going to creators
+  platformFeeSplit   Float    @default(0.3) // fraction of margin kept as platform fee
+  updatedAt          DateTime @updatedAt
+  updatedBy          String? // admin user ID who last updated
 
   @@index([updatedAt])
 }
@@ -571,24 +576,24 @@ enum FulfillmentStatus {
 }
 
 model FulfillmentOrder {
-  id                    String             @id @default(cuid())
-  collectorProfileId    String
-  cycleId               String
-  generatedPrintFileId  String             @unique
-  quoteSnapshotId       String
-  providerOrderId       String?
-  status                FulfillmentStatus  @default(PENDING)
-  trackingNumber        String?
-  trackingUrl           String?
-  errorMessage          String?
-  submittedAt           DateTime?
-  createdAt             DateTime           @default(now())
-  updatedAt             DateTime           @updatedAt
+  id                   String            @id @default(cuid())
+  collectorProfileId   String
+  cycleId              String
+  generatedPrintFileId String            @unique
+  quoteSnapshotId      String
+  providerOrderId      String?
+  status               FulfillmentStatus @default(PENDING)
+  trackingNumber       String?
+  trackingUrl          String?
+  errorMessage         String?
+  submittedAt          DateTime?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
 
-  collectorProfile  CollectorProfile    @relation(fields: [collectorProfileId], references: [id], onDelete: Cascade)
-  cycle             SubscriptionCycle   @relation(fields: [cycleId], references: [id])
-  generatedPrintFile GeneratedPrintFile @relation(fields: [generatedPrintFileId], references: [id])
-  quoteSnapshot     PricingQuoteSnapshot @relation(fields: [quoteSnapshotId], references: [id])
+  collectorProfile   CollectorProfile     @relation(fields: [collectorProfileId], references: [id], onDelete: Cascade)
+  cycle              SubscriptionCycle    @relation(fields: [cycleId], references: [id])
+  generatedPrintFile GeneratedPrintFile   @relation(fields: [generatedPrintFileId], references: [id])
+  quoteSnapshot      PricingQuoteSnapshot @relation(fields: [quoteSnapshotId], references: [id])
 
   @@unique([collectorProfileId, cycleId])
 }
@@ -604,14 +609,14 @@ enum PayoutStatus {
 }
 
 model PayoutCalculation {
-  id                      String   @id @default(cuid())
-  cycleId                 String
-  totalMarkupPool         Decimal  @db.Decimal(10, 2)
-  totalPaidCollectors     Int
+  id                       String   @id @default(cuid())
+  cycleId                  String
+  totalMarkupPool          Decimal  @db.Decimal(10, 2)
+  totalPaidCollectors      Int
   totalFulfilledCollectors Int
-  calculationSnapshot     Json
-  calculatedAt            DateTime @default(now())
-  createdAt               DateTime @default(now())
+  calculationSnapshot      Json
+  calculatedAt             DateTime @default(now())
+  createdAt                DateTime @default(now())
 
   cycle SubscriptionCycle @relation(fields: [cycleId], references: [id])
 
@@ -633,7 +638,7 @@ model CreatorPayout {
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
 
-  creatorProfile CreatorProfile   @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+  creatorProfile CreatorProfile    @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
   cycle          SubscriptionCycle @relation(fields: [cycleId], references: [id])
 
   @@unique([creatorProfileId, cycleId])
@@ -644,11 +649,11 @@ model CreatorPayout {
 // ---------------------------------------------------------------------------
 
 model NotificationPreference {
-  id                    String  @id @default(cuid())
-  userId                String  @unique
-  emailEnabled          Boolean @default(true)
-  cycleReminderEnabled  Boolean @default(true)
-  lockReminderEnabled   Boolean @default(true)
+  id                     String  @id @default(cuid())
+  userId                 String  @unique
+  emailEnabled           Boolean @default(true)
+  cycleReminderEnabled   Boolean @default(true)
+  lockReminderEnabled    Boolean @default(true)
   releaseReminderEnabled Boolean @default(true)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -678,14 +683,14 @@ enum EmailNotificationStatus {
 }
 
 model EmailNotificationLog {
-  id         String                  @id @default(cuid())
-  userId     String
-  type       EmailNotificationType
-  cycleId    String?
-  status     EmailNotificationStatus @default(PENDING)
-  sentAt     DateTime?
-  errorMsg   String?
-  createdAt  DateTime                @default(now())
+  id        String                  @id @default(cuid())
+  userId    String
+  type      EmailNotificationType
+  cycleId   String?
+  status    EmailNotificationStatus @default(PENDING)
+  sentAt    DateTime?
+  errorMsg  String?
+  createdAt DateTime                @default(now())
 
   user  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   cycle SubscriptionCycle? @relation(fields: [cycleId], references: [id])

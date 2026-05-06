@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   useActionState,
   useCallback,
@@ -700,13 +701,12 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
               >
                 Back
               </button>
-              <button
-                type="submit"
-                disabled={isSaving}
-                className="flex-1 rounded-lg bg-fuchsia-600 px-5 py-3 text-sm font-semibold text-white hover:bg-fuchsia-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              <Link
+                href="/creator/profile"
+                className="flex-1 rounded-lg bg-fuchsia-600 px-5 py-3 text-sm font-semibold text-white hover:bg-fuchsia-700 transition-colors text-center"
               >
-                {isSaving ? "Saving..." : "Go to Dashboard"}
-              </button>
+                Go to Dashboard
+              </Link>
             </div>
           </div>
         )}

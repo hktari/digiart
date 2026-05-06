@@ -10,6 +10,7 @@ vi.mock("@/lib/db", () => ({
     podOffering: {
       upsert: vi.fn(),
       findMany: vi.fn(),
+      updateMany: vi.fn(),
     },
     fulfillmentCountry: {
       upsert: vi.fn(),
