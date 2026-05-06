@@ -22,7 +22,12 @@ export default async function AdminCyclePayoutsPage({
               displayName: true,
               slug: true,
               payoutProfile: {
-                select: { paypalEmail: true, isReady: true, legalName: true },
+                select: {
+                  paypalEmail: true,
+                  isReady: true,
+                  legalName: true,
+                  isPayPalVerified: true,
+                },
               },
             },
           },
@@ -143,6 +148,9 @@ export default async function AdminCyclePayoutsPage({
                     PayPal Email
                   </th>
                   <th className="px-6 py-3 text-left font-medium text-ink/60">
+                    Verified
+                  </th>
+                  <th className="px-6 py-3 text-left font-medium text-ink/60">
                     Amount
                   </th>
                   <th className="px-6 py-3 text-left font-medium text-ink/60">
@@ -186,6 +194,28 @@ export default async function AdminCyclePayoutsPage({
                       ) : (
                         <span className="text-red-500 text-xs">
                           Not configured
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      {payout.creatorProfile.payoutProfile?.isPayPalVerified ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-jade-100 text-jade-800">
+                          <svg
+                            className="w-3 h-3"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          Verified
+                        </span>
+                      ) : (
+                        <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          Unverified
                         </span>
                       )}
                     </td>

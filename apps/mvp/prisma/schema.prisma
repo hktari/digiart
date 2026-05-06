@@ -115,15 +115,18 @@ model CreatorProfile {
 }
 
 model CreatorPayoutProfile {
-  id               String   @id @default(cuid())
-  creatorProfileId String   @unique
-  legalName        String?
-  taxId            String?
-  bankAccountInfo  String?  @db.Text
-  paypalEmail      String?
-  isReady          Boolean  @default(false)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id                String   @id @default(cuid())
+  creatorProfileId  String   @unique
+  legalName         String?
+  taxId             String?
+  bankAccountInfo   String?  @db.Text
+  paypalEmail       String?
+  paypalAccountId   String?  // PayPal payer_id from OAuth verification
+  isPayPalVerified  Boolean  @default(false)
+  payPalVerifiedAt  DateTime?
+  isReady           Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { CheckIcon } from "lucide-react";
 import Link from "next/link";
 import {
   useActionState,
@@ -76,6 +77,51 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
     null,
   );
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  // PayPal verification state
+  const [payPalStatus, setPayPalStatus] = useState<{
+    isVerified: boolean;
+    verifiedAt: string | null;
+    isLoading: boolean;
+  }>({ isVerified: false, verifiedAt: null, isLoading: true });
+
+  // Load PayPal verification status on mount
+  useEffect(() => {
+    async function loadPayPalStatus() {
+      try {
+        const response = await fetch("/api/paypal/status");
+        if (response.ok) {
+          const data = await response.json();
+          setPayPalStatus({
+            isVerified: data.isVerified,
+            verifiedAt: data.verifiedAt,
+            isLoading: false,
+          });
+        }
+      } catch {
+        // Silently fail - verification is optional
+      } finally {
+        setPayPalStatus((prev) => ({ ...prev, isLoading: false }));
+      }
+    }
+    void loadPayPalStatus();
+  }, []);
+
+  // Check for PayPal verification success in URL
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("paypal_verified") === "true") {
+        setPayPalStatus({
+          isVerified: true,
+          verifiedAt: new Date().toISOString(),
+          isLoading: false,
+        });
+        // Clean up URL
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    }
+  }, []);
 
   const updateField = useCallback(
     (field: keyof FormData, value: string | string[]) => {
@@ -490,6 +536,44 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                 <p className="mt-1 text-sm text-red-600">
                   {allErrors.paypalEmail}
                 </p>
+              )}
+
+              {/* PayPal Verification UI */}
+              {formData.paypalEmail && !allErrors.paypalEmail && (
+                <div className="mt-3">
+                  {payPalStatus.isLoading ? (
+                    <span className="text-sm text-neutral-500">
+                      Checking verification status...
+                    </span>
+                  ) : payPalStatus.isVerified ? (
+                    <div className="flex items-center gap-2 text-jade-700 bg-jade-50 rounded-lg px-3 py-2">
+                      <CheckIcon className="w-4 h-4" />
+                      <span className="text-sm font-medium">
+                        PayPal account verified
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-sm text-neutral-600">
+                        Optional: Verify your PayPal account to ensure smooth
+                        payouts
+                      </p>
+                      <a
+                        href={`/api/paypal/connect?email=${encodeURIComponent(formData.paypalEmail)}&returnTo=${encodeURIComponent("/creator/setup")}`}
+                        className="inline-flex items-center gap-2 rounded-lg bg-[#0070BA] px-4 py-2 text-sm font-semibold text-white hover:bg-[#005ea6] transition-colors"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                        >
+                          <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.59 3.025-2.566 6.082-8.558 6.082H9.63l-1.496 9.478h2.79c.457 0 .85-.334.922-.788l.04-.19.73-4.627.047-.255a.933.933 0 0 1 .922-.788h.58c3.76 0 6.704-1.528 7.565-5.946.354-1.818.177-3.334-.777-4.57l-.226-.298z" />
+                        </svg>
+                        Connect with PayPal
+                      </a>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
 
