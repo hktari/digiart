@@ -34,7 +34,7 @@ async function globalSetup(config: FullConfig) {
 
   const sessionToken = process.env.TEST_SESSION_TOKEN;
   const testUserId = process.env.AUTH_BYPASS_TEST_USER_ID;
-  const noRoleSessionToken = process.env.NO_ROLE_SESSION_TOKEN;
+  const _noRoleSessionToken = process.env.NO_ROLE_SESSION_TOKEN;
 
   if (!sessionToken || !testUserId) {
     console.log("");

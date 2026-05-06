@@ -77,7 +77,7 @@ export function CollectorSubscriptionsClient({
                 in your booklet workflow.
               </p>
               <Link
-                href="/browse/creators"
+                href="/browse"
                 className="inline-flex items-center rounded-md border border-transparent bg-fuchsia-600 px-4 py-2 text-sm font-medium text-white hover:bg-fuchsia-700"
               >
                 Browse artists
@@ -105,7 +105,7 @@ export function CollectorSubscriptionsClient({
                           className="rounded-lg object-cover"
                         />
                       ) : (
-                        <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-gradient-to-br from-fuchsia-100 to-ocean-100">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-linear-to-br from-fuchsia-100 to-ocean-100">
                           <span className="text-2xl font-bold">
                             {subscription.creatorProfile.displayName
                               .charAt(0)
@@ -155,7 +155,7 @@ export function CollectorSubscriptionsClient({
 
         <div className="mt-8 flex justify-center">
           <Link
-            href="/browse/creators"
+            href="/browse"
             className="text-sm font-medium text-fuchsia-600 hover:text-fuchsia-700"
           >
             Discover more artists →

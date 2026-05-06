@@ -485,7 +485,7 @@ export async function subscribeToCreator(
 
     if (options?.revalidate !== false) {
       revalidatePath("/collector");
-      revalidatePath("/collector/discover");
+      revalidatePath("/browse");
       revalidatePath("/collector/subscriptions");
       revalidatePath("/collector/releases");
     }
@@ -530,7 +530,7 @@ export async function unsubscribeFromCreator(subscriptionId: string) {
     }
 
     revalidatePath("/collector");
-    revalidatePath("/collector/discover");
+    revalidatePath("/browse");
     revalidatePath("/collector/releases");
     revalidatePath("/collector/subscriptions");
     return { success: true };
@@ -713,7 +713,7 @@ export async function toggleReleaseSelection(
     }
 
     revalidatePath("/collector");
-    revalidatePath("/collector/discover");
+    revalidatePath("/browse");
     revalidatePath("/collector/subscriptions");
     revalidatePath("/collector/releases");
     return { success: true };
@@ -857,7 +857,7 @@ export async function commitBookletForCycle(): Promise<CommitBookletResult> {
   });
 
   revalidatePath("/collector");
-  revalidatePath("/collector/discover");
+  revalidatePath("/browse");
 
   return {
     success: true,

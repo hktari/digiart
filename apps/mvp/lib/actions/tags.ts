@@ -59,7 +59,7 @@ export async function setReleaseTags(releaseId: string, tagNames: string[]) {
 
   revalidatePath("/creator/releases");
   revalidatePath(`/creator/releases/${releaseId}`);
-  revalidatePath("/browse/releases");
+  revalidatePath("/browse");
 }
 
 export async function getReleaseTags(releaseId: string) {

@@ -32,7 +32,7 @@ function PublicHomePage() {
           </p>
           <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
             <Link
-              href="/browse/releases"
+              href="/browse"
               className="inline-flex items-center justify-center gap-2 rounded bg-ocean-600 px-6 py-3 text-sm font-medium text-paper transition-colors hover:bg-ocean-700"
             >
               Browse releases
@@ -198,7 +198,7 @@ export default async function HomePage() {
         title: "Follow your first artist",
         description:
           "Follow artists to expand the release pool for your booklet.",
-        href: "/browse/creators",
+        href: "/browse",
       },
     isCollector &&
       collectorProfile &&

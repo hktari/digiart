@@ -18,14 +18,12 @@ test.describe("Collector flow", () => {
   test("collector dashboard and nav pages are accessible", async ({ page }) => {
     await page.goto("/collector");
 
-    await page.goto("/collector/discover");
-    await expect(page).toHaveURL(/\/collector\/discover/);
-    await expect(
-      page.getByRole("heading", { name: /discover/i }),
-    ).toBeVisible();
+    await page.goto("/browse");
+    await expect(page).toHaveURL(/\/browse/);
+    await expect(page.getByRole("heading", { name: /browse/i })).toBeVisible();
 
-    await page.locator('a[href="/collector/discover?view=releases"]').click();
-    await expect(page).toHaveURL(/\/collector\/discover\?view=releases/);
+    await page.locator('a[href="/browse?view=releases"]').click();
+    await expect(page).toHaveURL(/\/browse\?view=releases/);
 
     await page.goto("/collector/subscriptions");
     await expect(
@@ -43,10 +41,8 @@ test.describe("Collector flow", () => {
     ).toBeVisible();
   });
 
-  test("collector can add and remove release from discover", async ({
-    page,
-  }) => {
-    await page.goto("/collector/discover?view=releases");
+  test("collector can add and remove release from browse", async ({ page }) => {
+    await page.goto("/browse?view=releases");
 
     const addButton = page
       .getByRole("button", { name: /add to booklet/i })

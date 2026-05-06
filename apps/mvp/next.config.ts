@@ -2,6 +2,40 @@ import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      {
+        source: "/discover",
+        destination: "/browse",
+        permanent: true,
+      },
+      {
+        source: "/discover/:path*",
+        destination: "/browse",
+        permanent: true,
+      },
+      {
+        source: "/collector/discover",
+        destination: "/browse",
+        permanent: true,
+      },
+      {
+        source: "/collector/discover/:path*",
+        destination: "/browse",
+        permanent: true,
+      },
+      {
+        source: "/browse/creators",
+        destination: "/browse?view=creators",
+        permanent: true,
+      },
+      {
+        source: "/browse/releases",
+        destination: "/browse?view=releases",
+        permanent: true,
+      },
+    ];
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],

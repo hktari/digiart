@@ -26,8 +26,8 @@ const collectorNavLinks = [
     exact: false,
   },
   {
-    href: "/collector/discover",
-    label: "Discover",
+    href: "/browse",
+    label: "Browse",
     icon: Compass,
     exact: false,
   },

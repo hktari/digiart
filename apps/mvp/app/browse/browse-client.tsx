@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { BrowseReleasesGrid } from "@/components/browse-releases-grid";
 import { DiscoverBookletBar } from "@/components/discover-booklet-bar";
 import { InfiniteScrollSentinel } from "@/components/infinite-scroll-sentinel";
-import { PublicDiscoverReleasesGrid } from "@/components/public-discover-releases-grid";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 
 type Creator = {
@@ -52,21 +52,27 @@ type Tag = {
   _count: { releaseTags: number };
 };
 
-type DiscoverClientProps = {
+type BrowseClientProps = {
   initialCreators: Creator[];
   initialReleases: Release[];
   tags: Tag[];
   view: "creators" | "releases";
   tag: string | undefined;
+  isAuthenticated: boolean;
+  hasCollectorRole: boolean;
+  cycleId: string | null;
 };
 
-export function DiscoverClient({
+export function BrowseClient({
   initialCreators,
   initialReleases,
   tags,
   view,
   tag,
-}: DiscoverClientProps) {
+  isAuthenticated,
+  hasCollectorRole,
+  cycleId,
+}: BrowseClientProps) {
   const {
     items: creators,
     isLoading: isLoadingCreators,
@@ -97,16 +103,16 @@ export function DiscoverClient({
     <div className="min-h-screen bg-neutral-50">
       <div className="max-w-7xl mx-auto px-4 py-12 lg:pr-80">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-neutral-900">Discover</h1>
+          <h1 className="text-3xl font-bold text-neutral-900">Browse</h1>
           <p className="mt-2 text-neutral-600">
-            Browse creators and releases to build your booklet
+            Discover creators and releases to build your booklet
           </p>
         </div>
 
         <div className="mb-6 flex items-center gap-4">
           <div className="flex gap-2">
             <Link
-              href="/discover?view=creators"
+              href="/browse?view=creators"
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                 view === "creators"
                   ? "bg-fuchsia-600 text-white"
@@ -116,7 +122,7 @@ export function DiscoverClient({
               Creators
             </Link>
             <Link
-              href="/discover?view=releases"
+              href="/browse?view=releases"
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                 view === "releases"
                   ? "bg-fuchsia-600 text-white"
@@ -132,7 +138,7 @@ export function DiscoverClient({
           <div className="mb-8">
             <div className="flex flex-wrap gap-2">
               <Link
-                href={`/discover?view=${view}`}
+                href={`/browse?view=${view}`}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                   !tag
                     ? "bg-ocean-600 text-white"
@@ -144,7 +150,7 @@ export function DiscoverClient({
               {tags.map((t) => (
                 <Link
                   key={t.slug}
-                  href={`/discover?view=${view}&tag=${t.slug}`}
+                  href={`/browse?view=${view}&tag=${t.slug}`}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                     tag === t.slug
                       ? "bg-ocean-600 text-white"
@@ -182,7 +188,7 @@ export function DiscoverClient({
                           className="rounded-lg object-cover"
                         />
                       ) : (
-                        <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-fuchsia-100 to-ocean-100 flex items-center justify-center">
+                        <div className="w-16 h-16 rounded-lg bg-linear-to-br from-fuchsia-100 to-ocean-100 flex items-center justify-center">
                           <span className="text-2xl font-bold">
                             {creator.displayName.charAt(0).toUpperCase()}
                           </span>
@@ -228,7 +234,12 @@ export function DiscoverClient({
             <EmptyState type="releases" tag={tag} />
           ) : (
             <>
-              <PublicDiscoverReleasesGrid releases={releases} />
+              <BrowseReleasesGrid
+                releases={releases}
+                isAuthenticated={isAuthenticated}
+                hasCollectorRole={hasCollectorRole}
+                cycleId={cycleId}
+              />
               <InfiniteScrollSentinel
                 isLoadingMore={isLoadingMoreReleases}
                 hasMore={hasMoreReleases}

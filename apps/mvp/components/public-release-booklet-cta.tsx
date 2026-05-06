@@ -1,12 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useTransition } from "react";
-import { toggleReleaseSelection } from "@/lib/actions/collector";
-import { dispatchCollectorCartUpdated } from "@/lib/cart-events";
+import { useBookletToggle } from "@/hooks/use-booklet-toggle";
 
 type Props = {
   releaseId: string;
+  releaseData: {
+    id: string;
+    title: string;
+    creatorProfile: {
+      displayName: string;
+      slug: string;
+    };
+    _count: {
+      artworks: number;
+    };
+  };
   cycleId: string | null;
   isAuthenticated: boolean;
   hasCollectorRole: boolean;
@@ -16,13 +25,24 @@ type Props = {
 
 export function PublicReleaseBookletCta({
   releaseId,
+  releaseData,
   cycleId,
   isAuthenticated,
   hasCollectorRole,
   hasCollectorProfile,
   initiallySelected,
 }: Props) {
-  const [isPending, startTransition] = useTransition();
+  const { isSelected, isPending, isHydrated, toggle } = useBookletToggle(
+    releaseId,
+    releaseData,
+    {
+      isAuthenticated,
+      hasCollectorRole,
+      cycleId,
+    },
+  );
+
+  const effectiveSelected = isHydrated ? isSelected : initiallySelected;
 
   if (!isAuthenticated) {
     return (
@@ -37,7 +57,7 @@ export function PublicReleaseBookletCta({
             </p>
           </div>
           <Link
-            href="/auth/sign-in"
+            href="/auth/sign-in?redirect=/browse"
             className="inline-flex justify-center rounded-lg bg-fuchsia-600 px-4 py-2 text-sm font-semibold text-white hover:bg-fuchsia-700"
           >
             Sign in
@@ -84,43 +104,34 @@ export function PublicReleaseBookletCta({
     );
   }
 
-  const handleToggle = () => {
-    startTransition(async () => {
-      const result = await toggleReleaseSelection(releaseId, cycleId);
-      if (!result.success) return;
-      dispatchCollectorCartUpdated();
-      window.location.reload();
-    });
-  };
-
   return (
     <div className="sticky bottom-4 z-20 rounded-2xl border border-neutral-200 bg-white/95 p-4 shadow-lg backdrop-blur">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-semibold text-neutral-900">
-            {initiallySelected
+            {effectiveSelected
               ? "This release is in your booklet"
               : "Add this release to your booklet"}
           </p>
           <p className="text-sm text-neutral-600">
-            {initiallySelected
+            {effectiveSelected
               ? "You can remove it or keep browsing artworks in this release."
               : "Use complete releases as building blocks instead of selecting artworks one by one."}
           </p>
         </div>
         <button
           type="button"
-          onClick={handleToggle}
-          disabled={isPending}
+          onClick={toggle}
+          disabled={isPending || !isHydrated}
           className={`inline-flex justify-center rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50 ${
-            initiallySelected
+            effectiveSelected
               ? "border border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
               : "bg-fuchsia-600 text-white hover:bg-fuchsia-700"
           }`}
         >
           {isPending
             ? "Saving..."
-            : initiallySelected
+            : effectiveSelected
               ? "Remove from booklet"
               : "Add to booklet"}
         </button>

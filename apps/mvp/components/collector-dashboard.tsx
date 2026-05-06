@@ -71,7 +71,7 @@ export function CollectorDashboard({ data }: Props) {
           </p>
         </Link>
         <Link
-          href={collectorProfile ? "/collector/discover" : "/collector/setup"}
+          href={collectorProfile ? "/browse" : "/collector/setup"}
           className="rounded-xl border border-neutral-200 px-4 py-4 transition-colors hover:border-ocean-300 hover:bg-ocean-50/30"
         >
           <p className="text-sm font-semibold text-neutral-900">

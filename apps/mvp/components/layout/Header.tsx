@@ -14,10 +14,7 @@ import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
-const navLinks = [
-  { href: "/browse/creators", label: "Creators" },
-  { href: "/browse/releases", label: "Releases" },
-];
+const navLinks = [{ href: "/browse", label: "Browse" }];
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);

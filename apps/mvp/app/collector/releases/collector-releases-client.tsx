@@ -135,7 +135,7 @@ export function CollectorReleasesClient({
                 Subscribe to more creators to see their releases here.
               </p>
               <Link
-                href="/browse/creators"
+                href="/browse"
                 className="inline-block px-4 py-2 rounded-lg bg-fuchsia-600 text-white font-medium hover:bg-fuchsia-700 transition-colors"
               >
                 Browse creators
@@ -161,7 +161,7 @@ export function CollectorReleasesClient({
         {items.length > 0 && (
           <div className="mt-8 text-center">
             <Link
-              href="/collector/discover"
+              href="/browse"
               className="text-sm text-fuchsia-600 hover:text-fuchsia-700 font-medium"
             >
               Discover more releases →

@@ -1,12 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-test.describe("Discover page infinite scroll", () => {
-  test("discover page loads with initial creators", async ({ page }) => {
-    await page.goto("/discover?view=creators");
-    await expect(page).toHaveURL(/\/discover/);
-    await expect(
-      page.getByRole("heading", { name: /discover/i }),
-    ).toBeVisible();
+test.describe("Browse page infinite scroll", () => {
+  test("browse page loads with initial creators", async ({ page }) => {
+    await page.goto("/browse?view=creators");
+    await expect(page).toHaveURL(/\/browse/);
+    await expect(page.getByRole("heading", { name: /browse/i })).toBeVisible();
 
     // Should show initial creators (server-rendered)
     const creatorCards = page.locator('a[href^="/creators/"]:has(h3):visible');
@@ -15,12 +13,10 @@ test.describe("Discover page infinite scroll", () => {
     expect(initialCount).toBeGreaterThanOrEqual(1);
   });
 
-  test("discover page loads with initial releases", async ({ page }) => {
-    await page.goto("/discover?view=releases");
-    await expect(page).toHaveURL(/\/discover\?view=releases/);
-    await expect(
-      page.getByRole("heading", { name: /discover/i }),
-    ).toBeVisible();
+  test("browse page loads with initial releases", async ({ page }) => {
+    await page.goto("/browse?view=releases");
+    await expect(page).toHaveURL(/\/browse\?view=releases/);
+    await expect(page.getByRole("heading", { name: /browse/i })).toBeVisible();
 
     // Should show initial releases
     const releaseCards = page.locator('[class*="rounded-lg"]:has(img):visible');
@@ -30,7 +26,7 @@ test.describe("Discover page infinite scroll", () => {
   test("creators infinite scroll loads more items on scroll", async ({
     page,
   }) => {
-    await page.goto("/discover?view=creators");
+    await page.goto("/browse?view=creators");
 
     // Wait for initial load
     const creatorCards = page.locator('a[href^="/creators/"]:has(h3):visible');
@@ -52,7 +48,7 @@ test.describe("Discover page infinite scroll", () => {
   test("releases infinite scroll loads more items on scroll", async ({
     page,
   }) => {
-    await page.goto("/discover?view=releases");
+    await page.goto("/browse?view=releases");
 
     // Wait for initial load
     const releaseCards = page.locator('[class*="rounded-lg"]:has(img):visible');
@@ -70,8 +66,8 @@ test.describe("Discover page infinite scroll", () => {
     expect(newCount).toBeGreaterThanOrEqual(initialCount);
   });
 
-  test("tag filtering works on discover page", async ({ page }) => {
-    await page.goto("/discover?view=creators");
+  test("tag filtering works on browse page", async ({ page }) => {
+    await page.goto("/browse?view=creators");
 
     // Click on a tag filter
     const tagButton = page.locator('a[href*="tag="]').first();
@@ -91,19 +87,19 @@ test.describe("Discover page infinite scroll", () => {
   });
 
   test("switching between creators and releases views", async ({ page }) => {
-    await page.goto("/discover?view=creators");
+    await page.goto("/browse?view=creators");
 
     // Switch to releases view (use specific href to avoid matching nav/footer links)
-    await page.locator('a[href="/discover?view=releases"]').click();
-    await expect(page).toHaveURL(/\/discover\?view=releases/);
+    await page.locator('a[href="/browse?view=releases"]').click();
+    await expect(page).toHaveURL(/\/browse\?view=releases/);
 
     // Should show releases
     const releaseCards = page.locator('[class*="rounded-lg"]:has(img):visible');
     await expect(releaseCards.first()).toBeVisible();
 
     // Switch back to creators (use specific href to avoid matching nav/footer links)
-    await page.locator('a[href="/discover?view=creators"]').click();
-    await expect(page).toHaveURL(/\/discover\?view=creators/);
+    await page.locator('a[href="/browse?view=creators"]').click();
+    await expect(page).toHaveURL(/\/browse\?view=creators/);
 
     // Should show creators
     const creatorCards = page.locator('a[href^="/creators/"]:has(h3):visible');

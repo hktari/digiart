@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CreatorReleasesGrid } from "@/components/creator-releases-grid";
+import { DiscoverBookletBar } from "@/components/discover-booklet-bar";
 import { isUserSubscribedToCreator } from "@/lib/actions/collector";
 import {
   getPublicCreatorProfile,
@@ -8,7 +10,6 @@ import {
 } from "@/lib/actions/creator";
 import { getCurrentCycle } from "@/lib/actions/cycles";
 import { auth } from "@/lib/auth";
-import { getPublicStorageUrl } from "@/lib/s3";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -41,9 +42,13 @@ export default async function CreatorProfilePage({
     ? await isUserSubscribedToCreator(session.user.id, profile.id)
     : false;
 
+  const isAuthenticated = Boolean(session?.user?.id);
+  const hasCollectorRole = session?.user?.roles?.includes("COLLECTOR") ?? false;
+  const cycleId = currentCycle?.id ?? null;
+
   return (
     <div className="bg-neutral-50">
-      <div className="max-w-5xl mx-auto px-4 py-12 space-y-12">
+      <div className="max-w-5xl mx-auto px-4 py-12 space-y-12 lg:pr-80">
         {/* Header */}
         <div className="flex flex-col md:flex-row gap-8 items-start">
           {/* Avatar */}
@@ -187,54 +192,13 @@ export default async function CreatorProfilePage({
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {profile.releases.map((release) => {
-                const coverArtwork = release.artworks[0]?.artwork;
-                const coverUrl = coverArtwork
-                  ? getPublicStorageUrl(coverArtwork.storageKey)
-                  : null;
-
-                return (
-                  <Link
-                    key={release.id}
-                    href={`/creators/${slug}/releases/${release.id}`}
-                    className="group rounded-xl border border-neutral-200 bg-white overflow-hidden hover:border-fuchsia-300 hover:shadow-lg transition-all"
-                  >
-                    {/* Cover image */}
-                    <div className="aspect-square bg-neutral-100 relative overflow-hidden">
-                      {coverUrl ? (
-                        <Image
-                          src={coverUrl}
-                          alt={release.title}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-neutral-400">
-                          <span className="text-6xl">📦</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Info */}
-                    <div className="p-4 space-y-2">
-                      <h3 className="font-semibold text-neutral-900 line-clamp-1">
-                        {release.title}
-                      </h3>
-                      {release.description && (
-                        <p className="text-sm text-neutral-600 line-clamp-2">
-                          {release.description}
-                        </p>
-                      )}
-                      <p className="text-xs text-neutral-500">
-                        {release._count.artworks}{" "}
-                        {release._count.artworks === 1 ? "artwork" : "artworks"}
-                      </p>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
+            <CreatorReleasesGrid
+              releases={profile.releases}
+              slug={slug}
+              isAuthenticated={isAuthenticated}
+              hasCollectorRole={hasCollectorRole}
+              cycleId={cycleId}
+            />
           </div>
         )}
 
@@ -247,6 +211,7 @@ export default async function CreatorProfilePage({
           </div>
         )}
       </div>
+      <DiscoverBookletBar />
     </div>
   );
 }

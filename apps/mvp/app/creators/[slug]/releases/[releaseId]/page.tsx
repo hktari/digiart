@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { DiscoverBookletBar } from "@/components/discover-booklet-bar";
 import { PublicReleaseBookletCta } from "@/components/public-release-booklet-cta";
 import {
   getCollectorProfile,
@@ -43,7 +44,7 @@ export default async function PublicReleaseDetailPage({ params }: Props) {
 
   return (
     <div className="bg-neutral-50">
-      <div className="max-w-6xl mx-auto px-4 py-12 space-y-8">
+      <div className="max-w-6xl mx-auto px-4 py-12 space-y-8 lg:pr-80">
         <div className="space-y-3">
           <Link
             href={`/creators/${slug}/releases`}
@@ -92,6 +93,12 @@ export default async function PublicReleaseDetailPage({ params }: Props) {
 
         <PublicReleaseBookletCta
           releaseId={release.id}
+          releaseData={{
+            id: release.id,
+            title: release.title,
+            creatorProfile: release.creatorProfile,
+            _count: release._count,
+          }}
           cycleId={currentCycle?.id ?? null}
           isAuthenticated={isAuthenticated}
           hasCollectorRole={hasCollectorRole}
@@ -125,6 +132,7 @@ export default async function PublicReleaseDetailPage({ params }: Props) {
           ))}
         </section>
       </div>
+      <DiscoverBookletBar />
     </div>
   );
 }

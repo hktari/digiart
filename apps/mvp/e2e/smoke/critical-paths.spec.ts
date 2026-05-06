@@ -27,7 +27,7 @@ test.describe("Critical Paths", () => {
   });
 
   test("browse page shows creator cards or empty state", async ({ page }) => {
-    await page.goto("/browse/creators");
+    await page.goto("/browse");
 
     // Page should load successfully with a heading
     await expect(page.getByRole("heading").first()).toBeVisible();

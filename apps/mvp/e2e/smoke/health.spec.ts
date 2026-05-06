@@ -20,7 +20,7 @@ test.describe("Health Checks", () => {
   });
 
   test("browse creators page loads", async ({ page }) => {
-    const response = await page.goto("/browse/creators");
+    const response = await page.goto("/browse");
     expect(response?.status()).toBeLessThan(500);
     // Page should have a heading
     await expect(page.getByRole("heading").first()).toBeVisible();
