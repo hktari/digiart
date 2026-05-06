@@ -3,7 +3,12 @@ import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { type AttributionData, linkAttributionToLead } from "./attribution";
 import { getAnonymousId } from "./identity";
-import { trackUmamiEvent, trackUmamiPageView } from "./umami";
+import {
+  aliasPostHogUser,
+  identifyPostHogUser,
+  trackPostHogEvent,
+  trackPostHogPageView,
+} from "./posthog";
 
 /**
  * Event taxonomy matching the GTM strategy document.
@@ -56,18 +61,23 @@ export type EventMetadata = Record<string, string | number | boolean>;
 
 /**
  * Track an anonymous event (before user is authenticated).
- * Stores in database via AttributionSession and sends to Umami.
+ * Stores in database via AttributionSession and sends to PostHog.
  */
 export async function trackAnonymousEvent(
   eventName: AnalyticsEventName,
   metadata?: EventMetadata,
 ): Promise<void> {
-  // Always send to Umami
-  void trackUmamiEvent(eventName, { data: metadata });
+  // Get anonymous ID for PostHog tracking
+  const anonymousId = await getAnonymousId();
+
+  // Send to PostHog using anonymous ID as distinct_id
+  if (anonymousId) {
+    void trackPostHogEvent(anonymousId, eventName, metadata);
+  } else {
+    return; // No anonymous ID, can't track
+  }
 
   // Store in database via anonymous session
-  const anonymousId = await getAnonymousId();
-  if (!anonymousId) return;
 
   // Get or create a lead for this anonymous user
   let lead = await db.lead.findFirst({
@@ -101,15 +111,15 @@ export async function trackAnonymousEvent(
 
 /**
  * Track an event for an authenticated user.
- * Links to their Lead record and sends to Umami.
+ * Links to their Lead record and sends to PostHog.
  */
 export async function trackUserEvent(
   userId: string,
   eventName: AnalyticsEventName,
   metadata?: EventMetadata,
 ): Promise<void> {
-  // Always send to Umami
-  void trackUmamiEvent(eventName, { data: { user_id: userId, ...metadata } });
+  // Send to PostHog using user ID as distinct_id
+  void trackPostHogEvent(userId, eventName, metadata);
 
   try {
     // Find or create lead for this user
@@ -174,8 +184,18 @@ export async function trackUserEvent(
       // Link attribution session if exists
       if (anonymousId) {
         await linkAttributionToLead(anonymousId, lead.id);
+        // Alias anonymous ID to user ID in PostHog for identity merging
+        void aliasPostHogUser(userId, anonymousId);
       }
     }
+
+    // Identify user in PostHog with their properties
+    void identifyPostHogUser(userId, {
+      lead_id: lead.id,
+      lead_type: lead.type,
+      email: lead.email ?? "",
+      ...metadata,
+    });
 
     // Log the event
     await db.leadEvent.create({
@@ -196,7 +216,7 @@ export async function trackUserEvent(
 
 /**
  * Track a page view event.
- * Sends to Umami and optionally to database.
+ * Sends to PostHog and optionally to database.
  */
 export async function trackPageView(
   pathname: string,
@@ -207,11 +227,21 @@ export async function trackPageView(
     isAnonymous?: boolean;
   },
 ): Promise<void> {
-  // Send to Umami
-  void trackUmamiPageView(pathname, {
-    title: options?.title,
-    referrer: options?.referrer,
-  });
+  // Determine distinct ID for PostHog
+  let distinctId: string | null = null;
+  if (options?.userId) {
+    distinctId = options.userId;
+  } else if (options?.isAnonymous) {
+    distinctId = await getAnonymousId();
+  }
+
+  // Send to PostHog if we have an ID
+  if (distinctId) {
+    void trackPostHogPageView(distinctId, pathname, {
+      title: options?.title,
+      referrer: options?.referrer,
+    });
+  }
 
   // Determine event name based on path
   let eventName: AnalyticsEventName = AnalyticsEvents.PAGE_VIEW_HOME;
