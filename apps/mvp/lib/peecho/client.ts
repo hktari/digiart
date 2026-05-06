@@ -340,11 +340,11 @@ function extractUsStateCodes(data: PeechoCountriesApiResponse): string[] {
 export class PeechoClient {
   private apiUrl: string;
   private merchantApiKey: string;
-  private countriesCache: {
-    data: PeechoCountry[] | null;
-    timestamp: number | null;
-    ttl: number;
-  };
+  private countriesCacheTtl: number;
+  private countriesCache: Map<
+    string,
+    { data: PeechoCountry[]; timestamp: number }
+  >;
 
   constructor() {
     this.apiUrl = process.env.PEECHO_API_URL || PEECHO_API_URL;
@@ -356,12 +356,9 @@ export class PeechoClient {
       );
     }
 
-    // Cache with 1 hour TTL
-    this.countriesCache = {
-      data: null,
-      timestamp: null,
-      ttl: 60 * 60 * 1000, // 1 hour in milliseconds
-    };
+    // Cache with 1 hour TTL, keyed by sorted offering IDs
+    this.countriesCacheTtl = 60 * 60 * 1000;
+    this.countriesCache = new Map();
   }
 
   private async get<T>(
@@ -582,15 +579,7 @@ export class PeechoClient {
   }
 
   async getCountries(offeringIds?: string[]): Promise<PeechoCountry[]> {
-    // Check cache
     const now = Date.now();
-    if (
-      this.countriesCache.data &&
-      this.countriesCache.timestamp &&
-      now - this.countriesCache.timestamp < this.countriesCache.ttl
-    ) {
-      return this.countriesCache.data;
-    }
 
     try {
       const resolvedOfferingIds =
@@ -600,6 +589,12 @@ export class PeechoClient {
               offering.id.toString(),
             );
 
+      const cacheKey = [...resolvedOfferingIds].sort().join(",");
+      const cached = this.countriesCache.get(cacheKey);
+      if (cached && now - cached.timestamp < this.countriesCacheTtl) {
+        return cached.data;
+      }
+
       const data = await this.post<PeechoCountriesApiResponse>(
         "/offering/countries",
         {
@@ -607,7 +602,19 @@ export class PeechoClient {
           offeringsId: resolvedOfferingIds,
         },
       );
+      logger.info("Peecho /offering/countries raw response", {
+        offeringIds: resolvedOfferingIds,
+        responseType: Array.isArray(data) ? "array" : typeof data,
+        responseKeys: Array.isArray(data)
+          ? null
+          : Object.keys(data as object).slice(0, 10),
+        responsePreview: JSON.stringify(data).slice(0, 500),
+      });
       let countries = normalizeCountriesResponse(data);
+      logger.info("Peecho countries after normalization", {
+        count: countries.length,
+        countries: countries.slice(0, 5),
+      });
 
       // Some merchant catalogues return no countries for bulk offering lookups.
       // Fallback to per-offering requests and merge results.
@@ -636,12 +643,10 @@ export class PeechoClient {
         );
       }
 
-      // Update cache
-      this.countriesCache = {
-        data: countries,
-        timestamp: now,
-        ttl: this.countriesCache.ttl,
-      };
+      // Update cache only when we have actual data (avoid caching empty responses)
+      if (countries.length > 0) {
+        this.countriesCache.set(cacheKey, { data: countries, timestamp: now });
+      }
 
       return countries;
     } catch (error) {
