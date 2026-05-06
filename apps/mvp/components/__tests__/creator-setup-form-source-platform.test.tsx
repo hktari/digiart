@@ -364,10 +364,10 @@ describe("CreatorSetupForm - Source Platform & Share Step", () => {
         screen.getByRole("button", { name: /Skip for now/i }),
       );
 
-      // Check for final submit button
+      // Check for final "Go to Dashboard" link
       await waitFor(() => {
         expect(
-          screen.getByRole("button", { name: /Go to Dashboard/i }),
+          screen.getByRole("link", { name: /Go to Dashboard/i }),
         ).toBeInTheDocument();
       });
     });

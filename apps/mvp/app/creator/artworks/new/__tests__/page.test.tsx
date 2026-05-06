@@ -11,40 +11,38 @@ describe("CreatorArtworkNewPage", () => {
     expect(screen.getByText(/browse/i)).toBeInTheDocument();
   });
 
-  it("renders title input as controlled component", async () => {
+  it("file input accepts jpeg and png only", () => {
+    render(<CreatorArtworkNewPage />);
+
+    const fileInput = document.querySelector('input[type="file"]');
+    expect(fileInput).toHaveAttribute("accept", "image/jpeg,image/png");
+  });
+
+  it("upload button is not visible without queued files", () => {
+    render(<CreatorArtworkNewPage />);
+
+    expect(
+      screen.queryByRole("button", { name: /upload \d+ file/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows queued file and upload button after file selection", async () => {
     const user = userEvent.setup();
     render(<CreatorArtworkNewPage />);
 
-    const titleInput = screen.getByLabelText(/title/i);
-    expect(titleInput).toHaveValue("");
+    const file = new File(["dummy"], "test.jpg", { type: "image/jpeg" });
+    const fileInput = document.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
+    await user.upload(fileInput, file);
 
-    await user.type(titleInput, "My Artwork");
-    expect(titleInput).toHaveValue("My Artwork");
+    expect(screen.getByText("test.jpg")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /upload 1 file/i }),
+    ).toBeInTheDocument();
   });
 
-  it("submit button is disabled without file and title", () => {
-    render(<CreatorArtworkNewPage />);
-
-    const submitButton = screen.getByRole("button", {
-      name: /upload artwork/i,
-    });
-    expect(submitButton).toBeDisabled();
-  });
-
-  it("submit button is disabled with only title", async () => {
-    const user = userEvent.setup();
-    render(<CreatorArtworkNewPage />);
-
-    const titleInput = screen.getByLabelText(/title/i);
-    await user.type(titleInput, "My Artwork");
-
-    const submitButton = screen.getByRole("button", {
-      name: /upload artwork/i,
-    });
-    expect(submitButton).toBeDisabled();
-  });
-
-  it("renders error banner when status is error", async () => {
+  it("shows per-file error message when upload fails", async () => {
     const user = userEvent.setup();
     global.fetch = vi.fn(() =>
       Promise.resolve({
@@ -60,34 +58,20 @@ describe("CreatorArtworkNewPage", () => {
     render(<CreatorArtworkNewPage />);
 
     const file = new File(["dummy"], "test.jpg", { type: "image/jpeg" });
-    const input = screen.getByRole("button", {
-      name: /drag & drop or browse/i,
+    const fileInput = document.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
+    await user.upload(fileInput, file);
+
+    const uploadButton = screen.getByRole("button", {
+      name: /upload 1 file/i,
     });
-
-    await user.click(input);
-
-    const fileInput = document.querySelector('input[type="file"]');
-    if (fileInput) {
-      await user.upload(fileInput as HTMLInputElement, file);
-    }
-
-    const titleInput = screen.getByLabelText(/title/i);
-    await user.type(titleInput, "Test");
-
-    const submitButton = screen.getByRole("button", {
-      name: /upload artwork/i,
-    });
-    await user.click(submitButton);
+    await user.click(uploadButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/INVALID FORMAT/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/only jpeg and png files are accepted/i),
+      ).toBeInTheDocument();
     });
-  });
-
-  it("file input accepts jpeg and png only", () => {
-    render(<CreatorArtworkNewPage />);
-
-    const fileInput = document.querySelector('input[type="file"]');
-    expect(fileInput).toHaveAttribute("accept", "image/jpeg,image/png");
   });
 });

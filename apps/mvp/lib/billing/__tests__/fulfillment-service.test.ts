@@ -57,6 +57,7 @@ describe("submitFulfillmentOrder", () => {
   });
 
   it("submits order successfully and creates fulfillment order", async () => {
+    process.env.PEECHO_SECRET_KEY = "test-secret";
     vi.mocked(db.generatedPrintFile.findUnique).mockResolvedValue({
       id: "pf1",
       status: "READY",

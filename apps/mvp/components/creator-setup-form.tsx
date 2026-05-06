@@ -702,7 +702,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                 Back
               </button>
               <Link
-                href="/creator/profile"
+                href="/"
                 className="flex-1 rounded-lg bg-fuchsia-600 px-5 py-3 text-sm font-semibold text-white hover:bg-fuchsia-700 transition-colors text-center"
               >
                 Go to Dashboard
