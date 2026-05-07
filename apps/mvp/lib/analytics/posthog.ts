@@ -28,12 +28,14 @@ function getPostHogClient(): PostHog | null {
   }
 
   try {
+    // NOTE:revoew this config if deploying to Vercel serverless
+    // https://posthog.com/docs/libraries/node#capturing-events
     posthogClient = new PostHog(apiKey, {
       host,
-      flushAt: 3,
-      flushInterval: 5_000,
-      requestTimeout: 5_000,
-      maxCacheSize: 1000,
+    });
+
+    posthogClient.register({
+      environment: process.env.NODE_ENV,
     });
 
     posthogClient.on("error", (err) => {

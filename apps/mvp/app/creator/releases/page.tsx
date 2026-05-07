@@ -4,6 +4,7 @@ import { CycleStatusBadge } from "@/components/cycle-status-badge";
 import { getReleases } from "@/lib/actions/releases";
 import { computeCycleStatus } from "@/lib/cycle-status";
 import { getCurrentCycle } from "@/lib/cycle-utils";
+import { db } from "@/lib/db";
 
 const STATUS_BADGE: Record<string, string> = {
   DRAFT: "bg-neutral-100 text-neutral-600",
@@ -20,7 +21,23 @@ export default async function CreatorReleasesPage({
   const releases = await getReleases();
   const currentCycle = await getCurrentCycle();
   const cycleStatus = currentCycle ? computeCycleStatus(currentCycle) : null;
-  const canCreateRelease = cycleStatus === "OPEN";
+
+  // Get platform limits
+  const platformConfig = await db.platformConfig.findFirst({
+    orderBy: { updatedAt: "desc" },
+  });
+  const maxReleasesPerCycle = platformConfig?.maxReleasesPerCycle ?? 3;
+  const maxArtworksPerRelease = platformConfig?.maxArtworksPerRelease ?? 20;
+
+  // Count published releases in current cycle
+  const publishedReleasesThisCycle = currentCycle
+    ? releases.filter(
+        (r) => r.status === "PUBLISHED" && r.cycleId === currentCycle.id,
+      ).length
+    : 0;
+
+  const canCreateRelease =
+    cycleStatus === "OPEN" && publishedReleasesThisCycle < maxReleasesPerCycle;
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10">
@@ -60,6 +77,16 @@ export default async function CreatorReleasesPage({
         </div>
       )}
 
+      {currentCycle && cycleStatus === "OPEN" && (
+        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-blue-800">
+            <strong>Release limits:</strong> {publishedReleasesThisCycle} of{" "}
+            {maxReleasesPerCycle} published this cycle · Max{" "}
+            {maxArtworksPerRelease} artworks per release
+          </p>
+        </div>
+      )}
+
       {!currentCycle && (
         <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <p className="text-sm text-yellow-800">
@@ -77,6 +104,18 @@ export default async function CreatorReleasesPage({
           </p>
         </div>
       )}
+
+      {currentCycle &&
+        cycleStatus === "OPEN" &&
+        publishedReleasesThisCycle >= maxReleasesPerCycle && (
+          <div className="mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <p className="text-sm text-amber-800">
+              <strong>Release limit reached:</strong> You have published{" "}
+              {maxReleasesPerCycle} releases this cycle. Create a new release in
+              the next cycle.
+            </p>
+          </div>
+        )}
 
       {releases.length === 0 ? (
         <div className="rounded-xl border border-dashed border-neutral-200 py-16 text-center">

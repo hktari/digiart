@@ -67,14 +67,23 @@ export async function calculateCreatorEarningsForCycle(
   );
 
   // Calculate total margin from order-based pricing (retail - wholesale)
-  // or fall back to the old quote-based markup if order pricing not available
-  const totalMarginPool = eligibleRecords.reduce((sum, r) => {
-    if (r.retailTotalAmount && r.wholesaleTotalAmount) {
-      return sum + Number(r.retailTotalAmount) - Number(r.wholesaleTotalAmount);
-    }
-    // Fallback to old quote-based markup
-    return sum + Number(r.quoteSnapshot?.markupAmount ?? 0);
-  }, 0);
+  // All billing records must have Peecho order pricing at this point
+  const recordsWithOrderPricing = eligibleRecords.filter(
+    (r) => r.retailTotalAmount != null && r.wholesaleTotalAmount != null,
+  );
+
+  if (recordsWithOrderPricing.length !== eligibleRecords.length) {
+    throw new Error(
+      `Payout calculation failed: ${eligibleRecords.length - recordsWithOrderPricing.length} billing records missing Peecho order pricing. ` +
+        `All fulfilled orders must have retailTotalAmount and wholesaleTotalAmount before payout calculation.`,
+    );
+  }
+
+  const totalMarginPool = recordsWithOrderPricing.reduce(
+    (sum, r) =>
+      sum + Number(r.retailTotalAmount) - Number(r.wholesaleTotalAmount),
+    0,
+  );
 
   // Calculate creator and platform shares
   const totalCreatorPayout = totalMarginPool * creatorPayoutSplit;

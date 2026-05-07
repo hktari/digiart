@@ -227,6 +227,7 @@ model Release {
   status           PublishStatus @default(DRAFT)
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
+  publishedAt      DateTime?     // Set when release is first published (immutable after publish)
 
   creatorProfile CreatorProfile              @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
   cycle          SubscriptionCycle?          @relation(fields: [cycleId], references: [id])
@@ -558,18 +559,20 @@ model StripeWebhookEvent {
 // ---------------------------------------------------------------------------
 
 model PlatformConfig {
-  id                 String   @id @default(cuid())
+  id                   String   @id @default(cuid())
   // NOTE (Peecho quirk): The Peecho /quote endpoint returns wholesale prices
   // only — it does NOT include platform markup. The /order endpoint DOES
   // include the final retail price with markup baked in. To show collectors
   // an accurate price estimate, we add `quoteMarginAmount` on top of the
   // wholesale product price. This value must be kept in sync with whatever
   // margin is configured in the Peecho merchant dashboard.
-  quoteMarginAmount  Float    @default(0.3) // fractional margin rate (e.g. 0.3 = 30%); markup = (productPrice + vat) * rate
-  creatorPayoutSplit Float    @default(0.7) // fraction of margin going to creators
-  platformFeeSplit   Float    @default(0.3) // fraction of margin kept as platform fee
-  updatedAt          DateTime @updatedAt
-  updatedBy          String? // admin user ID who last updated
+  quoteMarginAmount    Float    @default(0.3) // fractional margin rate (e.g. 0.3 = 30%); markup = (productPrice + vat) * rate
+  creatorPayoutSplit   Float    @default(0.7) // fraction of margin going to creators
+  platformFeeSplit     Float    @default(0.3) // fraction of margin kept as platform fee
+  maxArtworksPerRelease Int     @default(20) // maximum artworks allowed per release
+  maxReleasesPerCycle   Int     @default(3)  // maximum releases a creator can publish per cycle
+  updatedAt            DateTime @updatedAt
+  updatedBy            String? // admin user ID who last updated
 
   @@index([updatedAt])
 }

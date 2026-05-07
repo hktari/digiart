@@ -170,12 +170,14 @@ export function NewReleaseForm() {
   };
 
   const MIN_ARTWORKS = 5;
+  const MAX_ARTWORKS = 20; // Matches PlatformConfig default
   const hasErrors = entries.some((e) => e.state.status === "error");
   const isSubmitting = step === "submitting" || isPending || isUploading;
   const doneCount = entries.filter((e) => e.state.status === "done").length;
   const queuedCount = entries.filter((e) => e.state.status === "queued").length;
   const totalCount = doneCount + queuedCount;
   const meetsMinimum = totalCount >= MIN_ARTWORKS;
+  const atMaximum = totalCount >= MAX_ARTWORKS;
 
   return (
     <div className="space-y-8">
@@ -300,8 +302,14 @@ export function NewReleaseForm() {
               Drag & drop or <span className="text-fuchsia-600">browse</span>
             </p>
             <p className="mt-0.5 text-xs text-neutral-400">
-              JPEG or PNG · max 50 MB · multiple files
+              JPEG or PNG · max 50 MB · min {MIN_ARTWORKS} / max {MAX_ARTWORKS}{" "}
+              artworks
             </p>
+            {atMaximum && (
+              <p className="mt-1 text-xs text-amber-600 font-medium">
+                Maximum {MAX_ARTWORKS} artworks reached
+              </p>
+            )}
             <input
               ref={fileInputRef}
               type="file"
@@ -419,7 +427,7 @@ export function NewReleaseForm() {
               ← Back
             </button>
             <div className="flex gap-3">
-              {entries.length > 0 && !isSubmitting && (
+              {entries.length > 0 && !isSubmitting && !atMaximum && (
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
@@ -448,6 +456,10 @@ export function NewReleaseForm() {
                 : `${MIN_ARTWORKS - totalCount} more artwork${MIN_ARTWORKS - totalCount === 1 ? "" : "s"} needed (min ${MIN_ARTWORKS}).`}
             </p>
           )}
+          <p className="text-center text-xs text-neutral-400">
+            {totalCount} of {MAX_ARTWORKS} maximum artworks · Once published,
+            releases cannot be edited
+          </p>
         </div>
       )}
     </div>

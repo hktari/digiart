@@ -32,6 +32,29 @@ function withThumbnail<T extends { storageKey: string }>(artwork: T) {
   return { ...artwork, thumbnailUrl: getPublicStorageUrl(artwork.storageKey) };
 }
 
+async function getPlatformLimits() {
+  const config = await db.platformConfig.findFirst({
+    orderBy: { updatedAt: "desc" },
+  });
+  return {
+    maxArtworksPerRelease: config?.maxArtworksPerRelease ?? 20,
+    maxReleasesPerCycle: config?.maxReleasesPerCycle ?? 3,
+  };
+}
+
+async function countPublishedReleasesInCycle(
+  creatorProfileId: string,
+  cycleId: string,
+): Promise<number> {
+  return db.release.count({
+    where: {
+      creatorProfileId,
+      cycleId,
+      status: "PUBLISHED",
+    },
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Queries
 // ---------------------------------------------------------------------------
@@ -121,12 +144,31 @@ export async function createRelease(
     return { success: false, errors };
   }
 
+  // Check release count limit for current cycle
+  const currentCycle = await getCurrentCycle();
+  if (currentCycle) {
+    const { maxReleasesPerCycle } = await getPlatformLimits();
+    const publishedCount = await countPublishedReleasesInCycle(
+      creatorProfileId,
+      currentCycle.id,
+    );
+    if (publishedCount >= maxReleasesPerCycle) {
+      return {
+        success: false,
+        errors: {
+          _form: `You have reached the maximum of ${maxReleasesPerCycle} releases for this cycle.`,
+        },
+      };
+    }
+  }
+
   const release = await db.release.create({
     data: {
       creatorProfileId,
       title: parsed.data.title,
       description: parsed.data.description ?? null,
       status: "DRAFT",
+      cycleId: currentCycle?.id ?? null,
     },
   });
 
@@ -237,6 +279,15 @@ export async function setReleaseArtworks(
     return { success: false, error: "Cannot edit release - cycle is locked" };
   }
 
+  // Check artwork count limit
+  const { maxArtworksPerRelease } = await getPlatformLimits();
+  if (artworkIds.length > maxArtworksPerRelease) {
+    return {
+      success: false,
+      error: `Maximum ${maxArtworksPerRelease} artworks allowed per release (you selected ${artworkIds.length})`,
+    };
+  }
+
   // Verify all artworks belong to this creator
   const artworks = await db.artwork.findMany({
     where: { id: { in: artworkIds }, creatorProfileId },
@@ -273,6 +324,16 @@ export async function publishRelease(
 
   if (!release) return { success: false, error: "Release not found" };
   if (release.status === "PUBLISHED") return { success: true };
+
+  // Prevent re-publishing archived releases
+  if (release.status === "ARCHIVED") {
+    return {
+      success: false,
+      error:
+        "Archived releases cannot be re-published. Create a new release instead.",
+    };
+  }
+
   if (release._count.artworks < 5) {
     return {
       success: false,
@@ -291,7 +352,10 @@ export async function publishRelease(
 
   await db.release.update({
     where: { id: releaseId },
-    data: { status: "PUBLISHED" },
+    data: {
+      status: "PUBLISHED",
+      publishedAt: new Date(),
+    },
   });
 
   const currentCycle = await getCurrentCycle();

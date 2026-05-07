@@ -20,6 +20,13 @@ export function ReleaseActions({
   const [isPending, startTransition] = useTransition();
 
   const handlePublish = () => {
+    const confirmed = confirm(
+      "Once published, this release cannot be edited.\n\n" +
+        "Collectors who have selected this release will receive exactly these artworks in their booklet.\n\n" +
+        "Are you sure you want to publish?",
+    );
+    if (!confirmed) return;
+
     startTransition(async () => {
       const result = await publishRelease(releaseId);
       if (!result.success) {
