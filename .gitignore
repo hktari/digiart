@@ -1,3 +1,4 @@
+.comments
 *.env*
 !.env.example
 !.env.*.example

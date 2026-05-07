@@ -1,5 +1,15 @@
 FROM node:20-alpine AS base
-RUN npm i -g pnpm@9
+# Configure npm for better network resilience
+RUN npm config set fetch-retries 5 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000
+RUN npm i -g pnpm@9 --no-progress
+
+# Install GhostScript for PDF/X post-processing
+RUN apk add --no-cache ghostscript
+
+# Create directory for ICC profiles
+RUN mkdir -p /app/profiles
 
 # Install dependencies
 FROM base AS deps
@@ -34,6 +44,7 @@ RUN adduser --system --uid 1001 nestjs
 COPY --from=builder --chown=nestjs:nodejs /app/apps/pdf-worker/dist ./apps/pdf-worker/dist
 COPY --from=builder --chown=nestjs:nodejs /app/apps/pdf-worker/package.json ./apps/pdf-worker/
 COPY --from=builder --chown=nestjs:nodejs /app/apps/pdf-worker/prisma ./apps/pdf-worker/prisma
+COPY --from=builder --chown=nestjs:nodejs /app/apps/pdf-worker/profiles ./apps/pdf-worker/profiles
 
 # Copy production dependencies (from builder to include generated Prisma client)
 COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules

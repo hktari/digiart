@@ -1,0 +1,17 @@
+{
+  "name": "pdf-validation-scripts",
+  "version": "1.0.0",
+  "description": "PDF validation scripts for Peecho printing requirements",
+  "type": "module",
+  "scripts": {
+    "validate": "node validate-pdf.js",
+    "validate:samples": "node validate-pdf.js samples",
+    "validate:shell": "./validate-pdf.sh samples"
+  },
+  "dependencies": {
+    "glob": "^10.3.10"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  }
+}

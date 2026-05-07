@@ -4,6 +4,7 @@ import { PDFDocument } from "pdf-lib";
 import { PdfBuilderService } from "./pdf-builder.service";
 import { ArtworkPageService } from "./artwork-page.service";
 import { CoverPageService } from "./cover-page.service";
+import { PdfXProcessorService } from "./pdfx-processor.service";
 import { PAGE_DIMENSIONS } from "../booklet.types";
 import type { ArtworkRecord } from "../booklet.types";
 
@@ -42,7 +43,12 @@ describe("PdfBuilderService", () => {
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [PdfBuilderService, ArtworkPageService, CoverPageService],
+      providers: [
+        PdfBuilderService,
+        ArtworkPageService,
+        CoverPageService,
+        PdfXProcessorService,
+      ],
     }).compile();
     service = module.get<PdfBuilderService>(PdfBuilderService);
   });

@@ -4,6 +4,7 @@ import { BookletProcessor } from "./booklet.processor";
 import { ArtworkPageService } from "./pdf/artwork-page.service";
 import { CoverPageService } from "./pdf/cover-page.service";
 import { PdfBuilderService } from "./pdf/pdf-builder.service";
+import { PdfXProcessorService } from "./pdf/pdfx-processor.service";
 import { StorageService } from "./storage/storage.service";
 
 @Module({
@@ -26,6 +27,7 @@ import { StorageService } from "./storage/storage.service";
     PdfBuilderService,
     ArtworkPageService,
     CoverPageService,
+    PdfXProcessorService,
     StorageService,
   ],
 })
