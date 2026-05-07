@@ -12,8 +12,13 @@ let posthogClient: PostHog | null = null;
 function getPostHogClient(): PostHog | null {
   if (posthogClient) return posthogClient;
 
+  // Disable PostHog in development
+  if (process.env.NODE_ENV === "development") {
+    return null;
+  }
+
   const apiKey = process.env.POSTHOG_API_KEY;
-  const host = process.env.POSTHOG_HOST || "https://us.i.posthog.com";
+  const host = process.env.POSTHOG_HOST || "https://eu.i.posthog.com";
 
   if (!apiKey) {
     logger.warn(
@@ -25,8 +30,8 @@ function getPostHogClient(): PostHog | null {
   try {
     posthogClient = new PostHog(apiKey, {
       host,
-      flushAt: 20,
-      flushInterval: 10_000,
+      flushAt: 3,
+      flushInterval: 5_000,
       requestTimeout: 5_000,
       maxCacheSize: 1000,
     });
