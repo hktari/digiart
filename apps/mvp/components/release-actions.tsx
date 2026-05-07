@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 import { useTransition } from "react";
 import { archiveRelease, publishRelease } from "@/lib/actions/releases";
 
@@ -24,6 +25,7 @@ export function ReleaseActions({
       if (!result.success) {
         alert(result.error);
       } else {
+        posthog.capture("creator_release_published", { release_id: releaseId });
         router.refresh();
       }
     });

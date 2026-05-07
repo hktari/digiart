@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 import { useCallback, useRef, useState, useTransition } from "react";
 import { createRelease, setReleaseArtworks } from "@/lib/actions/releases";
 import {
@@ -158,6 +159,11 @@ export function NewReleaseForm() {
       if (artworkIds.length > 0) {
         await setReleaseArtworks(result.releaseId, artworkIds);
       }
+
+      posthog.capture("release_created", {
+        release_id: result.releaseId,
+        artwork_count: artworkIds.length,
+      });
 
       router.push(`/creator/releases/${result.releaseId}`);
     });

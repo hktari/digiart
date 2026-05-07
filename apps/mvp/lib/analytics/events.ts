@@ -43,6 +43,7 @@ export const AnalyticsEvents = {
   CREATOR_SETUP_STARTED: "creator_setup_started",
   CREATOR_SETUP_COMPLETED: "creator_setup_completed",
   CREATOR_PROFILE_PUBLISHED: "creator_profile_published",
+  RELEASE_CREATED: "release_created",
   CREATOR_RELEASE_PUBLISHED: "creator_release_published",
   CREATOR_SHARED_LINK_RECORDED: "creator_shared_link_recorded",
 

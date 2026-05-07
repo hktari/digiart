@@ -3,6 +3,7 @@
 import type { Role } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { AnalyticsEvents, trackUserEvent } from "@/lib/analytics/events";
 import { auth } from "@/lib/auth";
 import { addRole, hasRole, removeRole } from "@/lib/roles";
 
@@ -17,6 +18,17 @@ export async function assignRole(role: Role) {
   if (!session?.user?.id) redirect("/auth/sign-in");
 
   await addRole(session.user.id, role);
+
+  const event =
+    role === "CREATOR"
+      ? AnalyticsEvents.ROLE_SELECTED_CREATOR
+      : role === "COLLECTOR"
+        ? AnalyticsEvents.ROLE_SELECTED_COLLECTOR
+        : null;
+  if (event) {
+    void trackUserEvent(session.user.id, event, { role });
+  }
+
   revalidatePath("/");
   revalidatePath("/account/roles");
   redirect(ROLE_REDIRECT[role]);

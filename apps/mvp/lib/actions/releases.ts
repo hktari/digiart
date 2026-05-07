@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getCurrentCycle } from "@/lib/actions/cycles";
+import { AnalyticsEvents, trackUserEvent } from "@/lib/analytics/events";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { enqueueAutoAssignRelease } from "@/lib/queue/auto-assign";
@@ -139,6 +140,14 @@ export async function createRelease(
     } catch {
       // Ignore invalid JSON
     }
+  }
+
+  const session = await auth();
+  if (session?.user?.id) {
+    void trackUserEvent(session.user.id, AnalyticsEvents.RELEASE_CREATED, {
+      release_id: release.id,
+      title: parsed.data.title,
+    });
   }
 
   revalidatePath("/creator/releases");
@@ -292,6 +301,15 @@ export async function publishRelease(
       creatorProfileId,
       cycleId: currentCycle.id,
     });
+  }
+
+  const publishSession = await auth();
+  if (publishSession?.user?.id) {
+    void trackUserEvent(
+      publishSession.user.id,
+      AnalyticsEvents.CREATOR_RELEASE_PUBLISHED,
+      { release_id: releaseId, artwork_count: release._count.artworks },
+    );
   }
 
   revalidatePath("/creator/releases");

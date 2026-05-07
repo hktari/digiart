@@ -4,6 +4,7 @@ import "./globals.css";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { PostHogIdentifier } from "@/components/providers/posthog-identifier";
 
 const crimsonPro = Crimson_Pro({
   variable: "--font-crimson-pro",
@@ -34,6 +35,7 @@ export default function RootLayout({
         className={`${crimsonPro.variable} ${manrope.variable} antialiased min-h-screen flex flex-col`}
       >
         <AuthProvider>
+          <PostHogIdentifier />
           <Header />
           <main className="flex-1">{children}</main>
           <Footer />

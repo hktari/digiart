@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { AnalyticsEvents, trackAnonymousEvent } from "@/lib/analytics/events";
 import { signIn } from "@/lib/auth";
 
 const emailSchema = z.string().email("Please enter a valid email address.");
@@ -17,6 +18,10 @@ export async function sendMagicLink(formData: FormData): Promise<void> {
   await signIn("resend", {
     email: parsed.data,
     redirect: false,
+  });
+
+  void trackAnonymousEvent(AnalyticsEvents.AUTH_MAGIC_LINK_SENT, {
+    email: parsed.data,
   });
 
   redirect("/auth/verify");
