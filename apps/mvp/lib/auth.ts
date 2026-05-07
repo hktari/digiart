@@ -35,21 +35,26 @@ const nextAuthResult: NextAuthResult = NextAuth({
     },
     async signIn({ user }) {
       // Track auth completion and link attribution
+      // Wrapped in try/catch: analytics must never block sign-in
       if (user.id) {
-        const anonymousId = await getAnonymousId();
-        if (anonymousId) {
-          // Find or create lead and link attribution
-          const session = await db.attributionSession.findUnique({
-            where: { anonymousId },
-          });
-          if (session) {
-            await linkAttributionToLead(anonymousId, session.leadId ?? "");
+        try {
+          const anonymousId = await getAnonymousId();
+          if (anonymousId) {
+            // Find or create lead and link attribution
+            const session = await db.attributionSession.findUnique({
+              where: { anonymousId },
+            });
+            if (session) {
+              await linkAttributionToLead(anonymousId, session.leadId ?? "");
+            }
           }
+          void trackUserEvent(user.id, AnalyticsEvents.AUTH_COMPLETED, {
+            email: user.email ?? "",
+          });
+          await clearAnonymousId();
+        } catch (error) {
+          console.warn("[auth] Analytics tracking failed (non-fatal):", error);
         }
-        await trackUserEvent(user.id, AnalyticsEvents.AUTH_COMPLETED, {
-          email: user.email ?? "",
-        });
-        await clearAnonymousId();
       }
       return true;
     },

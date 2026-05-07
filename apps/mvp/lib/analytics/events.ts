@@ -63,51 +63,58 @@ export type EventMetadata = Record<string, string | number | boolean>;
 /**
  * Track an anonymous event (before user is authenticated).
  * Stores in database via AttributionSession and sends to PostHog.
+ * Never throws — analytics failures must not affect API responses.
  */
 export async function trackAnonymousEvent(
   eventName: AnalyticsEventName,
   metadata?: EventMetadata,
 ): Promise<void> {
-  // Get anonymous ID for PostHog tracking
-  const anonymousId = await getAnonymousId();
+  try {
+    // Get anonymous ID for PostHog tracking
+    const anonymousId = await getAnonymousId();
 
-  // Send to PostHog using anonymous ID as distinct_id
-  if (anonymousId) {
-    void trackPostHogEvent(anonymousId, eventName, metadata);
-  } else {
-    return; // No anonymous ID, can't track
-  }
+    // Send to PostHog using anonymous ID as distinct_id
+    if (anonymousId) {
+      void trackPostHogEvent(anonymousId, eventName, metadata);
+    } else {
+      return; // No anonymous ID, can't track
+    }
 
-  // Store in database via anonymous session
+    // Store in database via anonymous session
 
-  // Get or create a lead for this anonymous user
-  let lead = await db.lead.findFirst({
-    where: {
-      sessions: { some: { anonymousId } },
-    },
-  });
-
-  if (!lead) {
-    // Create a placeholder lead for this anonymous user
-    lead = await db.lead.create({
-      data: {
-        type: "COLLECTOR", // Default assumption - will be updated on role selection
-        status: "NEW",
+    // Get or create a lead for this anonymous user
+    let lead = await db.lead.findFirst({
+      where: {
+        sessions: { some: { anonymousId } },
       },
     });
 
-    // Link attribution session to lead
-    await linkAttributionToLead(anonymousId, lead.id);
-  }
+    if (!lead) {
+      // Create a placeholder lead for this anonymous user
+      lead = await db.lead.create({
+        data: {
+          type: "COLLECTOR", // Default assumption - will be updated on role selection
+          status: "NEW",
+        },
+      });
 
-  // Log the event
-  await db.leadEvent.create({
-    data: {
-      leadId: lead.id,
+      // Link attribution session to lead
+      await linkAttributionToLead(anonymousId, lead.id);
+    }
+
+    // Log the event
+    await db.leadEvent.create({
+      data: {
+        leadId: lead.id,
+        eventName,
+        metadata: metadata ?? {},
+      },
+    });
+  } catch (error) {
+    logger.error("[analytics] Failed to track anonymous event:", error, {
       eventName,
-      metadata: metadata ?? {},
-    },
-  });
+    });
+  }
 }
 
 /**

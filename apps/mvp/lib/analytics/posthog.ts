@@ -5,7 +5,9 @@ import { logger } from "@/lib/logger";
 let posthogClient: PostHog | null = null;
 
 /**
- * Initialize and get the PostHog client singleton
+ * Initialize and get the PostHog client singleton.
+ * Configured for resilience: batching + error swallowing so that
+ * PostHog rate limits or outages never affect API responses.
  */
 function getPostHogClient(): PostHog | null {
   if (posthogClient) return posthogClient;
@@ -23,9 +25,18 @@ function getPostHogClient(): PostHog | null {
   try {
     posthogClient = new PostHog(apiKey, {
       host,
-      flushAt: 1, // Flush immediately for serverless environments
-      flushInterval: 0, // Disable periodic flush
+      flushAt: 20,
+      flushInterval: 10_000,
+      requestTimeout: 5_000,
+      maxCacheSize: 1000,
     });
+
+    posthogClient.on("error", (err) => {
+      logger.warn("[analytics] PostHog flush error (non-fatal)", {
+        error: err,
+      });
+    });
+
     return posthogClient;
   } catch (error) {
     logger.error("[analytics] Failed to initialize PostHog:", error);
@@ -137,11 +148,16 @@ export async function aliasPostHogUser(
 }
 
 /**
- * Flush all pending events - call this before process exit
+ * Flush all pending events - call this before process exit.
+ * Swallows errors so shutdown is never blocked by PostHog.
  */
 export async function flushPostHog(): Promise<void> {
   if (posthogClient) {
-    await posthogClient.shutdown();
+    try {
+      await posthogClient.shutdown();
+    } catch (error) {
+      logger.warn("[analytics] PostHog shutdown error (non-fatal)", { error });
+    }
     posthogClient = null;
   }
 }
