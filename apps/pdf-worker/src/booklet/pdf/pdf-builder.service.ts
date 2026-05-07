@@ -56,10 +56,8 @@ export class PdfBuilderService {
       );
     }
 
-    await this.coverPageService.addBackCover(pdfDoc, pageDimensions);
-
-    const pageCount = pdfDoc.getPageCount();
-    if (pageCount % 2 !== 0) {
+    const pageCountBeforeCover = pdfDoc.getPageCount();
+    if (pageCountBeforeCover % 2 === 0) {
       const blank = pdfDoc.addPage([widthPt, heightPt]);
       blank.drawRectangle({
         x: 0,
@@ -69,6 +67,8 @@ export class PdfBuilderService {
         color: rgb(1, 1, 1),
       });
     }
+
+    await this.coverPageService.addBackCover(pdfDoc, pageDimensions);
 
     const finalPageCount = pdfDoc.getPageCount();
     const bytes = await pdfDoc.save();
