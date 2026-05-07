@@ -1,9 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { type PDFDocument, type PDFPage, degrees, rgb } from "pdf-lib";
+import type { PageDimensions } from "../booklet.types";
 
-const PAGE_WIDTH_PT = 419.53;
-const PAGE_HEIGHT_PT = 595.28;
-const MARGIN_PT = 28.35;
+const MARGIN_PT = 28.35; // 10mm. According to Peecho Guidelines
 
 @Injectable()
 export class ArtworkPageService {
@@ -12,7 +11,9 @@ export class ArtworkPageService {
     imageBytes: Uint8Array,
     mimeType: string,
     orientation: string,
+    pageDimensions: PageDimensions,
   ): Promise<PDFPage> {
+    const { widthPt: PAGE_WIDTH_PT, heightPt: PAGE_HEIGHT_PT } = pageDimensions;
     const page = pdfDoc.addPage([PAGE_WIDTH_PT, PAGE_HEIGHT_PT]);
 
     page.drawRectangle({

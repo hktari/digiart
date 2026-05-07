@@ -4,6 +4,7 @@ import { PDFDocument } from "pdf-lib";
 import { PdfBuilderService } from "./pdf-builder.service";
 import { ArtworkPageService } from "./artwork-page.service";
 import { CoverPageService } from "./cover-page.service";
+import { PAGE_DIMENSIONS } from "../booklet.types";
 import type { ArtworkRecord } from "../booklet.types";
 
 let JPEG_1x1: Buffer;
@@ -132,6 +133,48 @@ describe("PdfBuilderService", () => {
       const { width, height } = page.getSize();
       expect(width).toBeGreaterThan(0);
       expect(height).toBeGreaterThan(0);
+    }
+  });
+
+  it("should build an A4 portrait PDF with correct page dimensions", async () => {
+    const artworks = [makeArtwork("a1")];
+    const buffers = new Map<string, Buffer>([["a1", JPEG_1x1]]);
+
+    const { bytes } = await service.build(
+      artworks,
+      buffers,
+      "Issue #1",
+      ["Artist"],
+      "A4_PORTRAIT",
+    );
+    const pdfDoc = await PDFDocument.load(bytes);
+
+    const { widthPt, heightPt } = PAGE_DIMENSIONS.A4_PORTRAIT;
+    for (const page of pdfDoc.getPages()) {
+      const { width, height } = page.getSize();
+      expect(width).toBeCloseTo(widthPt, 1);
+      expect(height).toBeCloseTo(heightPt, 1);
+    }
+  });
+
+  it("should build an A5 landscape PDF with correct page dimensions", async () => {
+    const artworks = [makeArtwork("a1")];
+    const buffers = new Map<string, Buffer>([["a1", JPEG_1x1]]);
+
+    const { bytes } = await service.build(
+      artworks,
+      buffers,
+      "Issue #1",
+      ["Artist"],
+      "A5_LANDSCAPE",
+    );
+    const pdfDoc = await PDFDocument.load(bytes);
+
+    const { widthPt, heightPt } = PAGE_DIMENSIONS.A5_LANDSCAPE;
+    for (const page of pdfDoc.getPages()) {
+      const { width, height } = page.getSize();
+      expect(width).toBeCloseTo(widthPt, 1);
+      expect(height).toBeCloseTo(heightPt, 1);
     }
   });
 });

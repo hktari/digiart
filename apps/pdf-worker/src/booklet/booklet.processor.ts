@@ -3,6 +3,7 @@ import { Logger } from "@nestjs/common";
 import type { Job } from "bullmq";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
+import { DEFAULT_PAGE_FORMAT } from "./booklet.types";
 import type { BookletJobData, BookletJobResult } from "./booklet.types";
 import { PdfBuilderService } from "./pdf/pdf-builder.service";
 import { StorageService } from "./storage/storage.service";
@@ -25,7 +26,12 @@ export class BookletProcessor extends WorkerHost {
   }
 
   async process(job: Job<BookletJobData>): Promise<BookletJobResult> {
-    const { collectorProfileId, cycleId, issueLabel } = job.data;
+    const {
+      collectorProfileId,
+      cycleId,
+      issueLabel,
+      pageFormat = DEFAULT_PAGE_FORMAT,
+    } = job.data;
     this.logger.log(
       `Processing booklet job ${job.id} for collector=${collectorProfileId} cycle=${cycleId}`,
     );
@@ -104,6 +110,7 @@ export class BookletProcessor extends WorkerHost {
         imageBuffers,
         issueLabel,
         creatorNames,
+        pageFormat,
       );
 
       const pdfUrl = await this.storage.uploadPdf(bytes);

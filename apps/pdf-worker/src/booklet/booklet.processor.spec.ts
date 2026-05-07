@@ -4,6 +4,7 @@ import type { Job } from "bullmq";
 import { BookletProcessor } from "./booklet.processor";
 import { PdfBuilderService } from "./pdf/pdf-builder.service";
 import { StorageService } from "./storage/storage.service";
+import { DEFAULT_PAGE_FORMAT } from "./booklet.types";
 import type { BookletJobData } from "./booklet.types";
 
 jest.mock("@prisma/adapter-pg", () => ({
@@ -11,9 +12,11 @@ jest.mock("@prisma/adapter-pg", () => ({
 }));
 
 const mockFindMany = jest.fn();
+const mockUpdateMany = jest.fn().mockResolvedValue({ count: 1 });
 jest.mock("@prisma/client", () => ({
   PrismaClient: jest.fn().mockImplementation(() => ({
     collectorReleaseSelection: { findMany: mockFindMany },
+    generatedPrintFile: { updateMany: mockUpdateMany },
   })),
 }));
 
@@ -101,6 +104,7 @@ describe("BookletProcessor", () => {
       expect.any(Map),
       "March 2025",
       ["Artist Name"],
+      DEFAULT_PAGE_FORMAT,
     );
   });
 

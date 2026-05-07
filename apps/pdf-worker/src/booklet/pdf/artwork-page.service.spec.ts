@@ -2,9 +2,10 @@ import sharp from "sharp";
 import { Test, TestingModule } from "@nestjs/testing";
 import { PDFDocument } from "pdf-lib";
 import { ArtworkPageService } from "./artwork-page.service";
+import { PAGE_DIMENSIONS } from "../booklet.types";
 
-const PAGE_WIDTH_PT = 419.53;
-const PAGE_HEIGHT_PT = 595.28;
+const A5_PORTRAIT = PAGE_DIMENSIONS.A5_PORTRAIT;
+const A4_PORTRAIT = PAGE_DIMENSIONS.A4_PORTRAIT;
 const MARGIN_PT = 28.35;
 
 async function makeSmallJpeg(): Promise<Buffer> {
@@ -52,12 +53,13 @@ describe("ArtworkPageService", () => {
       jpegBuffer,
       "image/jpeg",
       "PORTRAIT",
+      A5_PORTRAIT,
     );
 
     expect(page).toBeDefined();
     const { width, height } = page.getSize();
-    expect(width).toBeCloseTo(PAGE_WIDTH_PT, 1);
-    expect(height).toBeCloseTo(PAGE_HEIGHT_PT, 1);
+    expect(width).toBeCloseTo(A5_PORTRAIT.widthPt, 1);
+    expect(height).toBeCloseTo(A5_PORTRAIT.heightPt, 1);
     expect(pdfDoc.getPageCount()).toBe(1);
   });
 
@@ -70,11 +72,12 @@ describe("ArtworkPageService", () => {
       jpegBuffer,
       "image/jpeg",
       "LANDSCAPE",
+      A5_PORTRAIT,
     );
 
     const { width, height } = page.getSize();
-    expect(width).toBeCloseTo(PAGE_WIDTH_PT, 1);
-    expect(height).toBeCloseTo(PAGE_HEIGHT_PT, 1);
+    expect(width).toBeCloseTo(A5_PORTRAIT.widthPt, 1);
+    expect(height).toBeCloseTo(A5_PORTRAIT.heightPt, 1);
   });
 
   it("should add a PNG page", async () => {
@@ -86,6 +89,7 @@ describe("ArtworkPageService", () => {
       pngBuffer,
       "image/png",
       "PORTRAIT",
+      A5_PORTRAIT,
     );
 
     expect(page).toBeDefined();
@@ -96,10 +100,16 @@ describe("ArtworkPageService", () => {
     const pdfDoc = await PDFDocument.create();
     const jpegBuffer = await makeSmallJpeg();
 
-    await service.addPageAsync(pdfDoc, jpegBuffer, "image/jpeg", "PORTRAIT");
+    await service.addPageAsync(
+      pdfDoc,
+      jpegBuffer,
+      "image/jpeg",
+      "PORTRAIT",
+      A5_PORTRAIT,
+    );
 
-    const printW = PAGE_WIDTH_PT - MARGIN_PT * 2;
-    const printH = PAGE_HEIGHT_PT - MARGIN_PT * 2;
+    const printW = A5_PORTRAIT.widthPt - MARGIN_PT * 2;
+    const printH = A5_PORTRAIT.heightPt - MARGIN_PT * 2;
 
     expect(printW).toBeGreaterThan(0);
     expect(printH).toBeGreaterThan(0);
@@ -114,8 +124,26 @@ describe("ArtworkPageService", () => {
       jpegBuffer,
       "image/jpeg",
       "SQUARE",
+      A5_PORTRAIT,
     );
 
     expect(page).toBeDefined();
+  });
+
+  it("should add an A4 portrait page with correct dimensions", async () => {
+    const pdfDoc = await PDFDocument.create();
+    const jpegBuffer = await makeSmallJpeg();
+
+    const page = await service.addPageAsync(
+      pdfDoc,
+      jpegBuffer,
+      "image/jpeg",
+      "PORTRAIT",
+      A4_PORTRAIT,
+    );
+
+    const { width, height } = page.getSize();
+    expect(width).toBeCloseTo(A4_PORTRAIT.widthPt, 1);
+    expect(height).toBeCloseTo(A4_PORTRAIT.heightPt, 1);
   });
 });

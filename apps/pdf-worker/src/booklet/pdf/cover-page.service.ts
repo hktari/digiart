@@ -2,9 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { Injectable, Logger } from "@nestjs/common";
 import { type PDFDocument, type PDFFont, type PDFPage, rgb } from "pdf-lib";
-
-const PAGE_WIDTH_PT = 419.53;
-const PAGE_HEIGHT_PT = 595.28;
+import type { PageDimensions } from "../booklet.types";
 
 const BEIGE_50 = rgb(0.98, 0.973, 0.957);
 const FUCHSIA_600 = rgb(0.753, 0.149, 0.827);
@@ -20,7 +18,9 @@ export class CoverPageService {
     font: PDFFont,
     issueLabel: string,
     creatorNames: string[],
+    pageDimensions: PageDimensions,
   ): Promise<PDFPage> {
+    const { widthPt: PAGE_WIDTH_PT, heightPt: PAGE_HEIGHT_PT } = pageDimensions;
     const page = pdfDoc.addPage([PAGE_WIDTH_PT, PAGE_HEIGHT_PT]);
 
     page.drawRectangle({
@@ -86,7 +86,11 @@ export class CoverPageService {
     return page;
   }
 
-  async addBackCover(pdfDoc: PDFDocument): Promise<PDFPage> {
+  async addBackCover(
+    pdfDoc: PDFDocument,
+    pageDimensions: PageDimensions,
+  ): Promise<PDFPage> {
+    const { widthPt: PAGE_WIDTH_PT, heightPt: PAGE_HEIGHT_PT } = pageDimensions;
     const page = pdfDoc.addPage([PAGE_WIDTH_PT, PAGE_HEIGHT_PT]);
 
     page.drawRectangle({

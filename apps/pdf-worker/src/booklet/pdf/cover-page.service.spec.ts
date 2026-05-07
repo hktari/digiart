@@ -1,9 +1,10 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { PDFDocument, StandardFonts } from "pdf-lib";
 import { CoverPageService } from "./cover-page.service";
+import { PAGE_DIMENSIONS } from "../booklet.types";
 
-const PAGE_WIDTH_PT = 419.53;
-const PAGE_HEIGHT_PT = 595.28;
+const A5_PORTRAIT = PAGE_DIMENSIONS.A5_PORTRAIT;
+const A4_PORTRAIT = PAGE_DIMENSIONS.A4_PORTRAIT;
 
 describe("CoverPageService", () => {
   let service: CoverPageService;
@@ -24,69 +25,108 @@ describe("CoverPageService", () => {
   describe("addFrontCover", () => {
     it("should add exactly one page to the document", async () => {
       const { pdfDoc, font } = await setup();
-      await service.addFrontCover(pdfDoc, font, "March 2025", ["Alice", "Bob"]);
+      await service.addFrontCover(
+        pdfDoc,
+        font,
+        "March 2025",
+        ["Alice", "Bob"],
+        A5_PORTRAIT,
+      );
       expect(pdfDoc.getPageCount()).toBe(1);
     });
 
     it("should return a page with correct dimensions", async () => {
       const { pdfDoc, font } = await setup();
-      const page = await service.addFrontCover(pdfDoc, font, "Issue #1", [
-        "Alice",
-      ]);
+      const page = await service.addFrontCover(
+        pdfDoc,
+        font,
+        "Issue #1",
+        ["Alice"],
+        A5_PORTRAIT,
+      );
       const { width, height } = page.getSize();
-      expect(width).toBeCloseTo(PAGE_WIDTH_PT, 1);
-      expect(height).toBeCloseTo(PAGE_HEIGHT_PT, 1);
+      expect(width).toBeCloseTo(A5_PORTRAIT.widthPt, 1);
+      expect(height).toBeCloseTo(A5_PORTRAIT.heightPt, 1);
     });
 
     it("should not throw when logo file is missing (graceful fallback)", async () => {
       const { pdfDoc, font } = await setup();
       await expect(
-        service.addFrontCover(pdfDoc, font, "Issue #1", []),
+        service.addFrontCover(pdfDoc, font, "Issue #1", [], A5_PORTRAIT),
       ).resolves.toBeDefined();
     });
 
     it("should use 'Selected Works' byline when no creators provided", async () => {
       const { pdfDoc, font } = await setup();
-      const page = await service.addFrontCover(pdfDoc, font, "April 2025", []);
+      const page = await service.addFrontCover(
+        pdfDoc,
+        font,
+        "April 2025",
+        [],
+        A5_PORTRAIT,
+      );
       expect(page).toBeDefined();
     });
 
     it("should use single creator name as byline when exactly one creator", async () => {
       const { pdfDoc, font } = await setup();
-      const page = await service.addFrontCover(pdfDoc, font, "April 2025", [
-        "Solo Artist",
-      ]);
+      const page = await service.addFrontCover(
+        pdfDoc,
+        font,
+        "April 2025",
+        ["Solo Artist"],
+        A5_PORTRAIT,
+      );
       expect(page).toBeDefined();
     });
 
     it("should use 'Selected Works' byline when multiple creators are provided", async () => {
       const { pdfDoc, font } = await setup();
-      const page = await service.addFrontCover(pdfDoc, font, "April 2025", [
-        "Artist A",
-        "Artist B",
-      ]);
+      const page = await service.addFrontCover(
+        pdfDoc,
+        font,
+        "April 2025",
+        ["Artist A", "Artist B"],
+        A5_PORTRAIT,
+      );
       expect(page).toBeDefined();
+    });
+
+    it("should return A4 portrait page with correct dimensions", async () => {
+      const { pdfDoc, font } = await setup();
+      const page = await service.addFrontCover(
+        pdfDoc,
+        font,
+        "Issue #1",
+        [],
+        A4_PORTRAIT,
+      );
+      const { width, height } = page.getSize();
+      expect(width).toBeCloseTo(A4_PORTRAIT.widthPt, 1);
+      expect(height).toBeCloseTo(A4_PORTRAIT.heightPt, 1);
     });
   });
 
   describe("addBackCover", () => {
     it("should add exactly one page to the document", async () => {
       const { pdfDoc } = await setup();
-      await service.addBackCover(pdfDoc);
+      await service.addBackCover(pdfDoc, A5_PORTRAIT);
       expect(pdfDoc.getPageCount()).toBe(1);
     });
 
     it("should return a page with correct dimensions", async () => {
       const { pdfDoc } = await setup();
-      const page = await service.addBackCover(pdfDoc);
+      const page = await service.addBackCover(pdfDoc, A5_PORTRAIT);
       const { width, height } = page.getSize();
-      expect(width).toBeCloseTo(PAGE_WIDTH_PT, 1);
-      expect(height).toBeCloseTo(PAGE_HEIGHT_PT, 1);
+      expect(width).toBeCloseTo(A5_PORTRAIT.widthPt, 1);
+      expect(height).toBeCloseTo(A5_PORTRAIT.heightPt, 1);
     });
 
     it("should not throw when logo file is missing", async () => {
       const { pdfDoc } = await setup();
-      await expect(service.addBackCover(pdfDoc)).resolves.toBeDefined();
+      await expect(
+        service.addBackCover(pdfDoc, A5_PORTRAIT),
+      ).resolves.toBeDefined();
     });
   });
 });

@@ -1,11 +1,13 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import type { ArtworkRecord } from "../booklet.types";
+import {
+  DEFAULT_PAGE_FORMAT,
+  PAGE_DIMENSIONS,
+  type ArtworkRecord,
+  type PageFormat,
+} from "../booklet.types";
 import { ArtworkPageService } from "./artwork-page.service";
 import { CoverPageService } from "./cover-page.service";
-
-const PAGE_WIDTH_PT = 419.53;
-const PAGE_HEIGHT_PT = 595.28;
 
 @Injectable()
 export class PdfBuilderService {
@@ -21,7 +23,11 @@ export class PdfBuilderService {
     imageBuffers: Map<string, Buffer>,
     issueLabel: string,
     creatorNames: string[],
+    pageFormat: PageFormat = DEFAULT_PAGE_FORMAT,
   ): Promise<{ bytes: Uint8Array; pageCount: number }> {
+    const pageDimensions = PAGE_DIMENSIONS[pageFormat];
+    const { widthPt, heightPt } = pageDimensions;
+
     const pdfDoc = await PDFDocument.create();
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
@@ -30,6 +36,7 @@ export class PdfBuilderService {
       font,
       issueLabel,
       creatorNames,
+      pageDimensions,
     );
 
     for (const artwork of artworks) {
@@ -45,19 +52,20 @@ export class PdfBuilderService {
         buf,
         mimeType,
         artwork.orientation,
+        pageDimensions,
       );
     }
 
-    await this.coverPageService.addBackCover(pdfDoc);
+    await this.coverPageService.addBackCover(pdfDoc, pageDimensions);
 
     const pageCount = pdfDoc.getPageCount();
     if (pageCount % 2 !== 0) {
-      const blank = pdfDoc.addPage([PAGE_WIDTH_PT, PAGE_HEIGHT_PT]);
+      const blank = pdfDoc.addPage([widthPt, heightPt]);
       blank.drawRectangle({
         x: 0,
         y: 0,
-        width: PAGE_WIDTH_PT,
-        height: PAGE_HEIGHT_PT,
+        width: widthPt,
+        height: heightPt,
         color: rgb(1, 1, 1),
       });
     }
