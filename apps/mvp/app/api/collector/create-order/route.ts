@@ -140,6 +140,9 @@ export async function POST(request: Request) {
     });
 
     // Create Peecho order with real address
+    // TODO(peecho-bug): Peecho returns HTTP 500 when file_details is omitted from
+    // item_details, even though their docs state it is optional. Reported to Peecho
+    // support. Using a demo PDF as a placeholder until they fix their API.
     const orderResponse = await peechoClient.createOrder({
       currency: "EUR",
       order_reference: `checkout-${collectorProfile.id}-${currentCycle.id}-${Date.now()}`,
@@ -148,6 +151,13 @@ export async function POST(request: Request) {
           item_reference: `booklet-${collectorProfile.id}-${currentCycle.id}`,
           offering_id: offeringId,
           quantity: 1,
+          file_details: {
+            content_url:
+              "https://calin-thumbnailer.s3-eu-west-1.amazonaws.com/wall-tiles-test.pdf",
+            content_width: 210,
+            content_height: 210,
+            number_of_pages: 22,
+          },
         },
       ],
       address_details: {

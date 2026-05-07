@@ -52,7 +52,9 @@ export async function createCheckoutOrder(
     throw new Error("Collector profile not found");
   }
 
-  // Create Peecho order without content_url (async file attachment)
+  // TODO(peecho-bug): Peecho returns HTTP 500 when file_details is omitted from
+  // item_details, even though their docs state it is optional. Reported to Peecho
+  // support. Using a demo PDF as a placeholder until they fix their API.
   const orderResponse = await peechoClient.createOrder({
     currency: "EUR",
     order_reference: `checkout-${params.collectorProfileId}-${params.cycleId}-${Date.now()}`,
@@ -61,7 +63,13 @@ export async function createCheckoutOrder(
         item_reference: `booklet-${params.collectorProfileId}-${params.cycleId}`,
         offering_id: parseInt(offering.externalId, 10),
         quantity: 1,
-        // No file_details - will attach later at cycle lock
+        file_details: {
+          content_url:
+            "https://calin-thumbnailer.s3-eu-west-1.amazonaws.com/wall-tiles-test.pdf",
+          content_width: 210,
+          content_height: 210,
+          number_of_pages: 22,
+        },
       },
     ],
     address_details: {
