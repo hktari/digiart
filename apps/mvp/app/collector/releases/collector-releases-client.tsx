@@ -23,6 +23,7 @@ type Release = {
       title: string;
       storageKey: string;
       orientation: string;
+      thumbnailUrl: string;
     };
   }>;
   tags: Array<{

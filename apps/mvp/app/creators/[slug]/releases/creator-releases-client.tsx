@@ -80,7 +80,7 @@ export function CreatorReleasesClient({
                     href={`/creators/${slug}/releases/${release.id}`}
                     className="group overflow-hidden rounded-2xl border border-neutral-200 bg-white hover:border-fuchsia-300 hover:shadow-lg"
                   >
-                    <div className="relative aspect-[4/3] bg-neutral-100">
+                    <div className="relative aspect-4/3 bg-neutral-100">
                       {coverArtwork && (
                         <Image
                           src={coverArtwork.thumbnailUrl}

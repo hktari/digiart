@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { decodeCursor, encodeCursor } from "@/lib/cursor";
 import { db } from "@/lib/db";
+import { getPublicStorageUrl } from "@/lib/s3";
 
 export const runtime = "nodejs";
 
@@ -145,8 +146,19 @@ export async function GET(request: NextRequest) {
         )
       : null;
 
+  const transformedItems = itemsToReturn.map((release) => ({
+    ...release,
+    artworks: release.artworks.map((artworkRelease) => ({
+      ...artworkRelease,
+      artwork: {
+        ...artworkRelease.artwork,
+        thumbnailUrl: getPublicStorageUrl(artworkRelease.artwork.storageKey),
+      },
+    })),
+  }));
+
   return NextResponse.json({
-    items: itemsToReturn,
+    items: transformedItems,
     nextCursor,
   });
 }

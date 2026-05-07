@@ -20,6 +20,7 @@ type Release = {
       id: string;
       title: string;
       storageKey: string;
+      thumbnailUrl: string;
     };
   }>;
   tags: Array<{
@@ -114,9 +115,9 @@ export function ReleaseSelectionGrid({
             }`}
           >
             {coverArtwork && (
-              <div className="relative aspect-[4/3] bg-neutral-100">
+              <div className="relative aspect-4/3 bg-neutral-100">
                 <Image
-                  src={`/api/storage/${coverArtwork.storageKey}`}
+                  src={coverArtwork.thumbnailUrl}
                   alt={coverArtwork.title}
                   fill
                   className="object-cover"

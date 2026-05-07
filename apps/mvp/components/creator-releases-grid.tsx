@@ -95,7 +95,7 @@ function ReleaseCard({
       }`}
     >
       <Link href={`/creators/${slug}/releases/${release.id}`} className="block">
-        <div className="aspect-[4/3] bg-neutral-100 relative overflow-hidden">
+        <div className="aspect-4/3 bg-neutral-100 relative overflow-hidden">
           {coverUrl ? (
             <Image
               src={coverUrl}
