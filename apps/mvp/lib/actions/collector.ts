@@ -354,7 +354,7 @@ export async function saveCollectorProfile(
 }
 
 export async function getCollectorProfile(userId: string) {
-  return db.collectorProfile.findUnique({
+  const collectorProfile = await db.collectorProfile.findUnique({
     where: { userId },
     include: {
       subscriptions: {
@@ -371,6 +371,28 @@ export async function getCollectorProfile(userId: string) {
       },
     },
   });
+
+  // If user already has a CreatorProfile, prefill CollectorProfile data
+  if (!collectorProfile) {
+    const creatorProfile = await db.creatorProfile.findUnique({
+      where: { userId },
+      select: { displayName: true },
+    });
+
+    if (creatorProfile) {
+      return {
+        id: "",
+        userId,
+        displayName: creatorProfile.displayName,
+        shippingCountry: null,
+        shippingStateCode: null,
+        onboardingState: null,
+        subscriptions: [],
+      } as any;
+    }
+  }
+
+  return collectorProfile;
 }
 
 export async function subscribeToCreator(
