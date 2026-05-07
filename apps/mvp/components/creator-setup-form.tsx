@@ -50,6 +50,7 @@ interface FormData {
   slug: string;
   bio: string;
   sourcePlatforms: string[];
+  platformLinks: Record<string, string>;
   legalName: string;
   paypalEmail: string;
 }
@@ -62,6 +63,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
     slug: initialData?.slug ?? "",
     bio: initialData?.bio ?? "",
     sourcePlatforms: initialData?.sourcePlatforms ?? [],
+    platformLinks: {},
     legalName: initialData?.legalName ?? "",
     paypalEmail: initialData?.paypalEmail ?? "",
   });
@@ -139,10 +141,13 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
   const togglePlatform = useCallback((platformValue: string) => {
     setFormData((prev) => {
       const current = prev.sourcePlatforms;
-      const updated = current.includes(platformValue)
+      const isRemoving = current.includes(platformValue);
+      const updated = isRemoving
         ? current.filter((p) => p !== platformValue)
         : [...current, platformValue];
-      return { ...prev, sourcePlatforms: updated };
+      const updatedLinks = { ...prev.platformLinks };
+      if (isRemoving) delete updatedLinks[platformValue];
+      return { ...prev, sourcePlatforms: updated, platformLinks: updatedLinks };
     });
     // Clear error for this field
     setFieldErrors((prev) => {
@@ -151,6 +156,16 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
       return next;
     });
   }, []);
+
+  const updatePlatformLink = useCallback(
+    (platformValue: string, url: string) => {
+      setFormData((prev) => ({
+        ...prev,
+        platformLinks: { ...prev.platformLinks, [platformValue]: url },
+      }));
+    },
+    [],
+  );
 
   const validateProfileStep = useCallback((): boolean => {
     const errors: Record<string, string> = {};
@@ -212,6 +227,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
     fd.append("slug", formData.slug);
     fd.append("bio", formData.bio);
     fd.append("sourcePlatforms", JSON.stringify(formData.sourcePlatforms));
+    fd.append("platformLinks", JSON.stringify(formData.platformLinks));
     fd.append("legalName", formData.legalName);
     fd.append("paypalEmail", formData.paypalEmail);
 
@@ -314,6 +330,11 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
           type="hidden"
           name="sourcePlatforms"
           value={JSON.stringify(formData.sourcePlatforms)}
+        />
+        <input
+          type="hidden"
+          name="platformLinks"
+          value={JSON.stringify(formData.platformLinks)}
         />
         <input type="hidden" name="legalName" value={formData.legalName} />
         <input type="hidden" name="paypalEmail" value={formData.paypalEmail} />
@@ -459,6 +480,38 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                   );
                 })}
               </div>
+              {formData.sourcePlatforms.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  <p className="text-xs font-medium text-neutral-600">
+                    Add your profile links{" "}
+                    <span className="text-neutral-400 font-normal">
+                      (optional)
+                    </span>
+                  </p>
+                  {formData.sourcePlatforms.map((value) => {
+                    const platform = SOURCE_PLATFORMS.find(
+                      (p) => p.value === value,
+                    );
+                    if (!platform) return null;
+                    return (
+                      <div key={value} className="flex items-center gap-2">
+                        <span className="w-24 shrink-0 text-xs font-medium text-neutral-500 truncate">
+                          {platform.label}
+                        </span>
+                        <input
+                          type="url"
+                          value={formData.platformLinks[value] ?? ""}
+                          onChange={(e) =>
+                            updatePlatformLink(value, e.target.value)
+                          }
+                          placeholder={`https://...`}
+                          className="flex-1 rounded-lg border border-neutral-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
               <p className="mt-2 text-xs text-neutral-500">
                 Select all that apply. This helps us understand our creator
                 community better.
