@@ -483,13 +483,23 @@ export class PeechoClient {
     params: PeechoCreateOrderParams,
   ): Promise<PeechoCreateOrderResponse> {
     try {
-      const data = await this.post<PeechoCreateOrderResponse>("/order/", {
+      const payload = {
         merchant_api_key: this.merchantApiKey,
         currency: params.currency ?? "EUR",
         order_reference: params.order_reference,
         item_details: params.item_details,
         address_details: params.address_details,
+      };
+      logger.info("[Peecho] Creating order with payload", {
+        url: `${this.apiUrl}/order/`,
+        hasApiKey: !!this.merchantApiKey,
+        apiKeyPrefix: this.merchantApiKey.slice(0, 8),
+        payload: JSON.stringify(payload, null, 2),
       });
+      const data = await this.post<PeechoCreateOrderResponse>(
+        "/order/",
+        payload,
+      );
       return data;
     } catch (error) {
       logger.error("Failed to create Peecho order", error, {

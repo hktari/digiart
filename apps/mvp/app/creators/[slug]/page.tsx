@@ -3,13 +3,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CreatorReleasesGrid } from "@/components/creator-releases-grid";
 import { DiscoverBookletBar } from "@/components/discover-booklet-bar";
+import { captureAttributionAction } from "@/lib/actions/analytics";
 import { isUserSubscribedToCreator } from "@/lib/actions/collector";
 import {
   getPublicCreatorProfile,
   recordProfileView,
 } from "@/lib/actions/creator";
 import { getCurrentCycle } from "@/lib/actions/cycles";
-import { captureAttribution } from "@/lib/analytics/attribution";
 import { trackPageView } from "@/lib/analytics/events";
 import { auth } from "@/lib/auth";
 
@@ -41,15 +41,15 @@ export default async function CreatorProfilePage({
   void recordProfileView(profile.id, currentCycle?.id);
 
   // Capture attribution and track page view
-  const searchParamsObj = new URLSearchParams();
+  const searchParamsRecord: Record<string, string> = {};
   if (resolvedSearchParams) {
     for (const [key, value] of Object.entries(resolvedSearchParams)) {
       if (typeof value === "string") {
-        searchParamsObj.set(key, value);
+        searchParamsRecord[key] = value;
       }
     }
   }
-  void captureAttribution(searchParamsObj, `/creators/${slug}`);
+  void captureAttributionAction(searchParamsRecord, `/creators/${slug}`);
   void trackPageView(`/creators/${slug}`, {
     isAnonymous: !session?.user?.id,
     userId: session?.user?.id,

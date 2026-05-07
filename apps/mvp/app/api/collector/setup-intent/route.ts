@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
+import { Errors, withErrorHandler } from "@/lib/api/errors";
 import { auth } from "@/lib/auth";
 import { stripe } from "@/lib/billing/stripe-client";
 import { db } from "@/lib/db";
 
-export async function POST() {
+export const POST = withErrorHandler(async () => {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    throw Errors.UNAUTHORIZED();
   }
 
   const collectorProfile = await db.collectorProfile.findUnique({
@@ -15,35 +16,52 @@ export async function POST() {
   });
 
   if (!collectorProfile) {
-    return NextResponse.json(
-      { error: "Collector profile not found" },
-      { status: 404 },
-    );
+    throw Errors.NOT_FOUND("Collector profile");
   }
 
   let customerId = collectorProfile.stripeCustomerId;
 
   if (!customerId) {
-    const customer = await stripe.customers.create({
-      email: collectorProfile.user.email ?? undefined,
-      name:
-        collectorProfile.user.name ?? collectorProfile.displayName ?? undefined,
-      metadata: { collectorProfileId: collectorProfile.id },
-    });
-    customerId = customer.id;
+    try {
+      const customer = await stripe.customers.create({
+        email: collectorProfile.user.email ?? undefined,
+        name:
+          collectorProfile.user.name ??
+          collectorProfile.displayName ??
+          undefined,
+        metadata: { collectorProfileId: collectorProfile.id },
+      });
+      customerId = customer.id;
 
-    await db.collectorProfile.update({
-      where: { id: collectorProfile.id },
-      data: { stripeCustomerId: customerId },
-    });
+      await db.collectorProfile.update({
+        where: { id: collectorProfile.id },
+        data: { stripeCustomerId: customerId },
+      });
+    } catch (stripeError) {
+      throw Errors.EXTERNAL_API_ERROR(
+        "Stripe",
+        stripeError instanceof Error
+          ? stripeError.message
+          : "Failed to create customer",
+      );
+    }
   }
 
-  const setupIntent = await stripe.setupIntents.create({
-    customer: customerId,
-    payment_method_types: ["card"],
-    usage: "off_session",
-    metadata: { collectorProfileId: collectorProfile.id },
-  });
+  try {
+    const setupIntent = await stripe.setupIntents.create({
+      customer: customerId,
+      payment_method_types: ["card"],
+      usage: "off_session",
+      metadata: { collectorProfileId: collectorProfile.id },
+    });
 
-  return NextResponse.json({ clientSecret: setupIntent.client_secret });
-}
+    return NextResponse.json({ clientSecret: setupIntent.client_secret });
+  } catch (stripeError) {
+    throw Errors.EXTERNAL_API_ERROR(
+      "Stripe",
+      stripeError instanceof Error
+        ? stripeError.message
+        : "Failed to create setup intent",
+    );
+  }
+});

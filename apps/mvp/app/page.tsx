@@ -2,6 +2,7 @@ import { ArrowRight, BookOpen, Package, Palette } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { DashboardTabs } from "@/components/dashboard-tabs";
+import { captureAttributionAction } from "@/lib/actions/analytics";
 import {
   getCollectorProfile,
   getCollectorReleaseSelections,
@@ -9,7 +10,6 @@ import {
 } from "@/lib/actions/collector";
 import { getCreatorDashboardStats } from "@/lib/actions/creator";
 import { getCurrentCycle } from "@/lib/actions/cycles";
-import { captureAttribution } from "@/lib/analytics/attribution";
 import { trackPageView } from "@/lib/analytics/events";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -128,13 +128,13 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
   // Capture attribution for anonymous users
   if (!session?.user?.id) {
-    const searchParamsObj = new URLSearchParams();
+    const searchParamsRecord: Record<string, string> = {};
     for (const [key, value] of Object.entries(resolvedSearchParams)) {
       if (typeof value === "string") {
-        searchParamsObj.set(key, value);
+        searchParamsRecord[key] = value;
       }
     }
-    void captureAttribution(searchParamsObj, "/");
+    void captureAttributionAction(searchParamsRecord, "/");
     void trackPageView("/", { isAnonymous: true });
     return <PublicHomePage />;
   }

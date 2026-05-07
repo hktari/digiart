@@ -17,6 +17,7 @@ type ReleaseItem = {
     artwork: {
       storageKey: string;
       title: string;
+      thumbnailUrl: string;
     };
   }>;
   tags: Array<{
@@ -95,7 +96,7 @@ function ReleaseCard({
       {coverArtwork && (
         <div className="relative aspect-4/3 bg-neutral-100">
           <Image
-            src={`/api/storage/${coverArtwork.storageKey}`}
+            src={coverArtwork.thumbnailUrl}
             alt={coverArtwork.title}
             fill
             className="object-cover"

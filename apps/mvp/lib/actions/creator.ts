@@ -372,7 +372,21 @@ export async function getPublicCreatorProfile(slug: string): Promise<any> {
     },
   });
 
-  return profile;
+  if (!profile) return null;
+
+  return {
+    ...profile,
+    releases: profile.releases.map((release) => ({
+      ...release,
+      artworks: release.artworks.map((ra) => ({
+        ...ra,
+        artwork: {
+          ...ra.artwork,
+          thumbnailUrl: getPublicStorageUrl(ra.artwork.storageKey),
+        },
+      })),
+    })),
+  };
 }
 
 export async function getPublicCreatorReleases(slug: string): Promise<any[]> {

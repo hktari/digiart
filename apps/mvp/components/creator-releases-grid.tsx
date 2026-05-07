@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useBookletToggle } from "@/hooks/use-booklet-toggle";
-import { getPublicStorageUrl } from "@/lib/s3";
 
 type Release = {
   id: string;
@@ -13,6 +12,7 @@ type Release = {
     artwork: {
       storageKey: string;
       title: string;
+      thumbnailUrl: string;
     };
   }>;
   _count: {
@@ -84,9 +84,7 @@ function ReleaseCard({
   );
 
   const coverArtwork = release.artworks[0]?.artwork;
-  const coverUrl = coverArtwork
-    ? getPublicStorageUrl(coverArtwork.storageKey)
-    : null;
+  const coverUrl = coverArtwork?.thumbnailUrl ?? null;
 
   return (
     <div
@@ -97,7 +95,7 @@ function ReleaseCard({
       }`}
     >
       <Link href={`/creators/${slug}/releases/${release.id}`} className="block">
-        <div className="aspect-square bg-neutral-100 relative overflow-hidden">
+        <div className="aspect-[4/3] bg-neutral-100 relative overflow-hidden">
           {coverUrl ? (
             <Image
               src={coverUrl}
