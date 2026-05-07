@@ -1,4 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
+import * as Sentry from "@sentry/nestjs";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import {
   DEFAULT_PAGE_FORMAT,
@@ -8,6 +9,7 @@ import {
 } from "../booklet.types";
 import { ArtworkPageService } from "./artwork-page.service";
 import { CoverPageService } from "./cover-page.service";
+import { PdfXProcessorService } from "./pdfx-processor.service";
 
 @Injectable()
 export class PdfBuilderService {
@@ -16,6 +18,7 @@ export class PdfBuilderService {
   constructor(
     private readonly artworkPageService: ArtworkPageService,
     private readonly coverPageService: CoverPageService,
+    private readonly pdfxProcessor: PdfXProcessorService,
   ) {}
 
   async build(
@@ -71,7 +74,35 @@ export class PdfBuilderService {
     await this.coverPageService.addBackCover(pdfDoc, pageDimensions);
 
     const finalPageCount = pdfDoc.getPageCount();
-    const bytes = await pdfDoc.save();
-    return { bytes, pageCount: finalPageCount };
+    const rawBytes = await pdfDoc.save();
+
+    // Post-process with GhostScript to achieve PDF/X-4 compliance
+    this.logger.log(
+      `Post-processing PDF to PDF/X-4 format (${rawBytes.length} bytes)...`,
+    );
+    let pdfxBytes: Uint8Array;
+    try {
+      pdfxBytes = await this.pdfxProcessor.postProcessToPDFX(rawBytes, {
+        pdfxVersion: "PDF/X-4",
+        outputIntentProfile: "ISO Coated v2 (ECI)",
+      });
+      this.logger.log(`PDF/X conversion successful: ${pdfxBytes.length} bytes`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      this.logger.error(
+        `PDF/X conversion failed, returning raw PDF: ${message}`,
+      );
+      Sentry.captureException(error, {
+        tags: {
+          component: "pdf-builder",
+          errorType: "pdfx-conversion-fallback",
+        },
+        extra: { issueLabel, rawPdfBytes: rawBytes.length },
+      });
+      // Fallback to raw PDF if conversion fails
+      pdfxBytes = rawBytes;
+    }
+
+    return { bytes: pdfxBytes, pageCount: finalPageCount };
   }
 }

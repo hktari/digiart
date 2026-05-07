@@ -1,5 +1,6 @@
 import { Processor, WorkerHost } from "@nestjs/bullmq";
 import { Logger } from "@nestjs/common";
+import * as Sentry from "@sentry/nestjs";
 import type { Job } from "bullmq";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
@@ -133,6 +134,16 @@ export class BookletProcessor extends WorkerHost {
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
       this.logger.error(`Booklet job ${job.id} failed: ${message}`);
+
+      Sentry.captureException(error, {
+        tags: { component: "booklet-processor" },
+        extra: {
+          jobId: job.id,
+          collectorProfileId,
+          cycleId,
+          issueLabel,
+        },
+      });
 
       await this.prisma.generatedPrintFile.updateMany({
         where: { collectorProfileId, cycleId },
