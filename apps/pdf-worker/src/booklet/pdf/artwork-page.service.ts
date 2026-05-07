@@ -29,7 +29,8 @@ export class ArtworkPageService {
         ? await pdfDoc.embedPng(imageBytes)
         : await pdfDoc.embedJpg(imageBytes);
 
-    const isLandscape = orientation === "LANDSCAPE";
+    const isImageLandscape = orientation === "LANDSCAPE";
+    const isPageLandscape = PAGE_WIDTH_PT > PAGE_HEIGHT_PT;
     const printW = PAGE_WIDTH_PT - MARGIN_PT * 2;
     const printH = PAGE_HEIGHT_PT - MARGIN_PT * 2;
 
@@ -39,14 +40,18 @@ export class ArtworkPageService {
     let drawY: number;
     let rotate = degrees(0);
 
-    if (isLandscape) {
+    // Rotation needed when image orientation doesn't match page orientation
+    const needsRotation = isImageLandscape !== isPageLandscape;
+
+    if (needsRotation) {
       // pdf-lib rotates 90° CCW around bottom-left anchor (x, y).
-      // drawW/drawH are PRE-rotation dimensions — keep original aspect ratio.
-      // After rotation: visible width = drawH, visible height = drawW.
-      const scale = Math.min(printH / image.width, printW / image.height);
+      // After 90° rotation: visible width = original height, visible height = original width.
+      // We scale based on the POST-rotation dimensions (swapped).
+      const scale = Math.min(printW / image.height, printH / image.width);
       drawW = image.width * scale;
       drawH = image.height * scale;
-      drawX = MARGIN_PT + (printW + drawH) / 2;
+      // Position: center the rotated image, accounting for rotation anchor at bottom-left
+      drawX = MARGIN_PT + (printW - drawH) / 2 + drawH;
       drawY = MARGIN_PT + (printH - drawW) / 2;
       rotate = degrees(90);
     } else {

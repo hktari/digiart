@@ -5,7 +5,9 @@ import { ArtworkPageService } from "./artwork-page.service";
 import { PAGE_DIMENSIONS } from "../booklet.types";
 
 const A5_PORTRAIT = PAGE_DIMENSIONS.A5_PORTRAIT;
+const A5_LANDSCAPE = PAGE_DIMENSIONS.A5_LANDSCAPE;
 const A4_PORTRAIT = PAGE_DIMENSIONS.A4_PORTRAIT;
+const A4_LANDSCAPE = PAGE_DIMENSIONS.A4_LANDSCAPE;
 const MARGIN_PT = 28.35;
 
 async function makeSmallJpeg(): Promise<Buffer> {
@@ -145,5 +147,57 @@ describe("ArtworkPageService", () => {
     const { width, height } = page.getSize();
     expect(width).toBeCloseTo(A4_PORTRAIT.widthPt, 1);
     expect(height).toBeCloseTo(A4_PORTRAIT.heightPt, 1);
+  });
+
+  it("should add an A5 landscape page with correct dimensions", async () => {
+    const pdfDoc = await PDFDocument.create();
+    const jpegBuffer = await makeSmallJpeg();
+
+    const page = await service.addPageAsync(
+      pdfDoc,
+      jpegBuffer,
+      "image/jpeg",
+      "PORTRAIT",
+      A5_LANDSCAPE,
+    );
+
+    const { width, height } = page.getSize();
+    expect(width).toBeCloseTo(A5_LANDSCAPE.widthPt, 1);
+    expect(height).toBeCloseTo(A5_LANDSCAPE.heightPt, 1);
+  });
+
+  it("should add an A4 landscape page with correct dimensions", async () => {
+    const pdfDoc = await PDFDocument.create();
+    const jpegBuffer = await makeSmallJpeg();
+
+    const page = await service.addPageAsync(
+      pdfDoc,
+      jpegBuffer,
+      "image/jpeg",
+      "PORTRAIT",
+      A4_LANDSCAPE,
+    );
+
+    const { width, height } = page.getSize();
+    expect(width).toBeCloseTo(A4_LANDSCAPE.widthPt, 1);
+    expect(height).toBeCloseTo(A4_LANDSCAPE.heightPt, 1);
+  });
+
+  it("should handle landscape image on landscape page without rotation", async () => {
+    const pdfDoc = await PDFDocument.create();
+    const jpegBuffer = await makeSmallJpeg();
+
+    const page = await service.addPageAsync(
+      pdfDoc,
+      jpegBuffer,
+      "image/jpeg",
+      "LANDSCAPE",
+      A5_LANDSCAPE,
+    );
+
+    expect(page).toBeDefined();
+    const { width, height } = page.getSize();
+    expect(width).toBeCloseTo(A5_LANDSCAPE.widthPt, 1);
+    expect(height).toBeCloseTo(A5_LANDSCAPE.heightPt, 1);
   });
 });

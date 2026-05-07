@@ -12,9 +12,19 @@ import { readFile, readdir, writeFile, mkdir } from "node:fs/promises";
 import { join, resolve, extname, basename } from "node:path";
 import { existsSync } from "node:fs";
 
-const PAGE_WIDTH_PT = 419.53; // A6 width
-const PAGE_HEIGHT_PT = 595.28; // A6 height
-const MARGIN_PT = 28.35;
+// Page format configurations (in points, 1 inch = 72 points)
+const PAGE_FORMATS = {
+  A6: { width: 419.53, height: 595.28, margin: 28.35 },
+  A5: { width: 595.28, height: 841.89, margin: 42.52 },
+  A4: { width: 841.89, height: 595.28, margin: 56.69 }, // Landscape
+  A4_PORTRAIT: { width: 595.28, height: 841.89, margin: 56.69 },
+};
+
+type PageFormat = keyof typeof PAGE_FORMATS;
+
+let PAGE_WIDTH_PT = 419.53; // Default A6 width
+let PAGE_HEIGHT_PT = 595.28; // Default A6 height
+let MARGIN_PT = 28.35; // Default margin
 
 const BEIGE_50 = rgb(0.98, 0.973, 0.957);
 const FUCHSIA_600 = rgb(0.753, 0.149, 0.827);
@@ -134,7 +144,8 @@ async function addArtworkPage(pdfDoc: PDFDocument, artwork: ArtworkImage) {
       : await pdfDoc.embedJpg(artwork.buffer);
 
   // Auto-detect orientation based on image dimensions
-  const isLandscape = image.width > image.height;
+  const isImageLandscape = image.width > image.height;
+  const isPageLandscape = PAGE_WIDTH_PT > PAGE_HEIGHT_PT;
   const printW = PAGE_WIDTH_PT - MARGIN_PT * 2;
   const printH = PAGE_HEIGHT_PT - MARGIN_PT * 2;
 
@@ -144,14 +155,18 @@ async function addArtworkPage(pdfDoc: PDFDocument, artwork: ArtworkImage) {
   let drawY: number;
   let rotate = degrees(0);
 
-  if (isLandscape) {
+  // Rotation needed when image orientation doesn't match page orientation
+  const needsRotation = isImageLandscape !== isPageLandscape;
+
+  if (needsRotation) {
     // pdf-lib rotates 90° CCW around bottom-left anchor (x, y).
-    // drawW/drawH are PRE-rotation dimensions — keep original aspect ratio.
-    // After rotation: visible width = drawH, visible height = drawW.
-    const scale = Math.min(printH / image.width, printW / image.height);
+    // After 90° rotation: visible width = original height, visible height = original width.
+    // We scale based on the POST-rotation dimensions (swapped).
+    const scale = Math.min(printW / image.height, printH / image.width);
     drawW = image.width * scale;
     drawH = image.height * scale;
-    drawX = MARGIN_PT + (printW + drawH) / 2;
+    // Position: center the rotated image, accounting for rotation anchor at bottom-left
+    drawX = MARGIN_PT + (printW - drawH) / 2 + drawH;
     drawY = MARGIN_PT + (printH - drawW) / 2;
     rotate = degrees(90);
   } else {
@@ -212,13 +227,27 @@ async function addBackCover(pdfDoc: PDFDocument) {
 async function generateBooklet(
   imageDir: string,
   outputPath: string,
-  options: { issueLabel?: string; creatorNames?: string[] } = {},
+  options: {
+    issueLabel?: string;
+    creatorNames?: string[];
+    format?: PageFormat;
+  } = {},
 ) {
   const issueLabel = options.issueLabel || "Test Issue 2026";
   const creatorNames = options.creatorNames || ["Test Artist"];
+  const format = options.format || "A6";
+
+  // Set page dimensions based on format
+  const pageConfig = PAGE_FORMATS[format];
+  PAGE_WIDTH_PT = pageConfig.width;
+  PAGE_HEIGHT_PT = pageConfig.height;
+  MARGIN_PT = pageConfig.margin;
 
   console.log("\n📚 Booklet Generator");
   console.log("====================");
+  console.log(
+    `Format: ${format} (${PAGE_WIDTH_PT.toFixed(0)}x${PAGE_HEIGHT_PT.toFixed(0)}pt)`,
+  );
 
   const pdfDoc = await PDFDocument.create();
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -285,12 +314,24 @@ if (!imageDir) {
   console.log("Environment variables:");
   console.log("  ISSUE_LABEL    - Issue label (default: 'Test Issue 2026')");
   console.log("  CREATOR_NAMES  - Comma-separated creator names");
+  console.log(
+    "  PAGE_FORMAT    - Page format: A6, A5, A4, A4_PORTRAIT (default: A6)",
+  );
+  process.exit(1);
+}
+
+const pageFormat = (process.env.PAGE_FORMAT || "A6") as PageFormat;
+if (!PAGE_FORMATS[pageFormat]) {
+  console.error(
+    `Invalid PAGE_FORMAT: ${pageFormat}. Valid options: ${Object.keys(PAGE_FORMATS).join(", ")}`,
+  );
   process.exit(1);
 }
 
 generateBooklet(resolve(imageDir), resolve(outputPath), {
   issueLabel: process.env.ISSUE_LABEL,
   creatorNames: process.env.CREATOR_NAMES?.split(",") || ["Test Artist"],
+  format: pageFormat,
 }).catch((err) => {
   console.error("❌ Error:", err.message);
   process.exit(1);
