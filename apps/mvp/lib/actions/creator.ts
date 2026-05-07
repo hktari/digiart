@@ -144,7 +144,7 @@ export async function saveCreatorProfile(
       displayName,
       bio: bio || null,
       sourcePlatform,
-      status: "DRAFT",
+      status: "PUBLISHED",
       payoutProfile: {
         create: {
           legalName: legalName || null,
