@@ -102,6 +102,7 @@ model CreatorProfile {
   avatar         String?
   bio            String?       @db.Text
   sourcePlatform String? // Where creator is coming from (ArtStation, DeviantArt, Instagram, etc.)
+  referralCode   String?       @unique // short code for tracking follower signups (e.g. "artbykarim")
   status         PublishStatus @default(DRAFT)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
@@ -142,6 +143,8 @@ model CreatorSocialLink {
   sortOrder        Int    @default(0)
 
   creatorProfile CreatorProfile @relation(fields: [creatorProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([creatorProfileId, label])
 }
 
 // ---------------------------------------------------------------------------
@@ -272,6 +275,7 @@ model CollectorCreatorSubscription {
   creatorProfileId   String
   isActive           Boolean  @default(true)
   entryCreatorId     String?
+  referralCode       String?  // referral code present when the subscription was created
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 

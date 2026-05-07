@@ -83,6 +83,17 @@ export async function saveCreatorProfile(
     sourcePlatforms = undefined;
   }
 
+  // Parse platformLinks from JSON string
+  const platformLinksRaw = formData.get("platformLinks");
+  let platformLinks: Record<string, string> = {};
+  try {
+    platformLinks = platformLinksRaw
+      ? JSON.parse(platformLinksRaw as string)
+      : {};
+  } catch {
+    platformLinks = {};
+  }
+
   const parsed = saveCreatorProfileSchema.safeParse({
     displayName: formData.get("displayName"),
     slug: formData.get("slug"),
@@ -163,6 +174,39 @@ export async function saveCreatorProfile(
       },
     },
   });
+
+  // Save platform links as social links (only entries with a non-empty URL)
+  const profile = await db.creatorProfile.findUnique({
+    where: { userId: session.user.id },
+    select: { id: true },
+  });
+
+  if (profile) {
+    const linkEntries = Object.entries(platformLinks).filter(
+      ([, url]) => url.trim() !== "",
+    );
+    for (let i = 0; i < linkEntries.length; i++) {
+      const [platformValue, url] = linkEntries[i];
+      await db.creatorSocialLink.upsert({
+        where: {
+          creatorProfileId_label: {
+            creatorProfileId: profile.id,
+            label: platformValue,
+          },
+        },
+        create: {
+          creatorProfileId: profile.id,
+          label: platformValue,
+          url: url.trim(),
+          sortOrder: i,
+        },
+        update: {
+          url: url.trim(),
+          sortOrder: i,
+        },
+      });
+    }
+  }
 
   revalidatePath("/");
   revalidatePath("/creator");
@@ -542,6 +586,43 @@ export async function getCreatorDashboardStats(): Promise<CreatorDashboardStats 
         }
       : null,
   };
+}
+
+export type ReferralStats = {
+  referralCode: string;
+  shareUrl: string;
+  totalSignups: number; // unique subscribers acquired via this referral code
+};
+
+export async function getOrGenerateReferralCode(): Promise<ReferralStats> {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/auth/sign-in");
+
+  let profile = await db.creatorProfile.findUnique({
+    where: { userId: session.user.id },
+    select: { id: true, slug: true, referralCode: true },
+  });
+  if (!profile) redirect("/creator/setup");
+
+  if (!profile.referralCode) {
+    // Use slug as the default referral code (already unique)
+    profile = await db.creatorProfile.update({
+      where: { id: profile.id },
+      data: { referralCode: profile.slug },
+      select: { id: true, slug: true, referralCode: true },
+    });
+  }
+
+  const code = profile.referralCode as string;
+
+  const totalSignups = await db.collectorCreatorSubscription.count({
+    where: { creatorProfileId: profile.id, referralCode: code, isActive: true },
+  });
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+  const shareUrl = `${baseUrl}/creators/${profile.slug}?ref=${code}`;
+
+  return { referralCode: code, shareUrl, totalSignups };
 }
 
 export async function getPublicReleaseDetail(

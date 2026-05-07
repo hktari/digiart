@@ -20,6 +20,7 @@ type Props = {
     autoAddedRelease?: string;
     autoAddSkipped?: string;
     subscriptionError?: string;
+    ref?: string;
   }>;
 };
 
@@ -164,7 +165,7 @@ export default async function CreatorProfilePage({
             )}
 
             {/* CTA */}
-            <div className="pt-2">
+            <div className="pt-2 space-y-2">
               {isOwnProfile ? (
                 <Link
                   href="/"
@@ -173,20 +174,34 @@ export default async function CreatorProfilePage({
                   Go to your dashboard
                 </Link>
               ) : isSubscribed ? (
-                <Link
-                  href="/collector/subscriptions"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-jade-600 text-jade-700 font-medium hover:bg-jade-50 transition-colors"
-                >
-                  ✓ Subscribed
-                </Link>
+                <div className="space-y-1">
+                  <Link
+                    href="/collector/subscriptions"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-jade-600 text-jade-700 font-medium hover:bg-jade-50 transition-colors"
+                  >
+                    ✓ Subscribed
+                  </Link>
+                  <p className="text-xs text-neutral-400 pl-1">
+                    You'll receive their next printed booklet.
+                  </p>
+                </div>
               ) : (
-                <Link
-                  href={`/creators/${slug}/subscribe`}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-fuchsia-600 text-white font-medium hover:bg-fuchsia-700 transition-colors"
-                >
-                  Subscribe
-                  <span className="text-lg">→</span>
-                </Link>
+                <div className="space-y-2">
+                  <Link
+                    href={
+                      resolvedSearchParams?.ref
+                        ? `/creators/${slug}/subscribe?ref=${resolvedSearchParams.ref}`
+                        : `/creators/${slug}/subscribe`
+                    }
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-fuchsia-600 text-white font-semibold hover:bg-fuchsia-700 transition-colors text-base"
+                  >
+                    Subscribe — get their prints delivered
+                    <span className="text-lg">→</span>
+                  </Link>
+                  <p className="text-xs text-neutral-400 pl-1">
+                    Free to join · no spam · unsubscribe anytime
+                  </p>
+                </div>
               )}
             </div>
           </div>

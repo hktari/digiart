@@ -9,14 +9,23 @@ import { auth } from "@/lib/auth";
 
 type Props = {
   params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ ref?: string }>;
 };
 
-export default async function CreatorSubscribePage({ params }: Props) {
+export default async function CreatorSubscribePage({
+  params,
+  searchParams,
+}: Props) {
   const { slug } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const referralCode = resolvedSearchParams.ref ?? undefined;
   const session = await auth();
 
   if (!session?.user?.id) {
-    redirect(`/auth/sign-in?callbackUrl=/creators/${slug}/subscribe`);
+    const callbackUrl = referralCode
+      ? `/creators/${slug}/subscribe?ref=${referralCode}`
+      : `/creators/${slug}/subscribe`;
+    redirect(`/auth/sign-in?callbackUrl=${encodeURIComponent(callbackUrl)}`);
   }
 
   const profile = await getPublicCreatorProfile(slug);
@@ -30,15 +39,20 @@ export default async function CreatorSubscribePage({ params }: Props) {
   const collectorProfile = await getCollectorProfile(session.user.id);
 
   if (!collectorProfile) {
-    redirect(`/collector/setup?creator=${profile.id}`);
+    const setupParams = new URLSearchParams({ creator: profile.id });
+    if (referralCode) setupParams.set("ref", referralCode);
+    redirect(`/collector/setup?${setupParams.toString()}`);
   }
 
   if (collectorProfile.onboardingState === "PENDING") {
-    redirect(`/collector/setup?creator=${profile.id}`);
+    const setupParams = new URLSearchParams({ creator: profile.id });
+    if (referralCode) setupParams.set("ref", referralCode);
+    redirect(`/collector/setup?${setupParams.toString()}`);
   }
 
   const result = await subscribeToCreator(profile.id, undefined, {
     revalidate: false,
+    referralCode,
   });
   if (!result.success) {
     redirect(
@@ -46,14 +60,14 @@ export default async function CreatorSubscribePage({ params }: Props) {
     );
   }
 
-  const searchParams = new URLSearchParams();
-  searchParams.set("subscribed", "1");
+  const redirectParams = new URLSearchParams();
+  redirectParams.set("subscribed", "1");
   if (result.autoAssignedReleaseTitle) {
-    searchParams.set("autoAddedRelease", result.autoAssignedReleaseTitle);
+    redirectParams.set("autoAddedRelease", result.autoAssignedReleaseTitle);
   }
   if (result.autoAssignmentSkipped) {
-    searchParams.set("autoAddSkipped", "1");
+    redirectParams.set("autoAddSkipped", "1");
   }
 
-  redirect(`/creators/${slug}?${searchParams.toString()}`);
+  redirect(`/creators/${slug}?${redirectParams.toString()}`);
 }

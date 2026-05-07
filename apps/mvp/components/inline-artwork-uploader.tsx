@@ -72,9 +72,7 @@ export function InlineArtworkUploader({
     if (!queued.length) return;
     setIsUploading(true);
 
-    const uploadedIds: string[] = [];
-
-    await Promise.all(
+    const results = await Promise.all(
       queued.map(async (entry) => {
         updateEntry(entry.id, { status: "uploading", progress: 0 });
         try {
@@ -82,17 +80,19 @@ export function InlineArtworkUploader({
             updateEntry(entry.id, { status: "uploading", progress: pct });
           });
           updateEntry(entry.id, { status: "done", artworkId, warnings });
-          uploadedIds.push(artworkId);
+          return artworkId;
         } catch (err) {
           updateEntry(entry.id, {
             status: "error",
             message: err instanceof Error ? err.message : "Upload failed",
           });
+          return null;
         }
       }),
     );
 
     setIsUploading(false);
+    const uploadedIds = results.filter((id): id is string => id !== null);
     if (uploadedIds.length > 0 && onUploadComplete) {
       onUploadComplete(uploadedIds);
     }

@@ -376,7 +376,7 @@ export async function getCollectorProfile(userId: string) {
 export async function subscribeToCreator(
   creatorProfileId: string,
   entryCreatorId?: string,
-  options?: { revalidate?: boolean },
+  options?: { revalidate?: boolean; referralCode?: string },
 ) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -423,6 +423,7 @@ export async function subscribeToCreator(
         collectorProfileId: collectorProfile.id,
         creatorProfileId,
         entryCreatorId: entryCreatorId || creatorProfileId,
+        referralCode: options?.referralCode ?? null,
         isActive: true,
       },
       update: {
