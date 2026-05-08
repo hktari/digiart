@@ -25,9 +25,9 @@ export interface ValidationFailure {
 export type ValidationResult = ValidationSuccess | ValidationFailure;
 
 const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
-// A5 @ 300 DPI: 148mm × 210mm = 1754px × 2480px
+// A5 @ 300 DPI: 148mm × 210mm = 1748px × 2480px
 // We accept both portrait and landscape orientations
-const MIN_PRINT_WIDTH_PX = 1754;
+const MIN_PRINT_WIDTH_PX = 1748;
 const MIN_PRINT_HEIGHT_PX = 2480;
 
 export async function validateArtworkImage(

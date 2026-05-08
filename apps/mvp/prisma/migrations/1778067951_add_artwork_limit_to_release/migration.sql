@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "Release" ADD COLUMN "artworkLimit" INTEGER NOT NULL DEFAULT 10;

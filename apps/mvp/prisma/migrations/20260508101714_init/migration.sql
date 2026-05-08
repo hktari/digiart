@@ -20,13 +20,34 @@ CREATE TYPE "CycleStatus" AS ENUM ('OPEN', 'LOCKED', 'PROCESSING', 'COMPLETE');
 CREATE TYPE "PodEnvironment" AS ENUM ('SANDBOX', 'PRODUCTION');
 
 -- CreateEnum
+CREATE TYPE "FulfillmentRegion" AS ENUM ('EU', 'US');
+
+-- CreateEnum
 CREATE TYPE "PrintFileStatus" AS ENUM ('PENDING', 'GENERATING', 'READY', 'FAILED');
+
+-- CreateEnum
+CREATE TYPE "BillingStatus" AS ENUM ('PENDING', 'PAID', 'FAILED', 'CANCELED', 'GRACE_PERIOD');
+
+-- CreateEnum
+CREATE TYPE "FulfillmentStatus" AS ENUM ('PENDING', 'SUBMITTED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'FAILED');
+
+-- CreateEnum
+CREATE TYPE "PayoutStatus" AS ENUM ('PENDING', 'SENT', 'FAILED');
 
 -- CreateEnum
 CREATE TYPE "EmailNotificationType" AS ENUM ('CREATOR_WELCOME', 'CREATOR_ONBOARDING_INCOMPLETE', 'CREATOR_RELEASE_REMINDER', 'CREATOR_RELEASE_MISSING_WARNING', 'CREATOR_RELEASE_PUBLISHED', 'CREATOR_COLLECTOR_AT_RISK', 'COLLECTOR_WELCOME', 'COLLECTOR_SETUP_REMINDER', 'COLLECTOR_PRICE_ESTIMATE', 'COLLECTOR_SELECTION_REMINDER', 'COLLECTOR_LOCK_REMINDER', 'COLLECTOR_LOCK_CONFIRMED', 'COLLECTOR_CREATOR_AT_RISK', 'COLLECTOR_FULFILLMENT_BLOCKED');
 
 -- CreateEnum
 CREATE TYPE "EmailNotificationStatus" AS ENUM ('PENDING', 'SENT', 'FAILED');
+
+-- CreateEnum
+CREATE TYPE "LeadType" AS ENUM ('CREATOR', 'COLLECTOR');
+
+-- CreateEnum
+CREATE TYPE "LeadStatus" AS ENUM ('NEW', 'CONTACTED', 'REPLIED', 'QUALIFIED', 'DISQUALIFIED', 'SIGNED_UP', 'ACTIVATED');
+
+-- CreateEnum
+CREATE TYPE "EntryPageType" AS ENUM ('HOME', 'CREATOR_PAGE', 'BROWSE', 'OTHER');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -94,6 +115,8 @@ CREATE TABLE "CreatorProfile" (
     "displayName" TEXT NOT NULL,
     "avatar" TEXT,
     "bio" TEXT,
+    "sourcePlatform" TEXT,
+    "referralCode" TEXT,
     "status" "PublishStatus" NOT NULL DEFAULT 'DRAFT',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -109,6 +132,9 @@ CREATE TABLE "CreatorPayoutProfile" (
     "taxId" TEXT,
     "bankAccountInfo" TEXT,
     "paypalEmail" TEXT,
+    "paypalAccountId" TEXT,
+    "isPayPalVerified" BOOLEAN NOT NULL DEFAULT false,
+    "payPalVerifiedAt" TIMESTAMP(3),
     "isReady" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -133,6 +159,13 @@ CREATE TABLE "CollectorProfile" (
     "userId" TEXT NOT NULL,
     "displayName" TEXT,
     "shippingCountry" TEXT,
+    "shippingStateCode" TEXT,
+    "shippingName" TEXT,
+    "shippingAddressLine1" TEXT,
+    "shippingAddressLine2" TEXT,
+    "shippingCity" TEXT,
+    "shippingZip" TEXT,
+    "stripeCustomerId" TEXT,
     "onboardingState" "OnboardingState" NOT NULL DEFAULT 'PENDING',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -165,9 +198,11 @@ CREATE TABLE "Release" (
     "cycleId" TEXT,
     "title" TEXT NOT NULL,
     "description" TEXT,
+    "artworkLimit" INTEGER NOT NULL DEFAULT 10,
     "status" "PublishStatus" NOT NULL DEFAULT 'DRAFT',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "publishedAt" TIMESTAMP(3),
 
     CONSTRAINT "Release_pkey" PRIMARY KEY ("id")
 );
@@ -206,6 +241,7 @@ CREATE TABLE "CollectorCreatorSubscription" (
     "creatorProfileId" TEXT NOT NULL,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "entryCreatorId" TEXT,
+    "referralCode" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -286,6 +322,34 @@ CREATE TABLE "PodOffering" (
 );
 
 -- CreateTable
+CREATE TABLE "FulfillmentCountry" (
+    "code" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "region" "FulfillmentRegion" NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "source" TEXT NOT NULL DEFAULT 'peecho',
+    "syncedAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "FulfillmentCountry_pkey" PRIMARY KEY ("code")
+);
+
+-- CreateTable
+CREATE TABLE "FulfillmentState" (
+    "countryCode" TEXT NOT NULL,
+    "stateCode" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "source" TEXT NOT NULL DEFAULT 'peecho',
+    "syncedAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "FulfillmentState_pkey" PRIMARY KEY ("countryCode","stateCode")
+);
+
+-- CreateTable
 CREATE TABLE "PricingQuoteSnapshot" (
     "id" TEXT NOT NULL,
     "collectorProfileId" TEXT NOT NULL,
@@ -296,8 +360,12 @@ CREATE TABLE "PricingQuoteSnapshot" (
     "shippingAmount" DECIMAL(10,2) NOT NULL,
     "productAmount" DECIMAL(10,2) NOT NULL,
     "taxAmount" DECIMAL(10,2) NOT NULL,
+    "markupAmount" DECIMAL(10,2),
     "totalEstimate" DECIMAL(10,2) NOT NULL,
     "currency" TEXT NOT NULL DEFAULT 'EUR',
+    "isFrozen" BOOLEAN NOT NULL DEFAULT false,
+    "frozenAt" TIMESTAMP(3),
+    "quoteMetadataHash" TEXT,
     "quotedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "PricingQuoteSnapshot_pkey" PRIMARY KEY ("id")
@@ -317,6 +385,134 @@ CREATE TABLE "GeneratedPrintFile" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "GeneratedPrintFile_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "CheckoutIntent" (
+    "id" TEXT NOT NULL,
+    "collectorProfileId" TEXT NOT NULL,
+    "cycleId" TEXT NOT NULL,
+    "committedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "selectionSnapshot" JSONB NOT NULL,
+    "quoteInputCountry" TEXT,
+    "quoteInputPageCount" INTEGER,
+    "acceptedEstimateDisclaimer" BOOLEAN NOT NULL DEFAULT false,
+    "peechoOrderId" TEXT,
+    "retailTotalAmount" DECIMAL(10,2),
+    "wholesaleTotalAmount" DECIMAL(10,2),
+    "platformMarkupAmount" DECIMAL(10,2),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "CheckoutIntent_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "BillingRecord" (
+    "id" TEXT NOT NULL,
+    "collectorProfileId" TEXT NOT NULL,
+    "cycleId" TEXT NOT NULL,
+    "quoteSnapshotId" TEXT NOT NULL,
+    "stripePaymentIntentId" TEXT,
+    "stripeInvoiceId" TEXT,
+    "amount" DECIMAL(10,2) NOT NULL,
+    "currency" TEXT NOT NULL DEFAULT 'EUR',
+    "status" "BillingStatus" NOT NULL DEFAULT 'PENDING',
+    "paidAt" TIMESTAMP(3),
+    "errorMessage" TEXT,
+    "peechoOrderId" TEXT,
+    "retailTotalAmount" DECIMAL(10,2),
+    "wholesaleTotalAmount" DECIMAL(10,2),
+    "platformMarkupAmount" DECIMAL(10,2),
+    "creatorPayoutAmount" DECIMAL(10,2),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "BillingRecord_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "StripeWebhookEvent" (
+    "id" TEXT NOT NULL,
+    "processedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "StripeWebhookEvent_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "PlatformConfig" (
+    "id" TEXT NOT NULL,
+    "quoteMarginAmount" DOUBLE PRECISION NOT NULL DEFAULT 0.3,
+    "creatorPayoutSplit" DOUBLE PRECISION NOT NULL DEFAULT 0.7,
+    "platformFeeSplit" DOUBLE PRECISION NOT NULL DEFAULT 0.3,
+    "maxArtworksPerRelease" INTEGER NOT NULL DEFAULT 20,
+    "maxReleasesPerCycle" INTEGER NOT NULL DEFAULT 3,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedBy" TEXT,
+
+    CONSTRAINT "PlatformConfig_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "FulfillmentOrder" (
+    "id" TEXT NOT NULL,
+    "collectorProfileId" TEXT NOT NULL,
+    "cycleId" TEXT NOT NULL,
+    "generatedPrintFileId" TEXT NOT NULL,
+    "quoteSnapshotId" TEXT NOT NULL,
+    "providerOrderId" TEXT,
+    "status" "FulfillmentStatus" NOT NULL DEFAULT 'PENDING',
+    "trackingNumber" TEXT,
+    "trackingUrl" TEXT,
+    "errorMessage" TEXT,
+    "submittedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "FulfillmentOrder_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "PayoutCalculation" (
+    "id" TEXT NOT NULL,
+    "cycleId" TEXT NOT NULL,
+    "totalMarkupPool" DECIMAL(10,2) NOT NULL,
+    "totalPaidCollectors" INTEGER NOT NULL,
+    "totalFulfilledCollectors" INTEGER NOT NULL,
+    "calculationSnapshot" JSONB NOT NULL,
+    "calculatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "PayoutCalculation_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "CreatorPayout" (
+    "id" TEXT NOT NULL,
+    "creatorProfileId" TEXT NOT NULL,
+    "cycleId" TEXT NOT NULL,
+    "amount" DECIMAL(10,2) NOT NULL,
+    "currency" TEXT NOT NULL DEFAULT 'EUR',
+    "status" "PayoutStatus" NOT NULL DEFAULT 'PENDING',
+    "paypalBatchId" TEXT,
+    "paypalPayoutId" TEXT,
+    "calculatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "sentAt" TIMESTAMP(3),
+    "errorMessage" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "CreatorPayout_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "CreatorProfileView" (
+    "id" TEXT NOT NULL,
+    "creatorProfileId" TEXT NOT NULL,
+    "viewedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "cycleId" TEXT,
+
+    CONSTRAINT "CreatorProfileView_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -345,6 +541,65 @@ CREATE TABLE "EmailNotificationLog" (
     CONSTRAINT "EmailNotificationLog_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "Lead" (
+    "id" TEXT NOT NULL,
+    "email" TEXT,
+    "type" "LeadType" NOT NULL,
+    "status" "LeadStatus" NOT NULL DEFAULT 'NEW',
+    "source" TEXT,
+    "campaign" TEXT,
+    "utmSource" TEXT,
+    "utmMedium" TEXT,
+    "utmCampaign" TEXT,
+    "utmContent" TEXT,
+    "utmTerm" TEXT,
+    "referrerUrl" TEXT,
+    "landingPath" TEXT,
+    "creatorProfileId" TEXT,
+    "ownerUserId" TEXT,
+    "notes" TEXT,
+    "firstSeenAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "lastSeenAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Lead_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "LeadEvent" (
+    "id" TEXT NOT NULL,
+    "leadId" TEXT NOT NULL,
+    "eventName" TEXT NOT NULL,
+    "eventValue" TEXT,
+    "metadata" JSONB,
+    "occurredAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "LeadEvent_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "AttributionSession" (
+    "id" TEXT NOT NULL,
+    "anonymousId" TEXT NOT NULL,
+    "leadId" TEXT,
+    "firstPath" TEXT NOT NULL,
+    "lastPath" TEXT NOT NULL,
+    "referrerUrl" TEXT,
+    "utmSource" TEXT,
+    "utmMedium" TEXT,
+    "utmCampaign" TEXT,
+    "utmContent" TEXT,
+    "utmTerm" TEXT,
+    "creatorProfileId" TEXT,
+    "entryPageType" "EntryPageType" NOT NULL DEFAULT 'OTHER',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "AttributionSession_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
@@ -367,7 +622,13 @@ CREATE UNIQUE INDEX "CreatorProfile_userId_key" ON "CreatorProfile"("userId");
 CREATE UNIQUE INDEX "CreatorProfile_slug_key" ON "CreatorProfile"("slug");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "CreatorProfile_referralCode_key" ON "CreatorProfile"("referralCode");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "CreatorPayoutProfile_creatorProfileId_key" ON "CreatorPayoutProfile"("creatorProfileId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "CreatorSocialLink_creatorProfileId_label_key" ON "CreatorSocialLink"("creatorProfileId", "label");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "CollectorProfile_userId_key" ON "CollectorProfile"("userId");
@@ -394,10 +655,64 @@ CREATE UNIQUE INDEX "SubscriptionCycle_month_year_key" ON "SubscriptionCycle"("m
 CREATE UNIQUE INDEX "PodOffering_providerId_externalId_key" ON "PodOffering"("providerId", "externalId");
 
 -- CreateIndex
+CREATE INDEX "FulfillmentCountry_region_isActive_idx" ON "FulfillmentCountry"("region", "isActive");
+
+-- CreateIndex
+CREATE INDEX "FulfillmentState_countryCode_isActive_idx" ON "FulfillmentState"("countryCode", "isActive");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "GeneratedPrintFile_collectorProfileId_cycleId_key" ON "GeneratedPrintFile"("collectorProfileId", "cycleId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "CheckoutIntent_collectorProfileId_cycleId_key" ON "CheckoutIntent"("collectorProfileId", "cycleId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "BillingRecord_collectorProfileId_cycleId_key" ON "BillingRecord"("collectorProfileId", "cycleId");
+
+-- CreateIndex
+CREATE INDEX "PlatformConfig_updatedAt_idx" ON "PlatformConfig"("updatedAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "FulfillmentOrder_generatedPrintFileId_key" ON "FulfillmentOrder"("generatedPrintFileId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "FulfillmentOrder_collectorProfileId_cycleId_key" ON "FulfillmentOrder"("collectorProfileId", "cycleId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "PayoutCalculation_cycleId_key" ON "PayoutCalculation"("cycleId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "CreatorPayout_creatorProfileId_cycleId_key" ON "CreatorPayout"("creatorProfileId", "cycleId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "NotificationPreference_userId_key" ON "NotificationPreference"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Lead_ownerUserId_key" ON "Lead"("ownerUserId");
+
+-- CreateIndex
+CREATE INDEX "Lead_type_status_idx" ON "Lead"("type", "status");
+
+-- CreateIndex
+CREATE INDEX "Lead_creatorProfileId_idx" ON "Lead"("creatorProfileId");
+
+-- CreateIndex
+CREATE INDEX "Lead_source_idx" ON "Lead"("source");
+
+-- CreateIndex
+CREATE INDEX "LeadEvent_leadId_eventName_idx" ON "LeadEvent"("leadId", "eventName");
+
+-- CreateIndex
+CREATE INDEX "LeadEvent_occurredAt_idx" ON "LeadEvent"("occurredAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "AttributionSession_anonymousId_key" ON "AttributionSession"("anonymousId");
+
+-- CreateIndex
+CREATE INDEX "AttributionSession_anonymousId_idx" ON "AttributionSession"("anonymousId");
+
+-- CreateIndex
+CREATE INDEX "AttributionSession_leadId_idx" ON "AttributionSession"("leadId");
 
 -- AddForeignKey
 ALTER TABLE "Account" ADD CONSTRAINT "Account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -475,6 +790,48 @@ ALTER TABLE "GeneratedPrintFile" ADD CONSTRAINT "GeneratedPrintFile_collectorPro
 ALTER TABLE "GeneratedPrintFile" ADD CONSTRAINT "GeneratedPrintFile_cycleId_fkey" FOREIGN KEY ("cycleId") REFERENCES "SubscriptionCycle"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "CheckoutIntent" ADD CONSTRAINT "CheckoutIntent_collectorProfileId_fkey" FOREIGN KEY ("collectorProfileId") REFERENCES "CollectorProfile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CheckoutIntent" ADD CONSTRAINT "CheckoutIntent_cycleId_fkey" FOREIGN KEY ("cycleId") REFERENCES "SubscriptionCycle"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BillingRecord" ADD CONSTRAINT "BillingRecord_collectorProfileId_fkey" FOREIGN KEY ("collectorProfileId") REFERENCES "CollectorProfile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BillingRecord" ADD CONSTRAINT "BillingRecord_cycleId_fkey" FOREIGN KEY ("cycleId") REFERENCES "SubscriptionCycle"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BillingRecord" ADD CONSTRAINT "BillingRecord_quoteSnapshotId_fkey" FOREIGN KEY ("quoteSnapshotId") REFERENCES "PricingQuoteSnapshot"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "FulfillmentOrder" ADD CONSTRAINT "FulfillmentOrder_collectorProfileId_fkey" FOREIGN KEY ("collectorProfileId") REFERENCES "CollectorProfile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "FulfillmentOrder" ADD CONSTRAINT "FulfillmentOrder_cycleId_fkey" FOREIGN KEY ("cycleId") REFERENCES "SubscriptionCycle"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "FulfillmentOrder" ADD CONSTRAINT "FulfillmentOrder_generatedPrintFileId_fkey" FOREIGN KEY ("generatedPrintFileId") REFERENCES "GeneratedPrintFile"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "FulfillmentOrder" ADD CONSTRAINT "FulfillmentOrder_quoteSnapshotId_fkey" FOREIGN KEY ("quoteSnapshotId") REFERENCES "PricingQuoteSnapshot"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PayoutCalculation" ADD CONSTRAINT "PayoutCalculation_cycleId_fkey" FOREIGN KEY ("cycleId") REFERENCES "SubscriptionCycle"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CreatorPayout" ADD CONSTRAINT "CreatorPayout_creatorProfileId_fkey" FOREIGN KEY ("creatorProfileId") REFERENCES "CreatorProfile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CreatorPayout" ADD CONSTRAINT "CreatorPayout_cycleId_fkey" FOREIGN KEY ("cycleId") REFERENCES "SubscriptionCycle"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CreatorProfileView" ADD CONSTRAINT "CreatorProfileView_creatorProfileId_fkey" FOREIGN KEY ("creatorProfileId") REFERENCES "CreatorProfile"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CreatorProfileView" ADD CONSTRAINT "CreatorProfileView_cycleId_fkey" FOREIGN KEY ("cycleId") REFERENCES "SubscriptionCycle"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "NotificationPreference" ADD CONSTRAINT "NotificationPreference_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -482,3 +839,15 @@ ALTER TABLE "EmailNotificationLog" ADD CONSTRAINT "EmailNotificationLog_userId_f
 
 -- AddForeignKey
 ALTER TABLE "EmailNotificationLog" ADD CONSTRAINT "EmailNotificationLog_cycleId_fkey" FOREIGN KEY ("cycleId") REFERENCES "SubscriptionCycle"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Lead" ADD CONSTRAINT "Lead_creatorProfileId_fkey" FOREIGN KEY ("creatorProfileId") REFERENCES "CreatorProfile"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Lead" ADD CONSTRAINT "Lead_ownerUserId_fkey" FOREIGN KEY ("ownerUserId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "LeadEvent" ADD CONSTRAINT "LeadEvent_leadId_fkey" FOREIGN KEY ("leadId") REFERENCES "Lead"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "AttributionSession" ADD CONSTRAINT "AttributionSession_leadId_fkey" FOREIGN KEY ("leadId") REFERENCES "Lead"("id") ON DELETE SET NULL ON UPDATE CASCADE;
