@@ -4,9 +4,9 @@ import { AnalyticsEvents, trackAnonymousEvent } from "@/lib/analytics/events";
 export default async function SignInPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; callbackUrl?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, callbackUrl } = await searchParams;
 
   // Track sign-in started
   void trackAnonymousEvent(AnalyticsEvents.AUTH_SIGNIN_STARTED, {
@@ -50,7 +50,14 @@ export default async function SignInPage({
         </form>
         <p className="text-center text-sm text-neutral-500">
           Don&apos;t have an account?{" "}
-          <a href="/auth/sign-up" className="text-fuchsia-600 hover:underline">
+          <a
+            href={
+              callbackUrl
+                ? `/auth/sign-up?callbackUrl=${encodeURIComponent(callbackUrl)}`
+                : "/auth/sign-up"
+            }
+            className="text-fuchsia-600 hover:underline"
+          >
             Sign up
           </a>
         </p>
