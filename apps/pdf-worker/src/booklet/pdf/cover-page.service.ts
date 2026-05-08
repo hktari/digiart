@@ -32,10 +32,7 @@ export class CoverPageService {
     });
 
     try {
-      const logoPath = join(
-        process.cwd(),
-        "../../apps/landing/public/logo.png",
-      );
+      const logoPath = join(__dirname, "../../../assets/logo.png");
       const logoBytes = await readFile(logoPath);
       const logoImage = await pdfDoc.embedPng(logoBytes);
 
@@ -98,14 +95,11 @@ export class CoverPageService {
       y: 0,
       width: PAGE_WIDTH_PT,
       height: PAGE_HEIGHT_PT,
-      color: FUCHSIA_600,
+      color: BEIGE_50,
     });
 
     try {
-      const logoPath = join(
-        process.cwd(),
-        "../../apps/landing/public/logo.png",
-      );
+      const logoPath = join(__dirname, "../../../assets/logo.png");
       const logoBytes = await readFile(logoPath);
       const logoImage = await pdfDoc.embedPng(logoBytes);
 

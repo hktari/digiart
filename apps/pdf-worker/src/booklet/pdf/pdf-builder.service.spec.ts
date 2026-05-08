@@ -88,14 +88,14 @@ describe("PdfBuilderService", () => {
   it("should place the back cover on the last (even) page, not a blank page", async () => {
     // regression: with a round artwork count (e.g. 4) front+artworks = even,
     // blank must be inserted BEFORE the back cover, not after it
-    const artworks = Array.from({ length: 4 }, (_, i) => makeArtwork(`a${i}`));
+    const artworks = Array.from({ length: 3 }, (_, i) => makeArtwork(`a${i}`));
     const buffers = new Map<string, Buffer>(
       artworks.map((a) => [a.id, JPEG_1x1]),
     );
     const result = await service.build(artworks, buffers, "Issue #1", [
       "Artist",
     ]);
-    // front(1) + 4 artworks = 5 (odd) → no blank needed → back cover = 6
+    // front(1) + 3 artworks = 4 (even) → no blank needed → back cover = 5 → padded to 6
     expect(result.pageCount).toBe(6);
     // The last page must be back cover (even page count confirms correct ordering)
     expect(result.pageCount % 2).toBe(0);
