@@ -1,7 +1,10 @@
 {
   "*.{json,yaml,yml,md}": [],
   "apps/mvp/prisma/schema.prisma": "cd apps/mvp && dotenv -- prisma validate",
-  "apps/mvp/prisma/migrations/**/*.sql": "node scripts/validate-migrations.js",
-  "apps/mvp/**/*.{ts,tsx,js,jsx}": "cd apps/mvp && pnpm exec biome check --staged --fix",
+  "apps/mvp/prisma/migrations/**/*": [
+    "node scripts/prevent-migration-modification.js",
+    "node scripts/validate-migrations.js"
+  ],
+  "apps/mvp/**/*.{ts,tsx,js,jsx}": "pnpm --filter mvp lint:format",
   "apps/pdf-worker/**/*.{ts,tsx,js,jsx}": "pnpm --filter pdf-worker lint:format"
 }

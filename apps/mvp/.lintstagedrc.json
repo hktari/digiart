@@ -1,4 +1,8 @@
 {
   "*.{ts,tsx,json}": ["biome check --write --unsafe"],
-  "*.{ts,tsx}": ["bash -c 'pnpm typecheck'"]
+  "*.{ts,tsx}": ["bash -c 'pnpm typecheck'"],
+  "**/prisma/migrations/**/*.sql": [
+    "node ../../scripts/prevent-migration-modification.js",
+    "node ../../scripts/validate-migrations.js"
+  ]
 }
