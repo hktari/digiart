@@ -14,6 +14,64 @@ export interface FileEntry {
 
 export const ALLOWED_ARTWORK_TYPES = ["image/jpeg", "image/png"];
 
+const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
+// A5 @ 300 DPI — must satisfy portrait (1748×2480) or landscape (2480×1748)
+const MIN_PRINT_WIDTH_PX = 1748;
+const MIN_PRINT_HEIGHT_PX = 2480;
+
+function getImageDimensions(
+  url: string,
+): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () =>
+      resolve({ width: img.naturalWidth, height: img.naturalHeight });
+    img.onerror = () => reject(new Error("Could not read image dimensions"));
+    img.src = url;
+  });
+}
+
+export async function validateArtworkFile(
+  file: File,
+  previewUrl: string,
+): Promise<{ valid: true } | { valid: false; message: string }> {
+  if (!ALLOWED_ARTWORK_TYPES.includes(file.type)) {
+    return {
+      valid: false,
+      message: `Unsupported format. Only JPEG and PNG are accepted.`,
+    };
+  }
+
+  if (file.size > MAX_FILE_SIZE_BYTES) {
+    return {
+      valid: false,
+      message: `File exceeds 50 MB limit (${(file.size / 1024 / 1024).toFixed(1)} MB).`,
+    };
+  }
+
+  let width: number;
+  let height: number;
+  try {
+    ({ width, height } = await getImageDimensions(previewUrl));
+  } catch {
+    return { valid: false, message: "Could not read image dimensions." };
+  }
+
+  const fitsPortrait =
+    width >= MIN_PRINT_WIDTH_PX && height >= MIN_PRINT_HEIGHT_PX;
+  const fitsLandscape =
+    width >= MIN_PRINT_HEIGHT_PX && height >= MIN_PRINT_WIDTH_PX;
+
+  if (!fitsPortrait && !fitsLandscape) {
+    return {
+      valid: false,
+      message: `Image is too small for A5 print (${width}\u00d7${height} px). Minimum is ${MIN_PRINT_WIDTH_PX}\u00d7${MIN_PRINT_HEIGHT_PX} px (portrait) or ${MIN_PRINT_HEIGHT_PX}\u00d7${MIN_PRINT_WIDTH_PX} px (landscape) at 300 DPI.`,
+    };
+  }
+
+  return { valid: true };
+}
+
 export function makeFileEntry(file: File): FileEntry {
   return {
     id: `${file.name}-${file.size}-${Date.now()}-${Math.random()}`,
@@ -27,6 +85,11 @@ export async function uploadOne(
   entry: FileEntry,
   onProgress: (pct: number) => void,
 ): Promise<{ artworkId: string; warnings: string[] }> {
+  const validation = await validateArtworkFile(entry.file, entry.preview);
+  if (!validation.valid) {
+    throw new Error(validation.message);
+  }
+
   const presignRes = await fetch("/api/artworks/presign", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

@@ -103,8 +103,8 @@ export default function CreatorArtworkNewPage() {
             Upload artworks
           </h1>
           <p className="mt-1 text-sm text-neutral-500">
-            JPEG or PNG · min 1748 × 1240 px · max 50 MB · multiple files
-            supported
+            JPEG or PNG · min 1748 × 2480 px (portrait) · max 50 MB · multiple
+            files supported
           </p>
         </div>
         {allDone && doneCount > 0 && (
@@ -157,6 +157,15 @@ export default function CreatorArtworkNewPage() {
           className="sr-only"
           onChange={handleFileChange}
         />
+      </div>
+
+      {/* A5 print info */}
+      <div className="mt-4 rounded-lg border border-beige-200 bg-beige-50 px-4 py-3 text-xs text-beige-800">
+        <strong>🖨 Print format:</strong> Your artwork will be printed at A5 (148
+        × 210 mm). Any aspect ratio is accepted — images are scaled to fit the
+        page with white margins on the shorter sides. For edge-to-edge coverage,
+        use a portrait image close to <strong>2:3 ratio</strong> (e.g. 1748 ×
+        2480 px).
       </div>
 
       {/* File list */}

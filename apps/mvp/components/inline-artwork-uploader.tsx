@@ -131,7 +131,7 @@ export function InlineArtworkUploader({
           + Upload Artwork
         </div>
         <p className="mt-1 text-xs text-neutral-500">
-          Drag & drop or click · JPEG or PNG · min 1748 × 1240 px
+          Drag & drop or click · JPEG or PNG · min 1748 × 2480 px
         </p>
         <input
           ref={fileInputRef}
@@ -141,6 +141,12 @@ export function InlineArtworkUploader({
           className="sr-only"
           onChange={handleFileChange}
         />
+      </div>
+
+      <div className="rounded-lg border border-beige-200 bg-beige-50 px-3 py-2 text-xs text-beige-800">
+        <strong>🖨 A5 print format:</strong> Images are scaled to fit the page —
+        any aspect ratio is accepted. For edge-to-edge coverage, use a portrait
+        image close to a <strong>2:3 ratio</strong> (e.g. 1748 × 2480 px).
       </div>
 
       {entries.length > 0 && (
