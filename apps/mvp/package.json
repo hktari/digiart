@@ -6,7 +6,7 @@
     "dev": "next dev --port 3003",
     "build": "next build",
     "start": "next start",
-    "lint:format": "biome check --write --unsafe",
+    "lint:format": "biome check --write --unsafe --no-errors-on-unmatched",
     "db:generate": "dotenv -- prisma generate",
     "db:migrate": "dotenv -- prisma migrate dev",
     "db:push": "dotenv -- prisma db push",
