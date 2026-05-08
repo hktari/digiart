@@ -1,15 +1,15 @@
 import { Injectable, Logger } from "@nestjs/common";
 import * as Sentry from "@sentry/nestjs";
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import {
+  type ArtworkRecord,
   DEFAULT_PAGE_FORMAT,
   PAGE_DIMENSIONS,
-  type ArtworkRecord,
   type PageFormat,
 } from "../booklet.types";
-import { ArtworkPageService } from "./artwork-page.service";
-import { CoverPageService } from "./cover-page.service";
-import { PdfXProcessorService } from "./pdfx-processor.service";
+import type { ArtworkPageService } from "./artwork-page.service";
+import type { CoverPageService } from "./cover-page.service";
+import type { PdfXProcessorService } from "./pdfx-processor.service";
 
 @Injectable()
 export class PdfBuilderService {
@@ -82,10 +82,7 @@ export class PdfBuilderService {
     );
     let pdfxBytes: Uint8Array;
     try {
-      pdfxBytes = await this.pdfxProcessor.postProcessToPDFX(rawBytes, {
-        pdfxVersion: "PDF/X-4",
-        outputIntentProfile: "ISO Coated v2 (ECI)",
-      });
+      pdfxBytes = await this.pdfxProcessor.postProcessToPDFX(rawBytes);
       this.logger.log(`PDF/X conversion successful: ${pdfxBytes.length} bytes`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";

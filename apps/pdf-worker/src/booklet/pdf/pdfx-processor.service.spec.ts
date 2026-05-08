@@ -1,7 +1,7 @@
-import { Test, TestingModule } from "@nestjs/testing";
-import { PDFDocument } from "pdf-lib";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { PDFDocument } from "pdf-lib";
 import { PdfXProcessorService } from "./pdfx-processor.service";
 
 describe("PdfXProcessorService", () => {
@@ -43,9 +43,7 @@ describe("PdfXProcessorService", () => {
       expect(rawBytes.length).toBeGreaterThan(0);
 
       // Convert to PDF/X
-      const pdfxBytes = await service.postProcessToPDFX(rawBytes, {
-        outputIntentProfile: "ISO Coated v2 (ECI)",
-      });
+      const pdfxBytes = await service.postProcessToPDFX(rawBytes);
 
       // Verify output
       expect(pdfxBytes.length).toBeGreaterThan(0);

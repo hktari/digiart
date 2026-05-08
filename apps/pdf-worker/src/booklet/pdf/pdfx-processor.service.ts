@@ -1,8 +1,8 @@
-import { Injectable, Logger } from "@nestjs/common";
 import { spawn } from "node:child_process";
-import { writeFile, readFile, unlink, mkdtemp, rmdir } from "node:fs/promises";
+import { mkdtemp, readFile, rmdir, unlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { Injectable, Logger } from "@nestjs/common";
 
 interface GhostScriptResult {
   stdout: string;
@@ -10,15 +10,10 @@ interface GhostScriptResult {
   exitCode: number;
 }
 
-export interface PDFXOptions {
-  outputIntentProfile?: string;
-}
-
 @Injectable()
 export class PdfXProcessorService {
   private readonly logger = new Logger(PdfXProcessorService.name);
   private readonly gsPath = "/usr/bin/gs";
-  private readonly defaultProfile = "ISO Coated v2 (ECI)";
 
   /**
    * Run GhostScript with given arguments
@@ -66,10 +61,7 @@ export class PdfXProcessorService {
    * Post-process a PDF with GhostScript to achieve PDF/X-3 compliance (CMYK + FOGRA39 output intent).
    * PDF/X-3 is the highest version reliably producible by GhostScript pdfwrite.
    */
-  async postProcessToPDFX(
-    inputPdfBytes: Uint8Array,
-    options: PDFXOptions = {},
-  ): Promise<Uint8Array> {
+  async postProcessToPDFX(inputPdfBytes: Uint8Array): Promise<Uint8Array> {
     const tempDir = await mkdtemp(join(tmpdir(), "pdfx-"));
     const inputPath = join(tempDir, "input.pdf");
     const outputPath = join(tempDir, "output.pdf");
