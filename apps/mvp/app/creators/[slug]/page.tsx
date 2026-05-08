@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CollectorBookletCart } from "@/components/collector-booklet-cart";
+import { CollectorUnsubscribeButton } from "@/components/collector-unsubscribe-button";
 import { CreatorReleasesGrid } from "@/components/creator-releases-grid";
 import { DiscoverBookletBar } from "@/components/discover-booklet-bar";
 import { captureAttributionAction } from "@/lib/actions/analytics";
@@ -56,9 +58,11 @@ export default async function CreatorProfilePage({
   });
 
   const isOwnProfile = session?.user?.id === profile.userId;
-  const isSubscribed = session?.user?.id
+  const subscriptionResult = session?.user?.id
     ? await isUserSubscribedToCreator(session.user.id, profile.id)
-    : false;
+    : { isSubscribed: false, subscriptionId: null };
+  const isSubscribed = subscriptionResult.isSubscribed;
+  const subscriptionId = subscriptionResult.subscriptionId;
 
   const isAuthenticated = Boolean(session?.user?.id);
   const hasCollectorRole = session?.user?.roles?.includes("COLLECTOR") ?? false;
@@ -165,45 +169,37 @@ export default async function CreatorProfilePage({
             )}
 
             {/* CTA */}
-            <div className="pt-2 space-y-2">
-              {isOwnProfile ? (
-                <Link
-                  href="/"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-neutral-900 text-white font-medium hover:bg-neutral-800 transition-colors"
-                >
-                  Go to your dashboard
-                </Link>
-              ) : isSubscribed ? (
-                <div className="space-y-1">
-                  <Link
-                    href="/collector/subscriptions"
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-lg border-2 border-jade-600 text-jade-700 font-medium hover:bg-jade-50 transition-colors"
-                  >
-                    ✓ Subscribed
-                  </Link>
-                  <p className="text-xs text-neutral-400 pl-1">
-                    You'll receive their next printed booklet.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <Link
-                    href={
-                      resolvedSearchParams?.ref
-                        ? `/creators/${slug}/subscribe?ref=${resolvedSearchParams.ref}`
-                        : `/creators/${slug}/subscribe`
-                    }
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-fuchsia-600 text-white font-semibold hover:bg-fuchsia-700 transition-colors text-base"
-                  >
-                    Subscribe — get their prints delivered
-                    <span className="text-lg">→</span>
-                  </Link>
-                  <p className="text-xs text-neutral-400 pl-1">
-                    Free to join · no spam · unsubscribe anytime
-                  </p>
-                </div>
-              )}
-            </div>
+            {!isOwnProfile && (
+              <div className="pt-2 space-y-2">
+                {isSubscribed && subscriptionId ? (
+                  <div className="flex items-center gap-3">
+                    <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border-2 border-jade-600 text-jade-700 font-medium text-sm">
+                      ✓ Subscribed
+                    </span>
+                    <CollectorUnsubscribeButton
+                      subscriptionId={subscriptionId}
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Link
+                      href={
+                        resolvedSearchParams?.ref
+                          ? `/creators/${slug}/subscribe?ref=${resolvedSearchParams.ref}`
+                          : `/creators/${slug}/subscribe`
+                      }
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-fuchsia-600 text-white font-semibold hover:bg-fuchsia-700 transition-colors text-base"
+                    >
+                      Subscribe — get their prints delivered
+                      <span className="text-lg">→</span>
+                    </Link>
+                    <p className="text-xs text-neutral-400 pl-1">
+                      Free to join · no spam · unsubscribe anytime
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -243,7 +239,7 @@ export default async function CreatorProfilePage({
           </div>
         )}
       </div>
-      <DiscoverBookletBar />
+      {hasCollectorRole ? <CollectorBookletCart /> : <DiscoverBookletBar />}
     </div>
   );
 }

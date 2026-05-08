@@ -568,13 +568,13 @@ export async function unsubscribeFromCreator(subscriptionId: string) {
 export async function isUserSubscribedToCreator(
   userId: string,
   creatorProfileId: string,
-): Promise<boolean> {
+): Promise<{ isSubscribed: boolean; subscriptionId: string | null }> {
   const collectorProfile = await db.collectorProfile.findUnique({
     where: { userId },
   });
 
   if (!collectorProfile) {
-    return false;
+    return { isSubscribed: false, subscriptionId: null };
   }
 
   const subscription = await db.collectorCreatorSubscription.findUnique({
@@ -584,10 +584,13 @@ export async function isUserSubscribedToCreator(
         creatorProfileId,
       },
     },
-    select: { isActive: true },
+    select: { id: true, isActive: true },
   });
 
-  return subscription?.isActive ?? false;
+  return {
+    isSubscribed: subscription?.isActive ?? false,
+    subscriptionId: subscription?.isActive ? subscription.id : null,
+  };
 }
 
 export async function getCollectorSubscriptions(userId: string) {
