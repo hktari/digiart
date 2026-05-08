@@ -149,9 +149,9 @@ export function PricingQuoteDisplay({
       <div className="rounded-lg border border-amber-100 bg-amber-50 p-4 text-sm text-amber-800">
         <p className="font-medium mb-1">Price changes with your selections</p>
         <p className="text-xs">
-          Adding or removing releases before {lockDate ?? "cycle lock"} will
-          change the amount due. Use the button below to recalculate after
-          making changes.
+          Before an order is created, estimates use Peecho&apos;s wholesale
+          quote plus our configured margin. The final order price may differ
+          slightly; we email the exact amount before charging.
         </p>
       </div>
 

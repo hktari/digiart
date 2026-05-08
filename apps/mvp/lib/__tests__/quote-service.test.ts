@@ -69,14 +69,16 @@ describe("getQuote", () => {
       countryStateCode: "CA",
     });
 
-    // markup = (12.5 + 1.75) * 0.3 = 4.275, baseAmount = 12.5 - 4.275 = 8.225
+    // markup = (12.5 + 1.75) * 0.3 = 4.275; display total adds this to wholesale quote total.
     expect(result).toEqual({
       shippingAmount: 5.0,
       productAmount: 12.5,
-      baseAmount: 8.225,
+      baseAmount: 12.5,
       markupAmount: 4.275,
       taxAmount: 1.75,
-      totalEstimate: 19.25,
+      totalEstimate: 23.525,
+      wholesaleTotal: 19.25,
+      marginRate: 0.3,
       currency: "USD",
       offeringId: "peecho-ext-1",
     });
@@ -228,13 +230,15 @@ describe("getQuote", () => {
       offeringId: "ext-1",
     });
 
-    // markup = (20.0 + 2.85) * 0.3 = 6.855, baseAmount = 20.0 - 6.855 = 13.145
+    // markup = (20.0 + 2.85) * 0.3 = 6.855
     expect(result.markupAmount).toBe(6.855);
-    expect(result.baseAmount).toBe(13.145);
+    expect(result.baseAmount).toBe(20.0);
     expect(result.productAmount).toBe(20.0);
     expect(result.shippingAmount).toBe(8.5);
     expect(result.taxAmount).toBe(2.85);
-    expect(result.totalEstimate).toBe(31.35);
+    expect(result.totalEstimate).toBe(38.205);
+    expect(result.wholesaleTotal).toBe(31.35);
+    expect(result.marginRate).toBe(0.3);
     expect(result.currency).toBe("GBP");
   });
 });

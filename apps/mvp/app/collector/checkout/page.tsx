@@ -66,7 +66,7 @@ export default async function CollectorCheckoutPage() {
           pageCount: totalPages,
         });
         estimateSummary = {
-          baseAmount: quote.productAmount,
+          baseAmount: quote.baseAmount,
           shippingAmount: quote.shippingAmount,
           markupAmount: quote.markupAmount,
           taxAmount: quote.taxAmount,

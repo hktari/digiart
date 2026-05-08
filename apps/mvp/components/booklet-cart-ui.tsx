@@ -161,8 +161,8 @@ export function BookletCartUI({
             </div>
             {!quote.isFrozen && (
               <p className="text-[11px] text-ink/50">
-                Final price is locked at cycle end based on your selections and
-                delivery address.
+                Estimated with our platform margin. The final Peecho order may
+                differ slightly; we email the exact amount before charging.
               </p>
             )}
           </div>
@@ -301,8 +301,9 @@ export function BookletCartUI({
                 </div>
                 {!quote.isFrozen && (
                   <p className="text-[11px] text-ink/50">
-                    Final price is locked at cycle end based on your selections
-                    and delivery address.
+                    Estimated with our platform margin. The final Peecho order
+                    may differ slightly; we email the exact amount before
+                    charging.
                   </p>
                 )}
               </div>

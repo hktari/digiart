@@ -109,9 +109,9 @@ function EstimateBlock({
         <span>{formatCurrency(estimate.totalEstimate, estimate.currency)}</span>
       </div>
       <p className="text-xs text-amber-700 bg-amber-50 rounded p-2 mt-1">
-        This is an estimate based on your current selections and shipping
-        country. The exact amount is calculated after you confirm your delivery
-        address below.
+        This estimate includes our platform margin, calculated from
+        Peecho&apos;s wholesale quote. The final Peecho order price may differ
+        slightly; we email the exact amount before charging.
         {lockDate && (
           <>
             {" "}
@@ -152,7 +152,8 @@ function ExactPriceBlock({
         <span>{formatCurrency(exact.amount, exact.currency)}</span>
       </div>
       <p className="text-xs text-jade-700">
-        This is the exact amount you will be charged at cycle lock
+        This is the exact amount from Peecho&apos;s order endpoint that you will
+        be charged at cycle lock
         {lockDate ? ` on ${lockDate}` : ""}.{" "}
         <strong>
           Changing your release selections before then will update this amount.

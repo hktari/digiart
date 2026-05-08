@@ -15,6 +15,8 @@ export interface QuoteResult {
   markupAmount: number;
   taxAmount: number;
   totalEstimate: number;
+  wholesaleTotal: number;
+  marginRate: number;
   currency: string;
   offeringId: string;
 }
@@ -88,19 +90,22 @@ export async function getQuote(params: QuoteParams): Promise<QuoteResult> {
     }
 
     // markup = (productPrice + vat) * margin  — gross wholesale × margin rate
-    // baseAmount = productPrice - markup  (pre-markup wholesale product cost)
+    // Peecho quote totals are wholesale, so displayed estimates add markup here.
     const markupAmount =
       Math.round((item.productPrice + item.vat) * margin * 10000) / 10000;
-    const baseAmount =
-      Math.round((item.productPrice - markupAmount) * 10000) / 10000;
+    const wholesaleTotal = Math.round(item.totalItemPrice * 10000) / 10000;
+    const totalEstimate =
+      Math.round((wholesaleTotal + markupAmount) * 10000) / 10000;
 
     return {
       shippingAmount: item.shippingWholesale,
       productAmount: item.productPrice,
-      baseAmount,
+      baseAmount: item.productPrice,
       markupAmount,
       taxAmount: item.vat,
-      totalEstimate: item.totalItemPrice,
+      totalEstimate,
+      wholesaleTotal,
+      marginRate: margin,
       currency: quote.quoteDetails.currency,
       offeringId,
     };
