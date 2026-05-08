@@ -6,7 +6,7 @@
     "dev": "nest start --watch",
     "build": "nest build",
     "start": "node dist/main.js",
-    "lint:format": "biome check --staged --fix",
+    "lint:format": "biome check --staged --fix --no-errors-on-unmatched",
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",
