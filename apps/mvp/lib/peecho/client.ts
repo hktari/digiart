@@ -1,7 +1,9 @@
 import { logger } from "@/lib/logger";
 
 const PEECHO_API_URL =
-  process.env.PEECHO_API_URL || "https://test.www.peecho.com/rest/v3";
+  process.env.PEECHO_ENV?.toLowerCase() === "production"
+    ? "https://www.peecho.com/rest/v3"
+    : "https://test.www.peecho.com/rest/v3";
 
 export interface PeechoOffering {
   id: number;
