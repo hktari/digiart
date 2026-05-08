@@ -1,4 +1,4 @@
 {
-  "*.{ts,tsx,json,md}": ["biome check --write --unsafe"],
+  "*.{ts,tsx,json}": ["biome check --write --unsafe"],
   "*.{ts,tsx}": ["bash -c 'pnpm typecheck'"]
 }
