@@ -6,6 +6,7 @@ import {
   CalendarClock,
   LayoutDashboard,
   Package,
+  UserRoundSearch,
   Users,
   Wallet,
 } from "lucide-react";
@@ -23,6 +24,12 @@ const adminNavLinks = [
     href: "/admin/creators",
     label: "Creators",
     icon: Users,
+    exact: false,
+  },
+  {
+    href: "/admin/users",
+    label: "Users",
+    icon: UserRoundSearch,
     exact: false,
   },
   {
