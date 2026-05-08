@@ -84,7 +84,7 @@ export function ReleaseArtworkLightbox({
         {artworks.map((artwork, index) => (
           <article
             key={artwork.id}
-            className="overflow-hidden rounded-2xl border border-neutral-200 bg-white"
+            className="overflow-hidden rounded-lg border border-neutral-200 bg-white"
           >
             <button
               type="button"
@@ -99,18 +99,15 @@ export function ReleaseArtworkLightbox({
                 sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                 className="object-cover transition duration-300 group-hover:scale-[1.03]"
               />
-              <span className="absolute inset-x-3 bottom-3 rounded-full bg-black/55 px-3 py-1 text-center text-xs font-semibold text-white opacity-0 backdrop-blur transition group-hover:opacity-100">
-                Tap to zoom
-              </span>
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pb-3 pt-8">
+                <p className="truncate text-sm font-semibold text-white">
+                  {artwork.title}
+                </p>
+                <p className="text-xs text-white/70">
+                  {artwork.orientation.toLowerCase()}
+                </p>
+              </div>
             </button>
-            <div className="space-y-1 p-4">
-              <h2 className="text-sm font-semibold text-neutral-900">
-                {artwork.title}
-              </h2>
-              <p className="text-xs text-neutral-500">
-                {artwork.orientation.toLowerCase()}
-              </p>
-            </div>
           </article>
         ))}
       </section>

@@ -46,7 +46,7 @@ export function PublicReleaseBookletCta({
 
   if (!isAuthenticated) {
     return (
-      <div className="sticky bottom-4 z-20 rounded-2xl border border-neutral-200 bg-white/95 p-4 shadow-lg backdrop-blur">
+      <div className="lg:sticky lg:bottom-4 z-20 rounded-xl border border-neutral-200 bg-white/95 p-4 shadow-lg backdrop-blur">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-semibold text-neutral-900">
@@ -69,7 +69,7 @@ export function PublicReleaseBookletCta({
 
   if (!hasCollectorRole || !hasCollectorProfile) {
     return (
-      <div className="sticky bottom-4 z-20 rounded-2xl border border-neutral-200 bg-white/95 p-4 shadow-lg backdrop-blur">
+      <div className="lg:sticky lg:bottom-4 z-20 rounded-xl border border-neutral-200 bg-white/95 p-4 shadow-lg backdrop-blur">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-semibold text-neutral-900">
@@ -93,7 +93,7 @@ export function PublicReleaseBookletCta({
 
   if (!cycleId) {
     return (
-      <div className="sticky bottom-4 z-20 rounded-2xl border border-neutral-200 bg-white/95 p-4 shadow-lg backdrop-blur">
+      <div className="lg:sticky lg:bottom-4 z-20 rounded-xl border border-neutral-200 bg-white/95 p-4 shadow-lg backdrop-blur">
         <p className="text-sm font-semibold text-neutral-900">
           No active cycle
         </p>
@@ -105,7 +105,7 @@ export function PublicReleaseBookletCta({
   }
 
   return (
-    <div className="sticky bottom-4 z-20 rounded-2xl border border-neutral-200 bg-white/95 p-4 shadow-lg backdrop-blur">
+    <div className="lg:sticky lg:bottom-4 z-20 rounded-xl border border-neutral-200 bg-white/95 p-4 shadow-lg backdrop-blur">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-semibold text-neutral-900">
