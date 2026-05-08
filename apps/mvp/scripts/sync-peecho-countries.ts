@@ -33,13 +33,13 @@ const EU_COUNTRY_CODES = new Set([
   "SE",
 ]);
 
-function getFulfillmentRegion(code: string): FulfillmentRegion | null {
+function getFulfillmentRegion(code: string): FulfillmentRegion {
   const normalizedCode = code.toUpperCase();
 
   if (normalizedCode === "US") return "US";
   if (EU_COUNTRY_CODES.has(normalizedCode)) return "EU";
 
-  return null;
+  return "OTHER";
 }
 
 async function main() {
@@ -77,20 +77,11 @@ async function main() {
         name: country.name,
         region: getFulfillmentRegion(country.code),
       }))
-      .filter(
-        (
-          country,
-        ): country is {
-          code: string;
-          name: string;
-          region: FulfillmentRegion;
-        } => country.region !== null,
-      )
       .sort((a, b) => a.code.localeCompare(b.code));
 
     if (eligibleCountries.length === 0) {
       throw new Error(
-        "Peecho returned no EU or US fulfillment countries for the configured offerings",
+        "Peecho returned no fulfillment countries for the configured offerings",
       );
     }
 
@@ -170,9 +161,12 @@ async function main() {
     const usCount = eligibleCountries.filter(
       (country) => country.region === "US",
     ).length;
+    const otherCount = eligibleCountries.filter(
+      (country) => country.region === "OTHER",
+    ).length;
 
     console.log(
-      `Synced ${eligibleCountries.length} fulfillment countries from Peecho (${euCount} EU, ${usCount} US).`,
+      `Synced ${eligibleCountries.length} fulfillment countries from Peecho (${euCount} EU, ${usCount} US, ${otherCount} other).`,
     );
     console.log(`Active country codes: ${eligibleCodes.join(", ")}`);
     if (usStateCodes.length > 0) {

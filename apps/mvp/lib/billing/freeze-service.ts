@@ -4,6 +4,7 @@ import { logger } from "@/lib/logger";
 import { peechoClient } from "@/lib/peecho/client";
 import { getQuote } from "@/lib/peecho/quote-service";
 import { createQuoteSnapshot } from "@/lib/pricing/quote-snapshot";
+import { extractKeyFromStorageUrl, getPresignedGetUrl } from "@/lib/s3";
 import { attachFilesToOrder } from "./checkout-service";
 
 interface FreezeResult {
@@ -111,11 +112,20 @@ export async function freezeCollectorCycleQuotes(
           });
 
           if (printFile?.storageUrl && printFile.status === "READY") {
+            // Generate a presigned URL valid for 14 days for Peecho to download
+            const key = extractKeyFromStorageUrl(printFile.storageUrl);
+            if (!key) {
+              throw new Error(
+                `Failed to extract S3 key from URL: ${printFile.storageUrl}`,
+              );
+            }
+            const presignedUrl = await getPresignedGetUrl(key);
+
             // Attach the PDF to the existing order
             await attachFilesToOrder(
               intent.peechoOrderId,
               `booklet-${collectorId}-${cycleId}`,
-              printFile.storageUrl,
+              presignedUrl,
               printFile.pageCount ?? pageCountResult.totalPages,
             );
 

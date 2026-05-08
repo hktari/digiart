@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { peechoClient } from "@/lib/peecho/client";
+import { extractKeyFromStorageUrl, getPresignedGetUrl } from "@/lib/s3";
 import { attachFilesToOrder } from "./checkout-service";
 
 type SubmitOrderResult =
@@ -63,10 +64,19 @@ export async function submitFulfillmentOrder(
   // Ensure files are attached (idempotent - safe to call again)
   if (printFile.storageUrl && printFile.status === "READY") {
     try {
+      // Generate a presigned URL valid for 14 days for Peecho to download
+      const key = extractKeyFromStorageUrl(printFile.storageUrl);
+      if (!key) {
+        throw new Error(
+          `Failed to extract S3 key from URL: ${printFile.storageUrl}`,
+        );
+      }
+      const presignedUrl = await getPresignedGetUrl(key);
+
       await attachFilesToOrder(
         checkoutIntent.peechoOrderId,
         `booklet-${printFile.collectorProfileId}-${printFile.cycleId}`,
-        printFile.storageUrl,
+        presignedUrl,
         printFile.pageCount ?? 20,
       );
     } catch (error) {

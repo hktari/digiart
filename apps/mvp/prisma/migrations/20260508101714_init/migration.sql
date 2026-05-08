@@ -20,7 +20,7 @@ CREATE TYPE "CycleStatus" AS ENUM ('OPEN', 'LOCKED', 'PROCESSING', 'COMPLETE');
 CREATE TYPE "PodEnvironment" AS ENUM ('SANDBOX', 'PRODUCTION');
 
 -- CreateEnum
-CREATE TYPE "FulfillmentRegion" AS ENUM ('EU', 'US');
+CREATE TYPE "FulfillmentRegion" AS ENUM ('EU', 'US', 'OTHER');
 
 -- CreateEnum
 CREATE TYPE "PrintFileStatus" AS ENUM ('PENDING', 'GENERATING', 'READY', 'FAILED');
@@ -325,7 +325,7 @@ CREATE TABLE "PodOffering" (
 CREATE TABLE "FulfillmentCountry" (
     "code" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "region" "FulfillmentRegion" NOT NULL,
+    "region" "FulfillmentRegion" NOT NULL DEFAULT 'OTHER',
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "source" TEXT NOT NULL DEFAULT 'peecho',
     "syncedAt" TIMESTAMP(3) NOT NULL,

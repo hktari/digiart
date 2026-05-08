@@ -178,7 +178,7 @@ describe("PeechoClient", () => {
       ],
     };
 
-    it("parses production format { offeringId: [...country names] } and returns EU + US codes only", async () => {
+    it("parses production format { offeringId: [...country names] } and maps all countries to ISO codes", async () => {
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: () => Promise.resolve(PRODUCTION_COUNTRIES_RESPONSE),
@@ -199,16 +199,20 @@ describe("PeechoClient", () => {
       expect(codes).toContain("ES");
       expect(codes).toContain("SE");
 
-      expect(codes).not.toContain("AU");
-      expect(codes).not.toContain("CA");
-      expect(codes).not.toContain("GB");
-      expect(codes).not.toContain("CN");
-      expect(codes).not.toContain("VN");
-      expect(codes).not.toContain("QA");
-      expect(codes).not.toContain("AF");
+      expect(codes).toContain("AU");
+      expect(codes).toContain("CA");
+      expect(codes).toContain("GB");
+      expect(codes).toContain("CN");
+      expect(codes).toContain("VN");
+      expect(codes).toContain("QA");
+      expect(codes).toContain("AF");
 
       expect(result.find((c) => c.code === "US")?.name).toBe("United States");
       expect(result.find((c) => c.code === "FR")?.name).toBe("France");
+      expect(result.find((c) => c.code === "AU")?.name).toBe("Australia");
+      expect(result.find((c) => c.code === "CA")?.name).toBe("Canada");
+      expect(result.find((c) => c.code === "GB")?.name).toBe("United Kingdom");
+      expect(result.find((c) => c.code === "QA")?.name).toBe("Qatar State of");
     });
 
     it("extracts all 50 US state codes + DC from production format", async () => {
@@ -230,7 +234,7 @@ describe("PeechoClient", () => {
       expect(result).toEqual([...result].sort());
     });
 
-    it("does not extract Australia or Canada sub-regions as US states", async () => {
+    it("collapses Australia and Canada sub-regions into AU and CA, not extracted as US states", async () => {
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
         json: () => Promise.resolve(PRODUCTION_COUNTRIES_RESPONSE),
@@ -244,6 +248,7 @@ describe("PeechoClient", () => {
       expect(result).not.toContain("AB");
       expect(result).not.toContain("BC");
       expect(result).not.toContain("ON");
+      expect(result).not.toContain("QC");
     });
 
     it("handles entries with non-standard names like 'Cote D\\'Ivoire' and 'Korea Republic of' without crashing", async () => {

@@ -44,7 +44,6 @@ describe("PdfXProcessorService", () => {
 
       // Convert to PDF/X
       const pdfxBytes = await service.postProcessToPDFX(rawBytes, {
-        pdfxVersion: "PDF/X-4",
         outputIntentProfile: "ISO Coated v2 (ECI)",
       });
 

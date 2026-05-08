@@ -24,7 +24,7 @@
     "onlyBuiltDependencies": [
       "@nestjs/core",
       "@prisma/engines",
-      "@sentry/cli",
+      "core-js",
       "esbuild",
       "msgpackr-extract",
       "prisma",

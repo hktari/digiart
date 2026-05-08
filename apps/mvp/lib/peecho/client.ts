@@ -256,68 +256,284 @@ function normalizeCountriesResponse(
     return data.countries;
   }
 
-  const euNameToCode = new Map<string, string>([
+  const nameToCode = new Map<string, string>([
+    ["Afghanistan", "AF"],
+    ["Aland Islands", "AX"],
+    ["Albania", "AL"],
+    ["Algeria", "DZ"],
+    ["American Samoa", "AS"],
+    ["Andorra", "AD"],
+    ["Angola", "AO"],
+    ["Anguilla", "AI"],
+    ["Antarctica", "AQ"],
+    ["Antigua and Barbuda", "AG"],
+    ["Armenia", "AM"],
+    ["Aruba", "AW"],
     ["Austria", "AT"],
+    ["Azerbaijan", "AZ"],
+    ["Bahamas", "BS"],
+    ["Bahrain", "BH"],
+    ["Bangladesh", "BD"],
+    ["Barbados", "BB"],
     ["Belgium", "BE"],
+    ["Belize", "BZ"],
+    ["Benin", "BJ"],
+    ["Bhutan", "BT"],
+    ["Bolivia", "BO"],
+    ["Bonaire Sint Eustatius and Saba", "BQ"],
+    ["Bosnia and Herzegovina", "BA"],
+    ["Botswana", "BW"],
+    ["Bouvet Island", "BV"],
+    ["British Indian Ocean Territory", "IO"],
+    ["British Virgin Islands", "VG"],
+    ["Brunei Darussalam", "BN"],
     ["Bulgaria", "BG"],
+    ["Burkina Faso", "BF"],
+    ["Burundi", "BI"],
+    ["Cambodia", "KH"],
+    ["Cameroon", "CM"],
+    ["Canary Islands", "IC"],
+    ["Cape Verde", "CV"],
+    ["Cayman Islands", "KY"],
+    ["Central African Republic", "CF"],
+    ["Chad", "TD"],
+    ["Chile", "CL"],
+    ["China", "CN"],
+    ["Christmas Island", "CX"],
+    ["Cocos (Keeling) Islands", "CC"],
+    ["Colombia", "CO"],
+    ["Comoros", "KM"],
+    ["Congo", "CG"],
+    ["Congo (the Democratic Republic of the)", "CD"],
+    ["Cook Islands", "CK"],
+    ["Costa Rica", "CR"],
+    ["Cote D'Ivoire", "CI"],
     ["Croatia", "HR"],
+    ["Cuba", "CU"],
+    ["Curacao", "CW"],
     ["Cyprus", "CY"],
     ["Czech Republic", "CZ"],
     ["Denmark", "DK"],
+    ["Djibouti", "DJ"],
+    ["Dominica", "DM"],
+    ["Dominican Republic", "DO"],
+    ["El Salvador", "SV"],
+    ["Equatorial Guinea", "GQ"],
+    ["Eritrea", "ER"],
     ["Estonia", "EE"],
+    ["Ethiopia", "ET"],
+    ["Falkland Islands", "FK"],
+    ["Faroe Islands", "FO"],
+    ["Fiji", "FJ"],
     ["Finland", "FI"],
     ["France", "FR"],
+    ["French Guiana", "GF"],
+    ["French Polynesia", "PF"],
+    ["French Southern Territories", "TF"],
+    ["Gabon", "GA"],
+    ["Gambia", "GM"],
+    ["Georgia", "GE"],
     ["Germany", "DE"],
+    ["Ghana", "GH"],
+    ["Gibraltar", "GI"],
     ["Greece", "GR"],
+    ["Greenland", "GL"],
+    ["Grenada", "GD"],
+    ["Guadaloupe", "GP"],
+    ["Guam", "GU"],
+    ["Guatemala", "GT"],
+    ["Guernsey", "GG"],
+    ["Guinea", "GN"],
+    ["Guinea-Bissau", "GW"],
+    ["Guyana", "GY"],
+    ["Haiti", "HT"],
+    ["Heard and McDonald Islands", "HM"],
+    ["Holy See (Vatican City State)", "VA"],
+    ["Honduras", "HN"],
+    ["Hong Kong", "HK"],
     ["Hungary", "HU"],
+    ["Iceland", "IS"],
+    ["India", "IN"],
+    ["Indonesia", "ID"],
     ["Ireland", "IE"],
+    ["Isle of Man", "IM"],
     ["Italy", "IT"],
+    ["Jamaica", "JM"],
+    ["Japan", "JP"],
+    ["Jersey", "JE"],
+    ["Jordan", "JO"],
+    ["Kazakhstan", "KZ"],
+    ["Kenya", "KE"],
+    ["Kiribati", "KI"],
+    ["Korea Democratic People's Republic of", "KP"],
+    ["Korea Republic of", "KR"],
+    ["Kosovo", "XK"],
+    ["Kuwait", "KW"],
+    ["Kyrgyz Republic", "KG"],
+    ["Lao People's Democratic Republic", "LA"],
     ["Latvia", "LV"],
+    ["Lebanon", "LB"],
+    ["Lesotho", "LS"],
+    ["Liberia", "LR"],
+    ["Libyan Arab Jamahiriya", "LY"],
+    ["Liechtenstein", "LI"],
     ["Lithuania", "LT"],
     ["Luxembourg", "LU"],
+    ["Macao", "MO"],
+    ["Macedonia the former Yugoslav Republic of", "MK"],
+    ["Madagascar", "MG"],
+    ["Malawi", "MW"],
+    ["Malaysia", "MY"],
+    ["Maldives", "MV"],
+    ["Mali", "ML"],
     ["Malta", "MT"],
+    ["Marshall Islands", "MH"],
+    ["Martinique", "MQ"],
+    ["Mauritania", "MR"],
+    ["Mauritius", "MU"],
+    ["Mayotte", "YT"],
+    ["Micronesia", "FM"],
+    ["Monaco", "MC"],
+    ["Mongolia", "MN"],
+    ["Montenegro", "ME"],
+    ["Montserrat", "MS"],
+    ["Mozambique", "MZ"],
+    ["Myanmar", "MM"],
+    ["Namibia", "NA"],
+    ["Nauru", "NR"],
+    ["Nepal", "NP"],
     ["Netherlands", "NL"],
+    ["New Caledonia", "NC"],
+    ["New Zealand", "NZ"],
+    ["Nicaragua", "NI"],
+    ["Niger", "NE"],
+    ["Nigeria", "NG"],
+    ["Niue", "NU"],
+    ["Norfolk Island", "NF"],
+    ["Northern Mariana Islands", "MP"],
+    ["Oman", "OM"],
+    ["Pakistan", "PK"],
+    ["Palau", "PW"],
+    ["Panama", "PA"],
+    ["Papua New Guinea", "PG"],
+    ["Peru", "PE"],
+    ["Philippines", "PH"],
+    ["Pitcairn Island", "PN"],
     ["Poland", "PL"],
     ["Portugal", "PT"],
+    ["Puerto Rico", "PR"],
+    ["Qatar State of", "QA"],
     ["Romania", "RO"],
+    ["Rwanda", "RW"],
+    ["Saint Barthelemy", "BL"],
+    ["Saint Martin (French part)", "MF"],
+    ["Samoa", "WS"],
+    ["San Marino", "SM"],
+    ["Sao Tome and Principe", "ST"],
+    ["Saudi Arabia", "SA"],
+    ["Senegal", "SN"],
+    ["Serbia", "RS"],
+    ["Seychelles", "SC"],
+    ["Sierra Leone", "SL"],
+    ["Singapore", "SG"],
+    ["Sint Maarten (Dutch part)", "SX"],
     ["Slovakia", "SK"],
     ["Slovenia", "SI"],
+    ["Solomon Islands", "SB"],
+    ["Somalia", "SO"],
+    ["South Africa", "ZA"],
+    ["South Georgia and the South Sandwich Islands", "GS"],
+    ["South Sudan", "SS"],
     ["Spain", "ES"],
+    ["Sri Lanka", "LK"],
+    ["St Helena", "SH"],
+    ["St Kitts and Nevis", "KN"],
+    ["St Lucia", "LC"],
+    ["St Pierre and Miquelon", "PM"],
+    ["St Vincent and the Grenadines", "VC"],
+    ["Sudan", "SD"],
+    ["Suriname", "SR"],
+    ["Svalbard & Jan Mayen Islands", "SJ"],
+    ["Swaziland", "SZ"],
     ["Sweden", "SE"],
+    ["Switzerland", "CH"],
+    ["Syrian Arab Republic", "SY"],
+    ["Taiwan", "TW"],
+    ["Tajikistan", "TJ"],
+    ["Tanzania", "TZ"],
+    ["Thailand", "TH"],
+    ["Timor-Leste", "TL"],
+    ["Togo", "TG"],
+    ["Tokelau", "TK"],
+    ["Tonga", "TO"],
+    ["Trinidad and Tobago", "TT"],
+    ["Tunisia", "TN"],
+    ["Turkmenistan", "TM"],
+    ["Turks and Caicos Islands", "TC"],
+    ["Tuvalu", "TV"],
+    ["US Virgin Islands", "VI"],
+    ["Uganda", "UG"],
+    ["United Kingdom", "GB"],
+    ["United States Minor Outlying Islands", "UM"],
+    ["Uzbekistan", "UZ"],
+    ["Vanuatu", "VU"],
+    ["Venezuela", "VE"],
+    ["Viet Nam", "VN"],
+    ["Wallis and Futuna Islands", "WF"],
+    ["Western Sahara", "EH"],
+    ["Yemen", "YE"],
+    ["Zambia", "ZM"],
+    ["Zimbabwe", "ZW"],
   ]);
   const codeToName = new Map<string, string>([
     ["US", "United States"],
-    ...[...euNameToCode.entries()].map(([name, code]): [string, string] => [
+    ...[...nameToCode.entries()].map(([name, code]): [string, string] => [
       code,
       name,
     ]),
   ]);
-  const dedup = new Set<string>();
+  const dedup = new Map<string, string>();
 
   for (const [key, value] of Object.entries(data)) {
     if (Array.isArray(value)) {
       for (const countryName of value) {
         if (countryName.startsWith("United States of America-")) {
-          dedup.add("US");
+          dedup.set("US", "United States");
           continue;
         }
 
-        const euCode = euNameToCode.get(countryName);
-        if (euCode) {
-          dedup.add(euCode);
+        const auMatch = countryName.match(/^Australia-[A-Z]{2,3}$/);
+        if (auMatch) {
+          dedup.set("AU", "Australia");
+          continue;
+        }
+        const caMatch = countryName.match(/^Canada-[A-Z]{2}$/);
+        if (caMatch) {
+          dedup.set("CA", "Canada");
+          continue;
+        }
+
+        const code = nameToCode.get(countryName);
+        if (code) {
+          dedup.set(code, codeToName.get(code) || countryName);
+        } else {
+          logger.warn("Peecho: unmapped country name, skipping", {
+            countryName,
+          });
         }
       }
       continue;
     }
 
     if (/^[A-Z]{2}$/i.test(key)) {
-      dedup.add(key.toUpperCase());
+      const code = key.toUpperCase();
+      dedup.set(code, codeToName.get(code) || code);
     }
   }
 
-  return [...dedup]
-    .sort((a, b) => a.localeCompare(b))
-    .map((code) => ({ code, name: codeToName.get(code) || code }));
+  return [...dedup.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([code, name]) => ({ code, name }));
 }
 
 function extractUsStateCodes(data: PeechoCountriesApiResponse): string[] {

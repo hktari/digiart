@@ -394,12 +394,13 @@ model PodOffering {
 enum FulfillmentRegion {
   EU
   US
+  OTHER
 }
 
 model FulfillmentCountry {
   code      String            @id
   name      String
-  region    FulfillmentRegion
+  region    FulfillmentRegion  @default(OTHER)
   isActive  Boolean           @default(true)
   source    String            @default("peecho")
   syncedAt  DateTime

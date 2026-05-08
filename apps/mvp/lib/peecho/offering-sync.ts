@@ -33,11 +33,11 @@ const EU_COUNTRY_CODES = new Set([
   "SE",
 ]);
 
-function getFulfillmentRegion(code: string): FulfillmentRegion | null {
+function getFulfillmentRegion(code: string): FulfillmentRegion {
   const normalizedCode = code.toUpperCase();
   if (normalizedCode === "US") return "US";
   if (EU_COUNTRY_CODES.has(normalizedCode)) return "EU";
-  return null;
+  return "OTHER";
 }
 
 export async function syncPeechoOfferings(): Promise<{
@@ -159,19 +159,10 @@ export async function syncPeechoOfferings(): Promise<{
         name: country.name,
         region: getFulfillmentRegion(country.code),
       }))
-      .filter(
-        (
-          country,
-        ): country is {
-          code: string;
-          name: string;
-          region: FulfillmentRegion;
-        } => country.region !== null,
-      )
       .sort((a, b) => a.code.localeCompare(b.code));
 
     const eligibleCodes = eligibleCountries.map((country) => country.code);
-    logger.info("Eligible countries after region filter", {
+    logger.info("Syncing countries from Peecho", {
       count: eligibleCountries.length,
       codes: eligibleCodes,
     });
