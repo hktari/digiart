@@ -72,6 +72,191 @@ describe("PeechoClient", () => {
     });
   });
 
+  describe("getCountries", () => {
+    const PRODUCTION_COUNTRIES_RESPONSE = {
+      "7011275": [
+        "Afghanistan",
+        "Albania",
+        "Australia-ACT",
+        "Australia-NSW",
+        "Australia-NT",
+        "Australia-QLD",
+        "Australia-SA",
+        "Australia-TAS",
+        "Australia-VIC",
+        "Australia-WA",
+        "Austria",
+        "Belgium",
+        "Bulgaria",
+        "Canada-AB",
+        "Canada-BC",
+        "Canada-ON",
+        "Canada-QC",
+        "China",
+        "Cote D'Ivoire",
+        "Croatia",
+        "Cyprus",
+        "Czech Republic",
+        "Denmark",
+        "Estonia",
+        "Finland",
+        "France",
+        "Germany",
+        "Greece",
+        "Hungary",
+        "Ireland",
+        "Italy",
+        "Korea Republic of",
+        "Latvia",
+        "Lithuania",
+        "Luxembourg",
+        "Macedonia the former Yugoslav Republic of",
+        "Malta",
+        "Netherlands",
+        "Poland",
+        "Portugal",
+        "Qatar State of",
+        "Romania",
+        "Slovakia",
+        "Slovenia",
+        "Spain",
+        "Sweden",
+        "United Kingdom",
+        "United States of America-AK",
+        "United States of America-AL",
+        "United States of America-AR",
+        "United States of America-AZ",
+        "United States of America-CA",
+        "United States of America-CO",
+        "United States of America-CT",
+        "United States of America-DC",
+        "United States of America-DE",
+        "United States of America-FL",
+        "United States of America-GA",
+        "United States of America-HI",
+        "United States of America-IA",
+        "United States of America-ID",
+        "United States of America-IL",
+        "United States of America-IN",
+        "United States of America-KS",
+        "United States of America-KY",
+        "United States of America-LA",
+        "United States of America-MA",
+        "United States of America-MD",
+        "United States of America-ME",
+        "United States of America-MI",
+        "United States of America-MN",
+        "United States of America-MO",
+        "United States of America-MS",
+        "United States of America-MT",
+        "United States of America-NC",
+        "United States of America-ND",
+        "United States of America-NE",
+        "United States of America-NH",
+        "United States of America-NJ",
+        "United States of America-NM",
+        "United States of America-NV",
+        "United States of America-NY",
+        "United States of America-OH",
+        "United States of America-OK",
+        "United States of America-OR",
+        "United States of America-PA",
+        "United States of America-RI",
+        "United States of America-SC",
+        "United States of America-SD",
+        "United States of America-TN",
+        "United States of America-TX",
+        "United States of America-UT",
+        "United States of America-VA",
+        "United States of America-VT",
+        "United States of America-WA",
+        "United States of America-WI",
+        "United States of America-WV",
+        "United States of America-WY",
+        "Viet Nam",
+        "Zimbabwe",
+      ],
+    };
+
+    it("parses production format { offeringId: [...country names] } and returns EU + US codes only", async () => {
+      vi.mocked(fetch).mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(PRODUCTION_COUNTRIES_RESPONSE),
+        text: () => Promise.resolve(""),
+      } as Response);
+
+      const result = await client.getCountries(["7011275"]);
+      const codes = result.map((c) => c.code);
+
+      expect(codes).toContain("US");
+      expect(codes).toContain("AT");
+      expect(codes).toContain("BE");
+      expect(codes).toContain("FR");
+      expect(codes).toContain("DE");
+      expect(codes).toContain("IT");
+      expect(codes).toContain("NL");
+      expect(codes).toContain("PL");
+      expect(codes).toContain("ES");
+      expect(codes).toContain("SE");
+
+      expect(codes).not.toContain("AU");
+      expect(codes).not.toContain("CA");
+      expect(codes).not.toContain("GB");
+      expect(codes).not.toContain("CN");
+      expect(codes).not.toContain("VN");
+      expect(codes).not.toContain("QA");
+      expect(codes).not.toContain("AF");
+
+      expect(result.find((c) => c.code === "US")?.name).toBe("United States");
+      expect(result.find((c) => c.code === "FR")?.name).toBe("France");
+    });
+
+    it("extracts all 50 US state codes + DC from production format", async () => {
+      vi.mocked(fetch).mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(PRODUCTION_COUNTRIES_RESPONSE),
+        text: () => Promise.resolve(""),
+      } as Response);
+
+      const result = await client.getUSStateCodes(["7011275"]);
+
+      expect(result).toContain("AK");
+      expect(result).toContain("CA");
+      expect(result).toContain("NY");
+      expect(result).toContain("TX");
+      expect(result).toContain("DC");
+      expect(result).toContain("WY");
+      expect(result).toHaveLength(51);
+      expect(result).toEqual([...result].sort());
+    });
+
+    it("does not extract Australia or Canada sub-regions as US states", async () => {
+      vi.mocked(fetch).mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(PRODUCTION_COUNTRIES_RESPONSE),
+        text: () => Promise.resolve(""),
+      } as Response);
+
+      const result = await client.getUSStateCodes(["7011275"]);
+
+      expect(result).not.toContain("ACT");
+      expect(result).not.toContain("NSW");
+      expect(result).not.toContain("AB");
+      expect(result).not.toContain("BC");
+      expect(result).not.toContain("ON");
+    });
+
+    it("handles entries with non-standard names like 'Cote D\\'Ivoire' and 'Korea Republic of' without crashing", async () => {
+      vi.mocked(fetch).mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(PRODUCTION_COUNTRIES_RESPONSE),
+        text: () => Promise.resolve(""),
+      } as Response);
+
+      await expect(client.getCountries(["7011275"])).resolves.not.toThrow();
+    });
+  });
+
   describe("getQuote", () => {
     const mockQuote: import("../peecho/client").PeechoQuoteResponse = {
       quoteDetails: { countryCode: "US", currency: "USD", exchangeRate: "1" },
