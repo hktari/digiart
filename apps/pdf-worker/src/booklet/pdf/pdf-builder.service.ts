@@ -5,15 +5,21 @@ import {
   type ArtworkRecord,
   DEFAULT_PAGE_FORMAT,
   PAGE_DIMENSIONS,
+  type PageDimensions,
   type PageFormat,
 } from "../booklet.types";
-import type { ArtworkPageService } from "./artwork-page.service";
-import type { CoverPageService } from "./cover-page.service";
-import type { PdfXProcessorService } from "./pdfx-processor.service";
+import { ArtworkPageService } from "./artwork-page.service";
+import { CoverPageService } from "./cover-page.service";
+import { PdfXProcessorService } from "./pdfx-processor.service";
 
 @Injectable()
 export class PdfBuilderService {
   private readonly logger = new Logger(PdfBuilderService.name);
+  private readonly MM_TO_PT = 2.8346;
+
+  private mmToPt(mm: number): number {
+    return mm * this.MM_TO_PT;
+  }
 
   constructor(
     private readonly artworkPageService: ArtworkPageService,
@@ -27,8 +33,17 @@ export class PdfBuilderService {
     issueLabel: string,
     creatorNames: string[],
     pageFormat: PageFormat = DEFAULT_PAGE_FORMAT,
+    widthMm?: number,
+    heightMm?: number,
   ): Promise<{ bytes: Uint8Array; pageCount: number }> {
-    const pageDimensions = PAGE_DIMENSIONS[pageFormat];
+    // Use direct dimensions if provided, otherwise fall back to pageFormat enum
+    const pageDimensions: PageDimensions =
+      widthMm !== undefined && heightMm !== undefined
+        ? {
+            widthPt: this.mmToPt(widthMm),
+            heightPt: this.mmToPt(heightMm),
+          }
+        : PAGE_DIMENSIONS[pageFormat];
     const { widthPt, heightPt } = pageDimensions;
 
     const pdfDoc = await PDFDocument.create();
