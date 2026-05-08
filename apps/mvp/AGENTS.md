@@ -6,6 +6,7 @@
 
 - use the `db:migrate` script inside package.json to run migrations during development
 - when using pnpm prisma you always need to prefix the command with `dotenv -- `
+- never manually generate migration files. Always use `prisma migrate dev`
 
 # E2E testing
 

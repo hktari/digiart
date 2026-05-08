@@ -1,3 +1,6 @@
 {
-  "*.{json,yaml,yml,md}": []
+  "*.{json,yaml,yml,md}": [],
+  "apps/mvp/prisma/schema.prisma": "cd apps/mvp && dotenv -- prisma validate",
+  "apps/mvp/prisma/migrations/**/*.sql": "node scripts/validate-migrations.js",
+  "apps/**/*.{ts,tsx,js,jsx}": "cd apps/mvp && biome check --staged"
 }

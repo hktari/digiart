@@ -1,1 +1,4 @@
 pnpm lint-staged
+
+# Type check the MVP app if TypeScript files are staged
+cd apps/mvp && pnpm typecheck
