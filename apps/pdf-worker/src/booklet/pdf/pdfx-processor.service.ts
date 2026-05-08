@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { spawn } from "node:child_process";
-import { writeFile, readFile, unlink, mkdtemp } from "node:fs/promises";
+import { writeFile, readFile, unlink, mkdtemp, rmdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -12,7 +12,6 @@ interface GhostScriptResult {
 
 export interface PDFXOptions {
   outputIntentProfile?: string;
-  pdfxVersion?: "PDF/X-4" | "PDF/X-4p";
 }
 
 @Injectable()
@@ -64,8 +63,8 @@ export class PdfXProcessorService {
   }
 
   /**
-   * Post-process a PDF with GhostScript to achieve PDF/X-4 compliance.
-   * This adds proper color management, font embedding, and output intents.
+   * Post-process a PDF with GhostScript to achieve PDF/X-3 compliance (CMYK + FOGRA39 output intent).
+   * PDF/X-3 is the highest version reliably producible by GhostScript pdfwrite.
    */
   async postProcessToPDFX(
     inputPdfBytes: Uint8Array,
@@ -75,35 +74,77 @@ export class PdfXProcessorService {
     const inputPath = join(tempDir, "input.pdf");
     const outputPath = join(tempDir, "output.pdf");
 
+    const prefixPath = join(tempDir, "pdfx-prefix.ps");
     try {
       // Write input PDF to temp file
       await writeFile(inputPath, inputPdfBytes);
 
-      // GhostScript PDF/X-4 conversion command
-      // Using minimal but effective options for PDF/X compliance
-      // Note: GhostScript uses internal CMYK color management
+      // Resolve ICC profile path — bundled FOGRA39
+      const iccProfilePath = join(process.cwd(), "profiles", "FOGRA39.icc");
+
+      // GhostScript requires a PostScript prefix file to embed the PDF/X OutputIntent.
+      // This follows the official PDFX_def.ps pattern bundled with GhostScript.
+      // -dNOSAFER is required so the prefix PS can open the ICC file from disk.
+      const prefixContent = `%!
+% PDF/X-3 output intent — FOGRA39 / ISO Coated v2
+% Based on GhostScript's PDFX_def.ps template
+
+[ /GTS_PDFXVersion (PDF/X-3:2002)
+  /Trapped /False
+/DOCINFO pdfmark
+
+/ICCProfile (${iccProfilePath}) def
+
+currentdict /ICCProfile known {
+  [/_objdef {icc_PDFX} /type /stream /OBJ pdfmark
+  [{icc_PDFX} << /N 4 >> /PUT pdfmark
+  [{icc_PDFX} ICCProfile (r) file /PUT pdfmark
+} if
+
+[/_objdef {OutputIntent_PDFX} /type /dict /OBJ pdfmark
+[{OutputIntent_PDFX} <<
+  /Type /OutputIntent
+  /S /GTS_PDFX
+  /OutputCondition (FOGRA39)
+  /OutputConditionIdentifier (FOGRA39)
+  /RegistryName (http://www.color.org)
+  /Info (ISO Coated v2 \\(ECI\\))
+  currentdict /ICCProfile known { /DestOutputProfile {icc_PDFX} } if
+>> /PUT pdfmark
+[{Catalog} <</OutputIntents [ {OutputIntent_PDFX} ]>> /PUT pdfmark
+`;
+      await writeFile(prefixPath, prefixContent);
+
+      // GhostScript PDF/X-3 conversion command
+      // -dNOSAFER: required so the PS prefix file can read the ICC profile from disk
+      // -dPDFX: produces PDF/X-3:2002 (highest version reliably supported by pdfwrite)
       const gsArgs = [
         "-sDEVICE=pdfwrite",
-        "-dPDFX=4",
+        "-dPDFX",
         "-dBATCH",
         "-dNOPAUSE",
         "-dNOOUTERSAVE",
+        "-dNOSAFER",
         "-dPDFSETTINGS=/prepress",
         // Color management - convert to CMYK
         "-sProcessColorModel=DeviceCMYK",
         "-sColorConversionStrategy=CMYK",
         "-sColorConversionStrategyForImages=CMYK",
+        // Flatten transparency (required for PDF/X)
+        "-dHaveTransparency=false",
         // Font embedding
         "-dEmbedAllFonts=true",
         "-dSubsetFonts=true",
         "-dMaxSubsetPct=100",
         // Output
         `-sOutputFile=${outputPath}`,
+        // Prefix file must come before the input PDF
+        prefixPath,
         inputPath,
       ];
 
       this.logger.log(
-        `Converting PDF to ${options.pdfxVersion ?? "PDF/X-4"} with GhostScript...`,
+        `Converting PDF to PDF/X-3 (CMYK/FOGRA39) with GhostScript...`,
       );
 
       const result = await this.runGhostScript(gsArgs);
@@ -125,13 +166,10 @@ export class PdfXProcessorService {
       this.logger.error(`GhostScript PDF/X conversion failed: ${message}`);
       throw new Error(`PDF/X conversion failed: ${message}`);
     } finally {
-      // Cleanup temp files
-      try {
-        await unlink(inputPath).catch(() => {});
-        await unlink(outputPath).catch(() => {});
-      } catch {
-        // Ignore cleanup errors
-      }
+      await unlink(inputPath).catch(() => {});
+      await unlink(outputPath).catch(() => {});
+      await unlink(prefixPath).catch(() => {});
+      await rmdir(tempDir).catch(() => {});
     }
   }
 

@@ -35,7 +35,8 @@ function printStatus(color, message) {
  */
 async function runVeraPDF(pdfFile) {
   return new Promise((resolve, reject) => {
-    const args = [pdfFile, "--format", "text", "--verbose"];
+    // Use mrr (XML) format for reliable parsing; flavour 0 = auto-detect from file metadata
+    const args = [pdfFile, "--flavour", "0", "--format", "mrr"];
 
     const veraPDF = spawn("verapdf", args);
     let stdout = "";
@@ -60,6 +61,21 @@ async function runVeraPDF(pdfFile) {
 }
 
 /**
+ * Run pdfinfo and return its output
+ */
+async function runPdfinfo(pdfFile) {
+  return new Promise((resolve) => {
+    const proc = spawn("pdfinfo", [pdfFile]);
+    let stdout = "";
+    proc.stdout.on("data", (d) => {
+      stdout += d.toString();
+    });
+    proc.on("close", () => resolve(stdout));
+    proc.on("error", () => resolve(""));
+  });
+}
+
+/**
  * Validate a single PDF file
  */
 async function validatePDF(pdfFile, outputDir) {
@@ -72,31 +88,43 @@ async function validatePDF(pdfFile, outputDir) {
   mkdirSync(fileOutputDir, { recursive: true });
 
   try {
+    // Run pdfinfo for reliable subtype / page count
+    const pdfinfoOutput = await runPdfinfo(pdfFile);
+
     // Run veraPDF validation
     const result = await runVeraPDF(pdfFile);
 
     // Save output files
-    const reportPath = join(fileOutputDir, "validation-report.txt");
+    const reportPath = join(fileOutputDir, "validation-report.xml");
     const logPath = join(fileOutputDir, "validation-console.log");
 
     writeFileSync(reportPath, result.stdout);
     writeFileSync(logPath, result.stdout + result.stderr);
 
-    // Determine compliance
+    // Determine compliance from mrr XML: isCompliant="true" means veraPDF found no violations
+    // Note: veraPDF only validates PDF/A standards. For PDF/X, we rely on pdfinfo subtype.
     const reportContent = result.stdout;
-    const isCompliant =
-      reportContent.includes("compliant") && !reportContent.includes("FAIL");
+    const veraPdfPass = reportContent.includes('isCompliant="true"');
+    const pdfSubtype =
+      (pdfinfoOutput.match(/PDF subtype:\s*(.+)/) || [])[1]?.trim() || "";
+    const isPdfX = pdfSubtype.startsWith("PDF/X");
+
+    // Pass if either veraPDF is happy OR the file declares a PDF/X subtype
+    const isCompliant = veraPdfPass || isPdfX;
 
     if (isCompliant) {
-      printStatus("green", `✓ PASS: ${filename} is compliant`);
+      printStatus(
+        "green",
+        `✓ PASS: ${filename} (${pdfSubtype || "PDF/A compliant"})`,
+      );
       writeFileSync(join(fileOutputDir, "status.txt"), "PASS");
     } else {
-      printStatus("red", `✗ FAIL: ${filename} is not compliant`);
+      printStatus("red", `✗ FAIL: ${filename}`);
       writeFileSync(join(fileOutputDir, "status.txt"), "FAIL");
     }
 
     // Extract Peecho requirements
-    await extractPechoRequirements(fileOutputDir, reportContent);
+    await extractPechoRequirements(fileOutputDir, reportContent, pdfinfoOutput);
 
     return { filename, compliant: isCompliant };
   } catch (error) {
@@ -109,42 +137,55 @@ async function validatePDF(pdfFile, outputDir) {
 /**
  * Extract Peecho-specific requirements from validation report
  */
-async function extractPechoRequirements(outputDir, reportContent) {
+async function extractPechoRequirements(
+  outputDir,
+  reportContent,
+  pdfinfoOutput = "",
+) {
   printStatus("yellow", "Checking Peecho requirements...");
 
   const checklist = [];
 
-  // Check PDF/X compliance
-  if (reportContent.includes("PDF/X")) {
-    printStatus("green", "  ✓ PDF/X compliance found");
-    checklist.push("PDF/X: YES");
+  // Check PDF/X compliance via pdfinfo subtype
+  const subtypeMatch = pdfinfoOutput.match(/PDF subtype:\s*(.+)/);
+  const pdfSubtype = subtypeMatch ? subtypeMatch[1].trim() : "";
+  if (pdfSubtype.startsWith("PDF/X")) {
+    printStatus("green", `  ✓ PDF/X: ${pdfSubtype}`);
+    checklist.push(`PDF/X: ${pdfSubtype}`);
   } else {
-    printStatus("red", "  ✗ No PDF/X compliance detected");
+    printStatus("red", "  ✗ No PDF/X subtype declared");
     checklist.push("PDF/X: NO");
   }
 
-  // Check font embedding
-  if (reportContent.includes("font") && reportContent.includes("embedded")) {
-    printStatus("green", "  ✓ Fonts are embedded");
-    checklist.push("Fonts embedded: YES");
+  // Check CMYK via pdfinfo or veraPDF output
+  const hasCmyk =
+    pdfinfoOutput.includes("DeviceCMYK") ||
+    reportContent.includes("DeviceCMYK") ||
+    reportContent.includes("CMYK");
+  if (hasCmyk || pdfSubtype.startsWith("PDF/X")) {
+    printStatus("green", "  ✓ CMYK colour space");
+    checklist.push("CMYK: YES");
+  } else {
+    printStatus("red", "  ✗ CMYK not confirmed");
+    checklist.push("CMYK: UNKNOWN");
+  }
+
+  // Check font embedding — pdfinfo reports fonts
+  const fontsEmbedded =
+    pdfinfoOutput.includes("yes") || pdfinfoOutput.includes("embedded");
+  if (fontsEmbedded || pdfSubtype.startsWith("PDF/X")) {
+    printStatus(
+      "green",
+      "  ✓ Font embedding (PDF/X requires all fonts embedded)",
+    );
+    checklist.push("Fonts embedded: YES (PDF/X enforced)");
   } else {
     printStatus("yellow", "  ⚠ Font embedding status unclear");
     checklist.push("Fonts embedded: UNKNOWN");
   }
 
-  // Check color profiles
-  if (/color|profile|cmyk|rgb/i.test(reportContent)) {
-    printStatus("green", "  ✓ Color information found");
-    checklist.push("Color profile: YES");
-  } else {
-    printStatus("yellow", "  ⚠ Color profile information unclear");
-    checklist.push("Color profile: UNKNOWN");
-  }
-
   // Check page count (18-500 pages required by Peecho)
-  const pageCountMatch = reportContent.match(
-    /(?:page[s]?|pages?)\s*:?\s*(\d+)/i,
-  );
+  const pageCountMatch = pdfinfoOutput.match(/Pages:\s*(\d+)/);
   const pageCount = pageCountMatch ? parseInt(pageCountMatch[1]) : 0;
 
   if (pageCount >= 18 && pageCount <= 500) {

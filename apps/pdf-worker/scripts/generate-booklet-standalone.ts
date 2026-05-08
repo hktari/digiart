@@ -8,9 +8,18 @@
  */
 
 import { PDFDocument, StandardFonts, rgb, degrees } from "pdf-lib";
-import { readFile, readdir, writeFile, mkdir } from "node:fs/promises";
+import {
+  readFile,
+  readdir,
+  writeFile,
+  mkdir,
+  mkdtemp,
+  rm,
+} from "node:fs/promises";
 import { join, resolve, extname, basename } from "node:path";
 import { existsSync } from "node:fs";
+import { spawn } from "node:child_process";
+import { tmpdir } from "node:os";
 
 // Page format configurations (in points, 1 inch = 72 points)
 const PAGE_FORMATS = {
@@ -216,11 +225,97 @@ async function addBackCover(pdfDoc: PDFDocument) {
         y: (PAGE_HEIGHT_PT - logoH) / 2,
         width: logoW,
         height: logoH,
-        opacity: 0.9,
       });
     }
   } catch {
     console.log("Logo not found, skipping back cover logo");
+  }
+}
+
+async function postProcessToPDFX(inputBytes: Uint8Array): Promise<Uint8Array> {
+  const tempDir = await mkdtemp(join(tmpdir(), "pdfx-"));
+  const inputPath = join(tempDir, "input.pdf");
+  const outputPath = join(tempDir, "output.pdf");
+  const prefixPath = join(tempDir, "pdfx-prefix.ps");
+
+  try {
+    await writeFile(inputPath, inputBytes);
+
+    const iccProfilePath = resolve(process.cwd(), "profiles", "FOGRA39.icc");
+    const prefixContent = `%!
+% PDF/X-3 output intent — FOGRA39 / ISO Coated v2
+% Based on GhostScript's PDFX_def.ps template
+
+[ /GTS_PDFXVersion (PDF/X-3:2002)
+  /Trapped /False
+/DOCINFO pdfmark
+
+/ICCProfile (${iccProfilePath}) def
+
+currentdict /ICCProfile known {
+  [/_objdef {icc_PDFX} /type /stream /OBJ pdfmark
+  [{icc_PDFX} << /N 4 >> /PUT pdfmark
+  [{icc_PDFX} ICCProfile (r) file /PUT pdfmark
+} if
+
+[/_objdef {OutputIntent_PDFX} /type /dict /OBJ pdfmark
+[{OutputIntent_PDFX} <<
+  /Type /OutputIntent
+  /S /GTS_PDFX
+  /OutputCondition (FOGRA39)
+  /OutputConditionIdentifier (FOGRA39)
+  /RegistryName (http://www.color.org)
+  /Info (ISO Coated v2 \\(ECI\\))
+  currentdict /ICCProfile known { /DestOutputProfile {icc_PDFX} } if
+>> /PUT pdfmark
+[{Catalog} <</OutputIntents [ {OutputIntent_PDFX} ]>> /PUT pdfmark
+`;
+    await writeFile(prefixPath, prefixContent);
+
+    const gsArgs = [
+      "-sDEVICE=pdfwrite",
+      "-dPDFX",
+      "-dBATCH",
+      "-dNOPAUSE",
+      "-dNOOUTERSAVE",
+      "-dNOSAFER",
+      "-dPDFSETTINGS=/prepress",
+      "-sProcessColorModel=DeviceCMYK",
+      "-sColorConversionStrategy=CMYK",
+      "-sColorConversionStrategyForImages=CMYK",
+      "-dHaveTransparency=false",
+      "-dEmbedAllFonts=true",
+      "-dSubsetFonts=true",
+      "-dMaxSubsetPct=100",
+      `-sOutputFile=${outputPath}`,
+      prefixPath,
+      inputPath,
+    ];
+
+    await new Promise<void>((res, rej) => {
+      const proc = spawn("gs", gsArgs, { timeout: 120000 });
+      let stderr = "";
+      proc.stderr?.on("data", (d: Buffer) => {
+        stderr += d.toString();
+      });
+      proc.on("error", (e: Error) =>
+        rej(new Error(`GhostScript spawn failed: ${e.message}`)),
+      );
+      proc.on("close", (code: number) => {
+        if (code === 0) res();
+        else
+          rej(
+            new Error(
+              `GhostScript exited ${code}. stderr: ${stderr || "(empty)"}`,
+            ),
+          );
+      });
+    });
+
+    const outputBytes = await readFile(outputPath);
+    return new Uint8Array(outputBytes);
+  } finally {
+    await rm(tempDir, { recursive: true, force: true }).catch(() => {});
   }
 }
 
@@ -286,11 +381,25 @@ async function generateBooklet(
   }
 
   const finalPageCount = pdfDoc.getPageCount();
-  const bytes = await pdfDoc.save();
+  const rawBytes = await pdfDoc.save();
+
+  console.log(`\nPost-processing with GhostScript (CMYK / PDF/X-4)...`);
+  let finalBytes: Uint8Array;
+  try {
+    finalBytes = await postProcessToPDFX(rawBytes);
+    console.log(
+      `   GhostScript OK: ${rawBytes.length} → ${finalBytes.length} bytes`,
+    );
+  } catch (err) {
+    console.warn(
+      `   ⚠ GhostScript failed, saving raw PDF: ${(err as Error).message}`,
+    );
+    finalBytes = rawBytes;
+  }
 
   // Ensure output directory exists
   await mkdir(resolve(outputPath, ".."), { recursive: true });
-  await writeFile(outputPath, bytes);
+  await writeFile(outputPath, finalBytes);
 
   console.log("\n✅ Booklet generated successfully!");
   console.log(`   Pages: ${finalPageCount}`);

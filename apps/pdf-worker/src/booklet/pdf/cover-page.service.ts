@@ -119,7 +119,6 @@ export class CoverPageService {
         y: (PAGE_HEIGHT_PT - logoH) / 2,
         width: logoW,
         height: logoH,
-        opacity: 0.9,
       });
     } catch {
       this.logger.warn("Logo not found, skipping logo on back cover");
