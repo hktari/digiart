@@ -306,6 +306,126 @@ pdf-worker processes job in background:
 
 ---
 
+## Artwork Image Optimization and Thumbnail Generation
+
+### Decision
+
+Use **Next.js Image Optimization** for artwork thumbnails and lightbox images in the MVP, and defer a dedicated thumbnail generation service until traffic, cost, or performance metrics justify it.
+
+### Rationale
+
+**Current Product Need:**
+
+- Browse, creator release lists, and release detail grids should not load full-resolution artwork unnecessarily
+- Full-resolution artwork should only be requested when the collector opens the release artwork lightbox
+- The MVP is deployed on Railway, so image processing runs on our application infrastructure rather than Vercel's managed image pipeline
+- We need a simple implementation that protects page performance without adding another image-processing service too early
+
+**How Next.js Image Optimization Works:**
+
+1. Components use `next/image` instead of raw `<img>` elements
+2. Remote artwork URLs must match `images.remotePatterns` in `next.config.ts`
+3. Browser image requests are routed through Next.js as `/_next/image?url=...&w=...&q=...`
+4. Next.js fetches the original S3 object, resizes it to the requested width, converts to modern formats such as WebP/AVIF when supported, and caches the optimized result
+5. The `sizes` prop tells the browser which width to request for each viewport breakpoint
+
+**Important Distinction:**
+
+- `thumbnailUrl` currently represents a thumbnail-intent image URL consumed by optimized `next/image` components
+- `imageUrl` represents the high-resolution source used by the lightbox
+- Both may point to the same underlying S3 object today, but they must remain separate in application data so we can introduce physical thumbnails later without rewriting UI contracts
+
+### Implementation Guidelines
+
+**For List and Grid Views:**
+
+- Use `thumbnailUrl`
+- Always render with `next/image`
+- Always provide an accurate `sizes` prop
+- Do not use `priority` for artwork cards unless the image is a confirmed above-the-fold LCP image
+
+**For Release Artwork Lightbox:**
+
+- Use `imageUrl`
+- Load high-resolution images only after the user opens the lightbox
+- Keep full-resolution rendering out of `/browse`, `/creators/[slug]/releases`, and the release detail grid
+
+**For Storage URLs:**
+
+- S3/MinIO origins must be listed in `images.remotePatterns`
+- Use specific host/path patterns where possible to avoid allowing arbitrary remote image optimization
+
+### Trade-offs Accepted
+
+**Benefits Gained:**
+
+- ✅ No dedicated thumbnail service needed for MVP
+- ✅ Browser receives responsive image sizes instead of raw full-resolution artwork
+- ✅ Modern format conversion is handled automatically
+- ✅ Lazy loading is built into `next/image`
+- ✅ UI contracts are ready for future physical thumbnail URLs
+
+**Costs and Risks:**
+
+- ❌ On Railway, image resizing consumes CPU/memory on the Next.js service
+- ❌ First request for each width/format variant is slower because optimization is on-demand
+- ❌ Cache misses require fetching the original high-resolution S3 object
+- ❌ Next.js does not create persistent thumbnail files in S3
+- ❌ Large traffic spikes can turn image optimization into an application bottleneck
+
+### Alternatives Considered
+
+**Option: Generate Physical Thumbnails at Upload Time**
+
+- Use `sharp` or a worker process to create fixed variants such as 640px, 1080px, and 1800px
+- Store generated variants in S3 alongside the original
+- **Deferred:** Best performance, but adds upload pipeline complexity and storage management before scale requires it
+
+**Option: Dedicated Image Proxy**
+
+- Use imgproxy, Thumbor, Cloudflare Images, Cloudinary, or AWS Serverless Image Handler
+- Generate/serve transformed images via URL parameters and cache at the edge or proxy layer
+- **Deferred:** Better operational isolation and scalability, but adds a new service/vendor and configuration surface
+
+**Option: Serve Raw S3 Images Directly**
+
+- Use plain S3 URLs in `<img>` or `next/image` with optimization bypassed
+- **Rejected:** Causes browse and release pages to download full-resolution artwork unnecessarily
+
+### When to Revisit
+
+Consider implementing a dedicated thumbnail generator or image proxy when one or more of these signals appear:
+
+1. **Railway resource pressure**
+   - Next.js service CPU is consistently high during image-heavy browsing
+   - Image optimization contributes to slow requests, memory pressure, or container restarts
+
+2. **Traffic scale**
+   - Artwork image requests reach roughly 100K-500K+ per month
+   - Cache misses become frequent due to many unique artworks or size variants
+
+3. **Source image size**
+   - Creator uploads are commonly 10MB+ per artwork
+   - Fetching originals from S3 for optimization becomes slow or expensive
+
+4. **User-facing performance**
+   - Browse or release detail LCP is dominated by artwork images
+   - Cold image requests regularly exceed acceptable latency
+
+5. **Product requirements**
+   - Need watermarks, smart cropping, blur placeholders, dominant-color placeholders, or print/display-specific variants
+   - Need stable thumbnail files for emails, Open Graph images, or external embeds
+
+### Preferred Future Path
+
+If we outgrow Next.js Image Optimization, prefer this migration order:
+
+1. **Upload-time variants** for predictable sizes used by the app (`thumbnailUrl`, `previewUrl`, `imageUrl`)
+2. **Dedicated image proxy** if dynamic transformations, global edge caching, or advanced image operations are needed
+3. **Third-party image CDN** if operational simplicity becomes more valuable than owning the processing pipeline
+
+---
+
 ## Future Considerations
 
 ### When This Design May Need Revision
