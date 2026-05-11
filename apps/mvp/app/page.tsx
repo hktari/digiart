@@ -17,17 +17,17 @@ import { db } from "@/lib/db";
 function PublicHomePage() {
   return (
     <div className="flex flex-col">
-      <section className="flex flex-col items-center justify-center bg-paper px-4 py-20 text-center md:py-32">
+      <section className="flex flex-col items-center justify-center bg-background px-4 py-20 text-center md:py-32">
         <div className="mx-auto max-w-3xl">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-ocean-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-widest text-ocean-700">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-ocean-500/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-widest text-ocean-400">
             <BookOpen className="h-3.5 w-3.5" />
             Art subscription platform
           </div>
-          <h1 className="font-serif text-4xl font-bold leading-tight text-ink sm:text-5xl md:text-6xl">
+          <h1 className="font-serif text-4xl font-bold leading-tight text-foreground sm:text-5xl md:text-6xl">
             Release-led art booklets,{" "}
-            <span className="text-ocean-600">delivered</span>
+            <span className="text-ocean-500">delivered</span>
           </h1>
-          <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-ink/60">
+          <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
             One account lets you publish releases, build a booklet from the
             releases you love, and understand exactly how booklet pricing and
             artist payouts are calculated.
@@ -35,14 +35,14 @@ function PublicHomePage() {
           <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
             <Link
               href="/browse"
-              className="inline-flex items-center justify-center gap-2 rounded bg-ocean-600 px-6 py-3 text-sm font-medium text-paper transition-colors hover:bg-ocean-700"
+              className="inline-flex items-center justify-center gap-2 rounded bg-ocean-600 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-ocean-700"
             >
               Browse releases
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href="/auth/sign-up"
-              className="inline-flex items-center justify-center gap-2 rounded border border-beige-200 bg-paper-dark px-6 py-3 text-sm font-medium text-ink transition-colors hover:bg-beige-200"
+              className="inline-flex items-center justify-center gap-2 rounded border border-border bg-muted px-6 py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted/80"
             >
               Get started free
             </Link>
@@ -50,9 +50,9 @@ function PublicHomePage() {
         </div>
       </section>
 
-      <section className="bg-paper-dark py-16 md:py-24">
+      <section className="bg-muted py-16 md:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="mb-12 text-center font-serif text-2xl font-bold text-ink md:text-3xl">
+          <h2 className="mb-12 text-center font-serif text-2xl font-bold text-foreground md:text-3xl">
             How it works
           </h2>
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
@@ -80,14 +80,14 @@ function PublicHomePage() {
                 key={step.title}
                 className="flex flex-col items-center gap-4 p-6 text-center"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-ocean-100">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-ocean-500/10">
                   <step.icon
-                    className="h-5 w-5 text-ocean-600"
+                    className="h-5 w-5 text-ocean-500"
                     strokeWidth={1.5}
                   />
                 </div>
-                <h3 className="font-semibold text-ink">{step.title}</h3>
-                <p className="text-sm leading-relaxed text-ink/60">
+                <h3 className="font-semibold text-foreground">{step.title}</h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">
                   {step.description}
                 </p>
               </div>
@@ -96,18 +96,18 @@ function PublicHomePage() {
         </div>
       </section>
 
-      <section className="bg-paper px-4 py-16 sm:px-6 lg:px-8 md:py-24">
+      <section className="bg-background px-4 py-16 sm:px-6 lg:px-8 md:py-24">
         <div className="mx-auto max-w-3xl text-center">
-          <h2 className="font-serif text-2xl font-bold text-ink md:text-3xl">
+          <h2 className="font-serif text-2xl font-bold text-foreground md:text-3xl">
             Ready to publish or collect?
           </h2>
-          <p className="mt-4 text-ink/60">
+          <p className="mt-4 text-muted-foreground">
             Start with one account, then turn on the parts of the platform you
             want to use.
           </p>
           <Link
             href="/auth/sign-up"
-            className="mt-8 inline-flex items-center gap-2 rounded bg-ocean-600 px-8 py-3 text-sm font-medium text-paper transition-colors hover:bg-ocean-700"
+            className="mt-8 inline-flex items-center gap-2 rounded bg-ocean-600 px-8 py-3 text-sm font-medium text-white transition-colors hover:bg-ocean-700"
           >
             Create your account
             <ArrowRight className="h-4 w-4" />
@@ -183,16 +183,16 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   void trackPageView("/", { userId: session.user.id });
 
   return (
-    <main className="min-h-screen bg-neutral-50">
+    <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-widest text-neutral-400">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Dashboard
           </p>
-          <h1 className="text-3xl font-bold tracking-tight text-neutral-900">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
             Your workspace
           </h1>
-          <p className="max-w-3xl text-sm text-neutral-600">
+          <p className="max-w-3xl text-sm text-muted-foreground">
             One account can publish releases, follow artists, and build a
             booklet from the releases you want in the next cycle.
           </p>

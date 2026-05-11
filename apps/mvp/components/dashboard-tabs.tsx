@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { CreatorDashboardStats } from "@/lib/actions/creator";
 import { CollectorDashboard } from "./collector-dashboard";
 import { CreatorDashboard } from "./creator-dashboard";
@@ -40,37 +41,48 @@ export function DashboardTabs({
     ...(isCollector ? [{ key: "collector" as const, label: "Collector" }] : []),
   ];
 
+  if (tabs.length <= 1) {
+    return (
+      <>
+        {isCreator && (
+          <CreatorDashboard
+            stats={creatorStats}
+            creatorProfile={creatorProfile}
+          />
+        )}
+        {isCollector && collectorData && (
+          <CollectorDashboard data={collectorData} />
+        )}
+      </>
+    );
+  }
+
   return (
-    <div>
-      {tabs.length > 1 && (
-        <div className="mt-8 flex gap-1 rounded-xl bg-neutral-100 p-1 w-fit">
-          {tabs.map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => setActiveTab(tab.key)}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                activeTab === tab.key
-                  ? "bg-white text-neutral-900 shadow-sm"
-                  : "text-neutral-500 hover:text-neutral-700"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {activeTab === "creator" && isCreator && (
-        <CreatorDashboard
-          stats={creatorStats}
-          creatorProfile={creatorProfile}
-        />
-      )}
-
-      {activeTab === "collector" && isCollector && collectorData && (
-        <CollectorDashboard data={collectorData} />
-      )}
-    </div>
+    <Tabs
+      value={activeTab}
+      onValueChange={(v) => setActiveTab(v as "creator" | "collector")}
+      className="mt-8"
+    >
+      <TabsList>
+        {tabs.map((tab) => (
+          <TabsTrigger key={tab.key} value={tab.key}>
+            {tab.label}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+      <TabsContent value="creator" className="mt-6">
+        {isCreator && (
+          <CreatorDashboard
+            stats={creatorStats}
+            creatorProfile={creatorProfile}
+          />
+        )}
+      </TabsContent>
+      <TabsContent value="collector" className="mt-6">
+        {isCollector && collectorData && (
+          <CollectorDashboard data={collectorData} />
+        )}
+      </TabsContent>
+    </Tabs>
   );
 }

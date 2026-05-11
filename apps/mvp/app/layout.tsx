@@ -5,6 +5,9 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { PostHogIdentifier } from "@/components/providers/posthog-identifier";
+import { ThemeProvider } from "@/components/providers/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 const outfitHeading = Outfit({
@@ -43,18 +46,29 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={cn("font-sans", sourceSans3.variable, outfitHeading.variable)}
     >
       <body
         className={`${crimsonPro.variable} ${manrope.variable} antialiased min-h-screen flex flex-col`}
       >
-        <AuthProvider>
-          <PostHogIdentifier />
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          {/* {process.env.AUTH_BYPASS_TEST_USER_ID && <DevRoleSwitcher />} */}
-        </AuthProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthProvider>
+            <TooltipProvider>
+              <PostHogIdentifier />
+              <Header />
+              <main className="flex-1">{children}</main>
+              <Footer />
+              <Toaster />
+              {/* {process.env.AUTH_BYPASS_TEST_USER_ID && <DevRoleSwitcher />} */}
+            </TooltipProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
