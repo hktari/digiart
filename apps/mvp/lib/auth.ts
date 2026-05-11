@@ -33,14 +33,22 @@ const nextAuthResult: NextAuthResult = NextAuth({
       if (url.startsWith(baseUrl) || url.startsWith("/")) return url;
       return baseUrl;
     },
+    async signIn() {
+      return true;
+    },
+  },
+  events: {
     async signIn({ user }) {
-      // Track auth completion and link attribution
-      // Wrapped in try/catch: analytics must never block sign-in
+      // Track auth completion and link attribution.
+      // events.signIn runs AFTER the user is persisted to the database,
+      // so user.id is always the real adapter-generated ID. (The signIn
+      // callback receives a temporary UUID for new email users before
+      // they are created, which caused FK violations when we tried to
+      // create a Lead with that non-existent ownerUserId.)
       if (user.id) {
         try {
           const anonymousId = await getAnonymousId();
           if (anonymousId) {
-            // Find or create lead and link attribution
             const session = await db.attributionSession.findUnique({
               where: { anonymousId },
             });
@@ -48,7 +56,7 @@ const nextAuthResult: NextAuthResult = NextAuth({
               await linkAttributionToLead(anonymousId, session.leadId ?? "");
             }
           }
-          void trackUserEvent(user.id, AnalyticsEvents.AUTH_COMPLETED, {
+          await trackUserEvent(user.id, AnalyticsEvents.AUTH_COMPLETED, {
             email: user.email ?? "",
           });
           await clearAnonymousId();
@@ -56,7 +64,6 @@ const nextAuthResult: NextAuthResult = NextAuth({
           console.warn("[auth] Analytics tracking failed (non-fatal):", error);
         }
       }
-      return true;
     },
   },
 });
