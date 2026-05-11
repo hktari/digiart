@@ -115,6 +115,7 @@ export default async function PublicReleaseDetailPage({ params }: Props) {
             title: item.artwork.title,
             orientation: item.artwork.orientation,
             imageUrl: item.artwork.imageUrl,
+            thumbnailUrl: item.artwork.thumbnailUrl,
           }))}
           releaseId={release.id}
           releaseData={{

@@ -1,18 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import {
-  Suspense,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  useTransition,
-} from "react";
+import { Suspense, useMemo, useTransition } from "react";
+import useSWR from "swr";
 import { BookletCartUI } from "@/components/booklet-cart-ui";
 import type { CollectorCartSummary } from "@/lib/actions/collector";
 import { toggleReleaseSelection } from "@/lib/actions/collector";
-import { COLLECTOR_CART_UPDATED_EVENT } from "@/lib/cart-events";
+
+export const CART_SUMMARY_KEY = "/api/collector/cart-summary";
 
 interface CartQuote {
   baseAmount: number;
@@ -36,6 +31,12 @@ interface CartData extends CollectorCartSummary {
   cycleLockDate: string | null;
 }
 
+const fetcher = async (url: string): Promise<CartData> => {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to load cart summary");
+  return res.json();
+};
+
 function statusText(summary: CollectorCartSummary) {
   if (!summary.cycleId) return "No open cycle";
   if (summary.artworksOver > 0)
@@ -47,35 +48,16 @@ function statusText(summary: CollectorCartSummary) {
 
 function CollectorBookletCartInner() {
   const router = useRouter();
-  const [summary, setSummary] = useState<CartData | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const loadSummary = useCallback(async () => {
-    const res = await fetch("/api/collector/cart-summary", {
-      cache: "no-store",
-    });
-    if (!res.ok) return;
-    const data = (await res.json()) as CartData;
-    setSummary(data);
-  }, []);
-
-  useEffect(() => {
-    void loadSummary();
-  }, [loadSummary]);
-
-  useEffect(() => {
-    const handleCartUpdated = () => {
-      void loadSummary();
-    };
-
-    window.addEventListener(COLLECTOR_CART_UPDATED_EVENT, handleCartUpdated);
-    return () => {
-      window.removeEventListener(
-        COLLECTOR_CART_UPDATED_EVENT,
-        handleCartUpdated,
-      );
-    };
-  }, [loadSummary]);
+  const { data: summary, isLoading } = useSWR<CartData>(
+    CART_SUMMARY_KEY,
+    fetcher,
+    {
+      refreshInterval: 30000,
+      revalidateOnFocus: true,
+    },
+  );
 
   const status = useMemo(
     () => (summary ? statusText(summary) : "Loading..."),
@@ -86,7 +68,6 @@ function CollectorBookletCartInner() {
     if (!summary?.cycleId) return;
     startTransition(async () => {
       await toggleReleaseSelection(releaseId, summary.cycleId as string);
-      await loadSummary();
     });
   };
 
@@ -94,7 +75,7 @@ function CollectorBookletCartInner() {
     router.push("/collector/checkout");
   };
 
-  if (!summary) return null;
+  if (isLoading || !summary) return null;
 
   return (
     <BookletCartUI

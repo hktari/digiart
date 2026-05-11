@@ -9,6 +9,7 @@ type ArtworkImage = {
   title: string;
   orientation: string;
   imageUrl: string;
+  thumbnailUrl: string;
 };
 
 type ReleaseArtworkLightboxProps = {
@@ -93,7 +94,7 @@ export function ReleaseArtworkLightbox({
               aria-label={`Open ${artwork.title} in full screen`}
             >
               <Image
-                src={artwork.imageUrl}
+                src={artwork.thumbnailUrl}
                 alt={artwork.title}
                 fill
                 sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
