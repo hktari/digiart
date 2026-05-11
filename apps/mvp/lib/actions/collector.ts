@@ -742,9 +742,8 @@ export async function toggleReleaseSelection(
       });
     }
 
-    revalidatePath("/collector");
+    revalidatePath("/");
     revalidatePath("/browse");
-    revalidatePath("/collector/subscriptions");
     revalidatePath("/collector/releases");
     return { success: true };
   } catch (error) {
