@@ -511,7 +511,7 @@ export async function subscribeToCreator(
     }
 
     if (options?.revalidate !== false) {
-      revalidatePath("/collector");
+      revalidatePath("/");
       revalidatePath("/browse");
       revalidatePath("/collector/subscriptions");
       revalidatePath("/collector/releases");
@@ -556,10 +556,10 @@ export async function unsubscribeFromCreator(subscriptionId: string) {
       return { success: false, error: "Subscription not found." };
     }
 
-    revalidatePath("/collector");
+    revalidatePath("/");
     revalidatePath("/browse");
-    revalidatePath("/collector/releases");
     revalidatePath("/collector/subscriptions");
+    revalidatePath("/collector/releases");
     return { success: true };
   } catch (error) {
     logger.error("Failed to unsubscribe from creator", error, {
@@ -884,8 +884,9 @@ export async function commitBookletForCycle(): Promise<CommitBookletResult> {
     },
   });
 
-  revalidatePath("/collector");
+  revalidatePath("/");
   revalidatePath("/browse");
+  revalidatePath("/collector/releases");
 
   return {
     success: true,
