@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import type { CreatorDashboardStats } from "@/lib/actions/creator";
 import { CollectorDashboard } from "./collector-dashboard";
@@ -19,7 +18,6 @@ type Props = {
   creatorStats: CreatorDashboardStats | null;
   collectorData: CollectorData | null;
   creatorProfile: any;
-  nextActions?: Array<{ title: string; description: string; href: string }>;
 };
 
 export function DashboardTabs({
@@ -28,7 +26,6 @@ export function DashboardTabs({
   creatorStats,
   collectorData,
   creatorProfile,
-  nextActions = [],
 }: Props) {
   const [activeTab, setActiveTab] = useState<"creator" | "collector">(
     collectorData?.collectorProfile
@@ -45,37 +42,6 @@ export function DashboardTabs({
 
   return (
     <div>
-      {nextActions.length > 0 && (
-        <section className="rounded-2xl border border-beige-200 bg-beige-50 p-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-              <h2 className="text-lg font-semibold text-neutral-900">
-                Next actions
-              </h2>
-              <p className="mt-1 text-sm text-neutral-600">
-                Prioritized from your current setup and cycle state.
-              </p>
-            </div>
-            <div className="grid flex-1 gap-3 lg:max-w-3xl lg:grid-cols-2">
-              {nextActions.map((action) => (
-                <Link
-                  key={action.title}
-                  href={action.href}
-                  className="rounded-xl border border-beige-200 bg-white px-4 py-4 transition-colors hover:border-fuchsia-300 hover:bg-fuchsia-50/30"
-                >
-                  <p className="text-sm font-semibold text-neutral-900">
-                    {action.title}
-                  </p>
-                  <p className="mt-1 text-sm text-neutral-600">
-                    {action.description}
-                  </p>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
       {tabs.length > 1 && (
         <div className="mt-8 flex gap-1 rounded-xl bg-neutral-100 p-1 w-fit">
           {tabs.map((tab) => (
