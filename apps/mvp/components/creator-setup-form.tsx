@@ -263,10 +263,10 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
   return (
     <div className="max-w-xl mx-auto px-4 py-10">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
           Creator Setup
         </h1>
-        <p className="mt-1 text-sm text-neutral-500">
+        <p className="mt-1 text-sm text-muted-foreground">
           Complete your profile to start publishing releases.
         </p>
       </div>
@@ -285,7 +285,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                 ? "bg-fuchsia-500"
                 : step === "review"
                   ? "bg-fuchsia-200"
-                  : "bg-neutral-200"
+                  : "bg-muted"
             }`}
           />
           <div
@@ -294,7 +294,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                 ? "bg-fuchsia-500"
                 : step === "artwork"
                   ? "bg-fuchsia-200"
-                  : "bg-neutral-200"
+                  : "bg-muted"
             }`}
           />
           <div
@@ -303,7 +303,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                 ? "bg-fuchsia-500"
                 : step === "share"
                   ? "bg-fuchsia-200"
-                  : "bg-neutral-200"
+                  : "bg-muted"
             }`}
           />
           <div
@@ -312,7 +312,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
             }`}
           />
         </div>
-        <div className="mt-2 flex justify-between text-xs text-neutral-500">
+        <div className="mt-2 flex justify-between text-xs text-muted-foreground">
           <span>Profile</span>
           <span>Payout</span>
           <span>Review</span>

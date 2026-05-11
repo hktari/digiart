@@ -85,7 +85,7 @@ export function CollectorSetupForm({
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
           <h1 className="text-3xl font-bold">Complete Your Profile</h1>
-          <p className="mt-2 text-sm text-neutral-600">
+          <p className="mt-2 text-sm text-muted-foreground">
             We need a few details to get you started
           </p>
         </div>
@@ -94,7 +94,7 @@ export function CollectorSetupForm({
           <div>
             <label
               htmlFor="displayName"
-              className="block text-sm font-medium text-neutral-700"
+              className="block text-sm font-medium text-foreground/80"
             >
               Display Name
             </label>
@@ -104,11 +104,11 @@ export function CollectorSetupForm({
               name="displayName"
               defaultValue={initialData?.displayName}
               required
-              className="mt-1 block w-full rounded-md border border-neutral-300 px-3 py-2 shadow-sm focus:border-fuchsia-500 focus:outline-none focus:ring-1 focus:ring-fuchsia-500"
+              className="mt-1 block w-full rounded-md border bg-background px-3 py-2 shadow-sm focus:border-fuchsia-500 focus:outline-none focus:ring-1 focus:ring-fuchsia-500"
               placeholder="How should we call you?"
             />
             {!state.success && state.errors.displayName && (
-              <p className="mt-1 text-sm text-red-600">
+              <p className="mt-1 text-sm text-destructive">
                 {state.errors.displayName}
               </p>
             )}
@@ -117,7 +117,7 @@ export function CollectorSetupForm({
           <div>
             <label
               htmlFor="shippingCountry"
-              className="block text-sm font-medium text-neutral-700"
+              className="block text-sm font-medium text-foreground/80"
             >
               Shipping Country
             </label>
@@ -128,7 +128,7 @@ export function CollectorSetupForm({
               required
               disabled={isLoadingCountries}
               onChange={(event) => setShippingCountry(event.target.value)}
-              className="mt-1 block w-full rounded-md border border-neutral-300 px-3 py-2 shadow-sm focus:border-fuchsia-500 focus:outline-none focus:ring-1 focus:ring-fuchsia-500 disabled:opacity-50"
+              className="mt-1 block w-full rounded-md border bg-background px-3 py-2 shadow-sm focus:border-fuchsia-500 focus:outline-none focus:ring-1 focus:ring-fuchsia-500 disabled:opacity-50"
             >
               <option value="">
                 {isLoadingCountries ? "Loading..." : "Select your country"}
@@ -140,7 +140,7 @@ export function CollectorSetupForm({
               ))}
             </select>
             {!state.success && state.errors.shippingCountry && (
-              <p className="mt-1 text-sm text-red-600">
+              <p className="mt-1 text-sm text-destructive">
                 {state.errors.shippingCountry}
               </p>
             )}
@@ -150,7 +150,7 @@ export function CollectorSetupForm({
             <div>
               <label
                 htmlFor="shippingStateCode"
-                className="block text-sm font-medium text-neutral-700"
+                className="block text-sm font-medium text-foreground/80"
               >
                 State (US only)
               </label>
@@ -160,7 +160,7 @@ export function CollectorSetupForm({
                 defaultValue={initialData?.shippingStateCode}
                 required
                 disabled={isLoadingStates}
-                className="mt-1 block w-full rounded-md border border-neutral-300 px-3 py-2 shadow-sm focus:border-fuchsia-500 focus:outline-none focus:ring-1 focus:ring-fuchsia-500 disabled:opacity-50"
+                className="mt-1 block w-full rounded-md border bg-background px-3 py-2 shadow-sm focus:border-fuchsia-500 focus:outline-none focus:ring-1 focus:ring-fuchsia-500 disabled:opacity-50"
               >
                 <option value="">
                   {isLoadingStates ? "Loading..." : "Select your state"}
@@ -172,7 +172,7 @@ export function CollectorSetupForm({
                 ))}
               </select>
               {!state.success && state.errors.shippingStateCode && (
-                <p className="mt-1 text-sm text-red-600">
+                <p className="mt-1 text-sm text-destructive">
                   {state.errors.shippingStateCode}
                 </p>
               )}
@@ -180,8 +180,8 @@ export function CollectorSetupForm({
           )}
 
           {!state.success && state.errors._form && (
-            <div className="rounded-md bg-red-50 p-4">
-              <p className="text-sm text-red-800">{state.errors._form}</p>
+            <div className="rounded-md bg-destructive/10 p-4">
+              <p className="text-sm text-destructive">{state.errors._form}</p>
             </div>
           )}
 

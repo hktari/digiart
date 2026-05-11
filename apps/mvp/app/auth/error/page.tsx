@@ -16,11 +16,11 @@ export default async function AuthErrorPage({
   return (
     <main className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-4 text-center">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-100 text-3xl">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10 text-3xl">
           ⚠️
         </div>
         <h1 className="text-2xl font-bold">Authentication error</h1>
-        <p className="text-sm text-neutral-500">{message}</p>
+        <p className="text-sm text-muted-foreground">{message}</p>
         <a
           href="/auth/sign-in"
           className="inline-flex items-center justify-center rounded-lg bg-fuchsia-600 px-6 py-2 text-sm font-semibold text-white hover:bg-fuchsia-700 transition-colors"

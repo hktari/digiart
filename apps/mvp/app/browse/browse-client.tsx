@@ -101,11 +101,11 @@ export function BrowseClient({
   });
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-muted">
       <div className="max-w-7xl mx-auto px-4 py-12 lg:pr-80">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-neutral-900">Browse</h1>
-          <p className="mt-2 text-neutral-600">
+          <h1 className="text-3xl font-bold text-foreground">Browse</h1>
+          <p className="mt-2 text-muted-foreground">
             Discover creators and releases to build your booklet
           </p>
         </div>
@@ -117,7 +117,7 @@ export function BrowseClient({
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                 view === "creators"
                   ? "bg-fuchsia-600 text-white"
-                  : "bg-white text-neutral-700 border border-neutral-200 hover:border-fuchsia-300"
+                  : "bg-card text-foreground border hover:border-fuchsia-300"
               }`}
             >
               Creators
@@ -127,7 +127,7 @@ export function BrowseClient({
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                 view === "releases"
                   ? "bg-fuchsia-600 text-white"
-                  : "bg-white text-neutral-700 border border-neutral-200 hover:border-fuchsia-300"
+                  : "bg-card text-foreground border hover:border-fuchsia-300"
               }`}
             >
               Releases
@@ -143,7 +143,7 @@ export function BrowseClient({
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                   !tag
                     ? "bg-ocean-600 text-white"
-                    : "bg-white text-neutral-700 border border-neutral-200 hover:border-ocean-300"
+                    : "bg-card text-foreground border hover:border-ocean-300"
                 }`}
               >
                 All
@@ -155,7 +155,7 @@ export function BrowseClient({
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                     tag === t.slug
                       ? "bg-ocean-600 text-white"
-                      : "bg-white text-neutral-700 border border-neutral-200 hover:border-ocean-300"
+                      : "bg-card text-foreground border hover:border-ocean-300"
                   }`}
                 >
                   {t.name} ({t._count.releaseTags})
@@ -174,7 +174,7 @@ export function BrowseClient({
                 {creators.map((creator) => (
                   <div
                     key={creator.id}
-                    className="bg-white rounded-lg border border-neutral-200 p-6 hover:border-fuchsia-300 hover:shadow-md transition-all"
+                    className="bg-card rounded-lg border p-6 hover:border-fuchsia-300 hover:shadow-md transition-all"
                   >
                     <Link
                       href={`/creators/${creator.slug}`}
@@ -189,17 +189,17 @@ export function BrowseClient({
                           className="rounded-lg object-cover"
                         />
                       ) : (
-                        <div className="w-16 h-16 rounded-lg bg-linear-to-br from-fuchsia-100 to-ocean-100 flex items-center justify-center">
+                        <div className="w-16 h-16 rounded-lg bg-linear-to-br from-fuchsia-500/10 to-ocean-500/10 flex items-center justify-center">
                           <span className="text-2xl font-bold">
                             {creator.displayName.charAt(0).toUpperCase()}
                           </span>
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-neutral-900 truncate">
+                        <h3 className="font-semibold text-foreground truncate">
                           {creator.displayName}
                         </h3>
-                        <p className="text-sm text-neutral-500 mt-1">
+                        <p className="text-sm text-muted-foreground mt-1">
                           {creator._count.releases}{" "}
                           {creator._count.releases === 1
                             ? "release"
@@ -208,7 +208,7 @@ export function BrowseClient({
                       </div>
                     </Link>
                     {creator.bio && (
-                      <p className="mt-4 text-sm text-neutral-600 line-clamp-3">
+                      <p className="mt-4 text-sm text-muted-foreground line-clamp-3">
                         {creator.bio}
                       </p>
                     )}
@@ -264,15 +264,15 @@ function EmptyState({
   tag?: string;
 }) {
   return (
-    <div className="bg-white rounded-lg border border-neutral-200 p-12 text-center">
+    <div className="bg-card rounded-lg border p-12 text-center">
       <div className="max-w-md mx-auto space-y-4">
-        <div className="w-16 h-16 mx-auto rounded-full bg-ocean-100 flex items-center justify-center">
+        <div className="w-16 h-16 mx-auto rounded-full bg-ocean-500/10 flex items-center justify-center">
           {type === "creators" ? <SearchIcon /> : <CollectionIcon />}
         </div>
-        <h2 className="text-xl font-semibold text-neutral-900">
+        <h2 className="text-xl font-semibold text-foreground">
           No {type} found
         </h2>
-        <p className="text-neutral-600">
+        <p className="text-muted-foreground">
           {tag
             ? `Try selecting a different tag or view all ${type}`
             : `Check back soon for new ${type}`}

@@ -48,15 +48,19 @@ export default async function AdminDashboardPage() {
     <div className="space-y-10">
       <div>
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <p className="text-gray-600 mt-1">Platform overview and quick links</p>
+        <p className="text-muted-foreground mt-1">
+          Platform overview and quick links
+        </p>
       </div>
 
       {/* Platform Profit Insights */}
-      <div className="bg-white border border-beige-200 rounded-lg p-8">
+      <div className="bg-card border rounded-lg p-8">
         <div className="flex justify-between items-start mb-6">
           <div>
-            <h2 className="text-xl font-semibold text-ink">Platform Profit</h2>
-            <p className="text-sm text-ink/60 mt-1">
+            <h2 className="text-xl font-semibold text-foreground">
+              Platform Profit
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
               Financial overview from paid orders and payouts
             </p>
           </div>
@@ -71,7 +75,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       {/* Current Cycle Highlight */}
-      <div className="bg-white border rounded-lg p-8">
+      <div className="bg-card border rounded-lg p-8">
         <div className="flex justify-between items-start mb-4">
           <h2 className="text-xl font-semibold">Current Cycle</h2>
           <Link
@@ -89,12 +93,12 @@ export default async function AdminDashboardPage() {
               <span
                 className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
                   cycleStatus === "OPEN"
-                    ? "bg-green-100 text-green-800"
+                    ? "bg-green-500/10 text-green-600"
                     : cycleStatus === "LOCKED"
-                      ? "bg-yellow-100 text-yellow-800"
+                      ? "bg-yellow-500/10 text-yellow-600"
                       : cycleStatus === "PROCESSING"
-                        ? "bg-blue-100 text-blue-800"
-                        : "bg-gray-100 text-gray-800"
+                        ? "bg-blue-500/10 text-blue-600"
+                        : "bg-muted text-muted-foreground"
                 }`}
               >
                 {cycleStatus}
@@ -102,8 +106,8 @@ export default async function AdminDashboardPage() {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-xs text-gray-500 uppercase tracking-wide">
+              <div className="bg-muted rounded-lg p-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">
                   Lock Date
                 </p>
                 <p className="mt-1 font-semibold text-sm">
@@ -116,11 +120,11 @@ export default async function AdminDashboardPage() {
               </div>
 
               {lockCountdown && !lockCountdown.isExpired && (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4">
                   <p className="text-xs text-amber-600 uppercase tracking-wide">
                     Time to Lock
                   </p>
-                  <p className="mt-1 font-semibold text-sm text-amber-800">
+                  <p className="mt-1 font-semibold text-sm text-amber-700">
                     {lockCountdown.days > 0 && `${lockCountdown.days}d `}
                     {lockCountdown.hours > 0 && `${lockCountdown.hours}h `}
                     {lockCountdown.minutes}m
@@ -128,8 +132,8 @@ export default async function AdminDashboardPage() {
                 </div>
               )}
 
-              <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-xs text-gray-500 uppercase tracking-wide">
+              <div className="bg-muted rounded-lg p-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">
                   Releases
                 </p>
                 <p className="mt-1 font-semibold text-sm">
@@ -137,8 +141,8 @@ export default async function AdminDashboardPage() {
                 </p>
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-xs text-gray-500 uppercase tracking-wide">
+              <div className="bg-muted rounded-lg p-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">
                   Selections
                 </p>
                 <p className="mt-1 font-semibold text-sm">
@@ -148,8 +152,8 @@ export default async function AdminDashboardPage() {
             </div>
           </div>
         ) : (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
-            <p className="text-gray-600 mb-3">No active cycle.</p>
+          <div className="bg-muted border border-dashed rounded-lg p-6 text-center">
+            <p className="text-muted-foreground mb-3">No active cycle.</p>
             <Link
               href="/admin/cycles/new"
               className="inline-flex px-4 py-2 bg-fuchsia-600 text-white text-sm rounded-md hover:bg-fuchsia-700"
@@ -164,11 +168,11 @@ export default async function AdminDashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Link
           href="/admin/cycles"
-          className="bg-white border rounded-lg p-8 hover:border-fuchsia-300 hover:shadow-sm transition-all group"
+          className="bg-card border rounded-lg p-8 hover:border-fuchsia-300 hover:shadow-sm transition-all group"
         >
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-sm text-gray-500">Total Cycles</p>
+              <p className="text-sm text-muted-foreground">Total Cycles</p>
               <p className="text-3xl font-bold mt-1">{totalCycles}</p>
             </div>
             <span className="text-2xl">🗓</span>
@@ -180,23 +184,23 @@ export default async function AdminDashboardPage() {
 
         <Link
           href="/admin/booklet-constraints"
-          className="bg-white border rounded-lg p-8 hover:border-fuchsia-300 hover:shadow-sm transition-all group"
+          className="bg-card border rounded-lg p-8 hover:border-fuchsia-300 hover:shadow-sm transition-all group"
         >
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-sm text-gray-500">Active Constraint</p>
+              <p className="text-sm text-muted-foreground">Active Constraint</p>
               {activeConstraint ? (
                 <p className="text-3xl font-bold mt-1">
                   v{activeConstraint.version}
                 </p>
               ) : (
-                <p className="text-xl font-bold mt-1 text-red-600">None</p>
+                <p className="text-xl font-bold mt-1 text-destructive">None</p>
               )}
             </div>
             <span className="text-2xl">📐</span>
           </div>
           {activeConstraint && (
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               {activeConstraint.minPages}–{activeConstraint.maxPages} pages
             </p>
           )}
@@ -207,17 +211,17 @@ export default async function AdminDashboardPage() {
 
         <Link
           href="/admin/pod"
-          className="bg-white border rounded-lg p-8 hover:border-fuchsia-300 hover:shadow-sm transition-all group"
+          className="bg-card border rounded-lg p-8 hover:border-fuchsia-300 hover:shadow-sm transition-all group"
         >
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-sm text-gray-500">Active Offerings</p>
+              <p className="text-sm text-muted-foreground">Active Offerings</p>
               <p className="text-3xl font-bold mt-1">{activeOfferings}</p>
             </div>
             <span className="text-2xl">🖨</span>
           </div>
           {podProvider && (
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Peecho ·{" "}
               <span
                 className={
