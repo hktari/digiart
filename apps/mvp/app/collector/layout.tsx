@@ -58,6 +58,10 @@ export default function CollectorLayout({
 }) {
   const pathname = usePathname();
 
+  const isCheckout =
+    pathname === "/collector/checkout" ||
+    pathname.startsWith("/collector/checkout/");
+
   return (
     <div className="flex min-h-[calc(100vh-4rem)]">
       <aside className="hidden w-56 shrink-0 flex-col gap-1 border-r border-beige-200 bg-paper px-3 py-6 md:flex">
@@ -91,7 +95,9 @@ export default function CollectorLayout({
         })}
       </aside>
 
-      <div className="min-w-0 flex-1 pb-20 lg:pr-80 lg:pb-0">
+      <div
+        className={`min-w-0 flex-1 pb-20 ${isCheckout ? "lg:pb-0" : "lg:pr-80 lg:pb-0"}`}
+      >
         <nav className="no-scrollbar flex gap-1 overflow-x-auto border-b border-beige-200 bg-paper px-4 py-2 md:hidden">
           <Link
             href="/"
@@ -121,7 +127,7 @@ export default function CollectorLayout({
         </nav>
         <div>{children}</div>
       </div>
-      <CollectorBookletCart />
+      {!isCheckout && <CollectorBookletCart />}
     </div>
   );
 }
