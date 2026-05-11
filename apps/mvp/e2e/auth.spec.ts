@@ -81,4 +81,37 @@ test.describe("Authentication", () => {
     );
     await expect(hiddenInput).toHaveCount(0);
   });
+
+  test("completes redirect flow after authentication", async ({ browser }) => {
+    // Unauthenticated context
+    const anonContext = await browser.newContext();
+    const page = await anonContext.newPage();
+
+    // Visit sign-in with redirect target
+    await page.goto("/auth/sign-in?redirect=/browse");
+
+    // Submit magic link form
+    await page.getByLabel(/email/i).fill("test@example.com");
+    await page.getByRole("button", { name: /send magic link/i }).click();
+
+    // Should land on verify page
+    await expect(page).toHaveURL("/auth/verify");
+
+    await anonContext.close();
+
+    // Now create an authenticated context using the saved auth state
+    const authContext = await browser.newContext({
+      storageState: "playwright/.auth/user.json",
+    });
+    const authPage = await authContext.newPage();
+
+    // Authenticated user should be able to visit the target
+    await authPage.goto("/browse");
+    await expect(authPage).toHaveURL(/\/browse/);
+    await expect(
+      authPage.getByRole("heading", { name: /browse/i }),
+    ).toBeVisible();
+
+    await authContext.close();
+  });
 });
