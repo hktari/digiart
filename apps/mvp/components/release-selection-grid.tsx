@@ -106,9 +106,10 @@ export function ReleaseSelectionGrid({
         const coverArtwork = release.artworks[0]?.artwork;
 
         return (
-          <div
+          <Link
             key={release.id}
-            className={`bg-white rounded-lg border-2 overflow-hidden transition-all ${
+            href={`/creators/${release.creatorProfile.slug}/releases/${release.id}`}
+            className={`bg-white rounded-lg border-2 overflow-hidden transition-all block ${
               isSelected
                 ? "border-fuchsia-500 shadow-lg"
                 : "border-neutral-200 hover:border-neutral-300"
@@ -145,12 +146,9 @@ export function ReleaseSelectionGrid({
                 <h3 className="font-semibold text-neutral-900 line-clamp-1">
                   {release.title}
                 </h3>
-                <Link
-                  href={`/creators/${release.creatorProfile.slug}`}
-                  className="text-sm text-neutral-600 hover:text-fuchsia-600"
-                >
+                <p className="text-sm text-neutral-600">
                   by {release.creatorProfile.displayName}
-                </Link>
+                </p>
               </div>
 
               {release.description && (
@@ -171,26 +169,22 @@ export function ReleaseSelectionGrid({
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleToggle(release.id)}
-                  disabled={isPending}
-                  className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                    isSelected
-                      ? "bg-red-50 text-red-700 border border-red-200 hover:bg-red-100"
-                      : "bg-fuchsia-600 text-white hover:bg-fuchsia-700"
-                  } disabled:opacity-50`}
-                >
-                  {isSelected ? "Remove" : "Add to booklet"}
-                </button>
-                <Link
-                  href={`/creators/${release.creatorProfile.slug}/releases/${release.id}`}
-                  className="block px-3 py-2 text-center text-sm font-medium rounded-md border border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50 transition-colors"
-                >
-                  View release details
-                </Link>
-              </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleToggle(release.id);
+                }}
+                disabled={isPending}
+                className={`w-full px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                  isSelected
+                    ? "bg-red-50 text-red-700 border border-red-200 hover:bg-red-100"
+                    : "bg-fuchsia-600 text-white hover:bg-fuchsia-700"
+                } disabled:opacity-50`}
+              >
+                {isSelected ? "Remove" : "Add to booklet"}
+              </button>
 
               {release.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1">
@@ -210,7 +204,7 @@ export function ReleaseSelectionGrid({
                 </div>
               )}
             </div>
-          </div>
+          </Link>
         );
       })}
     </div>

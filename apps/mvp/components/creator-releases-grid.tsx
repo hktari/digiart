@@ -87,39 +87,33 @@ function ReleaseCard({
   const coverUrl = coverArtwork?.thumbnailUrl ?? null;
 
   return (
-    <div
-      className={`group rounded-xl border bg-white overflow-hidden transition-all ${
+    <Link
+      href={`/creators/${slug}/releases/${release.id}`}
+      className={`group rounded-xl border bg-white overflow-hidden transition-all block ${
         isSelected && isHydrated
           ? "border-fuchsia-400 shadow-md"
           : "border-neutral-200 hover:border-fuchsia-300 hover:shadow-lg"
       }`}
     >
-      <Link href={`/creators/${slug}/releases/${release.id}`} className="block">
-        <div className="aspect-4/3 bg-neutral-100 relative overflow-hidden">
-          {coverUrl ? (
-            <Image
-              src={coverUrl}
-              alt={release.title}
-              fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-neutral-400">
-              <span className="text-6xl">📦</span>
-            </div>
-          )}
-        </div>
-      </Link>
+      <div className="aspect-4/3 bg-neutral-100 relative overflow-hidden">
+        {coverUrl ? (
+          <Image
+            src={coverUrl}
+            alt={release.title}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-neutral-400">
+            <span className="text-6xl">📦</span>
+          </div>
+        )}
+      </div>
 
       <div className="p-4 space-y-3">
-        <Link
-          href={`/creators/${slug}/releases/${release.id}`}
-          className="block"
-        >
-          <h3 className="font-semibold text-neutral-900 line-clamp-1 group-hover:text-fuchsia-600 transition-colors">
-            {release.title}
-          </h3>
-        </Link>
+        <h3 className="font-semibold text-neutral-900 line-clamp-1 group-hover:text-fuchsia-600 transition-colors">
+          {release.title}
+        </h3>
 
         {release.description && (
           <p className="text-sm text-neutral-600 line-clamp-2">
@@ -139,31 +133,27 @@ function ReleaseCard({
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-2 pt-1">
-          <button
-            type="button"
-            onClick={toggle}
-            disabled={isPending || !isHydrated}
-            className={`px-3 py-2 text-sm font-medium rounded-md transition-colors disabled:opacity-50 ${
-              isSelected && isHydrated
-                ? "bg-red-50 text-red-700 border border-red-200 hover:bg-red-100"
-                : "bg-fuchsia-600 text-white hover:bg-fuchsia-700"
-            }`}
-          >
-            {isPending
-              ? "Saving..."
-              : isSelected && isHydrated
-                ? "Remove"
-                : "Add to booklet"}
-          </button>
-          <Link
-            href={`/creators/${slug}/releases/${release.id}`}
-            className="block w-full text-center px-3 py-2 text-sm font-medium text-fuchsia-600 border border-fuchsia-600 rounded-md hover:bg-fuchsia-50 transition-colors"
-          >
-            View details
-          </Link>
-        </div>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggle();
+          }}
+          disabled={isPending || !isHydrated}
+          className={`w-full px-3 py-2 text-sm font-medium rounded-md transition-colors disabled:opacity-50 ${
+            isSelected && isHydrated
+              ? "bg-red-50 text-red-700 border border-red-200 hover:bg-red-100"
+              : "bg-fuchsia-600 text-white hover:bg-fuchsia-700"
+          }`}
+        >
+          {isPending
+            ? "Saving..."
+            : isSelected && isHydrated
+              ? "Remove"
+              : "Add to booklet"}
+        </button>
       </div>
-    </div>
+    </Link>
   );
 }
