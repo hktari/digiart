@@ -86,22 +86,23 @@ async function countSelectedArtworks(
   collectorProfileId: string,
   cycleId: string,
 ): Promise<number> {
+  // Step 1: Get release IDs for this collector's selections
   const selections = await db.collectorReleaseSelection.findMany({
     where: { collectorProfileId, cycleId },
-    select: {
-      release: {
-        select: {
-          _count: {
-            select: {
-              artworks: true,
-            },
-          },
-        },
-      },
-    },
+    select: { releaseId: true },
   });
 
-  return selections.reduce((total, s) => total + s.release._count.artworks, 0);
+  if (selections.length === 0) return 0;
+
+  const releaseIds = selections.map((s) => s.releaseId);
+
+  // Step 2: Count artworks directly from ReleaseArtwork junction table
+  const result = await db.releaseArtwork.aggregate({
+    where: { releaseId: { in: releaseIds } },
+    _count: { artworkId: true },
+  });
+
+  return result._count.artworkId;
 }
 
 async function getSubscribedCreatorsCount(collectorProfileId: string) {
@@ -510,7 +511,7 @@ export async function subscribeToCreator(
     }
 
     if (options?.revalidate !== false) {
-      revalidatePath("/collector");
+      revalidatePath("/");
       revalidatePath("/browse");
       revalidatePath("/collector/subscriptions");
       revalidatePath("/collector/releases");
@@ -555,10 +556,10 @@ export async function unsubscribeFromCreator(subscriptionId: string) {
       return { success: false, error: "Subscription not found." };
     }
 
-    revalidatePath("/collector");
+    revalidatePath("/");
     revalidatePath("/browse");
-    revalidatePath("/collector/releases");
     revalidatePath("/collector/subscriptions");
+    revalidatePath("/collector/releases");
     return { success: true };
   } catch (error) {
     logger.error("Failed to unsubscribe from creator", error, {
@@ -741,9 +742,8 @@ export async function toggleReleaseSelection(
       });
     }
 
-    revalidatePath("/collector");
+    revalidatePath("/");
     revalidatePath("/browse");
-    revalidatePath("/collector/subscriptions");
     revalidatePath("/collector/releases");
     return { success: true };
   } catch (error) {
@@ -840,9 +840,8 @@ export async function commitBookletForCycle(): Promise<CommitBookletResult> {
       pageCount: pageCountResult.totalPages,
     });
 
-    const { createQuoteSnapshot } = await import(
-      "@/lib/pricing/quote-snapshot"
-    );
+    const { createQuoteSnapshot } =
+      await import("@/lib/pricing/quote-snapshot");
     const snapshot = await createQuoteSnapshot(
       collectorProfile.id,
       currentCycle.id,
@@ -885,8 +884,9 @@ export async function commitBookletForCycle(): Promise<CommitBookletResult> {
     },
   });
 
-  revalidatePath("/collector");
+  revalidatePath("/");
   revalidatePath("/browse");
+  revalidatePath("/collector/releases");
 
   return {
     success: true,
