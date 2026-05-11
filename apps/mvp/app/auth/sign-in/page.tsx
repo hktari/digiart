@@ -4,9 +4,14 @@ import { AnalyticsEvents, trackAnonymousEvent } from "@/lib/analytics/events";
 export default async function SignInPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; callbackUrl?: string }>;
+  searchParams: Promise<{
+    error?: string;
+    callbackUrl?: string;
+    redirect?: string;
+  }>;
 }) {
-  const { error, callbackUrl } = await searchParams;
+  const { error, callbackUrl: callbackUrlParam, redirect } = await searchParams;
+  const callbackUrl = callbackUrlParam ?? redirect;
 
   // Track sign-in started
   void trackAnonymousEvent(AnalyticsEvents.AUTH_SIGNIN_STARTED, {
@@ -28,6 +33,9 @@ export default async function SignInPage({
           </p>
         )}
         <form action={sendMagicLink} className="space-y-4">
+          {callbackUrl && (
+            <input type="hidden" name="callbackUrl" value={callbackUrl} />
+          )}
           <div className="space-y-1">
             <label htmlFor="email" className="text-sm font-medium">
               Email

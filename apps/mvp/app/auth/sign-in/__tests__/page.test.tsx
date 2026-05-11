@@ -36,4 +36,33 @@ describe("SignInPage", () => {
       screen.queryByText(/please enter a valid email address/i),
     ).not.toBeInTheDocument();
   });
+
+  it("renders hidden callbackUrl input when redirect param is present", async () => {
+    const Component = await SignInPage({
+      searchParams: Promise.resolve({ redirect: "/browse" }),
+    });
+    render(Component);
+
+    const hiddenInput = screen.getByDisplayValue("/browse");
+    expect(hiddenInput).toHaveAttribute("type", "hidden");
+    expect(hiddenInput).toHaveAttribute("name", "callbackUrl");
+  });
+
+  it("renders hidden callbackUrl input when callbackUrl param is present", async () => {
+    const Component = await SignInPage({
+      searchParams: Promise.resolve({ callbackUrl: "/browse" }),
+    });
+    render(Component);
+
+    const hiddenInput = screen.getByDisplayValue("/browse");
+    expect(hiddenInput).toHaveAttribute("type", "hidden");
+    expect(hiddenInput).toHaveAttribute("name", "callbackUrl");
+  });
+
+  it("does not render hidden callbackUrl input when no redirect params", async () => {
+    const Component = await SignInPage({ searchParams: Promise.resolve({}) });
+    render(Component);
+
+    expect(screen.queryByDisplayValue("/browse")).not.toBeInTheDocument();
+  });
 });

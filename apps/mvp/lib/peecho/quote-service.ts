@@ -35,8 +35,8 @@ export interface QuoteResult {
 // merchant dashboard.
 //
 // References:
-//   - Peecho /v1/print/order/quote  → wholesale, no markup
-//   - Peecho /v1/print/order/create → retail, markup included
+//   - Peecho /v3/print/order/quote  → wholesale, no markup
+//   - Peecho /v3/print/order/create → retail, markup included
 
 export async function getQuote(params: QuoteParams): Promise<QuoteResult> {
   try {

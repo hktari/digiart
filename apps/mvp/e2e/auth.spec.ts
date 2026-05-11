@@ -26,4 +26,59 @@ test.describe("Authentication", () => {
     const emailInput = page.getByLabel(/email/i);
     await expect(emailInput).toHaveAttribute("required", "");
   });
+
+  test("preserves redirect query param in sign-up link", async ({ page }) => {
+    await page.goto("/auth/sign-in?redirect=/browse");
+
+    const signUpLink = page.getByRole("link", { name: /sign up/i });
+    await expect(signUpLink).toHaveAttribute(
+      "href",
+      "/auth/sign-up?callbackUrl=%2Fbrowse",
+    );
+  });
+
+  test("preserves callbackUrl query param in sign-up link", async ({
+    page,
+  }) => {
+    await page.goto("/auth/sign-in?callbackUrl=/browse");
+
+    const signUpLink = page.getByRole("link", { name: /sign up/i });
+    await expect(signUpLink).toHaveAttribute(
+      "href",
+      "/auth/sign-up?callbackUrl=%2Fbrowse",
+    );
+  });
+
+  test("includes hidden callbackUrl input when redirect param is present", async ({
+    page,
+  }) => {
+    await page.goto("/auth/sign-in?redirect=/browse");
+
+    const hiddenInput = page.locator(
+      'input[type="hidden"][name="callbackUrl"]',
+    );
+    await expect(hiddenInput).toHaveValue("/browse");
+  });
+
+  test("includes hidden callbackUrl input when callbackUrl param is present", async ({
+    page,
+  }) => {
+    await page.goto("/auth/sign-in?callbackUrl=/browse");
+
+    const hiddenInput = page.locator(
+      'input[type="hidden"][name="callbackUrl"]',
+    );
+    await expect(hiddenInput).toHaveValue("/browse");
+  });
+
+  test("does not include hidden callbackUrl input when no redirect params", async ({
+    page,
+  }) => {
+    await page.goto("/auth/sign-in");
+
+    const hiddenInput = page.locator(
+      'input[type="hidden"][name="callbackUrl"]',
+    );
+    await expect(hiddenInput).toHaveCount(0);
+  });
 });
