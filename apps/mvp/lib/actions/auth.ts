@@ -15,12 +15,12 @@ export async function sendMagicLink(formData: FormData): Promise<void> {
     redirect(`/auth/sign-in?error=invalid_email`);
   }
 
-  const callbackUrl = formData.get("callbackUrl")?.toString();
+  const callbackUrl = formData.get("callbackUrl")?.toString() || "/";
 
   await signIn("resend", {
     email: parsed.data,
     redirect: false,
-    ...(callbackUrl ? { callbackUrl } : {}),
+    callbackUrl,
   });
 
   void trackAnonymousEvent(AnalyticsEvents.AUTH_MAGIC_LINK_SENT, {
