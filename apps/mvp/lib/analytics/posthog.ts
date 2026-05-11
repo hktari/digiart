@@ -17,12 +17,12 @@ function getPostHogClient(): PostHog | null {
     return null;
   }
 
-  const apiKey = process.env.POSTHOG_API_KEY;
+  const posthogToken = process.env.NEXT_PUBLIC_POSTHOG_TOKEN;
   const host = process.env.POSTHOG_HOST || "https://eu.i.posthog.com";
 
-  if (!apiKey) {
+  if (!posthogToken) {
     logger.warn(
-      "[analytics] PostHog not configured. Set POSTHOG_API_KEY env variable.",
+      "[analytics] PostHog not configured. Set NEXT_PUBLIC_POSTHOG_TOKEN env variable.",
     );
     return null;
   }
@@ -30,7 +30,7 @@ function getPostHogClient(): PostHog | null {
   try {
     // NOTE:revoew this config if deploying to Vercel serverless
     // https://posthog.com/docs/libraries/node#capturing-events
-    posthogClient = new PostHog(apiKey, {
+    posthogClient = new PostHog(posthogToken, {
       host,
     });
 
