@@ -187,7 +187,7 @@ export function NewReleaseForm() {
           className={
             step === "details"
               ? "text-fuchsia-600 font-semibold"
-              : "text-neutral-400"
+              : "text-muted-foreground"
           }
         >
           1. Details
@@ -197,7 +197,7 @@ export function NewReleaseForm() {
           className={
             step === "artworks" || step === "submitting"
               ? "text-fuchsia-600 font-semibold"
-              : "text-neutral-400"
+              : "text-muted-foreground"
           }
         >
           2. Artworks
@@ -210,9 +210,9 @@ export function NewReleaseForm() {
           <div>
             <label
               htmlFor="title"
-              className="block text-sm font-medium text-neutral-700 mb-1"
+              className="block text-sm font-medium text-foreground/80 mb-1"
             >
-              Title <span className="text-red-500">*</span>
+              Title <span className="text-destructive">*</span>
             </label>
             <input
               id="title"
@@ -220,7 +220,7 @@ export function NewReleaseForm() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Issue #3 — Summer Landscapes"
-              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent"
+              className="w-full rounded-lg border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent"
             />
             {titleError && (
               <p className="mt-1 text-xs text-red-600">{titleError}</p>
@@ -230,10 +230,10 @@ export function NewReleaseForm() {
           <div>
             <label
               htmlFor="description"
-              className="block text-sm font-medium text-neutral-700 mb-1"
+              className="block text-sm font-medium text-foreground/80 mb-1"
             >
               Description
-              <span className="ml-1 text-neutral-400 font-normal">
+              <span className="ml-1 text-muted-foreground font-normal">
                 (optional)
               </span>
             </label>
@@ -243,7 +243,7 @@ export function NewReleaseForm() {
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
               placeholder="What's this release about? Notes for subscribers, theme, etc."
-              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent resize-none"
+              className="w-full rounded-lg border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent resize-none"
             />
           </div>
 
@@ -251,7 +251,7 @@ export function NewReleaseForm() {
             <button
               type="button"
               onClick={() => router.back()}
-              className="rounded-lg border border-neutral-300 px-5 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
+              className="rounded-lg border px-5 py-2.5 text-sm font-medium text-foreground hover:bg-accent transition-colors"
             >
               Cancel
             </button>
@@ -298,10 +298,10 @@ export function NewReleaseForm() {
                 />
               </svg>
             </div>
-            <p className="text-sm font-medium text-neutral-700">
+            <p className="text-sm font-medium text-foreground">
               Drag & drop or <span className="text-fuchsia-600">browse</span>
             </p>
-            <p className="mt-0.5 text-xs text-neutral-400">
+            <p className="mt-0.5 text-xs text-muted-foreground">
               JPEG or PNG · max 50 MB · min {MIN_ARTWORKS} / max {MAX_ARTWORKS}{" "}
               artworks
             </p>
@@ -338,7 +338,7 @@ export function NewReleaseForm() {
                         ? "border-jade-200 bg-jade-50"
                         : isError
                           ? "border-red-200 bg-red-50"
-                          : "border-neutral-200 bg-white"
+                          : "border bg-background"
                     }`}
                   >
                     <img
@@ -347,29 +347,29 @@ export function NewReleaseForm() {
                       className="h-10 w-10 rounded-md object-cover shrink-0"
                     />
                     <div className="min-w-0 flex-1 space-y-0.5">
-                      <p className="truncate text-sm font-medium text-neutral-800">
+                      <p className="truncate text-sm font-medium text-foreground">
                         {entry.file.name}
                       </p>
                       {state.status === "queued" && (
-                        <p className="text-xs text-neutral-400">
+                        <p className="text-xs text-muted-foreground">
                           {(entry.file.size / 1024 / 1024).toFixed(1)} MB
                         </p>
                       )}
                       {state.status === "uploading" && (
                         <div className="space-y-1">
-                          <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-200">
+                          <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
                             <div
                               className="h-full rounded-full bg-fuchsia-500 transition-all duration-150"
                               style={{ width: `${state.progress}%` }}
                             />
                           </div>
-                          <p className="text-xs text-neutral-400">
+                          <p className="text-xs text-muted-foreground">
                             {state.progress}%
                           </p>
                         </div>
                       )}
                       {state.status === "validating" && (
-                        <p className="text-xs text-neutral-400 animate-pulse">
+                        <p className="text-xs text-muted-foreground animate-pulse">
                           Validating…
                         </p>
                       )}
@@ -396,7 +396,7 @@ export function NewReleaseForm() {
                         <button
                           type="button"
                           onClick={() => removeEntry(entry.id)}
-                          className="text-neutral-300 hover:text-neutral-500 transition-colors"
+                          className="text-muted-foreground hover:text-foreground transition-colors"
                           aria-label="Remove"
                         >
                           <svg
@@ -422,7 +422,7 @@ export function NewReleaseForm() {
               type="button"
               onClick={() => setStep("details")}
               disabled={isSubmitting}
-              className="text-sm text-neutral-500 hover:text-neutral-700 disabled:opacity-40 transition-colors"
+              className="text-sm text-muted-foreground hover:text-foreground disabled:opacity-40 transition-colors"
             >
               ← Back
             </button>
@@ -431,7 +431,7 @@ export function NewReleaseForm() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
+                  className="rounded-lg border px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors"
                 >
                   Add more
                 </button>
@@ -450,13 +450,13 @@ export function NewReleaseForm() {
           </div>
 
           {!meetsMinimum && !isSubmitting && (
-            <p className="text-center text-xs text-neutral-400">
+            <p className="text-center text-xs text-muted-foreground">
               {totalCount === 0
                 ? `Add at least ${MIN_ARTWORKS} artworks to create a release.`
                 : `${MIN_ARTWORKS - totalCount} more artwork${MIN_ARTWORKS - totalCount === 1 ? "" : "s"} needed (min ${MIN_ARTWORKS}).`}
             </p>
           )}
-          <p className="text-center text-xs text-neutral-400">
+          <p className="text-center text-xs text-muted-foreground">
             {totalCount} of {MAX_ARTWORKS} maximum artworks · Once published,
             releases cannot be edited
           </p>

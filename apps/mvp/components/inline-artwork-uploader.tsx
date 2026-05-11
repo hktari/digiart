@@ -107,10 +107,10 @@ export function InlineArtworkUploader({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-neutral-700">
+        <h3 className="text-sm font-medium text-foreground">
           Uploaded Artworks
         </h3>
-        <span className="text-sm text-neutral-500">
+        <span className="text-sm text-muted-foreground">
           {totalUploaded} uploaded
           {totalUploaded < 5 && (
             <span className="text-beige-600"> (5 recommended)</span>
@@ -130,7 +130,7 @@ export function InlineArtworkUploader({
         <div className="text-fuchsia-600 font-medium text-sm">
           + Upload Artwork
         </div>
-        <p className="mt-1 text-xs text-neutral-500">
+        <p className="mt-1 text-xs text-muted-foreground">
           Drag & drop or click · JPEG or PNG · min 1748 × 2480 px
         </p>
         <input
@@ -166,7 +166,7 @@ export function InlineArtworkUploader({
                     ? "border-jade-200 bg-jade-50"
                     : isError
                       ? "border-red-200 bg-red-50"
-                      : "border-neutral-200 bg-white"
+                      : "border bg-background"
                 }`}
               >
                 <img
@@ -176,17 +176,19 @@ export function InlineArtworkUploader({
                 />
 
                 <div className="min-w-0 flex-1 space-y-1">
-                  <p className="truncate text-xs font-medium text-neutral-800">
+                  <p className="truncate text-xs font-medium text-foreground">
                     {entry.file.name}
                   </p>
 
                   {state.status === "queued" && (
-                    <p className="text-xs text-neutral-400">Ready to upload</p>
+                    <p className="text-xs text-muted-foreground">
+                      Ready to upload
+                    </p>
                   )}
 
                   {state.status === "uploading" && (
                     <div className="space-y-1">
-                      <div className="h-1 w-full overflow-hidden rounded-full bg-neutral-200">
+                      <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
                         <div
                           className="h-full rounded-full bg-fuchsia-500 transition-all duration-150"
                           style={{ width: `${state.progress}%` }}
@@ -221,7 +223,7 @@ export function InlineArtworkUploader({
                     <button
                       type="button"
                       onClick={() => removeEntry(entry.id)}
-                      className="text-neutral-300 hover:text-neutral-500 transition-colors"
+                      className="text-muted-foreground hover:text-foreground transition-colors"
                       aria-label="Remove"
                     >
                       <svg

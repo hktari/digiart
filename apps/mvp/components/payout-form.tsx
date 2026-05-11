@@ -24,10 +24,12 @@ export function PayoutForm({ initialData }: PayoutFormProps) {
       <div>
         <label
           htmlFor="legalName"
-          className="block text-sm font-medium text-neutral-700 mb-1"
+          className="block text-sm font-medium text-foreground/80 mb-1"
         >
           Legal name
-          <span className="ml-1 text-neutral-400 font-normal">(optional)</span>
+          <span className="ml-1 text-muted-foreground font-normal">
+            (optional)
+          </span>
         </label>
         <input
           id="legalName"
@@ -35,17 +37,17 @@ export function PayoutForm({ initialData }: PayoutFormProps) {
           type="text"
           defaultValue={initialData?.legalName ?? ""}
           placeholder="Your full legal name"
-          className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent"
+          className="w-full rounded-lg border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent"
         />
       </div>
 
       <div>
         <label
           htmlFor="paypalEmail"
-          className="block text-sm font-medium text-neutral-700 mb-1"
+          className="block text-sm font-medium text-foreground/80 mb-1"
         >
           PayPal email
-          <span className="ml-1 text-neutral-400 font-normal">
+          <span className="ml-1 text-muted-foreground font-normal">
             (required for payouts)
           </span>
         </label>
@@ -55,7 +57,7 @@ export function PayoutForm({ initialData }: PayoutFormProps) {
           type="email"
           defaultValue={initialData?.paypalEmail ?? ""}
           placeholder="paypal@example.com"
-          className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent"
+          className="w-full rounded-lg border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent"
         />
         {!success && state?.errors?.paypalEmail && (
           <p className="mt-1 text-xs text-red-600">

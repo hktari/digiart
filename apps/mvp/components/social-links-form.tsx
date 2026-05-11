@@ -156,10 +156,10 @@ export function SocialLinksForm({ initialLinks = [] }: SocialLinksFormProps) {
   return (
     <div className="max-w-xl mx-auto px-4 py-10">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
           Social Links
         </h1>
-        <p className="mt-1 text-sm text-neutral-500">
+        <p className="mt-1 text-sm text-muted-foreground">
           Add links to your social media, portfolio, or shop. These will be
           displayed on your public profile.
         </p>
@@ -182,14 +182,14 @@ export function SocialLinksForm({ initialLinks = [] }: SocialLinksFormProps) {
           {links.map((link, index) => (
             <div
               key={link.id ?? index}
-              className="rounded-lg border border-neutral-200 p-4 space-y-3"
+              className="rounded-lg border p-4 space-y-3"
             >
               <div className="flex items-start gap-3">
                 <div className="flex-1 space-y-3">
                   <div>
                     <label
                       htmlFor={`label-${index}`}
-                      className="block text-sm font-medium text-neutral-700 mb-1"
+                      className="block text-sm font-medium text-foreground/80 mb-1"
                     >
                       Label
                     </label>
@@ -202,7 +202,7 @@ export function SocialLinksForm({ initialLinks = [] }: SocialLinksFormProps) {
                       className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500 ${
                         link.errors?.label
                           ? "border-red-300 focus:border-red-500"
-                          : "border-neutral-300"
+                          : "border"
                       }`}
                     >
                       <option value="">Select a label...</option>
@@ -222,7 +222,7 @@ export function SocialLinksForm({ initialLinks = [] }: SocialLinksFormProps) {
                   <div>
                     <label
                       htmlFor={`url-${index}`}
-                      className="block text-sm font-medium text-neutral-700 mb-1"
+                      className="block text-sm font-medium text-foreground/80 mb-1"
                     >
                       URL
                     </label>
@@ -235,7 +235,7 @@ export function SocialLinksForm({ initialLinks = [] }: SocialLinksFormProps) {
                       className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500 ${
                         link.errors?.url
                           ? "border-red-300 focus:border-red-500"
-                          : "border-neutral-300"
+                          : "border"
                       }`}
                     />
                     {link.errors?.url && (
@@ -259,8 +259,8 @@ export function SocialLinksForm({ initialLinks = [] }: SocialLinksFormProps) {
           ))}
 
           {links.length === 0 && (
-            <div className="rounded-lg border border-dashed border-neutral-300 p-8 text-center">
-              <p className="text-sm text-neutral-500">
+            <div className="rounded-lg border border-dashed p-8 text-center">
+              <p className="text-sm text-muted-foreground">
                 No social links added yet.
               </p>
             </div>
@@ -272,11 +272,11 @@ export function SocialLinksForm({ initialLinks = [] }: SocialLinksFormProps) {
             type="button"
             onClick={addLink}
             disabled={!canAddMore}
-            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="rounded-lg border px-4 py-2 text-sm font-medium text-foreground hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Add Link
           </button>
-          <span className="text-xs text-neutral-500">
+          <span className="text-xs text-muted-foreground">
             {links.length}/{MAX_LINKS} links
           </span>
         </div>
