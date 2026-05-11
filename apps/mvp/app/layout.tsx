@@ -1,10 +1,21 @@
 import type { Metadata } from "next";
-import { Crimson_Pro, Manrope } from "next/font/google";
+import { Crimson_Pro, Manrope, Outfit, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { PostHogIdentifier } from "@/components/providers/posthog-identifier";
+import { cn } from "@/lib/utils";
+
+const outfitHeading = Outfit({
+  subsets: ["latin"],
+  variable: "--font-heading",
+});
+
+const sourceSans3 = Source_Sans_3({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
 
 const crimsonPro = Crimson_Pro({
   variable: "--font-crimson-pro",
@@ -30,7 +41,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html
+      lang="en"
+      className={cn("font-sans", sourceSans3.variable, outfitHeading.variable)}
+    >
       <body
         className={`${crimsonPro.variable} ${manrope.variable} antialiased min-h-screen flex flex-col`}
       >
