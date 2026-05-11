@@ -2,11 +2,14 @@
 from __future__ import annotations
 
 import os
-from pathlib import Path
-
-import yaml
 import subprocess
 import sys
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import Any
+
 from logger import get_logger
 
 log = get_logger("companion")
@@ -16,25 +19,29 @@ SCRIPT_PATH = Path(__file__).parent / "instagram.py"
 VENV_PYTHON = Path(__file__).parent.parent / ".venv" / "bin" / "python"
 
 
-def get_python_executable() -> Path:
+def get_python_executable():
     if VENV_PYTHON.exists():
         return VENV_PYTHON
     return Path(sys.executable)
 
 
-def load_config() -> dict[str, str]:
+def load_config():
     if not CONFIG_FILE.exists():
         log.error(f"Config file not found: {CONFIG_FILE}")
         sys.exit(1)
+    
+    # Lazy import yaml only when needed
+    import yaml
+    
     with open(CONFIG_FILE, "r") as f:
         return yaml.safe_load(f) or {"__comments__": "No shortcuts defined"}
 
 
-def get_original_user() -> str | None:
+def get_original_user():
     return os.environ.get("SUDO_USER")
 
 
-def get_user_env() -> dict[str, str]:
+def get_user_env():
     """Capture the current environment to pass to child processes.
     When running under sudo, PATH is stripped — we preserve it here
     at startup time (before sudo clobbers it) so child processes can
@@ -43,10 +50,10 @@ def get_user_env() -> dict[str, str]:
 
 
 # Capture the PATH at import time, before sudo strips it
-_ORIGINAL_ENV: dict[str, str] = get_user_env()
+_ORIGINAL_ENV = get_user_env()
 
 
-def trigger_comment(text: str) -> None:
+def trigger_comment(text):
     original_user = get_original_user()
     python_exe = get_python_executable()
 
@@ -66,7 +73,7 @@ def trigger_comment(text: str) -> None:
     )
 
 
-def main() -> None:
+def main():
     if os.geteuid() != 0:
         log.error(
             "This script must be run with sudo to capture global keyboard events."
