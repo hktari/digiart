@@ -1,4 +1,4 @@
-import { BookOpen } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 const footerLinks = {
@@ -19,18 +19,23 @@ const footerLinks = {
 
 export function Footer() {
   return (
-    <footer className="bg-ink text-paper mt-auto">
+    <footer className="bg-muted text-muted-foreground mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
           <div className="sm:col-span-2 lg:col-span-1">
             <Link
               href="/"
-              className="inline-flex items-center gap-2 font-serif font-bold text-xl text-paper hover:text-ocean-300 transition-colors"
+              className="inline-flex items-center transition-opacity hover:opacity-80"
             >
-              <BookOpen className="w-5 h-5 text-ocean-400" strokeWidth={1.5} />
-              Booklet Drops
+              <Image
+                src="/logo.png"
+                alt="Booklet Drops"
+                width={256}
+                height={256}
+                className="h-16 w-auto"
+              />
             </Link>
-            <p className="mt-4 text-sm text-paper/60 leading-relaxed max-w-xs">
+            <p className="mt-4 text-sm text-muted-foreground/70 leading-relaxed max-w-xs">
               Connecting digital artists with collectors through monthly printed
               booklet subscriptions.
             </p>
@@ -38,7 +43,7 @@ export function Footer() {
 
           {Object.entries(footerLinks).map(([section, links]) => (
             <div key={section}>
-              <h3 className="text-xs font-semibold uppercase tracking-widest text-paper/40 mb-4">
+              <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/50 mb-4">
                 {section}
               </h3>
               <ul className="flex flex-col gap-2">
@@ -46,7 +51,7 @@ export function Footer() {
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-sm text-paper/70 hover:text-paper transition-colors"
+                      className="text-sm text-muted-foreground/80 hover:text-foreground transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -57,7 +62,7 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="mt-12 pt-6 border-t border-paper/10 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-paper/40">
+        <div className="mt-12 pt-6 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-muted-foreground/50">
           <p>
             &copy; {new Date().getFullYear()} Booklet Drops. All rights
             reserved.
