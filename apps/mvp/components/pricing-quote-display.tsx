@@ -151,7 +151,7 @@ export function PricingQuoteDisplay({
         <p className="text-xs">
           Before an order is created, estimates use Peecho&apos;s wholesale
           quote plus our configured margin. The final order price may differ
-          slightly; we email the exact amount before charging.
+          slightly; we email the final amount before charging.
         </p>
       </div>
 

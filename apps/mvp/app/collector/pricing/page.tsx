@@ -109,12 +109,11 @@ export default async function CollectorPricingPage() {
             <CreditCard className="h-5 w-5 text-ink/40 shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-semibold text-ink">
-                No committed order yet
+                No order placed yet
               </p>
               <p className="text-sm text-ink/60 mt-1">
-                Complete checkout to commit your booklet. An exact price based
-                on your delivery address and current selections will be shown
-                here.
+                Complete checkout to place your order. A price estimate based on
+                your delivery address and current selections will be shown here.
               </p>
             </div>
           </div>

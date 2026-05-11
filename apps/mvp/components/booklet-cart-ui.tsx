@@ -188,9 +188,7 @@ export function BookletCartUI({
                   : "bg-neutral-300 text-neutral-600 cursor-not-allowed"
               }`}
             >
-              {checkoutIntent
-                ? "Update — go to checkout"
-                : "Commit booklet — you'll be charged when the cycle closes"}
+              {checkoutIntent ? "Update booklet" : "Order booklet"}
             </button>
           )
         )}
@@ -325,9 +323,7 @@ export function BookletCartUI({
                       : "bg-neutral-300 text-neutral-600"
                   }`}
                 >
-                  {checkoutIntent
-                    ? "Update — go to checkout"
-                    : "Commit booklet — you'll be charged when the cycle closes"}
+                  {checkoutIntent ? "Update booklet" : "Order booklet"}
                 </button>
               )
             )}

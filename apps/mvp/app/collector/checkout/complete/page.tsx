@@ -51,9 +51,9 @@ export default async function CheckoutCompletePage() {
             <CheckCircle className="h-10 w-10 text-jade-600" />
           </div>
         </div>
-        <h1 className="text-2xl font-bold text-ink">Booklet committed!</h1>
+        <h1 className="text-2xl font-bold text-ink">Booklet ordered!</h1>
         <p className="text-sm text-ink/60">
-          Your card has been saved and your booklet selections are locked in.
+          Your card has been saved and your selections are confirmed.
         </p>
       </div>
 

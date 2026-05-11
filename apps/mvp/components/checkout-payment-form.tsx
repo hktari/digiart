@@ -112,7 +112,7 @@ function EstimateBlock({
       <p className="text-xs text-amber-700 bg-amber-50 rounded p-2 mt-1">
         This estimate includes our platform margin, calculated from
         Peecho&apos;s wholesale quote. The final Peecho order price may differ
-        slightly; we email the exact amount before charging.
+        slightly; we email the final amount before charging.
         {lockDate && (
           <>
             {" "}
@@ -143,18 +143,18 @@ function ExactPriceBlock({
     <div className="rounded-lg border border-jade-300 bg-jade-50 p-5 space-y-2">
       <div className="flex items-center justify-between mb-1">
         <h2 className="text-sm font-semibold uppercase tracking-widest text-jade-700">
-          Confirmed Price
+          Price Estimate
         </h2>
         <span className="text-[10px] font-medium uppercase tracking-wider text-jade-700 bg-jade-100 border border-jade-300 rounded px-1.5 py-0.5">
-          Exact
+          Estimate
         </span>
       </div>
       <div className="flex justify-between text-2xl font-bold text-jade-800">
         <span>{formatCurrency(exact.amount, exact.currency)}</span>
       </div>
       <p className="text-xs text-jade-700">
-        This is the exact amount from Peecho&apos;s order endpoint that you will
-        be charged at cycle lock
+        This is a price estimate based on your current selections and delivery
+        address. You will be charged the final recalculated amount at cycle lock
         {lockDate ? ` on ${lockDate}` : ""}.{" "}
         <strong>
           Changing your release selections before then will update this amount.
@@ -278,7 +278,7 @@ function CheckoutFormInner({
 
       if (!confirmRes.ok) {
         const data = await confirmRes.json();
-        setError(data.error ?? "Failed to finalise commitment.");
+        setError(data.error ?? "Failed to finalise order.");
         setIsSubmitting(false);
         return;
       }
@@ -392,15 +392,15 @@ function CheckoutFormInner({
         {isCalculating ? (
           <span className="flex items-center justify-center gap-2">
             <RefreshCw className="h-4 w-4 animate-spin" />
-            Calculating exact price…
+            Calculating price estimate…
           </span>
         ) : (
-          "Calculate exact price & review"
+          "Calculate price estimate & review"
         )}
       </button>
 
       <p className="text-xs text-ink/50 text-center">
-        No charge today. We calculate your exact price from your address, then
+        No charge today. We calculate a price estimate from your address, then
         you confirm before we save your card.
       </p>
     </form>

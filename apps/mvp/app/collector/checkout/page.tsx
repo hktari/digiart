@@ -108,10 +108,14 @@ export default async function CollectorCheckoutPage() {
         >
           ← Back to releases
         </Link>
-        <h1 className="text-2xl font-bold text-ink">Commit your booklet</h1>
+        <h1 className="text-2xl font-bold text-ink">Order your booklet</h1>
         <p className="text-sm text-ink/60 mt-1">
-          Enter your delivery address to get the exact price, then save your
-          card. You won&apos;t be charged until the cycle closes.
+          Enter your delivery address to get a price estimate, then save your
+          card.{" "}
+          {currentCycle?.lockDate
+            ? `You will be charged on ${new Date(currentCycle.lockDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}.`
+            : "You will be charged when the cycle closes."}{" "}
+          You can change your selections freely until then.
         </p>
       </div>
 
