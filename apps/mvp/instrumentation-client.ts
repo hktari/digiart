@@ -13,6 +13,8 @@ Sentry.init({
   // Enable logs to be sent to Sentry
   enableLogs: true,
 
+  enabled: process.env.NODE_ENV === "production",
+
   // Enable sending user PII (Personally Identifiable Information)
   // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#sendDefaultPii
   sendDefaultPii: true,
@@ -20,10 +22,12 @@ Sentry.init({
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
 
-posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
-  api_host: "/ingest",
-  ui_host: "https://eu.posthog.com",
-  defaults: "2026-01-30",
-  capture_exceptions: true,
-  debug: process.env.NODE_ENV === "development",
-});
+if (process.env.NODE_ENV === "production") {
+  posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
+    api_host: "/ingest",
+    ui_host: "https://eu.i.posthog.com",
+    defaults: "2026-01-30",
+    capture_exceptions: false,
+    debug: false,
+  });
+}

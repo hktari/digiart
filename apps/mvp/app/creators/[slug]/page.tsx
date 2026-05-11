@@ -197,9 +197,6 @@ export default async function CreatorProfilePage({
                         Subscribe — get their prints delivered
                         <span className="text-lg">→</span>
                       </Link>
-                      <p className="text-xs text-neutral-400 pl-1">
-                        Free to join · no spam · unsubscribe anytime
-                      </p>
                     </div>
                   )}
                 </div>
