@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AttributionTracker } from "@/components/attribution-tracker";
 import { CollectorBookletCart } from "@/components/collector-booklet-cart";
+import { CollectorSubscribeButton } from "@/components/collector-subscribe-button";
 import { CollectorUnsubscribeButton } from "@/components/collector-unsubscribe-button";
 import { CreatorReleasesGrid } from "@/components/creator-releases-grid";
 import { DiscoverBookletBar } from "@/components/discover-booklet-bar";
@@ -187,19 +188,12 @@ export default async function CreatorProfilePage({
                       />
                     </div>
                   ) : (
-                    <div className="space-y-2">
-                      <Link
-                        href={
-                          resolvedSearchParams?.ref
-                            ? `/creators/${slug}/subscribe?ref=${resolvedSearchParams.ref}`
-                            : `/creators/${slug}/subscribe`
-                        }
-                        className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-fuchsia-600 text-white font-semibold hover:bg-fuchsia-700 transition-colors text-base"
-                      >
-                        Subscribe — get their prints delivered
-                        <span className="text-lg">→</span>
-                      </Link>
-                    </div>
+                    <CollectorSubscribeButton
+                      creatorSlug={slug}
+                      creatorProfileId={profile.id}
+                      referralCode={resolvedSearchParams?.ref}
+                      isAuthenticated={isAuthenticated}
+                    />
                   )}
                 </div>
               )}

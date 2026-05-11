@@ -1,6 +1,49 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
+const remotePatterns: NonNullable<NextConfig["images"]>["remotePatterns"] = [
+  {
+    protocol: "https",
+    hostname: "api.dicebear.com",
+    pathname: "/**",
+  },
+  {
+    protocol: "http",
+    hostname: "localhost",
+    port: "9000",
+    pathname: "/**",
+  },
+];
+
+// Add S3/MinIO storage endpoint for Next.js Image optimization
+if (process.env.AWS_ENDPOINT_URL) {
+  try {
+    const endpointUrl = new URL(process.env.AWS_ENDPOINT_URL);
+    remotePatterns.push({
+      protocol: endpointUrl.protocol.slice(0, -1) as "http" | "https",
+      hostname: endpointUrl.hostname,
+      port: endpointUrl.port || undefined,
+      pathname: "/**",
+    });
+  } catch {
+    // Invalid endpoint URL, skip
+  }
+} else if (process.env.AWS_S3_BUCKET) {
+  // AWS S3 virtual-hosted style URLs
+  remotePatterns.push({
+    protocol: "https",
+    hostname: `${process.env.AWS_S3_BUCKET}.s3.amazonaws.com`,
+    pathname: "/**",
+  });
+  if (process.env.AWS_REGION) {
+    remotePatterns.push({
+      protocol: "https",
+      hostname: `${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com`,
+      pathname: "/**",
+    });
+  }
+}
+
 const nextConfig: NextConfig = {
   async rewrites() {
     return [
@@ -59,19 +102,7 @@ const nextConfig: NextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60,
     dangerouslyAllowLocalIP: process.env.NODE_ENV !== "production",
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "api.dicebear.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "http",
-        hostname: "localhost",
-        port: "9000",
-        pathname: "/**",
-      },
-    ],
+    remotePatterns,
   },
 };
 

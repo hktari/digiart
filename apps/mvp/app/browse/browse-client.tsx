@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { BrowseReleasesGrid } from "@/components/browse-releases-grid";
 import { CollectorBookletCart } from "@/components/collector-booklet-cart";
+import { CollectorSubscribeButton } from "@/components/collector-subscribe-button";
 import { DiscoverBookletBar } from "@/components/discover-booklet-bar";
 import { InfiniteScrollSentinel } from "@/components/infinite-scroll-sentinel";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
@@ -212,12 +213,14 @@ export function BrowseClient({
                         {creator.bio}
                       </p>
                     )}
-                    <Link
-                      href={`/creators/${creator.slug}/subscribe`}
-                      className="mt-4 block w-full text-center px-4 py-2 rounded-lg bg-fuchsia-600 text-white font-medium hover:bg-fuchsia-700 transition-colors"
-                    >
-                      Subscribe
-                    </Link>
+                    <div className="mt-4">
+                      <CollectorSubscribeButton
+                        creatorSlug={creator.slug}
+                        creatorProfileId={creator.id}
+                        isAuthenticated={isAuthenticated}
+                        className="w-full justify-center"
+                      />
+                    </div>
                   </div>
                 ))}
               </div>

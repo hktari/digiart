@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { ensureRole } from "@/lib/actions/roles";
 import { auth } from "@/lib/auth";
 import {
   MAX_BOOKLET_ARTWORKS,
@@ -529,6 +530,51 @@ export async function subscribeToCreator(
     });
     throw error;
   }
+}
+
+export type SubscribeToCreatorActionResult =
+  | {
+      success: true;
+      autoAssignedReleaseTitle?: string | null;
+      autoAssignmentSkipped?: boolean;
+    }
+  | { success: false; needsAuth: true }
+  | { success: false; needsSetup: true }
+  | { success: false; error: string };
+
+export async function subscribeToCreatorAction(
+  creatorProfileId: string,
+  referralCode?: string,
+): Promise<SubscribeToCreatorActionResult> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, needsAuth: true };
+  }
+
+  await ensureRole(session.user.id, "COLLECTOR");
+
+  const collectorProfile = await getCollectorProfile(session.user.id, {
+    allowPrefill: false,
+  });
+
+  if (!collectorProfile || collectorProfile.onboardingState === "PENDING") {
+    return { success: false, needsSetup: true };
+  }
+
+  const result = await subscribeToCreator(creatorProfileId, undefined, {
+    revalidate: true,
+    referralCode,
+  });
+
+  if (!result.success) {
+    return { success: false, error: result.error ?? "Unable to subscribe" };
+  }
+
+  return {
+    success: true,
+    autoAssignedReleaseTitle: result.autoAssignedReleaseTitle,
+    autoAssignmentSkipped: result.autoAssignmentSkipped,
+  };
 }
 
 export async function unsubscribeFromCreator(subscriptionId: string) {

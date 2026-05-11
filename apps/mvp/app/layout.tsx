@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { Crimson_Pro, Manrope, Outfit, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
+import { AppSidebar } from "@/components/app-sidebar";
 import { Footer } from "@/components/layout/Footer";
-import { Header } from "@/components/layout/Header";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { PostHogIdentifier } from "@/components/providers/posthog-identifier";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -61,9 +62,13 @@ export default function RootLayout({
           <AuthProvider>
             <TooltipProvider>
               <PostHogIdentifier />
-              <Header />
-              <main className="flex-1">{children}</main>
-              <Footer />
+              <SidebarProvider>
+                <AppSidebar />
+                <SidebarInset>
+                  {children}
+                  <Footer />
+                </SidebarInset>
+              </SidebarProvider>
               <Toaster />
               {/* {process.env.AUTH_BYPASS_TEST_USER_ID && <DevRoleSwitcher />} */}
             </TooltipProvider>

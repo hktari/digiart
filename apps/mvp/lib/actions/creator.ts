@@ -694,13 +694,17 @@ export async function getPublicReleaseDetail(
   return {
     ...release,
     creatorProfile: profile,
-    artworks: release.artworks.map((item) => ({
-      ...item,
-      artwork: {
-        ...item.artwork,
-        imageUrl: getPublicStorageUrl(item.artwork.storageKey),
-      },
-    })),
+    artworks: release.artworks.map((item) => {
+      const imageUrl = getPublicStorageUrl(item.artwork.storageKey);
+      return {
+        ...item,
+        artwork: {
+          ...item.artwork,
+          imageUrl,
+          thumbnailUrl: imageUrl,
+        },
+      };
+    }),
     tags: release.tags.map((item) => item.tag),
   };
 }
