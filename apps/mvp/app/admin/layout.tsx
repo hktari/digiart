@@ -6,6 +6,7 @@ import {
   CalendarClock,
   LayoutDashboard,
   Package,
+  Settings,
   UserRoundSearch,
   Users,
   Wallet,
@@ -60,6 +61,12 @@ const adminNavLinks = [
     href: "/admin/notifications",
     label: "Notifications",
     icon: Bell,
+    exact: false,
+  },
+  {
+    href: "/admin/settings",
+    label: "Settings",
+    icon: Settings,
     exact: false,
   },
 ];
