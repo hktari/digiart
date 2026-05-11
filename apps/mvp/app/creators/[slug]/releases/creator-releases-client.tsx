@@ -46,26 +46,26 @@ export function CreatorReleasesClient({
     });
 
   return (
-    <div className="bg-neutral-50">
+    <div className="bg-muted">
       <div className="max-w-6xl mx-auto px-4 py-12 space-y-8">
         <div className="space-y-2">
           <Link
             href={`/creators/${slug}`}
-            className="text-sm text-neutral-500 hover:text-neutral-700"
+            className="text-sm text-muted-foreground hover:text-foreground"
           >
             ← Back to {profile.displayName}
           </Link>
-          <h1 className="text-3xl font-bold text-neutral-900">
+          <h1 className="text-3xl font-bold text-foreground">
             {profile.displayName}&apos;s releases
           </h1>
-          <p className="text-neutral-600">
+          <p className="text-muted-foreground">
             Browse complete releases and open one to inspect all included
             artworks.
           </p>
         </div>
 
         {items.length === 0 && !isLoading ? (
-          <div className="rounded-2xl border border-neutral-200 bg-white p-12 text-center text-neutral-600">
+          <div className="rounded-2xl border bg-card p-12 text-center text-muted-foreground">
             No published releases yet.
           </div>
         ) : (
@@ -78,9 +78,9 @@ export function CreatorReleasesClient({
                   <Link
                     key={release.id}
                     href={`/creators/${slug}/releases/${release.id}`}
-                    className="group overflow-hidden rounded-2xl border border-neutral-200 bg-white hover:border-fuchsia-300 hover:shadow-lg"
+                    className="group overflow-hidden rounded-2xl border bg-card hover:border-fuchsia-300 hover:shadow-lg"
                   >
-                    <div className="relative aspect-4/3 bg-neutral-100">
+                    <div className="relative aspect-4/3 bg-muted">
                       {coverArtwork && (
                         <Image
                           src={coverArtwork.thumbnailUrl}
@@ -91,15 +91,15 @@ export function CreatorReleasesClient({
                       )}
                     </div>
                     <div className="space-y-2 p-4">
-                      <h2 className="font-semibold text-neutral-900 group-hover:text-fuchsia-600">
+                      <h2 className="font-semibold text-foreground group-hover:text-fuchsia-600">
                         {release.title}
                       </h2>
                       {release.description && (
-                        <p className="line-clamp-2 text-sm text-neutral-600">
+                        <p className="line-clamp-2 text-sm text-muted-foreground">
                           {release.description}
                         </p>
                       )}
-                      <p className="text-xs text-neutral-500">
+                      <p className="text-xs text-muted-foreground">
                         {release._count.artworks} artwork
                         {release._count.artworks === 1 ? "" : "s"}
                       </p>

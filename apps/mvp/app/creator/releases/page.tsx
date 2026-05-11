@@ -7,9 +7,9 @@ import { getCurrentCycle } from "@/lib/cycle-utils";
 import { db } from "@/lib/db";
 
 const STATUS_BADGE: Record<string, string> = {
-  DRAFT: "bg-neutral-100 text-neutral-600",
-  PUBLISHED: "bg-jade-100 text-jade-700",
-  ARCHIVED: "bg-beige-100 text-beige-600",
+  DRAFT: "bg-muted text-muted-foreground",
+  PUBLISHED: "bg-jade-500/10 text-jade-600",
+  ARCHIVED: "bg-secondary text-secondary-foreground",
 };
 
 export default async function CreatorReleasesPage({
@@ -42,18 +42,20 @@ export default async function CreatorReleasesPage({
   return (
     <div className="max-w-2xl mx-auto px-4 py-10">
       {error && (
-        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-sm text-red-800">{error}</p>
+        <div className="mb-6 bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+          <p className="text-sm text-destructive">{error}</p>
         </div>
       )}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
             Releases
           </h1>
           {currentCycle && cycleStatus && (
             <div className="flex items-center gap-2 mt-2">
-              <span className="text-sm text-neutral-600">Current cycle:</span>
+              <span className="text-sm text-muted-foreground">
+                Current cycle:
+              </span>
               <CycleStatusBadge status={cycleStatus} />
             </div>
           )}
@@ -63,7 +65,7 @@ export default async function CreatorReleasesPage({
           className={`rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors ${
             canCreateRelease
               ? "bg-fuchsia-600 hover:bg-fuchsia-700"
-              : "bg-gray-400 cursor-not-allowed pointer-events-none"
+              : "bg-muted-foreground/40 cursor-not-allowed pointer-events-none"
           }`}
           aria-disabled={!canCreateRelease}
         >
@@ -78,8 +80,8 @@ export default async function CreatorReleasesPage({
       )}
 
       {currentCycle && cycleStatus === "OPEN" && (
-        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-sm text-blue-800">
+        <div className="mb-6 bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+          <p className="text-sm text-blue-600">
             <strong>Release limits:</strong> {publishedReleasesThisCycle} of{" "}
             {maxReleasesPerCycle} published this cycle · Max{" "}
             {maxArtworksPerRelease} artworks per release
@@ -88,8 +90,8 @@ export default async function CreatorReleasesPage({
       )}
 
       {!currentCycle && (
-        <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-sm text-yellow-800">
+        <div className="mb-6 bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+          <p className="text-sm text-yellow-600">
             <strong>No active cycle:</strong> New releases cannot be created at
             this time.
           </p>
@@ -97,8 +99,8 @@ export default async function CreatorReleasesPage({
       )}
 
       {currentCycle && cycleStatus && cycleStatus !== "OPEN" && (
-        <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-sm text-yellow-800">
+        <div className="mb-6 bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+          <p className="text-sm text-yellow-600">
             <strong>Cycle {cycleStatus.toLowerCase()}:</strong> New releases
             cannot be created at this time.
           </p>
@@ -108,8 +110,8 @@ export default async function CreatorReleasesPage({
       {currentCycle &&
         cycleStatus === "OPEN" &&
         publishedReleasesThisCycle >= maxReleasesPerCycle && (
-          <div className="mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <p className="text-sm text-amber-800">
+          <div className="mb-6 bg-amber-500/10 border border-amber-500/20 rounded-lg p-4">
+            <p className="text-sm text-amber-600">
               <strong>Release limit reached:</strong> You have published{" "}
               {maxReleasesPerCycle} releases this cycle. Create a new release in
               the next cycle.
@@ -118,8 +120,8 @@ export default async function CreatorReleasesPage({
         )}
 
       {releases.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-neutral-200 py-16 text-center">
-          <p className="text-sm text-neutral-500">No releases yet.</p>
+        <div className="rounded-xl border border-dashed py-16 text-center">
+          <p className="text-sm text-muted-foreground">No releases yet.</p>
           <Link
             href="/creator/releases/new"
             className="mt-2 inline-block text-sm font-medium text-fuchsia-600 hover:text-fuchsia-700"
@@ -133,13 +135,13 @@ export default async function CreatorReleasesPage({
             <Link
               key={release.id}
               href={`/creator/releases/${release.id}`}
-              className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-5 py-4 hover:border-fuchsia-300 hover:bg-fuchsia-50/20 transition-colors group"
+              className="flex items-center justify-between rounded-xl border bg-card px-5 py-4 hover:border-fuchsia-300 hover:bg-fuchsia-500/5 transition-colors group"
             >
               <div className="min-w-0">
-                <p className="font-medium text-neutral-900 truncate group-hover:text-fuchsia-700 transition-colors">
+                <p className="font-medium text-foreground truncate group-hover:text-fuchsia-600 transition-colors">
                   {release.title}
                 </p>
-                <p className="text-xs text-neutral-400 mt-0.5">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   {release._count.artworks} artwork
                   {release._count.artworks !== 1 ? "s" : ""}
                   {release._count.selections > 0 && (

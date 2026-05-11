@@ -15,9 +15,9 @@ import { canEditRelease } from "@/lib/cycle-utils";
 import { db } from "@/lib/db";
 
 const STATUS_BADGE: Record<string, string> = {
-  DRAFT: "bg-neutral-100 text-neutral-600",
-  PUBLISHED: "bg-jade-100 text-jade-700",
-  ARCHIVED: "bg-beige-100 text-beige-600",
+  DRAFT: "bg-muted text-muted-foreground",
+  PUBLISHED: "bg-jade-500/10 text-jade-600",
+  ARCHIVED: "bg-secondary text-secondary-foreground",
 };
 
 export default async function CreatorReleaseDetailPage({
@@ -56,12 +56,12 @@ export default async function CreatorReleaseDetailPage({
           <div className="flex items-center gap-3 min-w-0">
             <Link
               href="/creator/releases"
-              className="text-sm text-neutral-400 hover:text-neutral-600 transition-colors shrink-0"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors shrink-0"
             >
               ← Releases
             </Link>
-            <span className="text-neutral-200">/</span>
-            <h1 className="text-lg font-bold text-neutral-900 truncate">
+            <span className="text-border">/</span>
+            <h1 className="text-lg font-bold text-foreground truncate">
               {release.title}
             </h1>
           </div>
@@ -71,7 +71,7 @@ export default async function CreatorReleaseDetailPage({
             {release.status.charAt(0) + release.status.slice(1).toLowerCase()}
           </span>
         </div>
-        <p className="text-xs text-neutral-400 ml-[calc(2rem+1px)]">
+        <p className="text-xs text-muted-foreground ml-[calc(2rem+1px)]">
           {release._count.selections} collector selection
           {release._count.selections !== 1 ? "s" : ""}
           {" · "}created{" "}
@@ -90,25 +90,25 @@ export default async function CreatorReleaseDetailPage({
 
       {/* Details form */}
       <section>
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-neutral-400 mb-4">
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
           Details
         </h2>
         {isLocked ? (
-          <div className="space-y-3 rounded-xl border border-neutral-200 bg-neutral-50 p-5">
+          <div className="space-y-3 rounded-xl border bg-muted p-5">
             <div>
-              <p className="text-xs text-neutral-400 uppercase tracking-wide mb-0.5">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-0.5">
                 Title
               </p>
-              <p className="text-sm font-medium text-neutral-800">
+              <p className="text-sm font-medium text-foreground">
                 {release.title}
               </p>
             </div>
             {release.description && (
               <div>
-                <p className="text-xs text-neutral-400 uppercase tracking-wide mb-0.5">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-0.5">
                   Description
                 </p>
-                <p className="text-sm text-neutral-700 whitespace-pre-wrap">
+                <p className="text-sm text-foreground/80 whitespace-pre-wrap">
                   {release.description}
                 </p>
               </div>

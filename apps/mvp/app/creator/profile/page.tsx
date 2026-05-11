@@ -26,11 +26,11 @@ export default async function CreatorProfileEditPage() {
       <div>
         <Link
           href="/"
-          className="text-xs font-semibold uppercase tracking-widest text-neutral-400 hover:text-neutral-600"
+          className="text-xs font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground"
         >
           Dashboard
         </Link>
-        <h1 className="mb-6 text-2xl font-bold tracking-tight text-neutral-900">
+        <h1 className="mb-6 text-2xl font-bold tracking-tight text-foreground">
           Profile and payouts
         </h1>
         <AvatarUpload
@@ -40,7 +40,7 @@ export default async function CreatorProfileEditPage() {
       </div>
 
       <div>
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-neutral-400">
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
           Payout
         </h2>
         <PayoutForm
@@ -53,7 +53,7 @@ export default async function CreatorProfileEditPage() {
       </div>
 
       <div>
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-neutral-400">
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
           Social links
         </h2>
         <SocialLinksForm initialLinks={socialLinks} />

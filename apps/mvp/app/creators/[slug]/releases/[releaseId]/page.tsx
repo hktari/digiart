@@ -46,36 +46,36 @@ export default async function PublicReleaseDetailPage({ params }: Props) {
   );
 
   return (
-    <div className="bg-neutral-50">
+    <div className="bg-muted">
       <div className="max-w-6xl mx-auto px-4 py-12 space-y-8 lg:pr-80">
         <div className="space-y-3">
           <Link
             href={`/creators/${slug}/releases`}
-            className="text-sm text-neutral-500 hover:text-neutral-700"
+            className="text-sm text-muted-foreground hover:text-foreground"
           >
             ← Back to releases
           </Link>
           <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-2">
-              <p className="text-sm text-neutral-500">
+              <p className="text-sm text-muted-foreground">
                 By{" "}
                 <Link
                   href={`/creators/${slug}`}
-                  className="font-medium text-neutral-700 hover:text-fuchsia-600"
+                  className="font-medium text-foreground hover:text-fuchsia-600"
                 >
                   {release.creatorProfile.displayName}
                 </Link>
               </p>
-              <h1 className="text-3xl font-bold text-neutral-900">
+              <h1 className="text-3xl font-bold text-foreground">
                 {release.title}
               </h1>
               {release.description ? (
-                <p className="max-w-3xl text-neutral-600">
+                <p className="max-w-3xl text-muted-foreground">
                   {release.description}
                 </p>
               ) : null}
             </div>
-            <div className="text-sm text-neutral-500">
+            <div className="text-sm text-muted-foreground">
               {release._count.artworks} artwork
               {release._count.artworks === 1 ? "" : "s"}
             </div>
@@ -85,7 +85,7 @@ export default async function PublicReleaseDetailPage({ params }: Props) {
               {release.tags.map((tag) => (
                 <span
                   key={tag.id}
-                  className="rounded-full bg-white px-3 py-1 text-xs font-medium text-neutral-600 border border-neutral-200"
+                  className="rounded-full bg-card px-3 py-1 text-xs font-medium text-muted-foreground border"
                 >
                   {tag.name}
                 </span>

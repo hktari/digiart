@@ -263,10 +263,10 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
   return (
     <div className="max-w-xl mx-auto px-4 py-10">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
           Creator Setup
         </h1>
-        <p className="mt-1 text-sm text-neutral-500">
+        <p className="mt-1 text-sm text-muted-foreground">
           Complete your profile to start publishing releases.
         </p>
       </div>
@@ -285,7 +285,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                 ? "bg-fuchsia-500"
                 : step === "review"
                   ? "bg-fuchsia-200"
-                  : "bg-neutral-200"
+                  : "bg-muted"
             }`}
           />
           <div
@@ -294,7 +294,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                 ? "bg-fuchsia-500"
                 : step === "artwork"
                   ? "bg-fuchsia-200"
-                  : "bg-neutral-200"
+                  : "bg-muted"
             }`}
           />
           <div
@@ -303,16 +303,16 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                 ? "bg-fuchsia-500"
                 : step === "share"
                   ? "bg-fuchsia-200"
-                  : "bg-neutral-200"
+                  : "bg-muted"
             }`}
           />
           <div
             className={`h-2 flex-1 rounded-full ${
-              step === "share" ? "bg-fuchsia-500" : "bg-neutral-200"
+              step === "share" ? "bg-fuchsia-500" : "bg-muted"
             }`}
           />
         </div>
-        <div className="mt-2 flex justify-between text-xs text-neutral-500">
+        <div className="mt-2 flex justify-between text-xs text-muted-foreground">
           <span>Profile</span>
           <span>Payout</span>
           <span>Review</span>
@@ -345,9 +345,9 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
             <div>
               <label
                 htmlFor="displayName"
-                className="block text-sm font-medium text-neutral-700 mb-1"
+                className="block text-sm font-medium text-foreground/80 mb-1"
               >
-                Display Name <span className="text-red-500">*</span>
+                Display Name <span className="text-destructive">*</span>
               </label>
               <input
                 type="text"
@@ -359,11 +359,11 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                 className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500 ${
                   allErrors.displayName
                     ? "border-red-300 focus:border-red-500"
-                    : "border-neutral-300"
+                    : "border"
                 }`}
               />
               {allErrors.displayName && (
-                <p className="mt-1 text-sm text-red-600">
+                <p className="mt-1 text-sm text-destructive">
                   {allErrors.displayName}
                 </p>
               )}
@@ -372,9 +372,9 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
             <div>
               <label
                 htmlFor="slug"
-                className="block text-sm font-medium text-neutral-700 mb-1"
+                className="block text-sm font-medium text-foreground/80 mb-1"
               >
-                Profile Slug <span className="text-red-500">*</span>
+                Profile Slug <span className="text-destructive">*</span>
               </label>
               <div className="flex gap-2">
                 <input
@@ -389,7 +389,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                   className={`flex-1 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500 ${
                     allErrors.slug
                       ? "border-red-300 focus:border-red-500"
-                      : "border-neutral-300"
+                      : "border"
                   }`}
                 />
                 <button
@@ -400,17 +400,19 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                     slugCheckAction(fd);
                   }}
                   disabled={!formData.slug || isCheckingSlug}
-                  className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded-lg border px-4 py-2 text-sm font-medium text-foreground hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isCheckingSlug ? "Checking..." : "Check"}
                 </button>
               </div>
-              <p className="mt-1 text-xs text-neutral-500">
+              <p className="mt-1 text-xs text-muted-foreground">
                 {process.env.NEXT_PUBLIC_APP_URL}/creators/
                 {formData.slug || "your-name"}
               </p>
               {allErrors.slug && (
-                <p className="mt-1 text-sm text-red-600">{allErrors.slug}</p>
+                <p className="mt-1 text-sm text-destructive">
+                  {allErrors.slug}
+                </p>
               )}
               {isSlugAvailable && (
                 <p className="mt-1 text-sm text-jade-600">
@@ -418,7 +420,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                 </p>
               )}
               {isSlugTaken && (
-                <p className="mt-1 text-sm text-red-600">
+                <p className="mt-1 text-sm text-destructive">
                   {
                     (slugCheckState as CheckSlugResult & { available: false })
                       .error
@@ -430,7 +432,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
             <div>
               <label
                 htmlFor="bio"
-                className="block text-sm font-medium text-neutral-700 mb-1"
+                className="block text-sm font-medium text-foreground/80 mb-1"
               >
                 Bio
               </label>
@@ -444,19 +446,19 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                 className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500 ${
                   allErrors.bio
                     ? "border-red-300 focus:border-red-500"
-                    : "border-neutral-300"
+                    : "border"
                 }`}
               />
-              <p className="mt-1 text-xs text-neutral-500">
+              <p className="mt-1 text-xs text-muted-foreground">
                 {formData.bio.length}/500 characters
               </p>
               {allErrors.bio && (
-                <p className="mt-1 text-sm text-red-600">{allErrors.bio}</p>
+                <p className="mt-1 text-sm text-destructive">{allErrors.bio}</p>
               )}
             </div>
 
             <fieldset>
-              <legend className="block text-sm font-medium text-neutral-700 mb-2">
+              <legend className="block text-sm font-medium text-foreground/80 mb-2">
                 Where do you currently share your art?
               </legend>
               <div className="flex flex-wrap gap-2">
@@ -472,7 +474,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                       className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
                         isSelected
                           ? "bg-fuchsia-600 text-white"
-                          : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200 border border-neutral-300"
+                          : "bg-muted text-foreground hover:bg-accent border"
                       }`}
                     >
                       {platform.label}
@@ -482,9 +484,9 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
               </div>
               {formData.sourcePlatforms.length > 0 && (
                 <div className="mt-3 space-y-2">
-                  <p className="text-xs font-medium text-neutral-600">
+                  <p className="text-xs font-medium text-foreground/70">
                     Add your profile links{" "}
-                    <span className="text-neutral-400 font-normal">
+                    <span className="text-muted-foreground/60 font-normal">
                       (optional)
                     </span>
                   </p>
@@ -495,7 +497,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                     if (!platform) return null;
                     return (
                       <div key={value} className="flex items-center gap-2">
-                        <span className="w-24 shrink-0 text-xs font-medium text-neutral-500 truncate">
+                        <span className="w-24 shrink-0 text-xs font-medium text-muted-foreground truncate">
                           {platform.label}
                         </span>
                         <input
@@ -505,14 +507,14 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                             updatePlatformLink(value, e.target.value)
                           }
                           placeholder={`https://...`}
-                          className="flex-1 rounded-lg border border-neutral-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+                          className="flex-1 rounded-lg border px-3 py-1.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
                         />
                       </div>
                     );
                   })}
                 </div>
               )}
-              <p className="mt-2 text-xs text-neutral-500">
+              <p className="mt-2 text-xs text-muted-foreground">
                 Select all that apply. This helps us understand our creator
                 community better.
               </p>
@@ -531,8 +533,8 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
         {/* Step 2: Payout */}
         {step === "payout" && (
           <div className="space-y-6">
-            <div className="rounded-lg border border-beige-200 bg-beige-50 p-4">
-              <p className="text-sm text-beige-800">
+            <div className="rounded-lg border bg-muted p-4">
+              <p className="text-sm text-foreground/80">
                 <strong>Optional:</strong> You can complete payout information
                 later, but you&apos;ll need it to receive payments.
               </p>
@@ -541,7 +543,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
             <div>
               <label
                 htmlFor="legalName"
-                className="block text-sm font-medium text-neutral-700 mb-1"
+                className="block text-sm font-medium text-foreground/80 mb-1"
               >
                 Legal Name
               </label>
@@ -555,11 +557,11 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                 className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500 ${
                   allErrors.legalName
                     ? "border-red-300 focus:border-red-500"
-                    : "border-neutral-300"
+                    : "border"
                 }`}
               />
               {allErrors.legalName && (
-                <p className="mt-1 text-sm text-red-600">
+                <p className="mt-1 text-sm text-destructive">
                   {allErrors.legalName}
                 </p>
               )}
@@ -568,7 +570,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
             <div>
               <label
                 htmlFor="paypalEmail"
-                className="block text-sm font-medium text-neutral-700 mb-1"
+                className="block text-sm font-medium text-foreground/80 mb-1"
               >
                 PayPal Email
               </label>
@@ -582,11 +584,11 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                 className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500 ${
                   allErrors.paypalEmail
                     ? "border-red-300 focus:border-red-500"
-                    : "border-neutral-300"
+                    : "border"
                 }`}
               />
               {allErrors.paypalEmail && (
-                <p className="mt-1 text-sm text-red-600">
+                <p className="mt-1 text-sm text-destructive">
                   {allErrors.paypalEmail}
                 </p>
               )}
@@ -595,11 +597,11 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
               {formData.paypalEmail && !allErrors.paypalEmail && (
                 <div className="mt-3">
                   {payPalStatus.isLoading ? (
-                    <span className="text-sm text-neutral-500">
+                    <span className="text-sm text-muted-foreground">
                       Checking verification status...
                     </span>
                   ) : payPalStatus.isVerified ? (
-                    <div className="flex items-center gap-2 text-jade-700 bg-jade-50 rounded-lg px-3 py-2">
+                    <div className="flex items-center gap-2 text-jade-600 bg-jade-500/10 rounded-lg px-3 py-2">
                       <CheckIcon className="w-4 h-4" />
                       <span className="text-sm font-medium">
                         PayPal account verified
@@ -607,7 +609,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      <p className="text-sm text-neutral-600">
+                      <p className="text-sm text-muted-foreground">
                         Optional: Verify your PayPal account to ensure smooth
                         payouts
                       </p>
@@ -634,7 +636,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
               <button
                 type="button"
                 onClick={handleBack}
-                className="flex-1 rounded-lg border border-neutral-300 px-5 py-3 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 transition-colors"
+                className="flex-1 rounded-lg border px-5 py-3 text-sm font-semibold text-foreground hover:bg-accent transition-colors"
               >
                 Back
               </button>
@@ -652,39 +654,39 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
         {/* Step 3: Review */}
         {step === "review" && (
           <div className="space-y-6">
-            <div className="rounded-lg border border-neutral-200 p-4 space-y-4">
+            <div className="rounded-lg border p-4 space-y-4">
               <div>
-                <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Display Name
                 </p>
-                <p className="text-sm text-neutral-900">
+                <p className="text-sm text-foreground">
                   {formData.displayName}
                 </p>
               </div>
               <div>
-                <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Profile URL
                 </p>
-                <p className="text-sm text-neutral-900">
+                <p className="text-sm text-foreground">
                   {process.env.NEXT_PUBLIC_APP_URL}/creators/{formData.slug}
                 </p>
               </div>
               {formData.bio && (
                 <div>
-                  <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                     Bio
                   </p>
-                  <p className="text-sm text-neutral-900 line-clamp-3">
+                  <p className="text-sm text-foreground line-clamp-3">
                     {formData.bio}
                   </p>
                 </div>
               )}
               {formData.sourcePlatforms.length > 0 && (
                 <div>
-                  <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                     Current Platforms
                   </p>
-                  <p className="text-sm text-neutral-900">
+                  <p className="text-sm text-foreground">
                     {formData.sourcePlatforms
                       .map(
                         (value) =>
@@ -697,10 +699,10 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                 </div>
               )}
               <div>
-                <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Payout Ready
                 </p>
-                <p className="text-sm text-neutral-900">
+                <p className="text-sm text-foreground">
                   {formData.legalName && formData.paypalEmail
                     ? "Yes - Legal name and PayPal provided"
                     : "No - Complete payout info later"}
@@ -712,7 +714,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
               <button
                 type="button"
                 onClick={handleBack}
-                className="flex-1 rounded-lg border border-neutral-300 px-5 py-3 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 transition-colors"
+                className="flex-1 rounded-lg border px-5 py-3 text-sm font-semibold text-foreground hover:bg-accent transition-colors"
               >
                 Back
               </button>
@@ -731,8 +733,8 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
         {/* Step 4: Artwork Upload */}
         {step === "artwork" && (
           <div className="space-y-6">
-            <div className="rounded-lg border border-beige-200 bg-beige-50 p-4">
-              <p className="text-sm text-beige-800">
+            <div className="rounded-lg border bg-muted p-4">
+              <p className="text-sm text-foreground/80">
                 <strong>Recommended:</strong> Upload at least 5 artworks to make
                 your profile more attractive to collectors. You can always add
                 more later.
@@ -750,7 +752,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
               <button
                 type="button"
                 onClick={handleBack}
-                className="flex-1 rounded-lg border border-neutral-300 px-5 py-3 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 transition-colors"
+                className="flex-1 rounded-lg border px-5 py-3 text-sm font-semibold text-foreground hover:bg-accent transition-colors"
               >
                 Back
               </button>
@@ -768,12 +770,12 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
         {/* Step 5: Share */}
         {step === "share" && (
           <div className="space-y-6">
-            <div className="rounded-lg border border-jade-200 bg-jade-50 p-4 text-center">
+            <div className="rounded-lg border bg-jade-500/10 p-4 text-center">
               <div className="text-4xl mb-2">🎉</div>
-              <h2 className="text-lg font-semibold text-jade-900">
+              <h2 className="text-lg font-semibold text-jade-600">
                 You&apos;re all set!
               </h2>
-              <p className="text-sm text-jade-700 mt-1">
+              <p className="text-sm text-jade-500/80 mt-1">
                 Your creator profile is ready. Share it with your audience to
                 start growing your collector base.
               </p>
@@ -783,7 +785,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
               <div>
                 <label
                   htmlFor="creator-profile-link"
-                  className="block text-sm font-medium text-neutral-700 mb-1"
+                  className="block text-sm font-medium text-foreground/80 mb-1"
                 >
                   Your Profile Link
                 </label>
@@ -793,7 +795,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                     type="text"
                     readOnly
                     value={`${process.env.NEXT_PUBLIC_APP_URL}/creators/${formData.slug}`}
-                    className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm bg-neutral-50 text-neutral-600"
+                    className="flex-1 rounded-lg border px-3 py-2 text-sm bg-muted text-muted-foreground"
                   />
                   <button
                     type="button"
@@ -803,7 +805,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                       );
                       // Could add toast notification here
                     }}
-                    className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
+                    className="rounded-lg border px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors"
                   >
                     Copy
                   </button>
@@ -815,7 +817,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                   href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out my art on this new platform! ${process.env.NEXT_PUBLIC_APP_URL}/creators/${formData.slug}`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-lg border border-neutral-300 px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors text-center"
+                  className="rounded-lg border px-4 py-3 text-sm font-medium text-foreground hover:bg-accent transition-colors text-center"
                 >
                   Share on Twitter/X
                 </a>
@@ -823,7 +825,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                   href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`${process.env.NEXT_PUBLIC_APP_URL}/creators/${formData.slug}`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-lg border border-neutral-300 px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors text-center"
+                  className="rounded-lg border px-4 py-3 text-sm font-medium text-foreground hover:bg-accent transition-colors text-center"
                 >
                   Share on Facebook
                 </a>
@@ -834,7 +836,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
               <button
                 type="button"
                 onClick={handleBack}
-                className="flex-1 rounded-lg border border-neutral-300 px-5 py-3 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 transition-colors"
+                className="flex-1 rounded-lg border px-5 py-3 text-sm font-semibold text-foreground hover:bg-accent transition-colors"
               >
                 Back
               </button>

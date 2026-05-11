@@ -203,10 +203,10 @@ class InstagramCommenter:
         listener = keyboard.Listener(on_press=on_press)
         listener.start()
 
-        mean_delay = 0.03
-        std_delay = 0.013
-        word_pause_mean = 0.16
-        word_pause_std = 0.8
+        mean_delay = 0.003
+        std_delay = 0.0013
+        word_pause_mean = 0.016
+        word_pause_std = 0.08
 
         try:
             for i, char in enumerate(text):
