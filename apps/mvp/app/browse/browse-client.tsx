@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BrowseReleasesGrid } from "@/components/browse-releases-grid";
+import { CollectorBookletCart } from "@/components/collector-booklet-cart";
 import { DiscoverBookletBar } from "@/components/discover-booklet-bar";
 import { InfiniteScrollSentinel } from "@/components/infinite-scroll-sentinel";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
@@ -250,7 +251,7 @@ export function BrowseClient({
           ))}
       </div>
 
-      <DiscoverBookletBar />
+      {hasCollectorRole ? <CollectorBookletCart /> : <DiscoverBookletBar />}
     </div>
   );
 }

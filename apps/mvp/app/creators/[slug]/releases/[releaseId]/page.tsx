@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CollectorBookletCart } from "@/components/collector-booklet-cart";
 import { DiscoverBookletBar } from "@/components/discover-booklet-bar";
 import { PublicReleaseBookletCta } from "@/components/public-release-booklet-cta";
 import { ReleaseArtworkLightbox } from "@/components/release-artwork-lightbox";
@@ -128,7 +129,7 @@ export default async function PublicReleaseDetailPage({ params }: Props) {
           initiallySelected={isSelected}
         />
       </div>
-      <DiscoverBookletBar />
+      {hasCollectorRole ? <CollectorBookletCart /> : <DiscoverBookletBar />}
     </div>
   );
 }
