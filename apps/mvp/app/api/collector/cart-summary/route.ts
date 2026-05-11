@@ -12,18 +12,13 @@ export async function GET() {
 
   const summary = await getCollectorCartSummary(session.user.id);
 
-  const collectorProfile = await db.collectorProfile.findUnique({
-    where: { userId: session.user.id },
-    select: { id: true },
-  });
-
   const currentCycle = await getCurrentCycle();
   const checkoutIntent =
-    collectorProfile && summary.cycleId
+    summary.collectorProfileId && summary.cycleId
       ? await db.checkoutIntent.findUnique({
           where: {
             collectorProfileId_cycleId: {
-              collectorProfileId: collectorProfile.id,
+              collectorProfileId: summary.collectorProfileId,
               cycleId: summary.cycleId,
             },
           },

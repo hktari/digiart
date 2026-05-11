@@ -10,6 +10,7 @@ import {
   MIN_BOOKLET_ARTWORKS,
   MIN_SUBSCRIBED_CREATORS,
 } from "@/lib/constants/booklet";
+import { computeCycleStatus } from "@/lib/cycle-status";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { getCurrentCycle } from "./cycles";
@@ -46,6 +47,7 @@ type CollectorCartRelease = {
 };
 
 export type CollectorCartSummary = {
+  collectorProfileId: string | null;
   cycleId: string | null;
   selectedReleases: CollectorCartRelease[];
   totalArtworks: number;
@@ -115,7 +117,6 @@ async function getSubscribedCreatorsCount(collectorProfileId: string) {
 }
 
 async function assertCycleOpen(cycleId: string): Promise<void> {
-  const { computeCycleStatus } = await import("@/lib/cycle-status");
   const cycle = await db.subscriptionCycle.findUnique({
     where: { id: cycleId },
     select: {
@@ -718,11 +719,10 @@ export async function toggleReleaseSelection(
         return { success: false, error: "Release is not available." };
       }
 
-      const currentArtworkCount = await countSelectedArtworks(
-        collectorProfile.id,
-        cycleId,
-      );
-      const artworkRange = await getActiveArtworkRange();
+      const [currentArtworkCount, artworkRange] = await Promise.all([
+        countSelectedArtworks(collectorProfile.id, cycleId),
+        getActiveArtworkRange(),
+      ]);
       if (
         currentArtworkCount + release._count.artworks >
         artworkRange.maxAllowed
@@ -742,8 +742,6 @@ export async function toggleReleaseSelection(
       });
     }
 
-    revalidatePath("/");
-    revalidatePath("/browse");
     revalidatePath("/collector/releases");
     return { success: true };
   } catch (error) {
@@ -840,8 +838,9 @@ export async function commitBookletForCycle(): Promise<CommitBookletResult> {
       pageCount: pageCountResult.totalPages,
     });
 
-    const { createQuoteSnapshot } =
-      await import("@/lib/pricing/quote-snapshot");
+    const { createQuoteSnapshot } = await import(
+      "@/lib/pricing/quote-snapshot"
+    );
     const snapshot = await createQuoteSnapshot(
       collectorProfile.id,
       currentCycle.id,
@@ -903,15 +902,17 @@ export async function commitBookletForCycle(): Promise<CommitBookletResult> {
 export async function getCollectorCartSummary(
   userId: string,
 ): Promise<CollectorCartSummary> {
-  const artworkRange = await getActiveArtworkRange();
-
-  const collectorProfile = await db.collectorProfile.findUnique({
-    where: { userId },
-    select: { id: true },
-  });
+  const [artworkRange, collectorProfile] = await Promise.all([
+    getActiveArtworkRange(),
+    db.collectorProfile.findUnique({
+      where: { userId },
+      select: { id: true },
+    }),
+  ]);
 
   if (!collectorProfile) {
     return {
+      collectorProfileId: null,
       cycleId: null,
       selectedReleases: [],
       totalArtworks: 0,
@@ -929,13 +930,14 @@ export async function getCollectorCartSummary(
     };
   }
 
-  const currentCycle = await getCurrentCycle();
-  const totalSubscribedCreators = await getSubscribedCreatorsCount(
-    collectorProfile.id,
-  );
+  const [currentCycle, totalSubscribedCreators] = await Promise.all([
+    getCurrentCycle(),
+    getSubscribedCreatorsCount(collectorProfile.id),
+  ]);
 
   if (!currentCycle) {
     return {
+      collectorProfileId: collectorProfile.id,
       cycleId: null,
       selectedReleases: [],
       totalArtworks: 0,
@@ -955,35 +957,44 @@ export async function getCollectorCartSummary(
     };
   }
 
-  const selections = await db.collectorReleaseSelection.findMany({
-    where: {
-      collectorProfileId: collectorProfile.id,
-      cycleId: currentCycle.id,
-    },
-    select: {
-      releaseId: true,
-      release: {
-        select: {
-          title: true,
-          creatorProfile: {
-            select: {
-              id: true,
-              displayName: true,
-              slug: true,
+  const [selections, subscriptions] = await Promise.all([
+    db.collectorReleaseSelection.findMany({
+      where: {
+        collectorProfileId: collectorProfile.id,
+        cycleId: currentCycle.id,
+      },
+      select: {
+        releaseId: true,
+        release: {
+          select: {
+            title: true,
+            creatorProfile: {
+              select: {
+                id: true,
+                displayName: true,
+                slug: true,
+              },
             },
-          },
-          _count: {
-            select: {
-              artworks: true,
+            _count: {
+              select: {
+                artworks: true,
+              },
             },
           },
         },
       },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+      orderBy: {
+        createdAt: "desc",
+      },
+    }),
+    db.collectorCreatorSubscription.findMany({
+      where: {
+        collectorProfileId: collectorProfile.id,
+        isActive: true,
+      },
+      select: { creatorProfileId: true },
+    }),
+  ]);
 
   const selectedReleases: CollectorCartRelease[] = selections.map((s) => ({
     releaseId: s.releaseId,
@@ -995,15 +1006,7 @@ export async function getCollectorCartSummary(
   }));
 
   const subscribedCreatorIds = new Set(
-    (
-      await db.collectorCreatorSubscription.findMany({
-        where: {
-          collectorProfileId: collectorProfile.id,
-          isActive: true,
-        },
-        select: { creatorProfileId: true },
-      })
-    ).map((s) => s.creatorProfileId),
+    subscriptions.map((s) => s.creatorProfileId),
   );
 
   for (const item of selectedReleases) {
@@ -1030,6 +1033,7 @@ export async function getCollectorCartSummary(
     totalSubscribedCreators <= MAX_SUBSCRIBED_CREATORS;
 
   return {
+    collectorProfileId: collectorProfile.id,
     cycleId: currentCycle.id,
     selectedReleases,
     totalArtworks,
