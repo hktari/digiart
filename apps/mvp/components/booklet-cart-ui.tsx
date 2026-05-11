@@ -67,7 +67,7 @@ export function BookletCartUI({
     }).format(amount);
   };
 
-  const lockDateFormatted = cycleLockDate
+  const _lockDateFormatted = cycleLockDate
     ? new Date(cycleLockDate).toLocaleDateString("en-US", {
         month: "long",
         day: "numeric",
