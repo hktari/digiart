@@ -14,6 +14,7 @@ import { useEffect, useMemo, useState } from "react";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
+  { developerTools: { assistant: { enabled: false } } },
 );
 
 interface EstimateSummary {
