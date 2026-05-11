@@ -245,22 +245,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarFooter>
         <SidebarMenu>
           {isAuthenticated ? (
-            <>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="/account/roles">
-                    <User className="size-4" />
-                    <span>{session?.user?.name || session?.user?.email}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => signOut()}>
-                  <LogOut className="size-4" />
-                  <span>Sign out</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </>
+            <SidebarMenuItem>
+              <SidebarMenuButton onClick={() => signOut()}>
+                <LogOut className="size-4" />
+                <span>Sign out</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           ) : (
             <>
               <SidebarMenuItem>

@@ -2,11 +2,17 @@ import type { Metadata } from "next";
 import { Crimson_Pro, Manrope, Outfit, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 import { AppSidebar } from "@/components/app-sidebar";
+import { BreadcrumbNav } from "@/components/breadcrumb-nav";
 import { Footer } from "@/components/layout/Footer";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { PostHogIdentifier } from "@/components/providers/posthog-identifier";
 import { ThemeProvider } from "@/components/providers/theme-provider";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -65,8 +71,15 @@ export default function RootLayout({
               <SidebarProvider>
                 <AppSidebar />
                 <SidebarInset>
-                  {children}
-                  <Footer />
+                  <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+                    <SidebarTrigger className="-ml-1" />
+                    <Separator orientation="vertical" className="mr-2 h-4" />
+                    <BreadcrumbNav />
+                  </header>
+                  <div className="flex flex-1 flex-col">
+                    {children}
+                    <Footer />
+                  </div>
                 </SidebarInset>
               </SidebarProvider>
               <Toaster />

@@ -40,10 +40,10 @@ export function CreatorDashboard({ stats, creatorProfile }: Props) {
             Publishing is not enabled on this account yet.
           </p>
           <Link
-            href="/account/roles"
+            href="/creator/setup"
             className="mt-4 inline-flex text-sm font-medium text-primary hover:text-primary/80"
           >
-            Enable publishing &rarr;
+            Start creator setup &rarr;
           </Link>
         </CardContent>
       </Card>
