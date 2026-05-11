@@ -102,9 +102,20 @@ export function BookletCartUI({
             {items.map((item) => (
               <div
                 key={item.releaseId}
-                className="rounded border border-beige-200 bg-white p-2"
+                className="relative rounded border border-beige-200 bg-white p-2"
               >
-                <p className="text-sm font-medium text-ink">{item.title}</p>
+                <button
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => onRemove(item.releaseId)}
+                  className="absolute top-2 right-2 p-1.5 rounded-md hover:bg-red-50 text-red-600 hover:text-red-700 disabled:opacity-50 transition-colors"
+                  aria-label="Remove"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+                <p className="text-sm font-medium text-ink pr-8">
+                  {item.title}
+                </p>
                 <p className="text-xs text-ink/60">
                   {item.creatorDisplayName} · {item.artworkCount}{" "}
                   {item.artworkCount === 1 ? "page" : "pages"}
@@ -116,17 +127,6 @@ export function BookletCartUI({
                       : "Manually added"}
                   </p>
                 )}
-                <div className="mt-2 flex items-center justify-between">
-                  <button
-                    type="button"
-                    disabled={isPending}
-                    onClick={() => onRemove(item.releaseId)}
-                    className="p-1.5 rounded-md hover:bg-red-50 text-red-600 hover:text-red-700 disabled:opacity-50 transition-colors"
-                    aria-label="Remove"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
               </div>
             ))}
           </div>
@@ -231,31 +231,33 @@ export function BookletCartUI({
               items.map((item) => (
                 <div
                   key={item.releaseId}
-                  className="rounded border border-beige-200 bg-white p-2"
+                  className="flex items-center gap-3 rounded border border-beige-200 bg-white p-2"
                 >
-                  <p className="text-sm font-medium text-ink">{item.title}</p>
-                  <p className="text-xs text-ink/60">
-                    {item.creatorDisplayName} · {item.artworkCount}{" "}
-                    {item.artworkCount === 1 ? "page" : "pages"}
-                  </p>
-                  {item.source && (
-                    <p className="text-[11px] text-ink/50 mt-0.5">
-                      {item.source === "AUTO_SUBSCRIPTION"
-                        ? "Auto-added from subscription"
-                        : "Manually added"}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-ink truncate">
+                      {item.title}
                     </p>
-                  )}
-                  <div className="mt-2 flex items-center justify-between">
-                    <button
-                      type="button"
-                      disabled={isPending}
-                      onClick={() => onRemove(item.releaseId)}
-                      className="p-1.5 rounded-md hover:bg-red-50 text-red-600 hover:text-red-700 disabled:opacity-50 transition-colors"
-                      aria-label="Remove"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
+                    <p className="text-xs text-ink/60">
+                      {item.creatorDisplayName} · {item.artworkCount}{" "}
+                      {item.artworkCount === 1 ? "page" : "pages"}
+                    </p>
+                    {item.source && (
+                      <p className="text-[11px] text-ink/50 mt-0.5">
+                        {item.source === "AUTO_SUBSCRIPTION"
+                          ? "Auto-added from subscription"
+                          : "Manually added"}
+                      </p>
+                    )}
                   </div>
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => onRemove(item.releaseId)}
+                    className="shrink-0 p-2 rounded-md hover:bg-red-50 text-red-600 hover:text-red-700 disabled:opacity-50 transition-colors"
+                    aria-label="Remove"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
                 </div>
               ))
             )}
