@@ -19,7 +19,7 @@ type Props = {
   creatorStats: CreatorDashboardStats | null;
   collectorData: CollectorData | null;
   creatorProfile: any;
-  nextActions: Array<{ title: string; description: string; href: string }>;
+  nextActions?: Array<{ title: string; description: string; href: string }>;
 };
 
 export function DashboardTabs({
@@ -28,10 +28,14 @@ export function DashboardTabs({
   creatorStats,
   collectorData,
   creatorProfile,
-  nextActions,
+  nextActions = [],
 }: Props) {
   const [activeTab, setActiveTab] = useState<"creator" | "collector">(
-    isCreator ? "creator" : "collector",
+    collectorData?.collectorProfile
+      ? "collector"
+      : creatorProfile
+        ? "creator"
+        : "collector",
   );
 
   const tabs = [

@@ -179,63 +179,6 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       ? await getCollectorReleaseSelections(session.user.id, currentCycle.id)
       : [];
 
-  const creatorProfileComplete = Boolean(
-    creatorProfile?.status === "PUBLISHED" ||
-      (creatorProfile?.displayName && creatorProfile?.slug),
-  );
-  const payoutReady = creatorProfile?.payoutProfile?.isReady ?? false;
-
-  const nextActions = [
-    isCreator &&
-      !creatorProfile && {
-        title: "Start creator setup",
-        description: "Set your display name, slug, and payout details.",
-        href: "/creator/setup",
-      },
-    isCreator &&
-      creatorProfile &&
-      !creatorProfileComplete && {
-        title: "Finish your creator profile",
-        description:
-          "Complete the profile collectors will see before you publish.",
-        href: "/creator/setup",
-      },
-    isCreator &&
-      creatorProfile &&
-      !payoutReady && {
-        title: "Add payout details",
-        description:
-          "Complete payout info so earnings can be routed correctly.",
-        href: "/creator/profile",
-      },
-    isCollector &&
-      !collectorProfile && {
-        title: "Complete booklet setup",
-        description: "Add your shipping profile before building a booklet.",
-        href: "/collector/setup",
-      },
-    isCollector &&
-      collectorProfile &&
-      subscriptions.length === 0 && {
-        title: "Follow your first artist",
-        description:
-          "Follow artists to expand the release pool for your booklet.",
-        href: "/browse",
-      },
-    isCollector &&
-      collectorProfile &&
-      currentCycle &&
-      selections.length === 0 && {
-        title: "Select releases for this cycle",
-        description: "Build your booklet by choosing complete releases.",
-        href: "/collector/releases",
-      },
-  ].filter(Boolean) as Array<{
-    title: string;
-    description: string;
-    href: string;
-  }>;
-
   // Track page view for authenticated users
   void trackPageView("/", { userId: session.user.id });
 
@@ -265,7 +208,6 @@ export default async function HomePage({ searchParams }: HomePageProps) {
               ? { collectorProfile, subscriptions, selections, currentCycle }
               : null
           }
-          nextActions={nextActions}
         />
       </div>
     </main>

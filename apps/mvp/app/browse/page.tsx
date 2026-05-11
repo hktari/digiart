@@ -13,7 +13,7 @@ type Props = {
 };
 
 export default async function BrowsePage({ searchParams }: Props) {
-  const { tag, view = "creators" } = await searchParams;
+  const { tag, view = "releases" } = await searchParams;
   const session = await auth();
 
   const isAuthenticated = Boolean(session?.user?.id);
