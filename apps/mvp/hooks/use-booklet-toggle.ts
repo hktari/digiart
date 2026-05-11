@@ -7,8 +7,9 @@ import {
   useState,
   useTransition,
 } from "react";
+import { mutate } from "swr";
+import { CART_SUMMARY_KEY } from "@/components/collector-booklet-cart";
 import { toggleReleaseSelection } from "@/lib/actions/collector";
-import { dispatchCollectorCartUpdated } from "@/lib/cart-events";
 import { dispatchDiscoverBookletUpdated } from "@/lib/discover-booklet-events";
 
 export const DISCOVER_BOOKLET_STORAGE_KEY = "discover-booklet";
@@ -121,7 +122,7 @@ export function useBookletToggle(
             setServerSelected((prev) => !prev);
             return;
           }
-          dispatchCollectorCartUpdated();
+          mutate(CART_SUMMARY_KEY);
         } catch {
           // Revert on error
           setServerSelected((prev) => !prev);

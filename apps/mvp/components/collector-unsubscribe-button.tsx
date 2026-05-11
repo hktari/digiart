@@ -2,8 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
+import { mutate } from "swr";
+import { CART_SUMMARY_KEY } from "@/components/collector-booklet-cart";
 import { unsubscribeFromCreator } from "@/lib/actions/collector";
-import { dispatchCollectorCartUpdated } from "@/lib/cart-events";
 
 type Props = {
   subscriptionId: string;
@@ -17,7 +18,7 @@ export function CollectorUnsubscribeButton({ subscriptionId }: Props) {
     startTransition(async () => {
       const result = await unsubscribeFromCreator(subscriptionId);
       if (!result.success) return;
-      dispatchCollectorCartUpdated();
+      mutate(CART_SUMMARY_KEY);
       router.refresh();
     });
   };

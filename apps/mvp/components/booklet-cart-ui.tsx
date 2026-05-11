@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, ChevronUp, ShoppingBag } from "lucide-react";
+import { ChevronDown, ChevronUp, ShoppingBag, X } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
@@ -116,14 +116,15 @@ export function BookletCartUI({
                       : "Manually added"}
                   </p>
                 )}
-                <div className="mt-2 flex items-center text-xs">
+                <div className="mt-2 flex items-center justify-between">
                   <button
                     type="button"
                     disabled={isPending}
                     onClick={() => onRemove(item.releaseId)}
-                    className="text-red-600 hover:text-red-700 disabled:opacity-50"
+                    className="p-1.5 rounded-md hover:bg-red-50 text-red-600 hover:text-red-700 disabled:opacity-50 transition-colors"
+                    aria-label="Remove"
                   >
-                    Remove
+                    <X className="h-4 w-4" />
                   </button>
                 </div>
               </div>
@@ -165,13 +166,6 @@ export function BookletCartUI({
                 differ slightly; we email the exact amount before charging.
               </p>
             )}
-          </div>
-        )}
-
-        {checkoutIntent && (
-          <div className="rounded bg-green-50 border border-green-200 p-2 text-xs text-green-800">
-            Booklet committed{" "}
-            {lockDateFormatted && `— charged on ${lockDateFormatted}`}
           </div>
         )}
 
@@ -251,14 +245,15 @@ export function BookletCartUI({
                         : "Manually added"}
                     </p>
                   )}
-                  <div className="mt-2 flex items-center text-xs">
+                  <div className="mt-2 flex items-center justify-between">
                     <button
                       type="button"
                       disabled={isPending}
                       onClick={() => onRemove(item.releaseId)}
-                      className="text-red-600 hover:text-red-700 disabled:opacity-50"
+                      className="p-1.5 rounded-md hover:bg-red-50 text-red-600 hover:text-red-700 disabled:opacity-50 transition-colors"
+                      aria-label="Remove"
                     >
-                      Remove
+                      <X className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
@@ -306,13 +301,6 @@ export function BookletCartUI({
                     charging.
                   </p>
                 )}
-              </div>
-            )}
-
-            {checkoutIntent && (
-              <div className="rounded bg-green-50 border border-green-200 p-2 text-xs text-green-800">
-                Booklet committed{" "}
-                {lockDateFormatted && `— charged on ${lockDateFormatted}`}
               </div>
             )}
 

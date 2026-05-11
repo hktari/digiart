@@ -3,8 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useTransition } from "react";
+import { mutate } from "swr";
+import { CART_SUMMARY_KEY } from "@/components/collector-booklet-cart";
 import { toggleReleaseSelection } from "@/lib/actions/collector";
-import { dispatchCollectorCartUpdated } from "@/lib/cart-events";
 
 type Release = {
   id: string;
@@ -61,7 +62,7 @@ export function ReleaseSelectionGrid({
           setSelectedIds(selectedIds);
           return;
         }
-        dispatchCollectorCartUpdated();
+        mutate(CART_SUMMARY_KEY);
       } catch (error) {
         console.error("Failed to toggle selection:", error);
         setSelectedIds(selectedIds);
