@@ -36,7 +36,9 @@ export default async function CreatorSubscribePage({
 
   await ensureRole(session.user.id, "COLLECTOR");
 
-  const collectorProfile = await getCollectorProfile(session.user.id);
+  const collectorProfile = await getCollectorProfile(session.user.id, {
+    allowPrefill: false,
+  });
 
   if (!collectorProfile) {
     const setupParams = new URLSearchParams({ creator: profile.id });

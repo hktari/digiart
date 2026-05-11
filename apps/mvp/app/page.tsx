@@ -1,8 +1,8 @@
 import { ArrowRight, BookOpen, Package, Palette } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { AttributionTracker } from "@/components/attribution-tracker";
 import { DashboardTabs } from "@/components/dashboard-tabs";
-import { captureAttributionAction } from "@/lib/actions/analytics";
 import {
   getCollectorProfile,
   getCollectorReleaseSelections,
@@ -134,9 +134,13 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         searchParamsRecord[key] = value;
       }
     }
-    void captureAttributionAction(searchParamsRecord, "/");
     void trackPageView("/", { isAnonymous: true });
-    return <PublicHomePage />;
+    return (
+      <>
+        <AttributionTracker searchParams={searchParamsRecord} pathname="/" />
+        <PublicHomePage />
+      </>
+    );
   }
 
   const roles = session.user.roles ?? [];
@@ -163,7 +167,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         })
       : null,
     isCreator ? getCreatorDashboardStats() : null,
-    isCollector ? getCollectorProfile(session.user.id) : null,
+    isCollector
+      ? getCollectorProfile(session.user.id, { allowPrefill: false })
+      : null,
     isCollector ? getCollectorSubscriptions(session.user.id) : [],
     getCurrentCycle(),
   ]);

@@ -73,6 +73,10 @@ export async function captureAttribution(
   pathname: string,
 ): Promise<void> {
   const anonymousId = await getOrCreateAnonymousId();
+  if (!anonymousId) {
+    return;
+  }
+
   const attribution = await parseAttributionFromRequest(searchParams, pathname);
 
   // Resolve creator slug to ID if needed

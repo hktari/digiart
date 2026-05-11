@@ -1,8 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DiscoverBookletBar } from "@/components/discover-booklet-bar";
 import { PublicReleaseBookletCta } from "@/components/public-release-booklet-cta";
+import { ReleaseArtworkLightbox } from "@/components/release-artwork-lightbox";
 import {
   getCollectorProfile,
   getCollectorReleaseSelections,
@@ -29,7 +29,9 @@ export default async function PublicReleaseDetailPage({ params }: Props) {
   const hasCollectorRole = session?.user?.roles?.includes("COLLECTOR") ?? false;
 
   const [collectorProfile, currentCycle] = await Promise.all([
-    userId && hasCollectorRole ? getCollectorProfile(userId) : null,
+    userId && hasCollectorRole
+      ? getCollectorProfile(userId, { allowPrefill: false })
+      : null,
     getCurrentCycle(),
   ]);
 
@@ -106,31 +108,25 @@ export default async function PublicReleaseDetailPage({ params }: Props) {
           initiallySelected={isSelected}
         />
 
-        <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {release.artworks.map((item) => (
-            <article
-              key={item.artwork.id}
-              className="overflow-hidden rounded-2xl border border-neutral-200 bg-white"
-            >
-              <div className="relative aspect-square bg-neutral-100">
-                <Image
-                  src={item.artwork.imageUrl}
-                  alt={item.artwork.title}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <div className="space-y-1 p-4">
-                <h2 className="text-sm font-semibold text-neutral-900">
-                  {item.artwork.title}
-                </h2>
-                <p className="text-xs text-neutral-500">
-                  {item.artwork.orientation.toLowerCase()}
-                </p>
-              </div>
-            </article>
-          ))}
-        </section>
+        <ReleaseArtworkLightbox
+          artworks={release.artworks.map((item) => ({
+            id: item.artwork.id,
+            title: item.artwork.title,
+            orientation: item.artwork.orientation,
+            imageUrl: item.artwork.imageUrl,
+          }))}
+          releaseId={release.id}
+          releaseData={{
+            id: release.id,
+            title: release.title,
+            creatorProfile: release.creatorProfile,
+            _count: release._count,
+          }}
+          cycleId={currentCycle?.id ?? null}
+          isAuthenticated={isAuthenticated}
+          hasCollectorRole={hasCollectorRole}
+          initiallySelected={isSelected}
+        />
       </div>
       <DiscoverBookletBar />
     </div>

@@ -25,7 +25,7 @@ export default async function BrowsePage({ searchParams }: Props) {
       view === "releases" ? getAllPublishedReleases(tag) : [],
       getAllTags(),
       isAuthenticated && hasCollectorRole && session?.user?.id
-        ? getCollectorProfile(session.user.id)
+        ? getCollectorProfile(session.user.id, { allowPrefill: false })
         : null,
       hasCollectorRole ? getCurrentCycle() : null,
     ]);

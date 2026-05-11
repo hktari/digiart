@@ -353,7 +353,10 @@ export async function saveCollectorProfile(
   }
 }
 
-export async function getCollectorProfile(userId: string) {
+export async function getCollectorProfile(
+  userId: string,
+  options?: { allowPrefill?: boolean },
+) {
   const collectorProfile = await db.collectorProfile.findUnique({
     where: { userId },
     include: {
@@ -373,7 +376,7 @@ export async function getCollectorProfile(userId: string) {
   });
 
   // If user already has a CreatorProfile, prefill CollectorProfile data
-  if (!collectorProfile) {
+  if (!collectorProfile && options?.allowPrefill !== false) {
     const creatorProfile = await db.creatorProfile.findUnique({
       where: { userId },
       select: { displayName: true },

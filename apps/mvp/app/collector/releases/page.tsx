@@ -16,7 +16,9 @@ export default async function CollectorReleasesPage() {
     redirect("/auth/sign-in");
   }
 
-  const collectorProfile = await getCollectorProfile(session.user.id);
+  const collectorProfile = await getCollectorProfile(session.user.id, {
+    allowPrefill: false,
+  });
   if (!collectorProfile) {
     redirect("/collector/setup");
   }

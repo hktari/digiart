@@ -8,8 +8,12 @@ const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
  * Get or create an anonymous ID for attribution tracking.
  * This ID is stored in a cookie and used to link pre-auth sessions
  * to users after they sign up.
+ *
+ * NOTE: Cookie creation can fail when called during Server Component
+ * rendering (Next.js only allows cookie modifications in Server Actions
+ * or Route Handlers). In that case, returns null.
  */
-export async function getOrCreateAnonymousId(): Promise<string> {
+export async function getOrCreateAnonymousId(): Promise<string | null> {
   const cookieStore = await cookies();
   const existingId = cookieStore.get(ANON_ID_COOKIE)?.value;
 
@@ -18,13 +22,19 @@ export async function getOrCreateAnonymousId(): Promise<string> {
   }
 
   const newId = randomUUID();
-  cookieStore.set(ANON_ID_COOKIE, newId, {
-    maxAge: COOKIE_MAX_AGE,
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-  });
+  try {
+    cookieStore.set(ANON_ID_COOKIE, newId, {
+      maxAge: COOKIE_MAX_AGE,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+    });
+  } catch {
+    // Cookies can only be modified in a Server Action or Route Handler.
+    // This happens when called during SSR from a Server Component.
+    return null;
+  }
 
   return newId;
 }
