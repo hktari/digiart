@@ -126,17 +126,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <SidebarMenuSubItem>
                     <SidebarMenuSubButton
                       asChild
-                      isActive={pathname === "/creator/payout"}
+                      isActive={pathname === "/creator/profile"}
                     >
-                      <Link href="/creator/payout">Payout</Link>
+                      <Link href="/creator/profile">Profile</Link>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                   <SidebarMenuSubItem>
                     <SidebarMenuSubButton
                       asChild
-                      isActive={pathname === "/creator/profile"}
+                      isActive={pathname === "/creator/payout"}
                     >
-                      <Link href="/creator/profile">Profile</Link>
+                      <Link href="/creator/payout">Payouts</Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton
+                      asChild
+                      isActive={pathname === "/creator/share"}
+                    >
+                      <Link href="/creator/share">Share</Link>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                 </SidebarMenuSub>
@@ -171,14 +179,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <SidebarMenuSubItem>
                     <SidebarMenuSubButton
                       asChild
-                      isActive={pathname === "/collector/orders"}
-                    >
-                      <Link href="/collector/orders">Orders</Link>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton
-                      asChild
                       isActive={pathname === "/collector/releases"}
                     >
                       <Link href="/collector/releases">Releases</Link>
@@ -187,9 +187,33 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <SidebarMenuSubItem>
                     <SidebarMenuSubButton
                       asChild
+                      isActive={pathname === "/browse"}
+                    >
+                      <Link href="/browse">Browse</Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton
+                      asChild
                       isActive={pathname === "/collector/pricing"}
                     >
                       <Link href="/collector/pricing">Pricing</Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton
+                      asChild
+                      isActive={pathname === "/collector/lock-status"}
+                    >
+                      <Link href="/collector/lock-status">Lock status</Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton
+                      asChild
+                      isActive={pathname === "/collector/setup"}
+                    >
+                      <Link href="/collector/setup">Setup</Link>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                 </SidebarMenuSub>
