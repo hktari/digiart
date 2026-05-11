@@ -73,7 +73,7 @@ export default async function CreatorProfilePage({
         searchParams={searchParamsRecord}
         pathname={`/creators/${slug}`}
       />
-      <div className="bg-neutral-50">
+      <div className="bg-muted">
         <div className="max-w-5xl mx-auto px-4 py-12 space-y-12 lg:pr-80">
           {/* Header */}
           <div className="flex flex-col md:flex-row gap-8 items-start">
@@ -126,14 +126,14 @@ export default async function CreatorProfilePage({
               )}
 
               <div>
-                <h1 className="text-4xl font-bold tracking-tight text-neutral-900">
+                <h1 className="text-4xl font-bold tracking-tight text-foreground">
                   {profile.displayName}
                 </h1>
-                <p className="text-neutral-500 mt-1">@{profile.slug}</p>
+                <p className="text-muted-foreground mt-1">@{profile.slug}</p>
               </div>
 
               {profile.bio && (
-                <p className="text-neutral-700 leading-relaxed max-w-2xl">
+                <p className="text-foreground/80 leading-relaxed max-w-2xl">
                   {profile.bio}
                 </p>
               )}
@@ -141,16 +141,18 @@ export default async function CreatorProfilePage({
               {/* Stats */}
               <div className="flex gap-6 text-sm">
                 <div>
-                  <span className="font-bold text-neutral-900">
+                  <span className="font-bold text-foreground">
                     {profile._count.subscriptions}
                   </span>
-                  <span className="text-neutral-500 ml-1">subscribers</span>
+                  <span className="text-muted-foreground ml-1">
+                    subscribers
+                  </span>
                 </div>
                 <div>
-                  <span className="font-bold text-neutral-900">
+                  <span className="font-bold text-foreground">
                     {profile._count.releases}
                   </span>
-                  <span className="text-neutral-500 ml-1">releases</span>
+                  <span className="text-muted-foreground ml-1">releases</span>
                 </div>
               </div>
 
@@ -163,10 +165,10 @@ export default async function CreatorProfilePage({
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-neutral-300 bg-white text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border bg-card text-sm font-medium text-foreground hover:bg-accent transition-colors"
                     >
                       {link.label}
-                      <span className="text-neutral-400">↗</span>
+                      <span className="text-muted-foreground">↗</span>
                     </a>
                   ))}
                 </div>
@@ -208,7 +210,7 @@ export default async function CreatorProfilePage({
           {profile.releases.length > 0 && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-neutral-900">
+                <h2 className="text-2xl font-bold text-foreground">
                   Recent releases
                 </h2>
                 {profile._count.releases > 6 && (
@@ -234,7 +236,7 @@ export default async function CreatorProfilePage({
           {/* Empty state */}
           {profile.releases.length === 0 && (
             <div className="text-center py-16">
-              <p className="text-neutral-500">
+              <p className="text-muted-foreground">
                 No releases yet. Check back soon!
               </p>
             </div>
