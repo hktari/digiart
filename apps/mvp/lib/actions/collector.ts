@@ -86,22 +86,23 @@ async function countSelectedArtworks(
   collectorProfileId: string,
   cycleId: string,
 ): Promise<number> {
+  // Step 1: Get release IDs for this collector's selections
   const selections = await db.collectorReleaseSelection.findMany({
     where: { collectorProfileId, cycleId },
-    select: {
-      release: {
-        select: {
-          _count: {
-            select: {
-              artworks: true,
-            },
-          },
-        },
-      },
-    },
+    select: { releaseId: true },
   });
 
-  return selections.reduce((total, s) => total + s.release._count.artworks, 0);
+  if (selections.length === 0) return 0;
+
+  const releaseIds = selections.map((s) => s.releaseId);
+
+  // Step 2: Count artworks directly from ReleaseArtwork junction table
+  const result = await db.releaseArtwork.aggregate({
+    where: { releaseId: { in: releaseIds } },
+    _count: { artworkId: true },
+  });
+
+  return result._count.artworkId;
 }
 
 async function getSubscribedCreatorsCount(collectorProfileId: string) {
@@ -840,9 +841,8 @@ export async function commitBookletForCycle(): Promise<CommitBookletResult> {
       pageCount: pageCountResult.totalPages,
     });
 
-    const { createQuoteSnapshot } = await import(
-      "@/lib/pricing/quote-snapshot"
-    );
+    const { createQuoteSnapshot } =
+      await import("@/lib/pricing/quote-snapshot");
     const snapshot = await createQuoteSnapshot(
       collectorProfile.id,
       currentCycle.id,

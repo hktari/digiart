@@ -2,9 +2,7 @@ import { NextResponse } from "next/server";
 import { getCollectorCartSummary } from "@/lib/actions/collector";
 import { getCurrentCycle } from "@/lib/actions/cycles";
 import { auth } from "@/lib/auth";
-import { computeBookletPageCount } from "@/lib/booklet/page-count";
 import { db } from "@/lib/db";
-import { getQuote } from "@/lib/peecho/quote-service";
 
 export async function GET() {
   const session = await auth();
@@ -16,62 +14,8 @@ export async function GET() {
 
   const collectorProfile = await db.collectorProfile.findUnique({
     where: { userId: session.user.id },
-    select: { id: true, shippingCountry: true, shippingStateCode: true },
+    select: { id: true },
   });
-
-  // Pre-checkout: use quote endpoint for estimate only (no Peecho order created here)
-  let pricing: {
-    baseAmount: number;
-    shippingAmount: number;
-    markupAmount: number;
-    taxAmount: number;
-    totalEstimate: number;
-    currency: string;
-    isEstimate: true;
-  } | null = null;
-
-  if (
-    collectorProfile?.shippingCountry &&
-    summary.cycleId &&
-    summary.totalArtworks > 0
-  ) {
-    try {
-      const selections = await db.collectorReleaseSelection.findMany({
-        where: {
-          collectorProfileId: collectorProfile.id,
-          cycleId: summary.cycleId,
-        },
-        include: {
-          release: {
-            include: {
-              artworks: { include: { artwork: { select: { id: true } } } },
-            },
-          },
-        },
-      });
-
-      if (selections.length > 0) {
-        const { totalPages } = computeBookletPageCount(selections as any);
-        const quote = await getQuote({
-          country: collectorProfile.shippingCountry,
-          countryStateCode: collectorProfile.shippingStateCode ?? undefined,
-          pageCount: totalPages,
-        });
-
-        pricing = {
-          baseAmount: quote.baseAmount,
-          shippingAmount: quote.shippingAmount,
-          markupAmount: quote.markupAmount,
-          taxAmount: quote.taxAmount,
-          totalEstimate: quote.totalEstimate,
-          currency: quote.currency,
-          isEstimate: true,
-        };
-      }
-    } catch {
-      // Quote is best-effort — don't block cart load on Peecho errors
-    }
-  }
 
   const currentCycle = await getCurrentCycle();
   const checkoutIntent =
@@ -93,7 +37,7 @@ export async function GET() {
 
   return NextResponse.json({
     ...summary,
-    quote: pricing,
+    quote: null,
     checkoutIntent: checkoutIntent
       ? {
           committedAt: checkoutIntent.committedAt,
