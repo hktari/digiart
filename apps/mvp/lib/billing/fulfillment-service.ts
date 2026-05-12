@@ -1,8 +1,6 @@
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { peechoClient } from "@/lib/peecho/client";
-import { extractKeyFromStorageUrl, getPresignedGetUrl } from "@/lib/s3";
-import { attachFilesToOrder } from "./checkout-service";
 
 type SubmitOrderResult =
   | {
@@ -59,34 +57,6 @@ export async function submitFulfillmentOrder(
 
   if (!checkoutIntent?.peechoOrderId) {
     return { success: false, error: "No Peecho order found for this checkout" };
-  }
-
-  // Ensure files are attached (idempotent - safe to call again)
-  if (printFile.storageUrl && printFile.status === "READY") {
-    try {
-      // Generate a presigned URL valid for 14 days for Peecho to download
-      const key = extractKeyFromStorageUrl(printFile.storageUrl);
-      if (!key) {
-        throw new Error(
-          `Failed to extract S3 key from URL: ${printFile.storageUrl}`,
-        );
-      }
-      const presignedUrl = await getPresignedGetUrl(key);
-
-      await attachFilesToOrder(
-        checkoutIntent.peechoOrderId,
-        `booklet-${printFile.collectorProfileId}-${printFile.cycleId}`,
-        presignedUrl,
-        printFile.pageCount ?? 20,
-      );
-    } catch (error) {
-      logger.warn("Failed to attach files (may already be attached)", {
-        generatedPrintFileId,
-        peechoOrderId: checkoutIntent.peechoOrderId,
-        error: String(error),
-      });
-      // Continue - files might already be attached from freeze-service
-    }
   }
 
   const existingOrder = await db.fulfillmentOrder.findUnique({

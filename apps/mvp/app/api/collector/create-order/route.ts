@@ -3,7 +3,7 @@ import { getCurrentCycle } from "@/lib/actions/cycles";
 import { auth } from "@/lib/auth";
 import { computeBookletPageCount } from "@/lib/booklet/page-count";
 import { db } from "@/lib/db";
-import { peechoClient } from "@/lib/peecho/client";
+import { getQuote } from "@/lib/peecho/quote-service";
 
 interface CreateOrderBody {
   address: {
@@ -118,8 +118,7 @@ export async function POST(request: Request) {
     }
 
     // Validate offering has a valid Peecho externalId
-    const offeringId = parseInt(offering.externalId, 10);
-    if (Number.isNaN(offeringId) || offeringId === 0) {
+    if (Number.isNaN(parseInt(offering.externalId, 10))) {
       return NextResponse.json(
         {
           error:
@@ -129,7 +128,19 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check for existing order to orphan it
+    // Get a quote for the estimate pricing (order is created at cycle lock)
+    const quoteData = await getQuote({
+      country: address.country.toUpperCase(),
+      countryStateCode: address.state?.toUpperCase() ?? undefined,
+      pageCount: totalPages,
+      offeringId: offering.externalId,
+    });
+
+    const wholesaleTotalAmount = quoteData.wholesaleTotal;
+    const retailTotalAmount = quoteData.totalEstimate;
+    const platformMarkupAmount = quoteData.markupAmount;
+
+    // Upsert checkout intent with quote-based pricing (no Peecho order yet)
     const existingIntent = await db.checkoutIntent.findUnique({
       where: {
         collectorProfileId_cycleId: {
@@ -139,57 +150,10 @@ export async function POST(request: Request) {
       },
     });
 
-    // Create Peecho order with real address
-    // TODO(peecho-bug): Peecho returns HTTP 500 when file_details is omitted from
-    // item_details, even though their docs state it is optional. Reported to Peecho
-    // support. Using a demo PDF as a placeholder until they fix their API.
-    const orderResponse = await peechoClient.createOrder({
-      currency: "EUR",
-      order_reference: `checkout-${collectorProfile.id}-${currentCycle.id}-${Date.now()}`,
-      item_details: [
-        {
-          item_reference: `booklet-${collectorProfile.id}-${currentCycle.id}`,
-          offering_id: offeringId,
-          quantity: 1,
-          file_details: {
-            content_url:
-              "https://calin-thumbnailer.s3-eu-west-1.amazonaws.com/wall-tiles-test.pdf",
-            content_width: 210,
-            content_height: 210,
-            number_of_pages: 22,
-          },
-        },
-      ],
-      address_details: {
-        email_address: collectorProfile.user.email ?? "",
-        shipping_address: {
-          first_name: firstName,
-          last_name: lastName,
-          address_line_1: address.line1,
-          address_line_2: address.line2,
-          city: address.city,
-          zip_code: address.postal_code,
-          state: address.state ?? null,
-          country_code: address.country.toUpperCase(),
-        },
-      },
-    });
-
-    // Fetch order details to get exact retail price
-    const orderDetails = await peechoClient.getOrderDetails(
-      orderResponse.order_id,
-    );
-
-    const wholesaleTotalAmount = orderDetails.total_wholesale_price_inc_taxes;
-    const retailTotalAmount = orderDetails.total_retail_price_inc_taxes;
-    const platformMarkupAmount = retailTotalAmount - wholesaleTotalAmount;
-
-    // Upsert checkout intent with exact pricing
     if (existingIntent) {
       await db.checkoutIntent.update({
         where: { id: existingIntent.id },
         data: {
-          peechoOrderId: String(orderResponse.order_id),
           wholesaleTotalAmount,
           retailTotalAmount,
           platformMarkupAmount,
@@ -205,7 +169,6 @@ export async function POST(request: Request) {
         data: {
           collectorProfileId: collectorProfile.id,
           cycleId: currentCycle.id,
-          peechoOrderId: String(orderResponse.order_id),
           wholesaleTotalAmount,
           retailTotalAmount,
           platformMarkupAmount,
@@ -220,10 +183,9 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({
-      peechoOrderId: String(orderResponse.order_id),
       exactPrice: {
         amount: retailTotalAmount,
-        currency: orderDetails.currency,
+        currency: quoteData.currency,
       },
       pageCount: totalPages,
     });

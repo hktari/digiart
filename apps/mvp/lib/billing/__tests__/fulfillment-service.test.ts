@@ -13,10 +13,6 @@ vi.mock("@/lib/peecho/client", () => ({
   peechoClient: { payOrder: vi.fn() },
 }));
 
-vi.mock("@/lib/billing/checkout-service", () => ({
-  attachFilesToOrder: vi.fn(),
-}));
-
 describe("submitFulfillmentOrder", () => {
   let submit: typeof import("../fulfillment-service").submitFulfillmentOrder;
   let db: any;

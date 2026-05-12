@@ -100,7 +100,7 @@ export default async function CollectorCheckoutPage() {
     : null;
 
   return (
-    <div className="max-w-xl mx-auto px-4 py-10 space-y-6">
+    <div className="max-w-xl mx-auto px-4 py-10 space-y-6 text-white">
       <div>
         <BackLink
           href="/collector/releases"
@@ -108,7 +108,7 @@ export default async function CollectorCheckoutPage() {
         >
           Back to releases
         </BackLink>
-        <h1 className="text-2xl font-bold text-ink">Order your booklet</h1>
+        <h1 className="text-2xl font-bold">Order your booklet</h1>
         <p className="text-sm text-ink/60 mt-1">
           Enter your delivery address to get a price estimate, then save your
           card.{" "}

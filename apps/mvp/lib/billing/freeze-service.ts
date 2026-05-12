@@ -5,7 +5,6 @@ import { peechoClient } from "@/lib/peecho/client";
 import { getQuote } from "@/lib/peecho/quote-service";
 import { createQuoteSnapshot } from "@/lib/pricing/quote-snapshot";
 import { extractKeyFromStorageUrl, getPresignedGetUrl } from "@/lib/s3";
-import { attachFilesToOrder } from "./checkout-service";
 
 interface FreezeResult {
   frozen: number;
@@ -97,66 +96,134 @@ export async function freezeCollectorCycleQuotes(
         },
       });
 
-      // If we have an existing Peecho order, update it with final page count
-      // by attaching the file (which includes page count in metadata)
-      if (intent.peechoOrderId) {
-        try {
-          // Get or create the generated print file
-          const printFile = await db.generatedPrintFile.findUnique({
+      // Create the Peecho order at cycle lock with the final PDF URL.
+      // Order is not created during checkout; it is created here when the
+      // cycle freezes and the generated print file is ready.
+      try {
+        const printFile = await db.generatedPrintFile.findUnique({
+          where: {
+            collectorProfileId_cycleId: {
+              collectorProfileId: collectorId,
+              cycleId,
+            },
+          },
+        });
+
+        if (printFile?.storageUrl && printFile.status === "READY") {
+          // Generate a presigned URL valid for 14 days for Peecho to download
+          const key = extractKeyFromStorageUrl(printFile.storageUrl);
+          if (!key) {
+            throw new Error(
+              `Failed to extract S3 key from URL: ${printFile.storageUrl}`,
+            );
+          }
+          const presignedUrl = await getPresignedGetUrl(key);
+
+          // Fetch full collector profile for address details
+          const collectorProfile = await db.collectorProfile.findUnique({
+            where: { id: collectorId },
+            include: { user: { select: { email: true, name: true } } },
+          });
+
+          if (!collectorProfile) {
+            throw new Error("Collector profile not found");
+          }
+
+          // Find the matching offering for the final page count
+          const offering = await db.podOffering.findFirst({
             where: {
-              collectorProfileId_cycleId: {
-                collectorProfileId: collectorId,
-                cycleId,
+              isActive: true,
+              minPages: { lte: pageCountResult.totalPages },
+              maxPages: { gte: pageCountResult.totalPages },
+            },
+            orderBy: { createdAt: "asc" },
+          });
+
+          if (!offering) {
+            throw new Error(
+              `No offering found for ${pageCountResult.totalPages} pages`,
+            );
+          }
+
+          const displayName =
+            collectorProfile.user.name ??
+            collectorProfile.displayName ??
+            "Collector";
+          const nameParts = displayName.trim().split(" ");
+          const firstName = nameParts[0] ?? "";
+          const lastName = nameParts.slice(1).join(" ");
+
+          const offeringId = parseInt(offering.externalId, 10);
+          if (Number.isNaN(offeringId) || offeringId === 0) {
+            throw new Error(
+              "Offering not synced with Peecho. Please run admin sync.",
+            );
+          }
+
+          // Create the Peecho order with the actual PDF URL
+          const orderResponse = await peechoClient.createOrder({
+            currency: "EUR",
+            order_reference: `freeze-${collectorId}-${cycleId}-${Date.now()}`,
+            item_details: [
+              {
+                item_reference: `booklet-${collectorId}-${cycleId}`,
+                offering_id: offeringId,
+                quantity: 1,
+                file_details: {
+                  content_url: presignedUrl,
+                  content_width: 210,
+                  content_height: 297,
+                  number_of_pages:
+                    printFile.pageCount ?? pageCountResult.totalPages,
+                },
+              },
+            ],
+            address_details: {
+              email_address: collectorProfile.user.email ?? "",
+              shipping_address: {
+                first_name: firstName,
+                last_name: lastName,
+                address_line_1: collectorProfile.shippingAddressLine1 ?? "",
+                address_line_2:
+                  collectorProfile.shippingAddressLine2 ?? undefined,
+                city: collectorProfile.shippingCity ?? "",
+                zip_code: collectorProfile.shippingZip ?? "",
+                state: collectorProfile.shippingStateCode ?? null,
+                country_code: collectorProfile.shippingCountry ?? "",
               },
             },
           });
 
-          if (printFile?.storageUrl && printFile.status === "READY") {
-            // Generate a presigned URL valid for 14 days for Peecho to download
-            const key = extractKeyFromStorageUrl(printFile.storageUrl);
-            if (!key) {
-              throw new Error(
-                `Failed to extract S3 key from URL: ${printFile.storageUrl}`,
-              );
-            }
-            const presignedUrl = await getPresignedGetUrl(key);
-
-            // Attach the PDF to the existing order
-            await attachFilesToOrder(
-              intent.peechoOrderId,
-              `booklet-${collectorId}-${cycleId}`,
-              presignedUrl,
-              printFile.pageCount ?? pageCountResult.totalPages,
-            );
-
-            // Fetch final order details to confirm price
-            const orderDetails = await peechoClient.getOrderDetails(
-              parseInt(intent.peechoOrderId, 10),
-            );
-
-            // Update checkout intent with final pricing
-            await db.checkoutIntent.update({
-              where: { id: intent.id },
-              data: {
-                wholesaleTotalAmount:
-                  orderDetails.total_wholesale_price_inc_taxes,
-                retailTotalAmount: orderDetails.total_retail_price_inc_taxes,
-              },
-            });
-          }
-        } catch (error) {
-          logger.warn(
-            "Failed to attach files to order during freeze (will retry at fulfillment)",
-            {
-              collectorId,
-              cycleId,
-              peechoOrderId: intent.peechoOrderId,
-              error: String(error),
-            },
+          // Fetch final order details to confirm price
+          const orderDetails = await peechoClient.getOrderDetails(
+            orderResponse.order_id,
           );
-          // Don't fail the freeze process if file attachment fails
-          // The fulfillment service will retry later
+
+          // Update checkout intent with peechoOrderId and final pricing
+          await db.checkoutIntent.update({
+            where: { id: intent.id },
+            data: {
+              peechoOrderId: String(orderResponse.order_id),
+              wholesaleTotalAmount:
+                orderDetails.total_wholesale_price_inc_taxes,
+              retailTotalAmount: orderDetails.total_retail_price_inc_taxes,
+              platformMarkupAmount:
+                orderDetails.total_retail_price_inc_taxes -
+                orderDetails.total_wholesale_price_inc_taxes,
+            },
+          });
         }
+      } catch (error) {
+        logger.warn(
+          "Failed to create Peecho order during freeze (will retry at fulfillment)",
+          {
+            collectorId,
+            cycleId,
+            error: String(error),
+          },
+        );
+        // Don't fail the freeze process if order creation fails
+        // The fulfillment service will retry later
       }
 
       result.frozen += 1;
