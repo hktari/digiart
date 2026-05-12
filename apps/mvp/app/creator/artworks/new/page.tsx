@@ -126,11 +126,11 @@ export default function CreatorArtworkNewPage() {
         onDragOver={(e) => e.preventDefault()}
         onClick={() => fileInputRef.current?.click()}
         onKeyDown={(e) => e.key === "Enter" && fileInputRef.current?.click()}
-        className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-beige-300 bg-beige-50 hover:border-fuchsia-400 hover:bg-fuchsia-50/30 transition-colors cursor-pointer py-10 px-4 text-center"
+        className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/50 hover:border-fuchsia-400 dark:hover:border-fuchsia-500 hover:bg-fuchsia-500/10 transition-colors cursor-pointer py-10 px-4 text-center"
       >
-        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-beige-100">
+        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-secondary">
           <svg
-            className="h-6 w-6 text-beige-500"
+            className="h-6 w-6 text-muted-foreground"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -160,12 +160,12 @@ export default function CreatorArtworkNewPage() {
       </div>
 
       {/* A5 print info */}
-      <div className="mt-4 rounded-lg border border-beige-200 bg-beige-50 px-4 py-3 text-xs text-beige-800">
-        <strong>🖨 Print format:</strong> Your artwork will be printed at A5
-        (148 × 210 mm). Any aspect ratio is accepted — images are scaled to fit
-        the page with white margins on the shorter sides. For edge-to-edge
-        coverage, use a portrait image close to <strong>2:3 ratio</strong> (e.g.
-        1748 × 2480 px).
+      <div className="mt-4 rounded-lg border border-border bg-muted/40 px-4 py-3 text-xs text-muted-foreground">
+        <strong>🖨 Print format:</strong> Your artwork will be printed at A5 (148
+        × 210 mm). Any aspect ratio is accepted — images are scaled to fit the
+        page with white margins on the shorter sides. For edge-to-edge coverage,
+        use a portrait image close to <strong>2:3 ratio</strong> (e.g. 1748 ×
+        2480 px).
       </div>
 
       {/* File list */}
@@ -183,9 +183,9 @@ export default function CreatorArtworkNewPage() {
                 key={entry.id}
                 className={`flex items-center gap-3 rounded-lg border px-4 py-3 ${
                   isDone
-                    ? "border-jade-200 bg-jade-50"
+                    ? "border-jade-200 dark:border-jade-800 bg-jade-50 dark:bg-jade-950/30"
                     : isError
-                      ? "border-red-200 bg-red-50"
+                      ? "border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/30"
                       : "border bg-background"
                 }`}
               >
@@ -211,7 +211,7 @@ export default function CreatorArtworkNewPage() {
 
                   {state.status === "uploading" && (
                     <div className="space-y-1">
-                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-200">
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
                         <div
                           className="h-full rounded-full bg-fuchsia-500 transition-all duration-150"
                           style={{ width: `${state.progress}%` }}
@@ -224,16 +224,16 @@ export default function CreatorArtworkNewPage() {
                   )}
 
                   {state.status === "validating" && (
-                    <p className="text-xs text-neutral-400 animate-pulse">
+                    <p className="text-xs text-muted-foreground animate-pulse">
                       Validating…
                     </p>
                   )}
 
                   {isDone && (
-                    <p className="text-xs text-jade-600 font-medium">
+                    <p className="text-xs text-jade-600 dark:text-jade-400 font-medium">
                       ✓ Uploaded
                       {state.warnings.length > 0 && (
-                        <span className="ml-2 text-beige-600 font-normal">
+                        <span className="ml-2 text-amber-600 dark:text-amber-400 font-normal">
                           ⚠ {state.warnings.join(", ")}
                         </span>
                       )}
@@ -241,7 +241,9 @@ export default function CreatorArtworkNewPage() {
                   )}
 
                   {isError && (
-                    <p className="text-xs text-red-600">{state.message}</p>
+                    <p className="text-xs text-red-600 dark:text-red-400">
+                      {state.message}
+                    </p>
                   )}
                 </div>
 
@@ -285,13 +287,13 @@ export default function CreatorArtworkNewPage() {
         <div className="mt-6 flex items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground">
             {doneCount > 0 && (
-              <span className="text-jade-600 font-medium">
+              <span className="text-jade-600 dark:text-jade-400 font-medium">
                 {doneCount} uploaded
               </span>
             )}
             {doneCount > 0 && errorCount > 0 && " · "}
             {errorCount > 0 && (
-              <span className="text-red-600 font-medium">
+              <span className="text-red-600 dark:text-red-400 font-medium">
                 {errorCount} failed
               </span>
             )}
