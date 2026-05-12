@@ -46,13 +46,13 @@ export function PublicReleaseBookletCta({
 
   if (!isAuthenticated) {
     return (
-      <div className="lg:sticky lg:bottom-4 z-20 rounded-xl border border-neutral-200 bg-white/95 p-4 shadow-lg backdrop-blur">
+      <div className="lg:sticky lg:bottom-4 z-20 rounded-xl border bg-card/95 backdrop-blur p-4 shadow-lg">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-semibold text-neutral-900">
+            <p className="text-sm font-semibold text-foreground">
               Sign in to build your booklet
             </p>
-            <p className="text-sm text-neutral-600">
+            <p className="text-sm text-muted-foreground">
               Save this release into your next booklet once you have an account.
             </p>
           </div>
@@ -69,13 +69,13 @@ export function PublicReleaseBookletCta({
 
   if (!hasCollectorRole || !hasCollectorProfile) {
     return (
-      <div className="lg:sticky lg:bottom-4 z-20 rounded-xl border border-neutral-200 bg-white/95 p-4 shadow-lg backdrop-blur">
+      <div className="lg:sticky lg:bottom-4 z-20 rounded-xl border bg-card/95 backdrop-blur p-4 shadow-lg">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-semibold text-neutral-900">
+            <p className="text-sm font-semibold text-foreground">
               Turn on booklet building
             </p>
-            <p className="text-sm text-neutral-600">
+            <p className="text-sm text-muted-foreground">
               Complete booklet setup to add releases to your next printed
               booklet.
             </p>
@@ -93,11 +93,9 @@ export function PublicReleaseBookletCta({
 
   if (!cycleId) {
     return (
-      <div className="lg:sticky lg:bottom-4 z-20 rounded-xl border border-neutral-200 bg-white/95 p-4 shadow-lg backdrop-blur">
-        <p className="text-sm font-semibold text-neutral-900">
-          No active cycle
-        </p>
-        <p className="text-sm text-neutral-600">
+      <div className="lg:sticky lg:bottom-4 z-20 rounded-xl border bg-card/95 backdrop-blur p-4 shadow-lg">
+        <p className="text-sm font-semibold text-foreground">No active cycle</p>
+        <p className="text-sm text-muted-foreground">
           Release selection will reopen when the next booklet cycle starts.
         </p>
       </div>
@@ -105,15 +103,15 @@ export function PublicReleaseBookletCta({
   }
 
   return (
-    <div className="lg:sticky lg:bottom-4 z-20 rounded-xl border border-neutral-200 bg-white/95 p-4 shadow-lg backdrop-blur">
+    <div className="lg:sticky lg:bottom-4 z-20 rounded-xl border bg-card/95 backdrop-blur p-4 shadow-lg">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-semibold text-neutral-900">
+          <p className="text-sm font-semibold text-foreground">
             {effectiveSelected
               ? "This release is in your booklet"
               : "Add this release to your booklet"}
           </p>
-          <p className="text-sm text-neutral-600">
+          <p className="text-sm text-muted-foreground">
             {effectiveSelected
               ? "You can remove it or keep browsing artworks in this release."
               : "Use complete releases as building blocks instead of selecting artworks one by one."}

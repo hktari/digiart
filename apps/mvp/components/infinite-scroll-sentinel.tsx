@@ -27,13 +27,13 @@ export function InfiniteScrollSentinel({
       aria-live="polite"
     >
       {isLoadingMore && (
-        <div className="flex items-center gap-2 text-neutral-500">
+        <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin" />
           <span className="text-sm">Loading more...</span>
         </div>
       )}
       {!hasMore && hasItems && (
-        <span className="text-sm text-neutral-400">No more results</span>
+        <span className="text-sm text-muted-foreground">No more results</span>
       )}
     </div>
   );
