@@ -42,9 +42,9 @@ export function ReleaseForm({
       <div>
         <label
           htmlFor="title"
-          className="block text-sm font-medium text-neutral-700 mb-1"
+          className="block text-sm font-medium text-foreground/80 mb-1"
         >
-          Title <span className="text-red-500">*</span>
+          Title <span className="text-destructive">*</span>
         </label>
         <input
           id="title"
@@ -52,7 +52,7 @@ export function ReleaseForm({
           type="text"
           defaultValue={initialData?.title ?? ""}
           placeholder="e.g. Issue #3 — Summer Landscapes"
-          className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent"
+          className="w-full rounded-lg border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent"
         />
         {!state?.success && state?.errors?.title && (
           <p className="mt-1 text-xs text-red-600">{state.errors.title}</p>
@@ -62,10 +62,12 @@ export function ReleaseForm({
       <div>
         <label
           htmlFor="description"
-          className="block text-sm font-medium text-neutral-700 mb-1"
+          className="block text-sm font-medium text-foreground/80 mb-1"
         >
           Description
-          <span className="ml-1 text-neutral-400 font-normal">(optional)</span>
+          <span className="ml-1 text-muted-foreground font-normal">
+            (optional)
+          </span>
         </label>
         <textarea
           id="description"
@@ -73,7 +75,7 @@ export function ReleaseForm({
           rows={4}
           defaultValue={initialData?.description ?? ""}
           placeholder="What's this release about? Notes for subscribers, theme, etc."
-          className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent resize-none"
+          className="w-full rounded-lg border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent resize-none"
         />
         {!state?.success && state?.errors?.description && (
           <p className="mt-1 text-xs text-red-600">
@@ -85,10 +87,12 @@ export function ReleaseForm({
       <div>
         <label
           htmlFor="tags-input"
-          className="block text-sm font-medium text-neutral-700 mb-1"
+          className="block text-sm font-medium text-foreground/80 mb-1"
         >
           Tags
-          <span className="ml-1 text-neutral-400 font-normal">(optional)</span>
+          <span className="ml-1 text-muted-foreground font-normal">
+            (optional)
+          </span>
         </label>
         <TagInput
           tags={tags}
@@ -113,7 +117,7 @@ export function ReleaseForm({
         <button
           type="button"
           onClick={() => router.back()}
-          className="rounded-lg border border-neutral-300 px-5 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
+          className="rounded-lg border px-5 py-2.5 text-sm font-medium text-foreground hover:bg-accent transition-colors"
         >
           Cancel
         </button>
