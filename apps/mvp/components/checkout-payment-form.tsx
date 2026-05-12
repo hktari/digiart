@@ -72,19 +72,19 @@ function EstimateBlock({
   return (
     <div className="rounded-lg border border-beige-200 bg-white p-5 space-y-2">
       <div className="flex items-center justify-between mb-1">
-        <h2 className="text-sm font-semibold uppercase tracking-widest text-ink/50">
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground/50">
           Price Estimate
         </h2>
         <span className="text-[10px] font-medium uppercase tracking-wider text-amber-600 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">
           Estimate
         </span>
       </div>
-      <div className="flex justify-between text-sm text-ink/70">
+      <div className="flex justify-between text-sm text-muted-foreground/70">
         <span>Production</span>
         <span>{formatCurrency(estimate.baseAmount, estimate.currency)}</span>
       </div>
       {estimate.shippingAmount > 0 && (
-        <div className="flex justify-between text-sm text-ink/70">
+        <div className="flex justify-between text-sm text-muted-foreground/70">
           <span>Shipping</span>
           <span>
             {formatCurrency(estimate.shippingAmount, estimate.currency)}
@@ -92,7 +92,7 @@ function EstimateBlock({
         </div>
       )}
       {estimate.markupAmount > 0 && (
-        <div className="flex justify-between text-sm text-ink/70">
+        <div className="flex justify-between text-sm text-muted-foreground/70">
           <span>Platform fee</span>
           <span>
             {formatCurrency(estimate.markupAmount, estimate.currency)}
@@ -100,12 +100,12 @@ function EstimateBlock({
         </div>
       )}
       {estimate.taxAmount > 0 && (
-        <div className="flex justify-between text-sm text-ink/70">
+        <div className="flex justify-between text-sm text-muted-foreground/70">
           <span>Tax</span>
           <span>{formatCurrency(estimate.taxAmount, estimate.currency)}</span>
         </div>
       )}
-      <div className="flex justify-between text-base font-semibold text-ink pt-2 border-t border-beige-200">
+      <div className="flex justify-between text-base font-semibold text-foregroundpt-2 border-t border-beige-200">
         <span>Estimated total</span>
         <span>{formatCurrency(estimate.totalEstimate, estimate.currency)}</span>
       </div>
@@ -292,8 +292,8 @@ function CheckoutFormInner({
       <div className="space-y-5">
         <ExactPriceBlock exact={exactPrice} cycleLockDate={cycleLockDate} />
 
-        <div className="rounded-lg border border-beige-100 bg-beige-50 p-4 text-sm text-ink/70">
-          <p className="flex items-center gap-2 font-medium text-ink/80 mb-1">
+        <div className="rounded-lg border border-beige-100 bg-beige-50 p-4 text-sm text-muted-foreground/70">
+          <p className="flex items-center gap-2 font-medium text-muted-foreground/80 mb-1">
             <Lock className="h-3.5 w-3.5" />
             No charge today
           </p>
@@ -319,7 +319,7 @@ function CheckoutFormInner({
               setStep("form");
               setExactPrice(null);
             }}
-            className="flex-1 rounded-lg border border-beige-200 px-4 py-3 text-sm font-medium text-ink/70 hover:bg-beige-50 transition-colors"
+            className="flex-1 rounded-lg border border-beige-200 px-4 py-3 text-sm font-medium text-muted-foreground/70 hover:bg-beige-50 transition-colors"
           >
             Edit address / card
           </button>
@@ -346,7 +346,7 @@ function CheckoutFormInner({
   return (
     <form onSubmit={handleCalculate} className="space-y-5">
       <div className="rounded-lg border border-beige-200 bg-white p-5">
-        <h2 className="text-sm font-semibold uppercase tracking-widest text-ink/50 mb-4">
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground/50 mb-4">
           Delivery Address
         </h2>
         <AddressElement
@@ -371,7 +371,7 @@ function CheckoutFormInner({
       </div>
 
       <div className="rounded-lg border border-beige-200 bg-white p-5">
-        <h2 className="text-sm font-semibold uppercase tracking-widest text-ink/50 mb-4">
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground/50 mb-4">
           Payment Method
         </h2>
         <PaymentElement options={{ layout: "tabs" }} />
@@ -399,7 +399,7 @@ function CheckoutFormInner({
         )}
       </button>
 
-      <p className="text-xs text-ink/50 text-center">
+      <p className="text-xs text-muted-foreground/50 text-center">
         No charge today. We calculate a price estimate from your address, then
         you confirm before we save your card.
       </p>

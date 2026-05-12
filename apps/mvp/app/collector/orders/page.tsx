@@ -53,7 +53,7 @@ export default async function CollectorOrdersPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-ink mb-6">My Orders</h1>
+      <h1 className="text-2xl font-bold text-foregroundmb-6">My Orders</h1>
 
       <CollectorOrdersClient
         billingRecords={formattedBillingRecords}

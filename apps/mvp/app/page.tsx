@@ -41,7 +41,7 @@ function PublicHomePage() {
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
-              href="/auth/sign-up"
+              href="/auth/sign-in"
               className="inline-flex items-center justify-center gap-2 rounded border border-border bg-muted px-6 py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted/80"
             >
               Get started free
@@ -106,7 +106,7 @@ function PublicHomePage() {
             want to use.
           </p>
           <Link
-            href="/auth/sign-up"
+            href="/auth/sign-in"
             className="mt-8 inline-flex items-center gap-2 rounded bg-ocean-600 px-8 py-3 text-sm font-medium text-white transition-colors hover:bg-ocean-700"
           >
             Create your account

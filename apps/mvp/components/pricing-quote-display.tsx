@@ -84,10 +84,10 @@ export function PricingQuoteDisplay({
       <div className="rounded-lg border border-beige-200 bg-white p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-ink/50">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/50">
               Amount due at cycle lock
             </p>
-            <p className="text-3xl font-bold text-ink mt-1">
+            <p className="text-3xl font-bold text-foregroundmt-1">
               {fmt(pricing.retailTotalAmount, pricing.currency)}
             </p>
           </div>
@@ -101,21 +101,21 @@ export function PricingQuoteDisplay({
 
         {/* Breakdown */}
         <div className="space-y-2 border-t border-beige-100 pt-4">
-          <div className="flex justify-between text-sm text-ink/70">
+          <div className="flex justify-between text-sm text-muted-foreground/70">
             <span>Production (wholesale)</span>
             <span>{fmt(pricing.wholesaleTotalAmount, pricing.currency)}</span>
           </div>
-          <div className="flex justify-between text-sm text-ink/70">
+          <div className="flex justify-between text-sm text-muted-foreground/70">
             <span>Platform & creator margin</span>
             <span>{fmt(pricing.platformMarkupAmount, pricing.currency)}</span>
           </div>
-          <div className="flex justify-between text-sm font-semibold text-ink border-t border-beige-100 pt-2 mt-1">
+          <div className="flex justify-between text-sm font-semibold text-foregroundborder-t border-beige-100 pt-2 mt-1">
             <span>Total</span>
             <span>{fmt(pricing.retailTotalAmount, pricing.currency)}</span>
           </div>
         </div>
 
-        <p className="text-xs text-ink/50 mt-3">
+        <p className="text-xs text-muted-foreground/50 mt-3">
           Last calculated:{" "}
           {new Date(pricing.updatedAt).toLocaleString("en-US", {
             month: "short",
@@ -130,11 +130,11 @@ export function PricingQuoteDisplay({
 
       {/* Selections summary */}
       <div className="rounded-lg border border-beige-200 bg-white p-4 flex items-center gap-3">
-        <Package className="h-5 w-5 text-ink/40 shrink-0" />
-        <div className="text-sm text-ink/70">
-          <span className="font-medium text-ink">{totalReleases}</span> release
+        <Package className="h-5 w-5 text-muted-foreground/40 shrink-0" />
+        <div className="text-sm text-muted-foreground/70">
+          <span className="font-medium text-foreground>{totalReleases}</span> release
           {totalReleases !== 1 ? "s" : ""} ·{" "}
-          <span className="font-medium text-ink">{pricing.pageCount}</span>{" "}
+          <span className="font-medium text-foreground>{pricing.pageCount}</span>{" "}
           pages
           {pricing.pageCount !== totalPages && (
             <span className="text-amber-600">
@@ -166,7 +166,7 @@ export function PricingQuoteDisplay({
         type="button"
         onClick={handleRefresh}
         disabled={isRefreshing}
-        className="w-full rounded-lg border border-beige-200 bg-white px-4 py-3 text-sm font-medium text-ink/70 hover:bg-beige-50 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+        className="w-full rounded-lg border border-beige-200 bg-white px-4 py-3 text-sm font-medium text-muted-foreground/70 hover:bg-beige-50 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
       >
         <RefreshCw
           className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}

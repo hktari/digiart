@@ -27,28 +27,6 @@ test.describe("Authentication", () => {
     await expect(emailInput).toHaveAttribute("required", "");
   });
 
-  test("preserves redirect query param in sign-up link", async ({ page }) => {
-    await page.goto("/auth/sign-in?redirect=/browse");
-
-    const signUpLink = page.getByRole("link", { name: /sign up/i });
-    await expect(signUpLink).toHaveAttribute(
-      "href",
-      "/auth/sign-up?callbackUrl=%2Fbrowse",
-    );
-  });
-
-  test("preserves callbackUrl query param in sign-up link", async ({
-    page,
-  }) => {
-    await page.goto("/auth/sign-in?callbackUrl=/browse");
-
-    const signUpLink = page.getByRole("link", { name: /sign up/i });
-    await expect(signUpLink).toHaveAttribute(
-      "href",
-      "/auth/sign-up?callbackUrl=%2Fbrowse",
-    );
-  });
-
   test("includes hidden callbackUrl input when redirect param is present", async ({
     page,
   }) => {

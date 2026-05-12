@@ -87,14 +87,14 @@ export function BookletCartUI({
     <>
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex fixed right-0 top-16 h-[calc(100vh-4rem)] w-80 border-l border-beige-200 bg-paper/95 backdrop-blur-sm p-4 flex-col gap-3 overflow-y-auto">
-        <h2 className="text-sm font-semibold uppercase tracking-widest text-ink/50">
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-foreground/50">
           Booklet Builder
         </h2>
-        <p className="text-sm text-ink/80">{headerText}</p>
-        <p className="text-xs text-ink/60">{statusText}</p>
+        <p className="text-sm text-foreground/80">{headerText}</p>
+        <p className="text-xs text-foreground/60">{statusText}</p>
 
         {showEmpty ? (
-          <div className="flex-1 flex items-center justify-center text-xs text-ink/40">
+          <div className="flex-1 flex items-center justify-center text-xs text-foreground/40">
             Your booklet is empty
           </div>
         ) : (
@@ -113,15 +113,15 @@ export function BookletCartUI({
                 >
                   <X className="h-4 w-4" />
                 </button>
-                <p className="text-sm font-medium text-ink pr-8">
+                <p className="text-sm font-medium text-foreground pr-8">
                   {item.title}
                 </p>
-                <p className="text-xs text-ink/60">
+                <p className="text-xs text-foreground/60">
                   {item.creatorDisplayName} · {item.artworkCount}{" "}
                   {item.artworkCount === 1 ? "page" : "pages"}
                 </p>
                 {item.source && (
-                  <p className="text-[11px] text-ink/50 mt-0.5">
+                  <p className="text-[11px] text-foreground/50 mt-0.5">
                     {item.source === "AUTO_SUBSCRIPTION"
                       ? "Auto-added from subscription"
                       : "Manually added"}
@@ -134,34 +134,34 @@ export function BookletCartUI({
 
         {quote && (
           <div className="border-t border-beige-200 pt-3 space-y-1">
-            <div className="flex justify-between text-xs text-ink/70">
+            <div className="flex justify-between text-xs text-foreground/70">
               <span>Production</span>
               <span>{formatCurrency(quote.baseAmount, quote.currency)}</span>
             </div>
-            <div className="flex justify-between text-xs text-ink/70">
+            <div className="flex justify-between text-xs text-foreground/70">
               <span>Shipping</span>
               <span>
                 {formatCurrency(quote.shippingAmount, quote.currency)}
               </span>
             </div>
             {quote.markupAmount > 0 && (
-              <div className="flex justify-between text-xs text-ink/70">
+              <div className="flex justify-between text-xs text-foreground/70">
                 <span>Platform fee</span>
                 <span>
                   {formatCurrency(quote.markupAmount, quote.currency)}
                 </span>
               </div>
             )}
-            <div className="flex justify-between text-xs text-ink/70">
+            <div className="flex justify-between text-xs text-foreground/70">
               <span>Tax</span>
               <span>{formatCurrency(quote.taxAmount, quote.currency)}</span>
             </div>
-            <div className="flex justify-between text-sm font-semibold text-ink pt-1 border-t border-beige-100">
+            <div className="flex justify-between text-sm font-semibold text-foreground pt-1 border-t border-beige-100">
               <span>{quote.isFrozen ? "Locked total" : "Estimated total"}</span>
               <span>{formatCurrency(quote.totalEstimate, quote.currency)}</span>
             </div>
             {!quote.isFrozen && (
-              <p className="text-[11px] text-ink/50">
+              <p className="text-[11px] text-foreground/50">
                 Estimated with our platform margin. The final Peecho order may
                 differ slightly; we email the exact amount before charging.
               </p>
@@ -203,26 +203,26 @@ export function BookletCartUI({
         >
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-ink flex items-center gap-2">
+              <p className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <ShoppingBag className="h-4 w-4 shrink-0" />
                 <span className="truncate">
                   Booklet builder · {totalReleases}{" "}
                   {totalReleases === 1 ? "release" : "releases"}
                 </span>
               </p>
-              <p className="text-xs text-ink/60">{statusText}</p>
+              <p className="text-xs text-foreground/60">{statusText}</p>
             </div>
             {isOpen ? (
-              <ChevronDown className="h-4 w-4 text-ink/60 shrink-0" />
+              <ChevronDown className="h-4 w-4 text-foreground/60 shrink-0" />
             ) : (
-              <ChevronUp className="h-4 w-4 text-ink/60 shrink-0" />
+              <ChevronUp className="h-4 w-4 text-foreground/60 shrink-0" />
             )}
           </div>
         </button>
         {isOpen && (
           <div className="mt-2 max-h-[calc(100vh-11rem)] overflow-y-auto space-y-2 pb-2">
             {items.length === 0 ? (
-              <p className="text-sm text-ink/40 py-4 text-center">
+              <p className="text-sm text-foreground/40 py-4 text-center">
                 Your booklet is empty
               </p>
             ) : (
@@ -232,15 +232,15 @@ export function BookletCartUI({
                   className="flex items-center gap-3 rounded border border-beige-200 bg-white p-2"
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-ink truncate">
+                    <p className="text-sm font-medium text-foreground truncate">
                       {item.title}
                     </p>
-                    <p className="text-xs text-ink/60">
+                    <p className="text-xs text-foreground/60">
                       {item.creatorDisplayName} · {item.artworkCount}{" "}
                       {item.artworkCount === 1 ? "page" : "pages"}
                     </p>
                     {item.source && (
-                      <p className="text-[11px] text-ink/50 mt-0.5">
+                      <p className="text-[11px] text-foreground/50 mt-0.5">
                         {item.source === "AUTO_SUBSCRIPTION"
                           ? "Auto-added from subscription"
                           : "Manually added"}
@@ -262,31 +262,31 @@ export function BookletCartUI({
 
             {quote && (
               <div className="border-t border-beige-200 pt-2 space-y-1">
-                <div className="flex justify-between text-xs text-ink/70">
+                <div className="flex justify-between text-xs text-foreground/70">
                   <span>Production</span>
                   <span>
                     {formatCurrency(quote.baseAmount, quote.currency)}
                   </span>
                 </div>
-                <div className="flex justify-between text-xs text-ink/70">
+                <div className="flex justify-between text-xs text-foreground/70">
                   <span>Shipping</span>
                   <span>
                     {formatCurrency(quote.shippingAmount, quote.currency)}
                   </span>
                 </div>
                 {quote.markupAmount > 0 && (
-                  <div className="flex justify-between text-xs text-ink/70">
+                  <div className="flex justify-between text-xs text-foreground/70">
                     <span>Platform fee</span>
                     <span>
                       {formatCurrency(quote.markupAmount, quote.currency)}
                     </span>
                   </div>
                 )}
-                <div className="flex justify-between text-xs text-ink/70">
+                <div className="flex justify-between text-xs text-foreground/70">
                   <span>Tax</span>
                   <span>{formatCurrency(quote.taxAmount, quote.currency)}</span>
                 </div>
-                <div className="flex justify-between text-sm font-semibold text-ink pt-1 border-t border-beige-100">
+                <div className="flex justify-between text-sm font-semibold text-foreground pt-1 border-t border-beige-100">
                   <span>
                     {quote.isFrozen ? "Locked total" : "Estimated total"}
                   </span>
@@ -295,7 +295,7 @@ export function BookletCartUI({
                   </span>
                 </div>
                 {!quote.isFrozen && (
-                  <p className="text-[11px] text-ink/50">
+                  <p className="text-[11px] text-foreground/50">
                     Estimated with our platform margin. The final Peecho order
                     may differ slightly; we email the exact amount before
                     charging.

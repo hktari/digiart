@@ -8,7 +8,7 @@ test.describe("Critical Paths", () => {
   test("can navigate from homepage to auth", async ({ page }) => {
     await page.goto("/");
 
-    // Look for sign-in/sign-up links
+    // Look for sign-in links
     const authLink = page.locator('a[href*="/auth"]').first();
     const signInButton = page
       .getByRole("button", { name: /sign in|get started/i })

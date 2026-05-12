@@ -19,39 +19,39 @@ export default async function AdminPayoutsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Creator Payouts</h1>
-        <p className="text-ink/60 mt-1">
+        <p className="text-muted-foreground/60 mt-1">
           Manage payout calculations and disbursements per cycle
         </p>
       </div>
 
       {cycles.length === 0 ? (
         <div className="bg-beige-50 border border-beige-200 rounded-lg p-8 text-center">
-          <p className="text-ink/60">No cycles found.</p>
+          <p className="text-muted-foreground/60">No cycles found.</p>
         </div>
       ) : (
         <div className="bg-white border border-beige-200 rounded-lg overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-beige-50 border-b border-beige-200">
               <tr>
-                <th className="px-6 py-3 text-left font-medium text-ink/60">
+                <th className="px-6 py-3 text-left font-medium text-muted-foreground/60">
                   Cycle
                 </th>
-                <th className="px-6 py-3 text-left font-medium text-ink/60">
+                <th className="px-6 py-3 text-left font-medium text-muted-foreground/60">
                   Pool
                 </th>
-                <th className="px-6 py-3 text-left font-medium text-ink/60">
+                <th className="px-6 py-3 text-left font-medium text-muted-foreground/60">
                   Creators
                 </th>
-                <th className="px-6 py-3 text-left font-medium text-ink/60">
+                <th className="px-6 py-3 text-left font-medium text-muted-foreground/60">
                   PENDING
                 </th>
-                <th className="px-6 py-3 text-left font-medium text-ink/60">
+                <th className="px-6 py-3 text-left font-medium text-muted-foreground/60">
                   SENT
                 </th>
-                <th className="px-6 py-3 text-left font-medium text-ink/60">
+                <th className="px-6 py-3 text-left font-medium text-muted-foreground/60">
                   FAILED
                 </th>
-                <th className="px-6 py-3 text-right font-medium text-ink/60"></th>
+                <th className="px-6 py-3 text-right font-medium text-muted-foreground/60"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-beige-100">
@@ -72,21 +72,21 @@ export default async function AdminPayoutsPage() {
                     key={cycle.id}
                     className="hover:bg-beige-50 transition-colors"
                   >
-                    <td className="px-6 py-4 font-medium text-ink">
+                    <td className="px-6 py-4 font-medium text-foreground>
                       {cycle.label}
                     </td>
-                    <td className="px-6 py-4 text-ink/70">
+                    <td className="px-6 py-4 text-muted-foreground/70">
                       {pool !== null ? (
                         <span className="font-mono">
                           {pool.toFixed(2)}{" "}
-                          <span className="text-xs text-ink/40">EUR</span>
+                          <span className="text-xs text-muted-foreground/40">EUR</span>
                         </span>
                       ) : (
-                        <span className="text-ink/30">—</span>
+                        <span className="text-muted-foreground/30">—</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-ink/70">
-                      {payouts.length || <span className="text-ink/30">—</span>}
+                    <td className="px-6 py-4 text-muted-foreground/70">
+                      {payouts.length || <span className="text-muted-foreground/30">—</span>}
                     </td>
                     <td className="px-6 py-4">
                       {pending > 0 ? (
@@ -94,7 +94,7 @@ export default async function AdminPayoutsPage() {
                           {pending}
                         </span>
                       ) : (
-                        <span className="text-ink/30">—</span>
+                        <span className="text-muted-foreground/30">—</span>
                       )}
                     </td>
                     <td className="px-6 py-4">
@@ -103,7 +103,7 @@ export default async function AdminPayoutsPage() {
                           {sent}
                         </span>
                       ) : (
-                        <span className="text-ink/30">—</span>
+                        <span className="text-muted-foreground/30">—</span>
                       )}
                     </td>
                     <td className="px-6 py-4">
@@ -112,7 +112,7 @@ export default async function AdminPayoutsPage() {
                           {failed}
                         </span>
                       ) : (
-                        <span className="text-ink/30">—</span>
+                        <span className="text-muted-foreground/30">—</span>
                       )}
                     </td>
                     <td className="px-6 py-4 text-right">

@@ -104,12 +104,12 @@ export default async function CollectorCheckoutPage() {
       <div>
         <BackLink
           href="/collector/releases"
-          className="text-xs text-ink/50 hover:text-ink mb-4 inline-block"
+          className="text-xs text-muted-foreground/50 hover:text-foregroundmb-4 inline-block"
         >
           Back to releases
         </BackLink>
         <h1 className="text-2xl font-bold">Order your booklet</h1>
-        <p className="text-sm text-ink/60 mt-1">
+        <p className="text-sm text-muted-foreground/60 mt-1">
           Enter your delivery address to get a price estimate, then save your
           card.{" "}
           {currentCycle?.lockDate
@@ -120,10 +120,10 @@ export default async function CollectorCheckoutPage() {
       </div>
 
       <div className="rounded-lg border border-beige-200 bg-white p-4">
-        <p className="text-sm text-ink/70">
-          <span className="font-medium text-ink">{summary.totalReleases}</span>{" "}
+        <p className="text-sm text-muted-foreground/70">
+          <span className="font-medium text-foreground>{summary.totalReleases}</span>{" "}
           release{summary.totalReleases !== 1 ? "s" : ""} ·{" "}
-          <span className="font-medium text-ink">{summary.totalArtworks}</span>{" "}
+          <span className="font-medium text-foreground>{summary.totalArtworks}</span>{" "}
           pages
         </p>
       </div>

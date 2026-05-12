@@ -51,8 +51,8 @@ export default async function CheckoutCompletePage() {
             <CheckCircle className="h-10 w-10 text-jade-600" />
           </div>
         </div>
-        <h1 className="text-2xl font-bold text-ink">Booklet ordered!</h1>
-        <p className="text-sm text-ink/60">
+        <h1 className="text-2xl font-bold text-foreground>Booklet ordered!</h1>
+        <p className="text-sm text-muted-foreground/60">
           Your card has been saved and your selections are confirmed.
         </p>
       </div>
@@ -60,18 +60,18 @@ export default async function CheckoutCompletePage() {
       <div className="rounded-lg border border-beige-200 bg-white divide-y divide-beige-100">
         {lockDateFormatted && (
           <div className="flex items-start gap-3 p-4">
-            <Calendar className="h-5 w-5 text-ink/40 shrink-0 mt-0.5" />
+            <Calendar className="h-5 w-5 text-muted-foreground/40 shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-ink">Charge date</p>
-              <p className="text-sm text-ink/60">{lockDateFormatted}</p>
+              <p className="text-sm font-medium text-foreground>Charge date</p>
+              <p className="text-sm text-muted-foreground/60">{lockDateFormatted}</p>
             </div>
           </div>
         )}
         <div className="flex items-start gap-3 p-4">
-          <CreditCard className="h-5 w-5 text-ink/40 shrink-0 mt-0.5" />
+          <CreditCard className="h-5 w-5 text-muted-foreground/40 shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-ink">Payment</p>
-            <p className="text-sm text-ink/60">
+            <p className="text-sm font-medium text-foreground>Payment</p>
+            <p className="text-sm text-muted-foreground/60">
               Your saved card will be charged automatically at cycle lock. No
               action needed.
             </p>
@@ -79,7 +79,7 @@ export default async function CheckoutCompletePage() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-beige-100 bg-beige-50 p-4 text-sm text-ink/70">
+      <div className="rounded-lg border border-beige-100 bg-beige-50 p-4 text-sm text-muted-foreground/70">
         You can still add or remove releases until the cycle closes
         {lockDateFormatted ? ` on ${lockDateFormatted}` : ""}. The final price
         will be recalculated based on your selections at that time.
@@ -94,7 +94,7 @@ export default async function CheckoutCompletePage() {
         </Link>
         <Link
           href="/collector"
-          className="w-full rounded-lg border border-beige-200 px-4 py-3 text-center text-sm font-medium text-ink/70 hover:bg-beige-50 transition-colors"
+          className="w-full rounded-lg border border-beige-200 px-4 py-3 text-center text-sm font-medium text-muted-foreground/70 hover:bg-beige-50 transition-colors"
         >
           Go to dashboard
         </Link>

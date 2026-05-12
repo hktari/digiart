@@ -4,7 +4,7 @@ import Link from "next/link";
 const footerLinks = {
   Platform: [
     { href: "/browse", label: "Browse" },
-    { href: "/auth/sign-up", label: "Get Started" },
+    { href: "/auth/sign-in", label: "Get Started" },
   ],
   Account: [
     { href: "/auth/sign-in", label: "Sign in" },

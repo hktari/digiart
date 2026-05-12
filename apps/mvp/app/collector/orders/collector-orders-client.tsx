@@ -156,7 +156,7 @@ export function CollectorOrdersClient({
   fulfillmentOrders,
 }: CollectorOrdersClientProps) {
   if (billingRecords.length === 0 && fulfillmentOrders.length === 0) {
-    return <p className="text-ink/60">No orders yet.</p>;
+    return <p className="text-muted-foreground/60">No orders yet.</p>;
   }
 
   return (
@@ -175,8 +175,8 @@ export function CollectorOrdersClient({
             key={record.id}
             className="rounded border border-beige-200 bg-white p-4"
           >
-            <h2 className="font-semibold text-ink">{record.cycle.label}</h2>
-            <p className="text-sm text-ink/60">
+            <h2 className="font-semibold text-foreground>{record.cycle.label}</h2>
+            <p className="text-sm text-muted-foreground/60">
               {record.quoteSnapshot
                 ? `${Number(record.quoteSnapshot.totalEstimate).toFixed(2)} ${record.quoteSnapshot.currency}`
                 : "—"}
@@ -194,7 +194,7 @@ export function CollectorOrdersClient({
                           : "bg-beige-200"
                     }`}
                   />
-                  <span className="text-[10px] text-ink/50 hidden sm:inline">
+                  <span className="text-[10px] text-muted-foreground/50 hidden sm:inline">
                     {label}
                   </span>
                 </div>

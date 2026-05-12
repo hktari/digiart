@@ -49,7 +49,7 @@ export function PayoutActionButtons({
           onClick={() =>
             run("calculate", () => calculatePayoutsAction(cycleId))
           }
-          className="px-4 py-2 text-sm font-medium rounded-md bg-beige-100 text-ink hover:bg-beige-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="px-4 py-2 text-sm font-medium rounded-md bg-beige-100 text-foregroundhover:bg-beige-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {loading === "calculate"
             ? "Calculating…"

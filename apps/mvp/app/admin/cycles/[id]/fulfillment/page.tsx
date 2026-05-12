@@ -64,7 +64,7 @@ export default async function AdminCycleFulfillmentPage({
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-ink mb-2">
+      <h1 className="text-2xl font-bold text-foregroundmb-2">
         Fulfillment — {cycle.label}
       </h1>
 
@@ -81,8 +81,8 @@ export default async function AdminCycleFulfillmentPage({
             key={label}
             className="rounded border border-beige-200 bg-white p-3 text-center"
           >
-            <p className="text-2xl font-bold text-ink">{count}</p>
-            <p className="text-xs text-ink/60">{label}</p>
+            <p className="text-2xl font-bold text-foreground>{count}</p>
+            <p className="text-xs text-muted-foreground/60">{label}</p>
           </div>
         ))}
       </div>
@@ -91,13 +91,13 @@ export default async function AdminCycleFulfillmentPage({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-beige-200 text-left">
-              <th className="py-2 pr-4 font-medium text-ink/60">Collector</th>
-              <th className="py-2 pr-4 font-medium text-ink/60">Country</th>
-              <th className="py-2 pr-4 font-medium text-ink/60">Pages</th>
-              <th className="py-2 pr-4 font-medium text-ink/60">Quote</th>
-              <th className="py-2 pr-4 font-medium text-ink/60">Billing</th>
-              <th className="py-2 pr-4 font-medium text-ink/60">PDF</th>
-              <th className="py-2 pr-4 font-medium text-ink/60">POD</th>
+              <th className="py-2 pr-4 font-medium text-muted-foreground/60">Collector</th>
+              <th className="py-2 pr-4 font-medium text-muted-foreground/60">Country</th>
+              <th className="py-2 pr-4 font-medium text-muted-foreground/60">Pages</th>
+              <th className="py-2 pr-4 font-medium text-muted-foreground/60">Quote</th>
+              <th className="py-2 pr-4 font-medium text-muted-foreground/60">Billing</th>
+              <th className="py-2 pr-4 font-medium text-muted-foreground/60">PDF</th>
+              <th className="py-2 pr-4 font-medium text-muted-foreground/60">POD</th>
             </tr>
           </thead>
           <tbody>
@@ -112,18 +112,18 @@ export default async function AdminCycleFulfillmentPage({
                   className="border-b border-beige-100 hover:bg-beige-50"
                 >
                   <td className="py-2 pr-4">
-                    <p className="font-medium text-ink">
+                    <p className="font-medium text-foreground>
                       {record.collectorProfile.displayName ||
                         record.collectorProfile.user.email}
                     </p>
-                    <p className="text-xs text-ink/50">
+                    <p className="text-xs text-muted-foreground/50">
                       {record.collectorProfile.user.email}
                     </p>
                   </td>
-                  <td className="py-2 pr-4 text-ink/70">
+                  <td className="py-2 pr-4 text-muted-foreground/70">
                     {record.collectorProfile.shippingCountry || "—"}
                   </td>
-                  <td className="py-2 pr-4 text-ink/70">
+                  <td className="py-2 pr-4 text-muted-foreground/70">
                     {record.quoteSnapshot?.requestedPageCount ?? "—"}
                   </td>
                   <td className="py-2 pr-4">
@@ -138,7 +138,7 @@ export default async function AdminCycleFulfillmentPage({
                         {record.quoteSnapshot.isFrozen ? "Frozen" : "Estimate"}
                       </span>
                     ) : (
-                      <span className="text-xs text-ink/40">—</span>
+                      <span className="text-xs text-muted-foreground/40">—</span>
                     )}
                   </td>
                   <td className="py-2 pr-4">
@@ -170,7 +170,7 @@ export default async function AdminCycleFulfillmentPage({
                         {fulfillment.generatedPrintFile.status}
                       </span>
                     ) : (
-                      <span className="text-xs text-ink/40">—</span>
+                      <span className="text-xs text-muted-foreground/40">—</span>
                     )}
                   </td>
                   <td className="py-2 pr-4">
@@ -188,7 +188,7 @@ export default async function AdminCycleFulfillmentPage({
                         {fulfillment.status}
                       </span>
                     ) : (
-                      <span className="text-xs text-ink/40">—</span>
+                      <span className="text-xs text-muted-foreground/40">—</span>
                     )}
                   </td>
                 </tr>

@@ -84,8 +84,8 @@ export default async function CollectorPricingPage() {
   return (
     <div className="max-w-xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-ink">Booklet Pricing</h1>
-        <p className="text-sm text-ink/60 mt-1">
+        <h1 className="text-2xl font-bold text-foreground>Booklet Pricing</h1>
+        <p className="text-sm text-muted-foreground/60 mt-1">
           Current amount due at cycle lock based on your selections and delivery
           address.
         </p>
@@ -100,18 +100,18 @@ export default async function CollectorPricingPage() {
           to get a pricing estimate.
         </div>
       ) : !currentCycle ? (
-        <div className="rounded-lg border border-beige-200 bg-white p-8 text-center text-sm text-ink/60">
+        <div className="rounded-lg border border-beige-200 bg-white p-8 text-center text-sm text-muted-foreground/60">
           No active subscription cycle.
         </div>
       ) : !isCommitted ? (
         <div className="rounded-lg border border-beige-200 bg-white p-6 space-y-3">
           <div className="flex items-start gap-3">
-            <CreditCard className="h-5 w-5 text-ink/40 shrink-0 mt-0.5" />
+            <CreditCard className="h-5 w-5 text-muted-foreground/40 shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-semibold text-ink">
+              <p className="text-sm font-semibold text-foreground>
                 No order placed yet
               </p>
-              <p className="text-sm text-ink/60 mt-1">
+              <p className="text-sm text-muted-foreground/60 mt-1">
                 Complete checkout to place your order. A price estimate based on
                 your delivery address and current selections will be shown here.
               </p>

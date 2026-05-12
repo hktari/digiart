@@ -61,19 +61,6 @@ export default async function SignInPage({
               Send magic link
             </Button>
           </form>
-          <p className="text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
-            <a
-              href={
-                callbackUrl
-                  ? `/auth/sign-up?callbackUrl=${encodeURIComponent(callbackUrl)}`
-                  : "/auth/sign-up"
-              }
-              className="text-primary hover:underline"
-            >
-              Sign up
-            </a>
-          </p>
         </CardContent>
       </Card>
     </main>

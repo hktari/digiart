@@ -42,6 +42,8 @@ describe("calculateCreatorEarningsForCycle", () => {
     vi.mocked(db.billingRecord.findMany).mockResolvedValue([
       {
         collectorProfileId: "cp1",
+        retailTotalAmount: 15,
+        wholesaleTotalAmount: 10,
         quoteSnapshot: {
           id: "qs1",
           markupAmount: 5,
@@ -51,6 +53,8 @@ describe("calculateCreatorEarningsForCycle", () => {
       },
       {
         collectorProfileId: "cp2",
+        retailTotalAmount: 15,
+        wholesaleTotalAmount: 10,
         quoteSnapshot: {
           id: "qs2",
           markupAmount: 5,
@@ -84,6 +88,8 @@ describe("calculateCreatorEarningsForCycle", () => {
     vi.mocked(db.billingRecord.findMany).mockResolvedValue([
       {
         collectorProfileId: "cp1",
+        retailTotalAmount: 15,
+        wholesaleTotalAmount: 10,
         quoteSnapshot: {
           id: "qs1",
           markupAmount: 5,
@@ -112,6 +118,8 @@ describe("calculateCreatorEarningsForCycle", () => {
     vi.mocked(db.billingRecord.findMany).mockResolvedValue([
       {
         collectorProfileId: "cp1",
+        retailTotalAmount: 15,
+        wholesaleTotalAmount: 10,
         quoteSnapshot: {
           id: "qs1",
           markupAmount: 5,
@@ -121,6 +129,8 @@ describe("calculateCreatorEarningsForCycle", () => {
       },
       {
         collectorProfileId: "cp2",
+        retailTotalAmount: 15,
+        wholesaleTotalAmount: 10,
         quoteSnapshot: {
           id: "qs2",
           markupAmount: 5,

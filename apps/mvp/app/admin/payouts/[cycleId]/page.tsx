@@ -53,27 +53,27 @@ export default async function AdminCyclePayoutsPage({
   return (
     <div className="space-y-8">
       <div>
-        <p className="text-sm text-ink/40 mb-1">
+        <p className="text-sm text-muted-foreground/40 mb-1">
           <a href="/admin/payouts" className="hover:text-fuchsia-600">
             Payouts
           </a>{" "}
           /
         </p>
         <h1 className="text-3xl font-bold">{cycle.label}</h1>
-        <p className="text-ink/60 mt-1">Creator earnings &amp; disbursements</p>
+        <p className="text-muted-foreground/60 mt-1">Creator earnings &amp; disbursements</p>
       </div>
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="rounded-lg border border-beige-200 bg-white p-4">
-          <p className="text-xs text-ink/40 uppercase tracking-wide">Pool</p>
+          <p className="text-xs text-muted-foreground/40 uppercase tracking-wide">Pool</p>
           <p className="mt-1 text-2xl font-bold font-mono">
             {calc ? Number(calc.totalMarkupPool).toFixed(2) : "—"}
           </p>
-          {calc && <p className="text-xs text-ink/40">EUR</p>}
+          {calc && <p className="text-xs text-muted-foreground/40">EUR</p>}
         </div>
         <div className="rounded-lg border border-beige-200 bg-white p-4">
-          <p className="text-xs text-ink/40 uppercase tracking-wide">
+          <p className="text-xs text-muted-foreground/40 uppercase tracking-wide">
             Fulfilled
           </p>
           <p className="mt-1 text-2xl font-bold">
@@ -81,7 +81,7 @@ export default async function AdminCyclePayoutsPage({
               ? `${calc.totalFulfilledCollectors}/${calc.totalPaidCollectors}`
               : "—"}
           </p>
-          {calc && <p className="text-xs text-ink/40">collectors</p>}
+          {calc && <p className="text-xs text-muted-foreground/40">collectors</p>}
         </div>
         <div className="rounded-lg border border-yellow-100 bg-yellow-50 p-4">
           <p className="text-xs text-yellow-600 uppercase tracking-wide">
@@ -116,7 +116,7 @@ export default async function AdminCyclePayoutsPage({
           <h2 className="text-base font-semibold">
             Creator Payouts
             {payouts.length > 0 && (
-              <span className="ml-2 text-sm font-normal text-ink/40">
+              <span className="ml-2 text-sm font-normal text-muted-foreground/40">
                 {payouts.length} total
                 {statusCounts.failed > 0 && (
                   <span className="ml-2 text-red-600">
@@ -129,7 +129,7 @@ export default async function AdminCyclePayoutsPage({
         </div>
 
         {payouts.length === 0 ? (
-          <div className="px-6 py-10 text-center text-ink/40 text-sm">
+          <div className="px-6 py-10 text-center text-muted-foreground/40 text-sm">
             No payouts calculated yet. Click &ldquo;Calculate Earnings&rdquo; to
             start.
           </div>
@@ -138,25 +138,25 @@ export default async function AdminCyclePayoutsPage({
             <table className="w-full text-sm">
               <thead className="bg-beige-50 border-b border-beige-100">
                 <tr>
-                  <th className="px-6 py-3 text-left font-medium text-ink/60">
+                  <th className="px-6 py-3 text-left font-medium text-muted-foreground/60">
                     Creator
                   </th>
-                  <th className="px-6 py-3 text-left font-medium text-ink/60">
+                  <th className="px-6 py-3 text-left font-medium text-muted-foreground/60">
                     Legal Name
                   </th>
-                  <th className="px-6 py-3 text-left font-medium text-ink/60">
+                  <th className="px-6 py-3 text-left font-medium text-muted-foreground/60">
                     PayPal Email
                   </th>
-                  <th className="px-6 py-3 text-left font-medium text-ink/60">
+                  <th className="px-6 py-3 text-left font-medium text-muted-foreground/60">
                     Verified
                   </th>
-                  <th className="px-6 py-3 text-left font-medium text-ink/60">
+                  <th className="px-6 py-3 text-left font-medium text-muted-foreground/60">
                     Amount
                   </th>
-                  <th className="px-6 py-3 text-left font-medium text-ink/60">
+                  <th className="px-6 py-3 text-left font-medium text-muted-foreground/60">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left font-medium text-ink/60">
+                  <th className="px-6 py-3 text-left font-medium text-muted-foreground/60">
                     Batch ID
                   </th>
                 </tr>
@@ -168,19 +168,19 @@ export default async function AdminCyclePayoutsPage({
                     className="hover:bg-beige-50 transition-colors"
                   >
                     <td className="px-6 py-4">
-                      <p className="font-medium text-ink">
+                      <p className="font-medium text-foreground>
                         {payout.creatorProfile.displayName}
                       </p>
-                      <p className="text-xs text-ink/40">
+                      <p className="text-xs text-muted-foreground/40">
                         @{payout.creatorProfile.slug}
                       </p>
                     </td>
-                    <td className="px-6 py-4 text-ink/70">
+                    <td className="px-6 py-4 text-muted-foreground/70">
                       {payout.creatorProfile.payoutProfile?.legalName ?? (
-                        <span className="text-ink/30">—</span>
+                        <span className="text-muted-foreground/30">—</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-ink/70">
+                    <td className="px-6 py-4 text-muted-foreground/70">
                       {payout.creatorProfile.payoutProfile?.paypalEmail ? (
                         <span
                           className={
@@ -221,7 +221,7 @@ export default async function AdminCyclePayoutsPage({
                     </td>
                     <td className="px-6 py-4 font-mono">
                       {Number(payout.amount).toFixed(2)}{" "}
-                      <span className="text-xs text-ink/40">
+                      <span className="text-xs text-muted-foreground/40">
                         {payout.currency}
                       </span>
                     </td>
@@ -243,7 +243,7 @@ export default async function AdminCyclePayoutsPage({
                         </p>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-ink/40 font-mono text-xs">
+                    <td className="px-6 py-4 text-muted-foreground/40 font-mono text-xs">
                       {payout.paypalBatchId ? (
                         payout.paypalBatchId
                       ) : (

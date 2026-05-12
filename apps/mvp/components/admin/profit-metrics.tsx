@@ -58,7 +58,7 @@ function MetricCard({
   const iconStyles = {
     positive: "text-jade-600 bg-jade-100",
     negative: "text-red-600 bg-red-100",
-    neutral: "text-ink/60 bg-beige-200",
+    neutral: "text-muted-foreground/60 bg-beige-200",
     highlight: "text-fuchsia-600 bg-fuchsia-100",
   };
 
@@ -66,9 +66,9 @@ function MetricCard({
     <div className={`rounded-lg border p-6 ${variantStyles[variant]}`}>
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm font-medium text-ink/60">{title}</p>
-          <p className="mt-2 text-2xl font-bold text-ink">{amount}</p>
-          {subtitle && <p className="mt-1 text-xs text-ink/50">{subtitle}</p>}
+          <p className="text-sm font-medium text-muted-foreground/60">{title}</p>
+          <p className="mt-2 text-2xl font-bold text-foreground>{amount}</p>
+          {subtitle && <p className="mt-1 text-xs text-muted-foreground/50">{subtitle}</p>}
         </div>
         <div className={`rounded-lg p-2 ${iconStyles[variant]}`}>
           <Icon className="h-5 w-5" strokeWidth={1.5} />
@@ -88,7 +88,7 @@ function MetricCard({
                 ? "text-jade-600"
                 : trendDirection === "down"
                   ? "text-red-600"
-                  : "text-ink/50"
+                  : "text-muted-foreground/50"
             }`}
           >
             {trend}
@@ -144,8 +144,8 @@ export function ProfitMetrics({ data }: ProfitMetricsProps) {
 
       {/* Detailed Breakdown */}
       <div className="rounded-lg border border-beige-200 bg-white p-6">
-        <h3 className="text-lg font-semibold text-ink">Profit Breakdown</h3>
-        <p className="text-sm text-ink/60">
+        <h3 className="text-lg font-semibold text-foreground>Profit Breakdown</h3>
+        <p className="text-sm text-muted-foreground/60">
           Financial overview across all completed cycles
         </p>
 
@@ -153,8 +153,8 @@ export function ProfitMetrics({ data }: ProfitMetricsProps) {
           {/* Revenue Bar */}
           <div>
             <div className="flex items-center justify-between text-sm">
-              <span className="font-medium text-ink">Total Revenue</span>
-              <span className="font-mono text-ink">
+              <span className="font-medium text-foreground>Total Revenue</span>
+              <span className="font-mono text-foreground>
                 {formatCurrency(data.totalRevenue)}
               </span>
             </div>
@@ -170,11 +170,11 @@ export function ProfitMetrics({ data }: ProfitMetricsProps) {
           <div className="space-y-3 pt-2">
             <div>
               <div className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-2 text-ink/70">
+                <span className="flex items-center gap-2 text-muted-foreground/70">
                   <span className="h-2 w-2 rounded-full bg-ocean-500" />
                   Creator Payouts
                 </span>
-                <span className="font-mono text-ink/70">
+                <span className="font-mono text-muted-foreground/70">
                   {formatCurrency(data.totalCreatorPayouts)}
                 </span>
               </div>
@@ -193,11 +193,11 @@ export function ProfitMetrics({ data }: ProfitMetricsProps) {
 
             <div>
               <div className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-2 text-ink/70">
+                <span className="flex items-center gap-2 text-muted-foreground/70">
                   <span className="h-2 w-2 rounded-full bg-beige-400" />
                   Print & Fulfillment
                 </span>
-                <span className="font-mono text-ink/70">
+                <span className="font-mono text-muted-foreground/70">
                   {formatCurrency(data.totalPrintCosts)}
                 </span>
               </div>
@@ -242,15 +242,15 @@ export function ProfitMetrics({ data }: ProfitMetricsProps) {
         {/* Key Stats Grid */}
         <div className="mt-8 grid grid-cols-2 gap-4 border-t border-beige-200 pt-6 sm:grid-cols-4">
           <div className="text-center">
-            <p className="text-xs uppercase tracking-wide text-ink/50">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground/50">
               Avg Order Value
             </p>
-            <p className="mt-1 text-lg font-semibold text-ink">
+            <p className="mt-1 text-lg font-semibold text-foreground>
               {formatCurrency(avgOrderValue)}
             </p>
           </div>
           <div className="text-center">
-            <p className="text-xs uppercase tracking-wide text-ink/50">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground/50">
               Profit Margin
             </p>
             <p className="mt-1 text-lg font-semibold text-jade-600">
@@ -258,7 +258,7 @@ export function ProfitMetrics({ data }: ProfitMetricsProps) {
             </p>
           </div>
           <div className="text-center">
-            <p className="text-xs uppercase tracking-wide text-ink/50">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground/50">
               Creator Share
             </p>
             <p className="mt-1 text-lg font-semibold text-ocean-600">
@@ -268,7 +268,7 @@ export function ProfitMetrics({ data }: ProfitMetricsProps) {
             </p>
           </div>
           <div className="text-center">
-            <p className="text-xs uppercase tracking-wide text-ink/50">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground/50">
               Fulfillment Share
             </p>
             <p className="mt-1 text-lg font-semibold text-beige-600">

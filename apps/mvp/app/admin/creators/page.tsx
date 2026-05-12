@@ -145,7 +145,7 @@ export default async function AdminCreatorsPage() {
                 return (
                   <tr key={creator.id} className="hover:bg-gray-50 align-top">
                     <td className="px-4 py-4">
-                      <div className="font-medium text-ink">
+                      <div className="font-medium text-foreground>
                         {creator.displayName}
                       </div>
                       <div className="text-xs text-gray-500">
