@@ -63,21 +63,21 @@ export function CollectorReleasesClient({
     });
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-background">
       <div className="max-w-5xl mx-auto px-4 py-12">
         <div className="mb-8">
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-neutral-900">
+              <h1 className="text-3xl font-bold text-foreground">
                 Booklet Release Selection
               </h1>
-              <p className="mt-2 text-neutral-600">
+              <p className="mt-2 text-muted-foreground">
                 Build your {currentCycle.label} booklet by selecting releases,
                 not individual artworks
               </p>
             </div>
             <div className="text-right">
-              <div className="text-sm text-neutral-600">Selected</div>
+              <div className="text-sm text-muted-foreground">Selected</div>
               <div className="text-2xl font-bold text-fuchsia-600">
                 {initialSelectedReleaseIds.size}
               </div>
@@ -87,7 +87,7 @@ export function CollectorReleasesClient({
           <div className="mt-4 flex items-center gap-4 text-sm">
             <div className="flex items-center gap-2">
               <svg
-                className="w-5 h-5 text-neutral-400"
+                className="w-5 h-5 text-muted-foreground"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -101,9 +101,9 @@ export function CollectorReleasesClient({
                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                 />
               </svg>
-              <span className="text-neutral-600">
+              <span className="text-muted-foreground">
                 Lock date:{" "}
-                <span className="font-medium text-neutral-900">
+                <span className="font-medium text-foreground">
                   {new Date(currentCycle.lockDate).toLocaleDateString()}
                 </span>
               </span>
@@ -112,7 +112,7 @@ export function CollectorReleasesClient({
         </div>
 
         {items.length === 0 && !isLoading ? (
-          <div className="bg-white rounded-lg border border-neutral-200 p-12 text-center">
+          <div className="bg-card rounded-lg border p-12 text-center">
             <div className="max-w-md mx-auto space-y-4">
               <div className="w-16 h-16 mx-auto rounded-full bg-ocean-100 flex items-center justify-center">
                 <svg
@@ -129,10 +129,10 @@ export function CollectorReleasesClient({
                   />
                 </svg>
               </div>
-              <h2 className="text-xl font-semibold text-neutral-900">
+              <h2 className="text-xl font-semibold text-foreground">
                 No releases available
               </h2>
-              <p className="text-neutral-600">
+              <p className="text-muted-foreground">
                 Subscribe to more creators to see their releases here.
               </p>
               <Link

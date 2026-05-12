@@ -99,10 +99,10 @@ export default function CreatorArtworkNewPage() {
     <main className="max-w-2xl mx-auto px-4 py-10">
       <div className="mb-8 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
             Upload artworks
           </h1>
-          <p className="mt-1 text-sm text-neutral-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             JPEG or PNG · min 1748 × 2480 px (portrait) · max 50 MB · multiple
             files supported
           </p>
@@ -143,10 +143,10 @@ export default function CreatorArtworkNewPage() {
             />
           </svg>
         </div>
-        <p className="text-sm font-medium text-neutral-700">
+        <p className="text-sm font-medium text-foreground">
           Drag & drop or <span className="text-fuchsia-600">browse</span>
         </p>
-        <p className="mt-1 text-xs text-neutral-400">
+        <p className="mt-1 text-xs text-muted-foreground">
           Select multiple files at once
         </p>
         <input
@@ -161,11 +161,11 @@ export default function CreatorArtworkNewPage() {
 
       {/* A5 print info */}
       <div className="mt-4 rounded-lg border border-beige-200 bg-beige-50 px-4 py-3 text-xs text-beige-800">
-        <strong>🖨 Print format:</strong> Your artwork will be printed at A5 (148
-        × 210 mm). Any aspect ratio is accepted — images are scaled to fit the
-        page with white margins on the shorter sides. For edge-to-edge coverage,
-        use a portrait image close to <strong>2:3 ratio</strong> (e.g. 1748 ×
-        2480 px).
+        <strong>🖨 Print format:</strong> Your artwork will be printed at A5
+        (148 × 210 mm). Any aspect ratio is accepted — images are scaled to fit
+        the page with white margins on the shorter sides. For edge-to-edge
+        coverage, use a portrait image close to <strong>2:3 ratio</strong> (e.g.
+        1748 × 2480 px).
       </div>
 
       {/* File list */}
@@ -186,7 +186,7 @@ export default function CreatorArtworkNewPage() {
                     ? "border-jade-200 bg-jade-50"
                     : isError
                       ? "border-red-200 bg-red-50"
-                      : "border-neutral-200 bg-white"
+                      : "border bg-background"
                 }`}
               >
                 {/* Thumbnail */}
@@ -198,12 +198,12 @@ export default function CreatorArtworkNewPage() {
 
                 {/* Info + progress */}
                 <div className="min-w-0 flex-1 space-y-1">
-                  <p className="truncate text-sm font-medium text-neutral-800">
+                  <p className="truncate text-sm font-medium text-foreground">
                     {entry.file.name}
                   </p>
 
                   {state.status === "queued" && (
-                    <p className="text-xs text-neutral-400">
+                    <p className="text-xs text-muted-foreground">
                       {(entry.file.size / 1024 / 1024).toFixed(1)} MB · ready to
                       upload
                     </p>
@@ -217,7 +217,7 @@ export default function CreatorArtworkNewPage() {
                           style={{ width: `${state.progress}%` }}
                         />
                       </div>
-                      <p className="text-xs text-neutral-400">
+                      <p className="text-xs text-muted-foreground">
                         {state.progress}%
                       </p>
                     </div>
@@ -261,7 +261,7 @@ export default function CreatorArtworkNewPage() {
                     <button
                       type="button"
                       onClick={() => removeEntry(entry.id)}
-                      className="text-neutral-300 hover:text-neutral-500 transition-colors"
+                      className="text-muted-foreground hover:text-foreground transition-colors"
                       aria-label="Remove"
                     >
                       <svg
@@ -283,7 +283,7 @@ export default function CreatorArtworkNewPage() {
       {/* Actions */}
       {entries.length > 0 && (
         <div className="mt-6 flex items-center justify-between gap-4">
-          <p className="text-sm text-neutral-500">
+          <p className="text-sm text-muted-foreground">
             {doneCount > 0 && (
               <span className="text-jade-600 font-medium">
                 {doneCount} uploaded
@@ -303,7 +303,7 @@ export default function CreatorArtworkNewPage() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
+                className="rounded-lg border px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors"
               >
                 Add more
               </button>

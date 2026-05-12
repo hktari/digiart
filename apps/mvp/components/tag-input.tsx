@@ -48,7 +48,7 @@ export function TagInput({
 
   return (
     <div className="w-full">
-      <div className="flex flex-wrap gap-2 p-2 border border-neutral-300 rounded-lg focus-within:ring-2 focus-within:ring-fuchsia-500 focus-within:border-transparent">
+      <div className="flex flex-wrap gap-2 p-2 border rounded-lg focus-within:ring-2 focus-within:ring-fuchsia-500 focus-within:border-transparent">
         {tags.map((tag) => (
           <span
             key={tag}
@@ -74,10 +74,10 @@ export function TagInput({
           onBlur={addTag}
           placeholder={tags.length === 0 ? placeholder : ""}
           disabled={tags.length >= maxTags}
-          className="flex-1 min-w-[120px] outline-none text-sm text-neutral-900 placeholder:text-neutral-400 disabled:cursor-not-allowed"
+          className="flex-1 min-w-[120px] outline-none text-sm text-foreground placeholder:text-muted-foreground disabled:cursor-not-allowed"
         />
       </div>
-      <p className="mt-1 text-xs text-neutral-500">
+      <p className="mt-1 text-xs text-muted-foreground">
         Press Enter or comma to add tags. {tags.length}/{maxTags} tags
       </p>
     </div>

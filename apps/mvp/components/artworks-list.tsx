@@ -81,10 +81,10 @@ export function ArtworksList({ artworks }: ArtworksListProps) {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-beige-100">
             <ImageOff className="h-8 w-8 text-beige-500" />
           </div>
-          <h2 className="text-xl font-semibold text-neutral-900">
+          <h2 className="text-xl font-semibold text-foreground">
             No artworks yet
           </h2>
-          <p className="text-sm text-neutral-500">
+          <p className="text-sm text-muted-foreground">
             Upload your first artwork to get started.
           </p>
           <Link
@@ -102,10 +102,10 @@ export function ArtworksList({ artworks }: ArtworksListProps) {
     <div className="max-w-4xl mx-auto px-4 py-10">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
             Your Artworks
           </h1>
-          <p className="mt-1 text-sm text-neutral-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             {items.length} artwork{items.length !== 1 ? "s" : ""}
           </p>
         </div>
@@ -151,10 +151,10 @@ export function ArtworksList({ artworks }: ArtworksListProps) {
 
             <div className="p-4 space-y-3">
               <div>
-                <h3 className="font-medium text-neutral-900 truncate">
+                <h3 className="font-medium text-foreground truncate">
                   {artwork.title}
                 </h3>
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-muted-foreground">
                   {getOrientationLabel(artwork.orientation)} ·{" "}
                   {artwork.width && artwork.height
                     ? `${artwork.width}×${artwork.height}px`
@@ -167,7 +167,7 @@ export function ArtworksList({ artworks }: ArtworksListProps) {
                   <button
                     onClick={() => handleArchive(artwork.id)}
                     disabled={pendingIds.has(artwork.id)}
-                    className="flex-1 flex items-center justify-center gap-1.5 rounded-lg border border-neutral-300 px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="flex-1 flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium text-foreground hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     <Archive className="h-4 w-4" />
                     {pendingIds.has(artwork.id) ? "..." : "Archive"}

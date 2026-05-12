@@ -27,18 +27,18 @@ export default async function CollectorReleasesPage() {
 
   if (!currentCycle) {
     return (
-      <div className="min-h-screen bg-neutral-50">
+      <div className="min-h-screen bg-background">
         <div className="max-w-5xl mx-auto px-4 py-12">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-neutral-900">
+            <h1 className="text-3xl font-bold text-foreground">
               Booklet Release Selection
             </h1>
-            <p className="mt-2 text-neutral-600">
+            <p className="mt-2 text-muted-foreground">
               Choose complete releases for your booklet
             </p>
           </div>
 
-          <div className="bg-white rounded-lg border border-neutral-200 p-12 text-center">
+          <div className="bg-card rounded-lg border p-12 text-center">
             <div className="max-w-md mx-auto space-y-4">
               <div className="w-16 h-16 mx-auto rounded-full bg-ocean-100 flex items-center justify-center">
                 <svg
@@ -57,10 +57,10 @@ export default async function CollectorReleasesPage() {
                   />
                 </svg>
               </div>
-              <h2 className="text-xl font-semibold text-neutral-900">
+              <h2 className="text-xl font-semibold text-foreground">
                 No active cycle
               </h2>
-              <p className="text-neutral-600">
+              <p className="text-muted-foreground">
                 There is no active subscription cycle at the moment. Check back
                 soon!
               </p>

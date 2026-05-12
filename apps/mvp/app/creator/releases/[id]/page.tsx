@@ -141,10 +141,10 @@ export default async function CreatorReleaseDetailPage({
       {/* Artwork picker */}
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-neutral-400">
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Artworks
           </h2>
-          <span className="text-xs text-neutral-400">
+          <span className="text-xs text-muted-foreground">
             {selectedIds.length} selected · click to toggle order
           </span>
         </div>
@@ -157,8 +157,8 @@ export default async function CreatorReleaseDetailPage({
       </section>
 
       {/* Publish / archive */}
-      <section className="flex items-center justify-between border-t border-neutral-100 pt-6">
-        <p className="text-sm text-neutral-500">
+      <section className="flex items-center justify-between border-t pt-6">
+        <p className="text-sm text-muted-foreground">
           {release.status === "DRAFT" && "Draft — only visible to you."}
           {release.status === "PUBLISHED" &&
             "Published — visible to subscribers."}

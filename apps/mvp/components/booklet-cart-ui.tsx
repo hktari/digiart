@@ -185,7 +185,7 @@ export function BookletCartUI({
               className={`mt-auto rounded px-3 py-2 text-center text-sm font-semibold ${
                 isValidForCheckout
                   ? "bg-fuchsia-600 text-white hover:bg-fuchsia-700"
-                  : "bg-neutral-300 text-neutral-600 cursor-not-allowed"
+                  : "bg-muted text-muted-foreground cursor-not-allowed"
               }`}
             >
               {checkoutIntent ? "Update booklet" : "Order booklet"}
@@ -320,7 +320,7 @@ export function BookletCartUI({
                   className={`block w-full rounded px-3 py-2 text-center text-sm font-semibold ${
                     isValidForCheckout
                       ? "bg-fuchsia-600 text-white"
-                      : "bg-neutral-300 text-neutral-600"
+                      : "bg-muted text-muted-foreground"
                   }`}
                 >
                   {checkoutIntent ? "Update booklet" : "Order booklet"}

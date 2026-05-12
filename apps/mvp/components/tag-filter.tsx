@@ -31,7 +31,9 @@ export function TagFilter({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-neutral-700">Filter by tags</h3>
+        <h3 className="text-sm font-medium text-foreground/80">
+          Filter by tags
+        </h3>
         {selectedTags.length > 0 && (
           <button
             type="button"
@@ -56,13 +58,13 @@ export function TagFilter({
                 ${
                   isSelected
                     ? "bg-fuchsia-600 text-white hover:bg-fuchsia-700"
-                    : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
+                    : "bg-muted text-foreground hover:bg-accent"
                 }
               `}
             >
               {tag.name}
               <span
-                className={`text-xs ${isSelected ? "text-fuchsia-200" : "text-neutral-500"}`}
+                className={`text-xs ${isSelected ? "text-fuchsia-200" : "text-muted-foreground"}`}
               >
                 {tag._count.releaseTags}
               </span>
@@ -73,7 +75,7 @@ export function TagFilter({
       </div>
 
       {selectedTags.length > 0 && (
-        <p className="text-xs text-neutral-500">
+        <p className="text-xs text-muted-foreground">
           {selectedTags.length} tag{selectedTags.length !== 1 ? "s" : ""}{" "}
           selected
         </p>

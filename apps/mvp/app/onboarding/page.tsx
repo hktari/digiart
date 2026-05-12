@@ -18,7 +18,7 @@ export default async function OnboardingPage() {
           <h1 className="text-2xl font-bold">
             Welcome! How will you use the platform?
           </h1>
-          <p className="text-sm text-neutral-500">
+          <p className="text-sm text-muted-foreground">
             One account can publish releases, earn payouts, and build booklets.
             You can turn on both capabilities later from account settings.
           </p>
@@ -27,7 +27,7 @@ export default async function OnboardingPage() {
           <form action={assignRole.bind(null, "CREATOR")}>
             <button
               type="submit"
-              className="group w-full rounded-xl border-2 border-neutral-200 p-6 text-left transition-colors hover:border-fuchsia-400 hover:bg-fuchsia-50"
+              className="group w-full rounded-xl border-2 p-6 text-left transition-colors hover:border-fuchsia-400 hover:bg-fuchsia-50"
             >
               <div className="mb-3 text-3xl">🎨</div>
               <div className="font-semibold group-hover:text-fuchsia-700">
@@ -42,7 +42,7 @@ export default async function OnboardingPage() {
           <form action={assignRole.bind(null, "COLLECTOR")}>
             <button
               type="submit"
-              className="group w-full rounded-xl border-2 border-neutral-200 p-6 text-left transition-colors hover:border-fuchsia-400 hover:bg-fuchsia-50"
+              className="group w-full rounded-xl border-2 p-6 text-left transition-colors hover:border-fuchsia-400 hover:bg-fuchsia-50"
             >
               <div className="mb-3 text-3xl">📬</div>
               <div className="font-semibold group-hover:text-fuchsia-700">
