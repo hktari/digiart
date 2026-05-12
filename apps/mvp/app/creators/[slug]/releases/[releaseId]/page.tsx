@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BackLink } from "@/components/back-link";
 import { CollectorBookletCart } from "@/components/collector-booklet-cart";
 import { DiscoverBookletBar } from "@/components/discover-booklet-bar";
 import { PublicReleaseBookletCta } from "@/components/public-release-booklet-cta";
@@ -49,12 +50,9 @@ export default async function PublicReleaseDetailPage({ params }: Props) {
     <div className="bg-muted">
       <div className="max-w-6xl mx-auto px-4 py-12 space-y-8 lg:pr-80">
         <div className="space-y-3">
-          <Link
-            href={`/creators/${slug}/releases`}
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            ← Back to releases
-          </Link>
+          <BackLink href={`/creators/${slug}/releases`}>
+            Back to releases
+          </BackLink>
           <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">

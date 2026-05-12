@@ -6,6 +6,14 @@ import { ReleaseActions } from "@/components/release-actions";
 import { ReleaseArtworkPicker } from "@/components/release-artwork-picker";
 import { ReleaseForm } from "@/components/release-form";
 import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import {
   getCreatorArtworksForRelease,
   getRelease,
   updateRelease,
@@ -53,25 +61,28 @@ export default async function CreatorReleaseDetailPage({
       {/* Header */}
       <div>
         <div className="flex items-start justify-between gap-4 mb-1">
-          <div className="flex items-center gap-3 min-w-0">
-            <Link
-              href="/creator/releases"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors shrink-0"
-            >
-              ← Releases
-            </Link>
-            <span className="text-border">/</span>
-            <h1 className="text-lg font-bold text-foreground truncate">
-              {release.title}
-            </h1>
-          </div>
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link href="/creator/releases">Releases</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage className="text-lg font-bold text-foreground truncate">
+                  {release.title}
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
           <span
             className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_BADGE[release.status] ?? STATUS_BADGE.DRAFT}`}
           >
             {release.status.charAt(0) + release.status.slice(1).toLowerCase()}
           </span>
         </div>
-        <p className="text-xs text-muted-foreground ml-[calc(2rem+1px)]">
+        <p className="text-xs text-muted-foreground">
           {release._count.selections} collector selection
           {release._count.selections !== 1 ? "s" : ""}
           {" · "}created{" "}

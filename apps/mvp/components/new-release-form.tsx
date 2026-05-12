@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useCallback, useRef, useState, useTransition } from "react";
@@ -422,9 +423,10 @@ export function NewReleaseForm() {
               type="button"
               onClick={() => setStep("details")}
               disabled={isSubmitting}
-              className="text-sm text-muted-foreground hover:text-foreground disabled:opacity-40 transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground disabled:opacity-40 transition-colors"
             >
-              ← Back
+              <ArrowLeft className="h-4 w-4" />
+              Back
             </button>
             <div className="flex gap-3">
               {entries.length > 0 && !isSubmitting && !atMaximum && (

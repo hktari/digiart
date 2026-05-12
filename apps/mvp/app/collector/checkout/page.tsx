@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
+import { BackLink } from "@/components/back-link";
 import { CheckoutPaymentForm } from "@/components/checkout-payment-form";
 import { getCollectorCartSummary } from "@/lib/actions/collector";
 import { getCurrentCycle } from "@/lib/actions/cycles";
@@ -102,12 +102,12 @@ export default async function CollectorCheckoutPage() {
   return (
     <div className="max-w-xl mx-auto px-4 py-10 space-y-6">
       <div>
-        <Link
+        <BackLink
           href="/collector/releases"
           className="text-xs text-ink/50 hover:text-ink mb-4 inline-block"
         >
-          ← Back to releases
-        </Link>
+          Back to releases
+        </BackLink>
         <h1 className="text-2xl font-bold text-ink">Order your booklet</h1>
         <p className="text-sm text-ink/60 mt-1">
           Enter your delivery address to get a price estimate, then save your

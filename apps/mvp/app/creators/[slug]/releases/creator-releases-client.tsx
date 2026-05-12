@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { BackLink } from "@/components/back-link";
 import { InfiniteScrollSentinel } from "@/components/infinite-scroll-sentinel";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 
@@ -49,12 +50,9 @@ export function CreatorReleasesClient({
     <div className="bg-muted">
       <div className="max-w-6xl mx-auto px-4 py-12 space-y-8">
         <div className="space-y-2">
-          <Link
-            href={`/creators/${slug}`}
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            ← Back to {profile.displayName}
-          </Link>
+          <BackLink href={`/creators/${slug}`}>
+            Back to {profile.displayName}
+          </BackLink>
           <h1 className="text-3xl font-bold text-foreground">
             {profile.displayName}&apos;s releases
           </h1>
