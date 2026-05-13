@@ -66,9 +66,13 @@ function MetricCard({
     <div className={`rounded-lg border p-6 ${variantStyles[variant]}`}>
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm font-medium text-muted-foreground/60">{title}</p>
-          <p className="mt-2 text-2xl font-bold text-foreground>{amount}</p>
-          {subtitle && <p className="mt-1 text-xs text-muted-foreground/50">{subtitle}</p>}
+          <p className="text-sm font-medium text-muted-foreground/60">
+            {title}
+          </p>
+          <p className="mt-2 text-2xl font-bold text-foreground">{amount}</p>
+          {subtitle && (
+            <p className="mt-1 text-xs text-muted-foreground/50">{subtitle}</p>
+          )}
         </div>
         <div className={`rounded-lg p-2 ${iconStyles[variant]}`}>
           <Icon className="h-5 w-5" strokeWidth={1.5} />
@@ -144,7 +148,9 @@ export function ProfitMetrics({ data }: ProfitMetricsProps) {
 
       {/* Detailed Breakdown */}
       <div className="rounded-lg border border-beige-200 bg-white p-6">
-        <h3 className="text-lg font-semibold text-foreground>Profit Breakdown</h3>
+        <h3 className="text-lg font-semibold text-foreground">
+          Profit Breakdown
+        </h3>
         <p className="text-sm text-muted-foreground/60">
           Financial overview across all completed cycles
         </p>
@@ -153,8 +159,8 @@ export function ProfitMetrics({ data }: ProfitMetricsProps) {
           {/* Revenue Bar */}
           <div>
             <div className="flex items-center justify-between text-sm">
-              <span className="font-medium text-foreground>Total Revenue</span>
-              <span className="font-mono text-foreground>
+              <span className="font-medium text-foreground">Total Revenue</span>
+              <span className="font-mono text-foreground">
                 {formatCurrency(data.totalRevenue)}
               </span>
             </div>
@@ -245,7 +251,7 @@ export function ProfitMetrics({ data }: ProfitMetricsProps) {
             <p className="text-xs uppercase tracking-wide text-muted-foreground/50">
               Avg Order Value
             </p>
-            <p className="mt-1 text-lg font-semibold text-foreground>
+            <p className="mt-1 text-lg font-semibold text-foreground">
               {formatCurrency(avgOrderValue)}
             </p>
           </div>

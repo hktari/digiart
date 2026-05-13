@@ -51,7 +51,7 @@ export default async function CheckoutCompletePage() {
             <CheckCircle className="h-10 w-10 text-jade-600" />
           </div>
         </div>
-        <h1 className="text-2xl font-bold text-foreground>Booklet ordered!</h1>
+        <h1 className="text-2xl font-bold text-foreground">Booklet ordered!</h1>
         <p className="text-sm text-muted-foreground/60">
           Your card has been saved and your selections are confirmed.
         </p>
@@ -62,15 +62,17 @@ export default async function CheckoutCompletePage() {
           <div className="flex items-start gap-3 p-4">
             <Calendar className="h-5 w-5 text-muted-foreground/40 shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-foreground>Charge date</p>
-              <p className="text-sm text-muted-foreground/60">{lockDateFormatted}</p>
+              <p className="text-sm font-medium text-foreground">Charge date</p>
+              <p className="text-sm text-muted-foreground/60">
+                {lockDateFormatted}
+              </p>
             </div>
           </div>
         )}
         <div className="flex items-start gap-3 p-4">
           <CreditCard className="h-5 w-5 text-muted-foreground/40 shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-medium text-foreground>Payment</p>
+            <p className="text-sm font-medium text-foreground">Payment</p>
             <p className="text-sm text-muted-foreground/60">
               Your saved card will be charged automatically at cycle lock. No
               action needed.

@@ -60,13 +60,17 @@ export default async function AdminCyclePayoutsPage({
           /
         </p>
         <h1 className="text-3xl font-bold">{cycle.label}</h1>
-        <p className="text-muted-foreground/60 mt-1">Creator earnings &amp; disbursements</p>
+        <p className="text-muted-foreground/60 mt-1">
+          Creator earnings &amp; disbursements
+        </p>
       </div>
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="rounded-lg border border-beige-200 bg-white p-4">
-          <p className="text-xs text-muted-foreground/40 uppercase tracking-wide">Pool</p>
+          <p className="text-xs text-muted-foreground/40 uppercase tracking-wide">
+            Pool
+          </p>
           <p className="mt-1 text-2xl font-bold font-mono">
             {calc ? Number(calc.totalMarkupPool).toFixed(2) : "—"}
           </p>
@@ -81,7 +85,9 @@ export default async function AdminCyclePayoutsPage({
               ? `${calc.totalFulfilledCollectors}/${calc.totalPaidCollectors}`
               : "—"}
           </p>
-          {calc && <p className="text-xs text-muted-foreground/40">collectors</p>}
+          {calc && (
+            <p className="text-xs text-muted-foreground/40">collectors</p>
+          )}
         </div>
         <div className="rounded-lg border border-yellow-100 bg-yellow-50 p-4">
           <p className="text-xs text-yellow-600 uppercase tracking-wide">
@@ -168,7 +174,7 @@ export default async function AdminCyclePayoutsPage({
                     className="hover:bg-beige-50 transition-colors"
                   >
                     <td className="px-6 py-4">
-                      <p className="font-medium text-foreground>
+                      <p className="font-medium text-foreground">
                         {payout.creatorProfile.displayName}
                       </p>
                       <p className="text-xs text-muted-foreground/40">

@@ -252,16 +252,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               </SidebarMenuButton>
             </SidebarMenuItem>
           ) : (
-            <>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="/auth/sign-in">
-                    <User className="size-4" />
-                    <span>Sign in</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/auth/sign-in">
+                  <User className="size-4" />
+                  <span>Sign in</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
           )}
         </SidebarMenu>
         <SidebarSeparator />

@@ -175,7 +175,9 @@ export function CollectorOrdersClient({
             key={record.id}
             className="rounded border border-beige-200 bg-white p-4"
           >
-            <h2 className="font-semibold text-foreground>{record.cycle.label}</h2>
+            <h2 className="font-semibold text-foreground">
+              {record.cycle.label}
+            </h2>
             <p className="text-sm text-muted-foreground/60">
               {record.quoteSnapshot
                 ? `${Number(record.quoteSnapshot.totalEstimate).toFixed(2)} ${record.quoteSnapshot.currency}`

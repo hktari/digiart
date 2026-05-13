@@ -72,21 +72,25 @@ export default async function AdminPayoutsPage() {
                     key={cycle.id}
                     className="hover:bg-beige-50 transition-colors"
                   >
-                    <td className="px-6 py-4 font-medium text-foreground>
+                    <td className="px-6 py-4 font-medium text-foreground">
                       {cycle.label}
                     </td>
                     <td className="px-6 py-4 text-muted-foreground/70">
                       {pool !== null ? (
                         <span className="font-mono">
                           {pool.toFixed(2)}{" "}
-                          <span className="text-xs text-muted-foreground/40">EUR</span>
+                          <span className="text-xs text-muted-foreground/40">
+                            EUR
+                          </span>
                         </span>
                       ) : (
                         <span className="text-muted-foreground/30">—</span>
                       )}
                     </td>
                     <td className="px-6 py-4 text-muted-foreground/70">
-                      {payouts.length || <span className="text-muted-foreground/30">—</span>}
+                      {payouts.length || (
+                        <span className="text-muted-foreground/30">—</span>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       {pending > 0 ? (

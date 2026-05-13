@@ -189,7 +189,7 @@ export default async function AdminUsersPage() {
                 return (
                   <tr key={user.id} className="hover:bg-gray-50 align-top">
                     <td className="px-4 py-4">
-                      <div className="font-medium text-foreground>
+                      <div className="font-medium text-foreground">
                         {user.name ?? user.email}
                       </div>
                       <div className="text-xs text-gray-500">{user.email}</div>

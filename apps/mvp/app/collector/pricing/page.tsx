@@ -1,6 +1,7 @@
 import { CreditCard } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { PricingQuoteDisplay } from "@/components/pricing-quote-display";
 import { getCollectorCartSummary } from "@/lib/actions/collector";
 import { auth } from "@/lib/auth";
 import { computeBookletPageCount } from "@/lib/booklet/page-count";
