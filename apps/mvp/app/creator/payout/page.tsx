@@ -14,11 +14,13 @@ function StatCard({
   sub: string;
 }) {
   return (
-    <div className="rounded-lg border border-beige-200 bg-white p-4">
+    <div className="rounded-lg border border-border bg-card p-4">
       <p className="text-xs text-muted-foreground/60 uppercase tracking-wide">
         {label}
       </p>
-      <p className="mt-1 text-xl font-bold font-mono">{value}</p>
+      <p className="mt-1 text-xl font-bold font-mono text-card-foreground">
+        {value}
+      </p>
       <p className="text-xs text-muted-foreground/40">{sub}</p>
     </div>
   );
@@ -32,11 +34,11 @@ function InfoBox({
   children: React.ReactNode;
 }) {
   const styles = {
-    neutral: "bg-beige-50 border-beige-200 text-muted-foreground/70",
-    yellow: "bg-yellow-50 border-yellow-200 text-yellow-700",
-    blue: "bg-blue-50 border-blue-200 text-blue-700",
-    green: "bg-jade-50 border-jade-200 text-jade-700",
-    red: "bg-red-50 border-red-200 text-red-700",
+    neutral: "bg-muted border-border text-muted-foreground",
+    yellow: "bg-yellow-500/10 border-yellow-500/20 text-yellow-700",
+    blue: "bg-blue-500/10 border-blue-500/20 text-blue-700",
+    green: "bg-green-500/10 border-green-500/20 text-green-700",
+    red: "bg-red-500/10 border-red-500/20 text-red-700",
   };
   return (
     <div className={`border rounded-lg p-4 text-sm ${styles[variant]}`}>
@@ -202,9 +204,9 @@ export default async function CreatorPayoutPage() {
       )}
 
       {/* Past payouts */}
-      <div className="rounded-lg border border-beige-200 bg-white overflow-hidden">
-        <div className="px-6 py-4 border-b border-beige-100">
-          <h2 className="text-base font-semibold">
+      <div className="rounded-lg border border-border bg-card overflow-hidden">
+        <div className="px-6 py-4 border-b border-border">
+          <h2 className="text-base font-semibold text-card-foreground">
             Past payouts
             {pastPayouts.length > 0 && (
               <span className="ml-2 text-sm font-normal text-muted-foreground/40">
@@ -221,7 +223,7 @@ export default async function CreatorPayoutPage() {
           </div>
         ) : (
           <table className="w-full text-sm">
-            <thead className="bg-beige-50 border-b border-beige-100">
+            <thead className="bg-muted border-b border-border">
               <tr>
                 <th className="px-6 py-3 text-left font-medium text-muted-foreground/60">
                   Cycle
@@ -237,11 +239,11 @@ export default async function CreatorPayoutPage() {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-beige-100">
+            <tbody className="divide-y divide-border">
               {pastPayouts.map((payout) => (
                 <tr
                   key={payout.id}
-                  className="hover:bg-beige-50 transition-colors"
+                  className="hover:bg-muted/50 transition-colors"
                 >
                   <td className="px-6 py-4 font-medium text-foreground">
                     {payout.cycle.label}
