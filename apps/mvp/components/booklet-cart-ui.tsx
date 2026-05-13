@@ -8,6 +8,7 @@ export type BookletCartItem = {
   releaseId: string;
   title: string;
   creatorDisplayName: string;
+  creatorSlug: string;
   artworkCount: number;
   source?: "AUTO_SUBSCRIPTION" | "MANUAL";
 };
@@ -107,26 +108,34 @@ export function BookletCartUI({
                 <button
                   type="button"
                   disabled={isPending}
-                  onClick={() => onRemove(item.releaseId)}
-                  className="absolute top-2 right-2 p-1.5 rounded-md hover:bg-red-50 text-red-600 hover:text-red-700 disabled:opacity-50 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemove(item.releaseId);
+                  }}
+                  className="absolute top-2 right-2 p-1.5 rounded-md hover:bg-red-50 text-red-600 hover:text-red-700 disabled:opacity-50 transition-colors z-10"
                   aria-label="Remove"
                 >
                   <X className="h-4 w-4" />
                 </button>
-                <p className="text-sm font-medium text-foreground pr-8">
-                  {item.title}
-                </p>
-                <p className="text-xs text-foreground/60">
-                  {item.creatorDisplayName} · {item.artworkCount}{" "}
-                  {item.artworkCount === 1 ? "page" : "pages"}
-                </p>
-                {item.source && (
-                  <p className="text-[11px] text-foreground/50 mt-0.5">
-                    {item.source === "AUTO_SUBSCRIPTION"
-                      ? "Auto-added from subscription"
-                      : "Manually added"}
+                <Link
+                  href={`/creators/${item.creatorSlug}/releases/${item.releaseId}`}
+                  className="block hover:bg-muted/50 rounded p-1 -m-1 transition-colors"
+                >
+                  <p className="text-sm font-medium text-foreground pr-8">
+                    {item.title}
                   </p>
-                )}
+                  <p className="text-xs text-foreground/60">
+                    {item.creatorDisplayName} · {item.artworkCount}{" "}
+                    {item.artworkCount === 1 ? "page" : "pages"}
+                  </p>
+                  {item.source && (
+                    <p className="text-[11px] text-foreground/50 mt-0.5">
+                      {item.source === "AUTO_SUBSCRIPTION"
+                        ? "Auto-added from subscription"
+                        : "Manually added"}
+                    </p>
+                  )}
+                </Link>
               </div>
             ))}
           </div>
@@ -231,7 +240,10 @@ export function BookletCartUI({
                   key={item.releaseId}
                   className="flex items-center gap-3 rounded border border-border bg-background p-2"
                 >
-                  <div className="flex-1 min-w-0">
+                  <Link
+                    href={`/creators/${item.creatorSlug}/releases/${item.releaseId}`}
+                    className="flex-1 min-w-0 hover:bg-muted/50 rounded p-1 -m-1 transition-colors"
+                  >
                     <p className="text-sm font-medium text-foreground truncate">
                       {item.title}
                     </p>
@@ -246,11 +258,14 @@ export function BookletCartUI({
                           : "Manually added"}
                       </p>
                     )}
-                  </div>
+                  </Link>
                   <button
                     type="button"
                     disabled={isPending}
-                    onClick={() => onRemove(item.releaseId)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRemove(item.releaseId);
+                    }}
                     className="shrink-0 p-2 rounded-md hover:bg-red-50 text-red-600 hover:text-red-700 disabled:opacity-50 transition-colors"
                     aria-label="Remove"
                   >
