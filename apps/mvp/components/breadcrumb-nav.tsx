@@ -43,6 +43,10 @@ export function BreadcrumbNav() {
   const pathname = usePathname();
   const segments = pathname.split("/").filter(Boolean);
 
+  if (pathname.startsWith("/creators/")) {
+    return null;
+  }
+
   if (segments.length === 0) {
     return (
       <Breadcrumb>

@@ -2,8 +2,15 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { BackLink } from "@/components/back-link";
 import { InfiniteScrollSentinel } from "@/components/infinite-scroll-sentinel";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 
 type Release = {
@@ -50,9 +57,25 @@ export function CreatorReleasesClient({
     <div className="bg-muted">
       <div className="max-w-6xl mx-auto px-4 py-12 space-y-8">
         <div className="space-y-2">
-          <BackLink href={`/creators/${slug}`}>
-            Back to {profile.displayName}
-          </BackLink>
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link href="/browse">Browse</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link href={`/creators/${slug}`}>{profile.displayName}</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>Releases</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
           <h1 className="text-3xl font-bold text-foreground">
             {profile.displayName}&apos;s releases
           </h1>

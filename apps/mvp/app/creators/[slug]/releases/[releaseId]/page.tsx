@@ -61,12 +61,26 @@ export default async function PublicReleaseDetailPage({ params }: Props) {
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
+                  <Link href="/browse">Browse</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link href={`/creators/${slug}`}>
+                    {release.creatorProfile.displayName}
+                  </Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
                   <Link href={`/creators/${slug}/releases`}>Releases</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage className="text-lg font-bold text-foreground truncate">
+                <BreadcrumbPage className="truncate">
                   {release.title}
                 </BreadcrumbPage>
               </BreadcrumbItem>

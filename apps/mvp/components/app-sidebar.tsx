@@ -30,16 +30,24 @@ import {
   SidebarMenuSubItem,
   SidebarRail,
   SidebarSeparator,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
   const { data: session, status } = useSession();
+  const { setOpenMobile, isMobile } = useSidebar();
   const isAuthenticated = status === "authenticated";
   const isAdmin = session?.user?.roles?.includes("ADMIN") ?? false;
   const isCollector = session?.user?.roles?.includes("COLLECTOR") ?? false;
   const isCreator = session?.user?.roles?.includes("CREATOR") ?? false;
+
+  const handleLinkClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   return (
     <Sidebar {...props}>
@@ -47,7 +55,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link href="/">
+              <Link href="/" onClick={handleLinkClick}>
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                   <Image
                     src="/logo.png"
@@ -72,7 +80,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild isActive={pathname === "/browse"}>
-                <Link href="/browse">
+                <Link href="/browse" onClick={handleLinkClick}>
                   <Eye className="size-4" />
                   <span>Browse</span>
                 </Link>
@@ -82,7 +90,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             {(isCreator || isCollector) && (
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === "/"}>
-                  <Link href="/">
+                  <Link href="/" onClick={handleLinkClick}>
                     <LayoutDashboard className="size-4" />
                     <span>Dashboard</span>
                   </Link>
@@ -101,7 +109,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   asChild
                   isActive={pathname.startsWith("/creator")}
                 >
-                  <Link href="/creator">
+                  <Link href="/creator" onClick={handleLinkClick}>
                     <Palette className="size-4" />
                     <span>Creator</span>
                   </Link>
@@ -112,7 +120,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       asChild
                       isActive={pathname === "/creator/artworks"}
                     >
-                      <Link href="/creator/artworks">Artworks</Link>
+                      <Link href="/creator/artworks" onClick={handleLinkClick}>
+                        Artworks
+                      </Link>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                   <SidebarMenuSubItem>
@@ -120,7 +130,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       asChild
                       isActive={pathname === "/creator/releases"}
                     >
-                      <Link href="/creator/releases">Releases</Link>
+                      <Link href="/creator/releases" onClick={handleLinkClick}>
+                        Releases
+                      </Link>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                   <SidebarMenuSubItem>
@@ -128,7 +140,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       asChild
                       isActive={pathname === "/creator/profile"}
                     >
-                      <Link href="/creator/profile">Profile</Link>
+                      <Link href="/creator/profile" onClick={handleLinkClick}>
+                        Profile
+                      </Link>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                   <SidebarMenuSubItem>
@@ -136,7 +150,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       asChild
                       isActive={pathname === "/creator/payout"}
                     >
-                      <Link href="/creator/payout">Payouts</Link>
+                      <Link href="/creator/payout" onClick={handleLinkClick}>
+                        Payouts
+                      </Link>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                   <SidebarMenuSubItem>
@@ -144,7 +160,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       asChild
                       isActive={pathname === "/creator/share"}
                     >
-                      <Link href="/creator/share">Share</Link>
+                      <Link href="/creator/share" onClick={handleLinkClick}>
+                        Share
+                      </Link>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                 </SidebarMenuSub>
@@ -162,7 +180,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   asChild
                   isActive={pathname.startsWith("/collector")}
                 >
-                  <Link href="/collector">
+                  <Link href="/collector" onClick={handleLinkClick}>
                     <ShoppingBag className="size-4" />
                     <span>Collector</span>
                   </Link>
@@ -173,7 +191,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       asChild
                       isActive={pathname === "/collector/subscriptions"}
                     >
-                      <Link href="/collector/subscriptions">Subscriptions</Link>
+                      <Link
+                        href="/collector/subscriptions"
+                        onClick={handleLinkClick}
+                      >
+                        Subscriptions
+                      </Link>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                   <SidebarMenuSubItem>
@@ -181,7 +204,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       asChild
                       isActive={pathname === "/collector/releases"}
                     >
-                      <Link href="/collector/releases">Releases</Link>
+                      <Link
+                        href="/collector/releases"
+                        onClick={handleLinkClick}
+                      >
+                        Releases
+                      </Link>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                   <SidebarMenuSubItem>
@@ -189,7 +217,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       asChild
                       isActive={pathname === "/browse"}
                     >
-                      <Link href="/browse">Browse</Link>
+                      <Link href="/browse" onClick={handleLinkClick}>
+                        Browse
+                      </Link>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                   <SidebarMenuSubItem>
@@ -197,7 +227,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       asChild
                       isActive={pathname === "/collector/pricing"}
                     >
-                      <Link href="/collector/pricing">Pricing</Link>
+                      <Link href="/collector/pricing" onClick={handleLinkClick}>
+                        Pricing
+                      </Link>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                   <SidebarMenuSubItem>
@@ -205,7 +237,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       asChild
                       isActive={pathname === "/collector/lock-status"}
                     >
-                      <Link href="/collector/lock-status">Lock status</Link>
+                      <Link
+                        href="/collector/lock-status"
+                        onClick={handleLinkClick}
+                      >
+                        Lock status
+                      </Link>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                   <SidebarMenuSubItem>
@@ -213,7 +250,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       asChild
                       isActive={pathname === "/collector/setup"}
                     >
-                      <Link href="/collector/setup">Setup</Link>
+                      <Link href="/collector/setup" onClick={handleLinkClick}>
+                        Setup
+                      </Link>
                     </SidebarMenuSubButton>
                   </SidebarMenuSubItem>
                 </SidebarMenuSub>
@@ -231,7 +270,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   asChild
                   isActive={pathname.startsWith("/admin")}
                 >
-                  <Link href="/admin">
+                  <Link href="/admin" onClick={handleLinkClick}>
                     <Settings className="size-4" />
                     <span>Admin</span>
                   </Link>
@@ -254,7 +293,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           ) : (
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link href="/auth/sign-in">
+                <Link href="/auth/sign-in" onClick={handleLinkClick}>
                   <User className="size-4" />
                   <span>Sign in</span>
                 </Link>
