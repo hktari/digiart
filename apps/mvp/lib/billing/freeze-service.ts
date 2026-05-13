@@ -171,8 +171,8 @@ export async function freezeCollectorCycleQuotes(
                 quantity: 1,
                 file_details: {
                   content_url: presignedUrl,
-                  content_width: 210,
-                  content_height: 297,
+                  content_width: printFile.widthMm ?? 148,
+                  content_height: printFile.heightMm ?? 210,
                   number_of_pages:
                     printFile.pageCount ?? pageCountResult.totalPages,
                 },

@@ -1,13 +1,13 @@
 import { Processor, WorkerHost } from "@nestjs/bullmq";
 import { Logger } from "@nestjs/common";
-import * as Sentry from "@sentry/nestjs";
-import type { Job } from "bullmq";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
-import { DEFAULT_PAGE_FORMAT } from "./booklet.types";
+import * as Sentry from "@sentry/nestjs";
+import type { Job } from "bullmq";
 import type { BookletJobData, BookletJobResult } from "./booklet.types";
-import { PdfBuilderService } from "./pdf/pdf-builder.service";
-import { StorageService } from "./storage/storage.service";
+import { DEFAULT_PAGE_FORMAT, PAGE_DIMENSIONS } from "./booklet.types";
+import type { PdfBuilderService } from "./pdf/pdf-builder.service";
+import type { StorageService } from "./storage/storage.service";
 
 const MIN_WIDTH_PX = 1240;
 const MIN_HEIGHT_PX = 1748;
@@ -119,12 +119,19 @@ export class BookletProcessor extends WorkerHost {
         `Booklet job ${job.id} complete: ${pageCount} pages → ${pdfUrl}`,
       );
 
+      const dims = PAGE_DIMENSIONS[pageFormat];
+      const PT_TO_MM = 1 / 2.8346;
+      const widthMm = dims.widthPt * PT_TO_MM;
+      const heightMm = dims.heightPt * PT_TO_MM;
+
       await this.prisma.generatedPrintFile.updateMany({
         where: { collectorProfileId, cycleId },
         data: {
           status: "READY",
           storageUrl: pdfUrl,
           pageCount,
+          widthMm,
+          heightMm,
           generatedAt: new Date(),
           errorMessage: null,
         },

@@ -466,6 +466,8 @@ model GeneratedPrintFile {
   cycleId            String
   storageUrl         String?
   pageCount          Int?
+  widthMm            Float?
+  heightMm           Float?
   status             PrintFileStatus @default(PENDING)
   errorMessage       String?
   generatedAt        DateTime?
