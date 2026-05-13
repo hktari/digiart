@@ -1,7 +1,6 @@
 import { CreditCard } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { PricingQuoteDisplay } from "@/components/pricing-quote-display";
 import { getCollectorCartSummary } from "@/lib/actions/collector";
 import { auth } from "@/lib/auth";
 import { computeBookletPageCount } from "@/lib/booklet/page-count";
@@ -77,14 +76,12 @@ export default async function CollectorPricingPage() {
   }
 
   const isCommitted =
-    !!checkoutIntent?.committedAt &&
-    !!checkoutIntent.retailTotalAmount &&
-    !!checkoutIntent.peechoOrderId;
+    !!checkoutIntent?.committedAt && !!checkoutIntent.retailTotalAmount;
 
   return (
     <div className="max-w-xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground>Booklet Pricing</h1>
+        <h1 className="text-2xl font-bold text-foreground">Booklet Pricing</h1>
         <p className="text-sm text-muted-foreground/60 mt-1">
           Current amount due at cycle lock based on your selections and delivery
           address.
@@ -108,7 +105,7 @@ export default async function CollectorPricingPage() {
           <div className="flex items-start gap-3">
             <CreditCard className="h-5 w-5 text-muted-foreground/40 shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-semibold text-foreground>
+              <p className="text-sm font-semibold text-foreground">
                 No order placed yet
               </p>
               <p className="text-sm text-muted-foreground/60 mt-1">
@@ -134,7 +131,7 @@ export default async function CollectorPricingPage() {
             currency: "EUR",
             pageCount: checkoutIntent.quoteInputPageCount ?? currentPageCount,
             updatedAt: checkoutIntent.updatedAt,
-            peechoOrderId: checkoutIntent.peechoOrderId!,
+            peechoOrderId: checkoutIntent.peechoOrderId ?? undefined,
           }}
           cycleLockDate={currentCycle.lockDate?.toISOString() ?? null}
           totalReleases={summary.totalReleases}

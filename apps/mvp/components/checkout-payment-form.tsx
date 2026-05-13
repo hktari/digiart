@@ -8,9 +8,10 @@ import {
   useStripe,
 } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
-import { AlertCircle, Lock, RefreshCw } from "lucide-react";
+import { AlertCircle, Info, Lock, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { fetchLiveQuote } from "@/lib/actions/pricing-actions";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
@@ -47,6 +48,13 @@ export interface CheckoutPaymentFormProps {
   allowedCountries: string[];
 }
 
+interface CheckoutFormInnerProps extends CheckoutPaymentFormProps {
+  liveEstimate: EstimateSummary | null;
+  isRefreshingEstimate: boolean;
+  onEstimateChange: (estimate: EstimateSummary | null) => void;
+  onRefreshingChange: (refreshing: boolean) => void;
+}
+
 function formatCurrency(amount: number, currency: string) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -57,9 +65,11 @@ function formatCurrency(amount: number, currency: string) {
 function EstimateBlock({
   estimate,
   cycleLockDate,
+  isRefreshing,
 }: {
   estimate: EstimateSummary;
   cycleLockDate: string | null;
+  isRefreshing?: boolean;
 }) {
   const lockDate = cycleLockDate
     ? new Date(cycleLockDate).toLocaleDateString("en-US", {
@@ -75,9 +85,14 @@ function EstimateBlock({
         <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground/50">
           Price Estimate
         </h2>
-        <span className="text-[10px] font-medium uppercase tracking-wider text-amber-600 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">
-          Estimate
-        </span>
+        <div className="flex items-center gap-2">
+          {isRefreshing && (
+            <RefreshCw className="h-3 w-3 text-amber-600 animate-spin" />
+          )}
+          <span className="text-[10px] font-medium uppercase tracking-wider text-amber-600 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">
+            Estimate
+          </span>
+        </div>
       </div>
       <div className="flex justify-between text-sm text-muted-foreground/70">
         <span>Production</span>
@@ -105,20 +120,28 @@ function EstimateBlock({
           <span>{formatCurrency(estimate.taxAmount, estimate.currency)}</span>
         </div>
       )}
-      <div className="flex justify-between text-base font-semibold text-foregroundpt-2 border-t border-beige-200">
+      <div className="flex justify-between text-base font-semibold text-foreground pt-2 border-t border-beige-200">
         <span>Estimated total</span>
         <span>{formatCurrency(estimate.totalEstimate, estimate.currency)}</span>
       </div>
       <p className="text-xs text-amber-700 bg-amber-50 rounded p-2 mt-1">
-        This estimate includes our platform margin, calculated from
-        Peecho&apos;s wholesale quote. The final Peecho order price may differ
-        slightly; we email the final amount before charging.
+        This estimate is based on your current selections and delivery country.
+        The final price will be recalculated at cycle lock based on your actual
+        artwork count and delivery address.
         {lockDate && (
           <>
             {" "}
             Your card will not be charged until <strong>{lockDate}</strong>.
           </>
         )}
+      </p>
+      <p className="text-xs text-muted-foreground/60 flex items-start gap-1.5">
+        <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+        <span>
+          You can freely change your release selections until the cycle locks.
+          The price depends on the number of artworks you choose and your
+          delivery country.
+        </span>
       </p>
     </div>
   );
@@ -169,7 +192,11 @@ function CheckoutFormInner({
   estimateSummary,
   defaultAddress,
   allowedCountries,
-}: CheckoutPaymentFormProps) {
+  liveEstimate,
+  isRefreshingEstimate,
+  onEstimateChange,
+  onRefreshingChange,
+}: CheckoutFormInnerProps) {
   const stripe = useStripe();
   const elements = useElements();
   const router = useRouter();
@@ -367,6 +394,40 @@ function CheckoutFormInner({
                 }
               : undefined,
           }}
+          onChange={async (event) => {
+            const addr = event.value?.address;
+            if (!addr?.country) return;
+
+            const currentCountry = liveEstimate
+              ? undefined
+              : defaultAddress?.country;
+
+            // Only refetch if country changed from initial or previous
+            if (addr.country === currentCountry) return;
+
+            onRefreshingChange(true);
+            setError(null);
+
+            const result = await fetchLiveQuote(
+              addr.country,
+              addr.state || undefined,
+            );
+
+            if ("error" in result && result.error) {
+              setError(result.error);
+            } else if ("quote" in result && result.quote) {
+              onEstimateChange({
+                baseAmount: result.quote.baseAmount,
+                shippingAmount: result.quote.shippingAmount,
+                markupAmount: result.quote.markupAmount,
+                taxAmount: result.quote.taxAmount,
+                totalEstimate: result.quote.totalEstimate,
+                currency: result.quote.currency,
+              });
+            }
+
+            onRefreshingChange(false);
+          }}
         />
       </div>
 
@@ -410,6 +471,10 @@ function CheckoutFormInner({
 export function CheckoutPaymentForm(props: CheckoutPaymentFormProps) {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [liveEstimate, setLiveEstimate] = useState<EstimateSummary | null>(
+    props.estimateSummary,
+  );
+  const [isRefreshingEstimate, setIsRefreshingEstimate] = useState(false);
 
   useEffect(() => {
     fetch("/api/collector/setup-intent", { method: "POST" })
@@ -443,10 +508,11 @@ export function CheckoutPaymentForm(props: CheckoutPaymentFormProps) {
 
   return (
     <div className="space-y-5">
-      {props.estimateSummary && (
+      {(props.estimateSummary || liveEstimate) && (
         <EstimateBlock
-          estimate={props.estimateSummary}
+          estimate={liveEstimate ?? props.estimateSummary!}
           cycleLockDate={props.cycleLockDate}
+          isRefreshing={isRefreshingEstimate}
         />
       )}
 
@@ -462,7 +528,13 @@ export function CheckoutPaymentForm(props: CheckoutPaymentFormProps) {
 
       {clientSecret && options && (
         <Elements key={clientSecret} stripe={stripePromise} options={options}>
-          <CheckoutFormInner {...props} />
+          <CheckoutFormInner
+            {...props}
+            liveEstimate={liveEstimate}
+            isRefreshingEstimate={isRefreshingEstimate}
+            onEstimateChange={setLiveEstimate}
+            onRefreshingChange={setIsRefreshingEstimate}
+          />
         </Elements>
       )}
     </div>

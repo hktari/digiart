@@ -61,8 +61,8 @@ export async function POST(request: Request) {
     const displayName =
       collectorProfile.user.name ?? collectorProfile.displayName ?? "Collector";
     const nameParts = displayName.trim().split(" ");
-    const firstName = nameParts[0] ?? "";
-    const lastName = nameParts.slice(1).join(" ");
+    const _firstName = nameParts[0] ?? "";
+    const _lastName = nameParts.slice(1).join(" ");
 
     await db.collectorProfile.update({
       where: { id: collectorProfile.id },

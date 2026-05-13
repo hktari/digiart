@@ -121,9 +121,13 @@ export default async function CollectorCheckoutPage() {
 
       <div className="rounded-lg border border-beige-200 bg-white p-4">
         <p className="text-sm text-muted-foreground/70">
-          <span className="font-medium text-foreground>{summary.totalReleases}</span>{" "}
+          <span className="font-medium text-foreground">
+            {summary.totalReleases}
+          </span>{" "}
           release{summary.totalReleases !== 1 ? "s" : ""} ·{" "}
-          <span className="font-medium text-foreground>{summary.totalArtworks}</span>{" "}
+          <span className="font-medium text-foreground">
+            {summary.totalArtworks}
+          </span>{" "}
           pages
         </p>
       </div>

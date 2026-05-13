@@ -5,7 +5,6 @@ import { auth } from "@/lib/auth";
 import { computeBookletPageCount } from "@/lib/booklet/page-count";
 import { getCurrentCycle } from "@/lib/cycle-utils";
 import { db } from "@/lib/db";
-import { peechoClient } from "@/lib/peecho/client";
 import { getQuote } from "@/lib/peecho/quote-service";
 import { createQuoteSnapshot } from "@/lib/pricing/quote-snapshot";
 
@@ -77,6 +76,85 @@ export async function fetchAndPersistQuote(pageCount: number = 20) {
   }
 }
 
+export async function fetchLiveQuote(
+  country: string,
+  countryStateCode?: string,
+) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    redirect("/auth/sign-in");
+  }
+
+  const collectorProfile = await db.collectorProfile.findUnique({
+    where: { userId: session.user.id },
+  });
+
+  if (!collectorProfile) {
+    return { error: "Collector profile not found" };
+  }
+
+  const currentCycle = await getCurrentCycle();
+  if (!currentCycle) {
+    return { error: "No active subscription cycle" };
+  }
+
+  const selections = await db.collectorReleaseSelection.findMany({
+    where: {
+      collectorProfileId: collectorProfile.id,
+      cycleId: currentCycle.id,
+    },
+    include: {
+      release: {
+        include: {
+          artworks: { include: { artwork: { select: { id: true } } } },
+        },
+      },
+    },
+  });
+
+  if (selections.length === 0) {
+    return { error: "No releases selected" };
+  }
+
+  const { totalPages } = computeBookletPageCount(selections as any);
+
+  try {
+    const quoteData = await getQuote({
+      country,
+      countryStateCode: countryStateCode || undefined,
+      pageCount: totalPages,
+    });
+
+    return {
+      success: true,
+      quote: {
+        baseAmount: quoteData.baseAmount,
+        shippingAmount: quoteData.shippingAmount,
+        markupAmount: quoteData.markupAmount,
+        taxAmount: quoteData.taxAmount,
+        totalEstimate: quoteData.totalEstimate,
+        currency: quoteData.currency,
+        pageCount: totalPages,
+      },
+    };
+  } catch (error) {
+    if (
+      country.toUpperCase() === "US" &&
+      error instanceof Error &&
+      error.message.includes("countryStateCode is required")
+    ) {
+      return {
+        error:
+          "US quotes require a shipping state code. Please select a state.",
+      };
+    }
+
+    return {
+      error: error instanceof Error ? error.message : "Failed to fetch quote",
+    };
+  }
+}
+
 export interface OrderPricing {
   retailTotalAmount: number;
   wholesaleTotalAmount: number;
@@ -84,7 +162,7 @@ export interface OrderPricing {
   currency: string;
   pageCount: number;
   updatedAt: Date;
-  peechoOrderId: string;
+  peechoOrderId?: string;
 }
 
 export async function refreshCommittedOrder(): Promise<
@@ -170,46 +248,21 @@ export async function refreshCommittedOrder(): Promise<
     return { error: `No offering available for ${totalPages} pages` };
   }
 
-  const nameParts = (collectorProfile.shippingName ?? "").trim().split(" ");
-
   try {
-    const orderResponse = await peechoClient.createOrder({
-      currency: "EUR",
-      order_reference: `refresh-${collectorProfile.id}-${currentCycle.id}-${Date.now()}`,
-      item_details: [
-        {
-          item_reference: `booklet-${collectorProfile.id}-${currentCycle.id}`,
-          offering_id: parseInt(offering.externalId, 10),
-          quantity: 1,
-        },
-      ],
-      address_details: {
-        email_address: collectorProfile.user.email ?? "",
-        shipping_address: {
-          first_name: nameParts[0] ?? "",
-          last_name: nameParts.slice(1).join(" "),
-          address_line_1: collectorProfile.shippingAddressLine1,
-          address_line_2: collectorProfile.shippingAddressLine2 ?? undefined,
-          city: collectorProfile.shippingCity,
-          zip_code: collectorProfile.shippingZip,
-          state: collectorProfile.shippingStateCode ?? null,
-          country_code: collectorProfile.shippingCountry,
-        },
-      },
+    const quoteData = await getQuote({
+      country: collectorProfile.shippingCountry,
+      countryStateCode: collectorProfile.shippingStateCode ?? undefined,
+      pageCount: totalPages,
+      offeringId: offering.externalId,
     });
 
-    const orderDetails = await peechoClient.getOrderDetails(
-      orderResponse.order_id,
-    );
-
-    const retailTotalAmount = orderDetails.total_retail_price_inc_taxes;
-    const wholesaleTotalAmount = orderDetails.total_wholesale_price_inc_taxes;
-    const platformMarkupAmount = retailTotalAmount - wholesaleTotalAmount;
+    const retailTotalAmount = quoteData.totalEstimate;
+    const wholesaleTotalAmount = quoteData.wholesaleTotal;
+    const platformMarkupAmount = quoteData.markupAmount;
 
     await db.checkoutIntent.update({
       where: { id: checkoutIntent.id },
       data: {
-        peechoOrderId: String(orderResponse.order_id),
         retailTotalAmount,
         wholesaleTotalAmount,
         platformMarkupAmount,
@@ -225,15 +278,15 @@ export async function refreshCommittedOrder(): Promise<
         retailTotalAmount,
         wholesaleTotalAmount,
         platformMarkupAmount,
-        currency: orderDetails.currency,
+        currency: quoteData.currency,
         pageCount: totalPages,
         updatedAt: new Date(),
-        peechoOrderId: String(orderResponse.order_id),
+        peechoOrderId: checkoutIntent.peechoOrderId ?? undefined,
       },
     };
   } catch (error) {
     return {
-      error: error instanceof Error ? error.message : "Failed to refresh order",
+      error: error instanceof Error ? error.message : "Failed to refresh quote",
     };
   }
 }

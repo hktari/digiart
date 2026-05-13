@@ -123,8 +123,12 @@ export function PricingQuoteDisplay({
             hour: "2-digit",
             minute: "2-digit",
           })}
-          {" · "}
-          Order #{pricing.peechoOrderId}
+          {pricing.peechoOrderId && (
+            <>
+              {" · "}
+              Order #{pricing.peechoOrderId}
+            </>
+          )}
         </p>
       </div>
 
@@ -132,9 +136,12 @@ export function PricingQuoteDisplay({
       <div className="rounded-lg border border-beige-200 bg-white p-4 flex items-center gap-3">
         <Package className="h-5 w-5 text-muted-foreground/40 shrink-0" />
         <div className="text-sm text-muted-foreground/70">
-          <span className="font-medium text-foreground>{totalReleases}</span> release
+          <span className="font-medium text-foreground">{totalReleases}</span>{" "}
+          release
           {totalReleases !== 1 ? "s" : ""} ·{" "}
-          <span className="font-medium text-foreground>{pricing.pageCount}</span>{" "}
+          <span className="font-medium text-foreground">
+            {pricing.pageCount}
+          </span>{" "}
           pages
           {pricing.pageCount !== totalPages && (
             <span className="text-amber-600">
