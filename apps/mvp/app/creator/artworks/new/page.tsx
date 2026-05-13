@@ -144,7 +144,8 @@ export default function CreatorArtworkNewPage() {
           </svg>
         </div>
         <p className="text-sm font-medium text-foreground">
-          Drag & drop or <span className="text-fuchsia-600">browse</span>
+          Drag & drop or{" "}
+          <span className="text-fuchsia-600 dark:text-fuchsia-400">browse</span>
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
           Select multiple files at once

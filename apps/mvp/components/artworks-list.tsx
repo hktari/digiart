@@ -78,8 +78,8 @@ export function ArtworksList({ artworks }: ArtworksListProps) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-10">
         <div className="text-center space-y-4">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-beige-100">
-            <ImageOff className="h-8 w-8 text-beige-500" />
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+            <ImageOff className="h-8 w-8 text-muted-foreground" />
           </div>
           <h2 className="text-xl font-semibold text-foreground">
             No artworks yet
@@ -121,13 +121,13 @@ export function ArtworksList({ artworks }: ArtworksListProps) {
         {items.map((artwork) => (
           <div
             key={artwork.id}
-            className={`rounded-lg border bg-white overflow-hidden ${
+            className={`rounded-lg border bg-background overflow-hidden ${
               artwork.status === "ARCHIVED"
-                ? "border-neutral-200 opacity-75"
-                : "border-neutral-200"
+                ? "border-border opacity-75"
+                : "border-border"
             }`}
           >
-            <div className="aspect-4/3 bg-beige-50 relative">
+            <div className="aspect-4/3 bg-muted relative">
               {artwork.thumbnailUrl ? (
                 <img
                   src={artwork.thumbnailUrl}
@@ -137,12 +137,12 @@ export function ArtworksList({ artworks }: ArtworksListProps) {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <ImageOff className="h-8 w-8 text-beige-400" />
+                  <ImageOff className="h-8 w-8 text-muted-foreground" />
                 </div>
               )}
               {artwork.status === "ARCHIVED" && (
-                <div className="absolute inset-0 bg-neutral-900/50 flex items-center justify-center">
-                  <span className="rounded-full bg-neutral-800 px-3 py-1 text-xs font-medium text-white">
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                  <span className="rounded-full bg-neutral-900 px-3 py-1 text-xs font-medium text-white">
                     Archived
                   </span>
                 </div>
@@ -176,7 +176,7 @@ export function ArtworksList({ artworks }: ArtworksListProps) {
                   <button
                     onClick={() => handleReactivate(artwork.id)}
                     disabled={pendingIds.has(artwork.id)}
-                    className="flex-1 flex items-center justify-center gap-1.5 rounded-lg border border-jade-300 px-3 py-2 text-sm font-medium text-jade-700 hover:bg-jade-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="flex-1 flex items-center justify-center gap-1.5 rounded-lg border border-jade-300 dark:border-jade-700 px-3 py-2 text-sm font-medium text-jade-700 dark:text-jade-300 hover:bg-jade-50 dark:hover:bg-jade-950 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     <RefreshCw className="h-4 w-4" />
                     {pendingIds.has(artwork.id) ? "..." : "Reactivate"}
