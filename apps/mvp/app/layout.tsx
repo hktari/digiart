@@ -42,7 +42,28 @@ const manrope = Manrope({
 export const metadata: Metadata = {
   title: "Booklet Drops — Art Subscription Platform",
   description:
-    "Publish releases, build custom booklets from releases, and see transparent pricing and payouts.",
+    "Turn digital art into printed booklet experiences. Subscribe to artists you already follow and receive curated A5 booklet drops, delivered straight to your home",
+  openGraph: {
+    title: "Booklet Drops — Art Subscription Platform",
+    description:
+      "Turn digital art into printed booklet experiences. Subscribe to artists you already follow and receive curated A5 booklet drops, delivered straight to your home",
+    type: "website",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Booklet Drops — Art Subscription Platform",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Booklet Drops — Art Subscription Platform",
+    description:
+      "Turn digital art into printed booklet experiences. Subscribe to artists you already follow and receive curated A5 booklet drops, delivered straight to your home",
+    images: ["/twitter-image.png"],
+  },
 };
 
 export default function RootLayout({
