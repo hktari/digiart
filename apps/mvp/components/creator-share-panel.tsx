@@ -56,25 +56,25 @@ export function CreatorSharePanel({ referral }: CreatorSharePanelProps) {
       {/* Header */}
       <div>
         <div className="flex items-center gap-2 mb-1">
-          <Share2 className="h-4 w-4 text-fuchsia-600" />
-          <p className="text-xs font-semibold uppercase tracking-widest text-neutral-400">
+          <Share2 className="h-4 w-4 text-fuchsia-600 dark:text-fuchsia-400" />
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
             Share & grow
           </p>
         </div>
-        <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
           Your referral link
         </h1>
-        <p className="mt-1 text-sm text-neutral-500 max-w-lg">
+        <p className="mt-1 text-sm text-muted-foreground max-w-lg">
           Share this link in your bio, story, caption, or newsletter. Every
           subscription through it is tracked to you.
         </p>
       </div>
 
       {/* Referral link card */}
-      <div className="rounded-xl border border-neutral-200 bg-white p-6 space-y-4">
+      <div className="rounded-xl border border-border bg-background p-6 space-y-4">
         <div className="flex items-center gap-3">
-          <div className="flex-1 min-w-0 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-2.5">
-            <p className="text-sm font-mono text-neutral-700 truncate">
+          <div className="flex-1 min-w-0 rounded-lg border border-border bg-muted px-4 py-2.5">
+            <p className="text-sm font-mono text-foreground truncate">
               {referral.shareUrl}
             </p>
           </div>
@@ -101,7 +101,7 @@ export function CreatorSharePanel({ referral }: CreatorSharePanelProps) {
           href={referral.shareUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-xs text-neutral-500 hover:text-fuchsia-600 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-fuchsia-600 dark:hover:text-fuchsia-400 transition-colors"
         >
           <ExternalLink className="h-3.5 w-3.5" />
           Preview your public page
@@ -109,16 +109,16 @@ export function CreatorSharePanel({ referral }: CreatorSharePanelProps) {
       </div>
 
       {/* Signups counter */}
-      <div className="rounded-xl border border-neutral-200 bg-white p-6">
+      <div className="rounded-xl border border-border bg-background p-6">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-fuchsia-50">
-            <Users className="h-5 w-5 text-fuchsia-600" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-fuchsia-50 dark:bg-fuchsia-950">
+            <Users className="h-5 w-5 text-fuchsia-600 dark:text-fuchsia-400" />
           </div>
           <div>
-            <p className="text-3xl font-bold text-neutral-900">
+            <p className="text-3xl font-bold text-foreground">
               {referral.totalSignups}
             </p>
-            <p className="text-sm text-neutral-500">
+            <p className="text-sm text-muted-foreground">
               {referral.totalSignups === 1
                 ? "subscriber via your link"
                 : "subscribers via your link"}
@@ -126,7 +126,7 @@ export function CreatorSharePanel({ referral }: CreatorSharePanelProps) {
           </div>
         </div>
         {referral.totalSignups === 0 && (
-          <p className="mt-4 text-xs text-neutral-400 border-t border-neutral-100 pt-4">
+          <p className="mt-4 text-xs text-muted-foreground border-t border-border pt-4">
             No subscribers yet. Share your link to get started — even one post
             in the right channel can bring your first collector.
           </p>
@@ -136,10 +136,10 @@ export function CreatorSharePanel({ referral }: CreatorSharePanelProps) {
       {/* Launch blurbs */}
       <div className="space-y-4">
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-widest text-neutral-400 mb-1">
+          <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground mb-1">
             Ready-to-paste copy
           </h2>
-          <p className="text-xs text-neutral-500">
+          <p className="text-xs text-muted-foreground">
             Pick one, copy it, and post wherever your audience is. Your link is
             already included.
           </p>
@@ -151,21 +151,23 @@ export function CreatorSharePanel({ referral }: CreatorSharePanelProps) {
             return (
               <div
                 key={blurb.channel}
-                className="rounded-xl border border-neutral-200 bg-white p-5 space-y-3"
+                className="rounded-xl border border-border bg-background p-5 space-y-3"
               >
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-neutral-400">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                     {blurb.channel}
                   </p>
                   <button
                     type="button"
                     onClick={() => copyBlurb(i, text)}
-                    className="flex shrink-0 items-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-600 hover:bg-neutral-50 transition-colors"
+                    className="flex shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent transition-colors"
                   >
                     {copiedBlurb === i ? (
                       <>
-                        <Check className="h-3.5 w-3.5 text-jade-600" />
-                        <span className="text-jade-600">Copied</span>
+                        <Check className="h-3.5 w-3.5 text-jade-600 dark:text-jade-400" />
+                        <span className="text-jade-600 dark:text-jade-400">
+                          Copied
+                        </span>
                       </>
                     ) : (
                       <>
@@ -175,7 +177,7 @@ export function CreatorSharePanel({ referral }: CreatorSharePanelProps) {
                     )}
                   </button>
                 </div>
-                <p className="text-sm text-neutral-700 leading-relaxed whitespace-pre-line">
+                <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">
                   {text}
                 </p>
               </div>
@@ -185,11 +187,11 @@ export function CreatorSharePanel({ referral }: CreatorSharePanelProps) {
       </div>
 
       {/* Tip */}
-      <div className="rounded-xl border border-ocean-100 bg-ocean-50 px-5 py-4">
-        <p className="text-sm font-semibold text-ocean-800 mb-1">
+      <div className="rounded-xl border border-ocean-200 dark:border-ocean-800 bg-ocean-50 dark:bg-ocean-950/30 px-5 py-4">
+        <p className="text-sm font-semibold text-ocean-800 dark:text-ocean-200 mb-1">
           Where to share
         </p>
-        <ul className="text-sm text-ocean-700 space-y-1 list-disc list-inside">
+        <ul className="text-sm text-ocean-700 dark:text-ocean-300 space-y-1 list-disc list-inside">
           <li>Instagram / TikTok bio link</li>
           <li>Story or post caption with link in bio</li>
           <li>Discord server announcement</li>
