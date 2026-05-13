@@ -86,7 +86,7 @@ export function BookletCartUI({
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex fixed right-0 top-16 h-[calc(100vh-4rem)] w-80 border-l border-beige-200 bg-paper/95 backdrop-blur-sm p-4 flex-col gap-3 overflow-y-auto">
+      <aside className="hidden lg:flex fixed right-0 top-16 h-[calc(100vh-4rem)] w-80 border-l border-border bg-paper/95 backdrop-blur-sm p-4 flex-col gap-3 overflow-y-auto">
         <h2 className="text-sm font-semibold uppercase tracking-widest text-foreground/50">
           Booklet Builder
         </h2>
@@ -102,7 +102,7 @@ export function BookletCartUI({
             {items.map((item) => (
               <div
                 key={item.releaseId}
-                className="relative rounded border border-beige-200 bg-white p-2"
+                className="relative rounded border border-border bg-background p-2"
               >
                 <button
                   type="button"
@@ -133,7 +133,7 @@ export function BookletCartUI({
         )}
 
         {quote && (
-          <div className="border-t border-beige-200 pt-3 space-y-1">
+          <div className="border-t border-border pt-3 space-y-1">
             <div className="flex justify-between text-xs text-foreground/70">
               <span>Production</span>
               <span>{formatCurrency(quote.baseAmount, quote.currency)}</span>
@@ -156,7 +156,7 @@ export function BookletCartUI({
               <span>Tax</span>
               <span>{formatCurrency(quote.taxAmount, quote.currency)}</span>
             </div>
-            <div className="flex justify-between text-sm font-semibold text-foreground pt-1 border-t border-beige-100">
+            <div className="flex justify-between text-sm font-semibold text-foreground pt-1 border-t border-border">
               <span>{quote.isFrozen ? "Locked total" : "Estimated total"}</span>
               <span>{formatCurrency(quote.totalEstimate, quote.currency)}</span>
             </div>
@@ -195,7 +195,7 @@ export function BookletCartUI({
       </aside>
 
       {/* Mobile bottom bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-beige-200 bg-paper px-4 py-2">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-paper px-4 py-2">
         <button
           type="button"
           onClick={() => setIsOpen((v) => !v)}
@@ -229,7 +229,7 @@ export function BookletCartUI({
               items.map((item) => (
                 <div
                   key={item.releaseId}
-                  className="flex items-center gap-3 rounded border border-beige-200 bg-white p-2"
+                  className="flex items-center gap-3 rounded border border-border bg-background p-2"
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">
@@ -261,7 +261,7 @@ export function BookletCartUI({
             )}
 
             {quote && (
-              <div className="border-t border-beige-200 pt-2 space-y-1">
+              <div className="border-t border-border pt-2 space-y-1">
                 <div className="flex justify-between text-xs text-foreground/70">
                   <span>Production</span>
                   <span>
@@ -286,7 +286,7 @@ export function BookletCartUI({
                   <span>Tax</span>
                   <span>{formatCurrency(quote.taxAmount, quote.currency)}</span>
                 </div>
-                <div className="flex justify-between text-sm font-semibold text-foreground pt-1 border-t border-beige-100">
+                <div className="flex justify-between text-sm font-semibold text-foreground pt-1 border-t border-border">
                   <span>
                     {quote.isFrozen ? "Locked total" : "Estimated total"}
                   </span>
