@@ -62,7 +62,7 @@ export function PayoutActionButtons({
           type="button"
           disabled={loading !== null || !hasPendingPayouts}
           onClick={() => run("send", () => sendPayoutsAction(cycleId))}
-          className="px-4 py-2 text-sm font-medium rounded-md bg-jade-600 text-paper hover:bg-jade-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="px-4 py-2 text-sm font-medium rounded-md bg-jade-600 text-white hover:bg-jade-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {loading === "send" ? "Sending…" : "Send via PayPal"}
         </button>

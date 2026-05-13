@@ -86,7 +86,7 @@ export function BookletCartUI({
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex fixed right-0 top-16 h-[calc(100vh-4rem)] w-80 border-l border-border bg-paper/95 backdrop-blur-sm p-4 flex-col gap-3 overflow-y-auto">
+      <aside className="hidden bg-background lg:flex fixed right-0 top-16 h-[calc(100vh-4rem)] w-80 border-l border-border  backdrop-blur-sm p-4 flex-col gap-3 overflow-y-auto">
         <h2 className="text-sm font-semibold uppercase tracking-widest text-foreground/50">
           Booklet Builder
         </h2>
@@ -195,7 +195,7 @@ export function BookletCartUI({
       </aside>
 
       {/* Mobile bottom bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-paper px-4 py-2">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background px-4 py-2">
         <button
           type="button"
           onClick={() => setIsOpen((v) => !v)}
