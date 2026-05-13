@@ -2,6 +2,8 @@
 - use vitest + playwright for testing
 - MVP is deployed on Railway
 - when implementing React pages you need to use semantic colors that support dark/light mode (e.g. text-foreground instead of text-ink)
+  bad examples: bg-white, border-neutral, text-neutral-200, border-beige, bg-paper, text-beige, etc.
+  good examples: text-foreground, text-muted-foreground, border-border, bg-muted, bg-background
 
 # Database
 
