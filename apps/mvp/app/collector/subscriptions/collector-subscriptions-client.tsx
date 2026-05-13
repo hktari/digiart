@@ -33,26 +33,26 @@ export function CollectorSubscriptionsClient({
     });
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-muted">
       <div className="mx-auto max-w-5xl px-4 py-12">
         <div className="mb-8">
           <Link
             href="/"
-            className="text-xs font-semibold uppercase tracking-widest text-neutral-400 hover:text-neutral-600"
+            className="text-xs font-semibold uppercase tracking-widest text-muted-foreground hover:text-foreground"
           >
             Dashboard
           </Link>
-          <h1 className="text-3xl font-bold text-neutral-900">
+          <h1 className="text-3xl font-bold text-foreground">
             Artists You Follow
           </h1>
-          <p className="mt-2 text-neutral-600">
+          <p className="mt-2 text-muted-foreground">
             These artists feed the release pool you use to build upcoming
             booklets.
           </p>
         </div>
 
         {items.length === 0 && !isLoading ? (
-          <div className="rounded-lg border border-neutral-200 bg-white p-12 text-center">
+          <div className="rounded-lg border border-border bg-background p-12 text-center">
             <div className="mx-auto max-w-md space-y-4">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-fuchsia-100">
                 <svg
@@ -69,10 +69,10 @@ export function CollectorSubscriptionsClient({
                   />
                 </svg>
               </div>
-              <h2 className="text-xl font-semibold text-neutral-900">
+              <h2 className="text-xl font-semibold text-foreground">
                 No artists followed yet
               </h2>
-              <p className="text-neutral-600">
+              <p className="text-muted-foreground">
                 Start by discovering artists whose releases you want available
                 in your booklet workflow.
               </p>
@@ -90,7 +90,7 @@ export function CollectorSubscriptionsClient({
               {items.map((subscription) => (
                 <div
                   key={subscription.id}
-                  className="rounded-lg border border-neutral-200 bg-white p-6 transition-all hover:border-fuchsia-300 hover:shadow-md"
+                  className="rounded-lg border border-border bg-background p-6 transition-all hover:border-fuchsia-300 hover:shadow-md"
                 >
                   <div className="flex items-start gap-4">
                     <Link
@@ -118,11 +118,11 @@ export function CollectorSubscriptionsClient({
                       <Link
                         href={`/creators/${subscription.creatorProfile.slug}`}
                       >
-                        <h3 className="truncate font-semibold text-neutral-900 hover:text-fuchsia-700">
+                        <h3 className="truncate font-semibold text-foreground hover:text-fuchsia-700">
                           {subscription.creatorProfile.displayName}
                         </h3>
                       </Link>
-                      <p className="mt-1 line-clamp-2 text-sm text-neutral-500">
+                      <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
                         {subscription.creatorProfile.bio || "No bio available"}
                       </p>
                     </div>
@@ -132,7 +132,7 @@ export function CollectorSubscriptionsClient({
                       <span className="inline-flex items-center rounded-full bg-jade-100 px-2.5 py-0.5 text-xs font-medium text-jade-800">
                         Active
                       </span>
-                      <span className="text-xs text-neutral-500">
+                      <span className="text-xs text-muted-foreground">
                         Since{" "}
                         {new Date(subscription.createdAt).toLocaleDateString()}
                       </span>

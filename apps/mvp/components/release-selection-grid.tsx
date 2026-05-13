@@ -72,11 +72,11 @@ export function ReleaseSelectionGrid({
 
   if (releases.length === 0) {
     return (
-      <div className="bg-white rounded-lg border border-neutral-200 p-12 text-center">
+      <div className="bg-background rounded-lg border border-border p-12 text-center">
         <div className="max-w-md mx-auto space-y-4">
-          <div className="w-16 h-16 mx-auto rounded-full bg-ocean-100 flex items-center justify-center">
+          <div className="w-16 h-16 mx-auto rounded-full bg-ocean-100 dark:bg-ocean-900/30 flex items-center justify-center">
             <svg
-              className="w-8 h-8 text-ocean-600"
+              className="w-8 h-8 text-ocean-600 dark:text-ocean-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -89,10 +89,10 @@ export function ReleaseSelectionGrid({
               />
             </svg>
           </div>
-          <h2 className="text-xl font-semibold text-neutral-900">
+          <h2 className="text-xl font-semibold text-foreground">
             No releases available
           </h2>
-          <p className="text-neutral-600">
+          <p className="text-muted-foreground">
             Check back soon for new releases from your subscribed creators
           </p>
         </div>
@@ -113,11 +113,11 @@ export function ReleaseSelectionGrid({
             className={`bg-white rounded-lg border-2 overflow-hidden transition-all block ${
               isSelected
                 ? "border-fuchsia-500 shadow-lg"
-                : "border-neutral-200 hover:border-neutral-300"
+                : "border-border hover:border-neutral-300"
             }`}
           >
             {coverArtwork && (
-              <div className="relative aspect-4/3 bg-neutral-100">
+              <div className="relative aspect-4/3 bg-muted">
                 <Image
                   src={coverArtwork.thumbnailUrl}
                   alt={coverArtwork.title}
@@ -144,21 +144,21 @@ export function ReleaseSelectionGrid({
 
             <div className="p-4 space-y-3">
               <div>
-                <h3 className="font-semibold text-neutral-900 line-clamp-1">
+                <h3 className="font-semibold text-foreground line-clamp-1">
                   {release.title}
                 </h3>
-                <p className="text-sm text-neutral-600">
+                <p className="text-sm text-muted-foreground">
                   by {release.creatorProfile.displayName}
                 </p>
               </div>
 
               {release.description && (
-                <p className="text-sm text-neutral-600 line-clamp-2">
+                <p className="text-sm text-muted-foreground line-clamp-2">
                   {release.description}
                 </p>
               )}
 
-              <div className="flex items-center justify-between text-xs text-neutral-500">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>
                   {release.artworks.length}{" "}
                   {release.artworks.length === 1 ? "page" : "pages"}
@@ -198,7 +198,7 @@ export function ReleaseSelectionGrid({
                     </span>
                   ))}
                   {release.tags.length > 3 && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-neutral-100 text-neutral-600">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground">
                       +{release.tags.length - 3}
                     </span>
                   )}

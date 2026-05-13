@@ -102,7 +102,7 @@ export function CreatorDashboard({ stats, creatorProfile }: Props) {
         />
         <StatCard
           icon={
-            <span className="text-xs font-semibold text-neutral-400 uppercase tracking-widest">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
               €
             </span>
           }

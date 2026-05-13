@@ -1,13 +1,21 @@
 packages:
   - apps/*
-
-ignoredBuiltDependencies:
-  - unrs-resolver
-
-onlyBuiltDependencies:
-  - '@nestjs/core'
-  - '@prisma/engines'
-  - esbuild
-  - msgpackr-extract
-  - prisma
-  - sharp
+overrides:
+  '@types/react': 19.2.14
+  '@types/react-dom': 19.2.3
+enablePrePostScripts: true
+ignoreScripts: false
+allowBuilds:
+  '@nestjs/core': true
+  '@prisma/engines': true
+  '@sentry/cli': true
+  core-js: true
+  cpu-features: true
+  esbuild: true
+  msgpackr-extract: true
+  msw: true
+  prisma: true
+  protobufjs: true
+  sharp: true
+  ssh2: true
+  unrs-resolver: false

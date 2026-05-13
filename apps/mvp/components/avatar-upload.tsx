@@ -189,7 +189,9 @@ export function AvatarUpload({
               ? "Change avatar"
               : "Upload avatar"}
         </button>
-        <p className="text-xs text-neutral-400">JPEG, PNG or WebP · max 5 MB</p>
+        <p className="text-xs text-muted-foreground">
+          JPEG, PNG or WebP · max 5 MB
+        </p>
         {phase === "done" && !isSaving && !errorMsg && (
           <p className="text-xs text-jade-600 font-medium">✓ Saved</p>
         )}

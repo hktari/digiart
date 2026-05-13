@@ -12,7 +12,7 @@ export function PlaceholderPage({ title, description }: PlaceholderPageProps) {
         </span>
         <h1 className="text-2xl font-bold">{title}</h1>
         {description && (
-          <p className="text-sm text-neutral-500">{description}</p>
+          <p className="text-sm text-muted-foreground">{description}</p>
         )}
       </div>
     </main>

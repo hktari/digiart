@@ -91,11 +91,11 @@ function ReleaseCard({
       className={`bg-white rounded-lg border overflow-hidden transition-all block ${
         isSelected && isHydrated
           ? "border-fuchsia-400 shadow-md"
-          : "border-neutral-200 hover:border-fuchsia-300 hover:shadow-md"
+          : "border-border hover:border-fuchsia-300 hover:shadow-md"
       }`}
     >
       {coverArtwork && (
-        <div className="relative aspect-4/3 bg-neutral-100">
+        <div className="relative aspect-4/3 bg-muted">
           <Image
             src={coverArtwork.thumbnailUrl}
             alt={coverArtwork.title}
@@ -107,21 +107,21 @@ function ReleaseCard({
 
       <div className="p-4 space-y-3">
         <div>
-          <h3 className="font-semibold text-neutral-900 line-clamp-1">
+          <h3 className="font-semibold text-foreground line-clamp-1">
             {release.title}
           </h3>
-          <p className="text-sm text-neutral-600">
+          <p className="text-sm text-muted-foreground">
             by {release.creatorProfile.displayName}
           </p>
         </div>
 
         {release.description && (
-          <p className="text-sm text-neutral-600 line-clamp-2">
+          <p className="text-sm text-muted-foreground line-clamp-2">
             {release.description}
           </p>
         )}
 
-        <div className="flex items-center justify-between text-xs text-neutral-500">
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>
             {release._count.artworks}{" "}
             {release._count.artworks === 1 ? "page" : "pages"}
@@ -144,7 +144,7 @@ function ReleaseCard({
               </span>
             ))}
             {release.tags.length > 3 && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-neutral-100 text-neutral-600">
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-muted text-muted-foreground">
                 +{release.tags.length - 3}
               </span>
             )}

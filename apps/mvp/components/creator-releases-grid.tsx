@@ -92,10 +92,10 @@ function ReleaseCard({
       className={`group rounded-xl border bg-white overflow-hidden transition-all block ${
         isSelected && isHydrated
           ? "border-fuchsia-400 shadow-md"
-          : "border-neutral-200 hover:border-fuchsia-300 hover:shadow-lg"
+          : "border-border hover:border-fuchsia-300 hover:shadow-lg"
       }`}
     >
-      <div className="aspect-4/3 bg-neutral-100 relative overflow-hidden">
+      <div className="aspect-4/3 bg-muted relative overflow-hidden">
         {coverUrl ? (
           <Image
             src={coverUrl}
@@ -104,25 +104,25 @@ function ReleaseCard({
             className="object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-neutral-400">
+          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
             <span className="text-6xl">📦</span>
           </div>
         )}
       </div>
 
       <div className="p-4 space-y-3">
-        <h3 className="font-semibold text-neutral-900 line-clamp-1 group-hover:text-fuchsia-600 transition-colors">
+        <h3 className="font-semibold text-foreground line-clamp-1 group-hover:text-fuchsia-600 transition-colors">
           {release.title}
         </h3>
 
         {release.description && (
-          <p className="text-sm text-neutral-600 line-clamp-2">
+          <p className="text-sm text-muted-foreground line-clamp-2">
             {release.description}
           </p>
         )}
 
         <div className="flex items-center justify-between">
-          <p className="text-xs text-neutral-500">
+          <p className="text-xs text-muted-foreground">
             {release._count.artworks}{" "}
             {release._count.artworks === 1 ? "artwork" : "artworks"}
           </p>

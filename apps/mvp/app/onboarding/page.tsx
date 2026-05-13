@@ -33,7 +33,7 @@ export default async function OnboardingPage() {
               <div className="font-semibold group-hover:text-fuchsia-700">
                 Publish releases
               </div>
-              <p className="mt-1 text-sm text-neutral-500">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Organize your work into releases, publish them into cycles, and
                 earn from booklet demand.
               </p>
@@ -48,7 +48,7 @@ export default async function OnboardingPage() {
               <div className="font-semibold group-hover:text-fuchsia-700">
                 Build booklets
               </div>
-              <p className="mt-1 text-sm text-neutral-500">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Follow artists, select releases, and assemble a booklet that
                 matches your taste.
               </p>

@@ -183,7 +183,7 @@ export function NewReleaseForm() {
   return (
     <div className="space-y-8">
       {/* Progress indicator */}
-      <div className="flex items-center gap-2 text-xs text-neutral-400">
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <span
           className={
             step === "details"

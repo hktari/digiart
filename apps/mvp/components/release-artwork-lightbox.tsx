@@ -85,12 +85,12 @@ export function ReleaseArtworkLightbox({
         {artworks.map((artwork, index) => (
           <article
             key={artwork.id}
-            className="overflow-hidden rounded-lg border border-neutral-200 bg-white"
+            className="overflow-hidden rounded-lg border border-border bg-background"
           >
             <button
               type="button"
               onClick={() => setActiveIndex(index)}
-              className="group relative block aspect-square w-full bg-neutral-100 text-left"
+              className="group relative block aspect-square w-full bg-muted text-left"
               aria-label={`Open ${artwork.title} in full screen`}
             >
               <Image
@@ -100,7 +100,7 @@ export function ReleaseArtworkLightbox({
                 sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                 className="object-cover transition duration-300 group-hover:scale-[1.03]"
               />
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pb-3 pt-8">
+              <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 to-transparent px-3 pb-3 pt-8">
                 <p className="truncate text-sm font-semibold text-white">
                   {artwork.title}
                 </p>
@@ -123,7 +123,7 @@ export function ReleaseArtworkLightbox({
           <button
             type="button"
             onClick={close}
-            className="fixed left-4 top-4 z-20 inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-2xl leading-none text-neutral-950 shadow-lg backdrop-blur"
+            className="fixed left-4 top-4 z-20 inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/90 dark:bg-neutral-900/90 text-2xl leading-none text-neutral-950 dark:text-neutral-50 shadow-lg backdrop-blur"
             aria-label="Close image viewer"
           >
             ×
@@ -148,7 +148,7 @@ export function ReleaseArtworkLightbox({
               <button
                 type="button"
                 onClick={showPrevious}
-                className="-translate-y-1/2 fixed left-3 top-1/2 z-20 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/85 text-3xl text-neutral-950 shadow-lg backdrop-blur"
+                className="-translate-y-1/2 fixed left-3 top-1/2 z-20 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/85 dark:bg-neutral-900/85 text-3xl text-neutral-950 dark:text-neutral-50 shadow-lg backdrop-blur"
                 aria-label="Previous artwork"
               >
                 ‹
@@ -156,7 +156,7 @@ export function ReleaseArtworkLightbox({
               <button
                 type="button"
                 onClick={showNext}
-                className="-translate-y-1/2 fixed right-3 top-1/2 z-20 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/85 text-3xl text-neutral-950 shadow-lg backdrop-blur"
+                className="-translate-y-1/2 fixed right-3 top-1/2 z-20 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/85 dark:bg-neutral-900/85 text-3xl text-neutral-950 dark:text-neutral-50 shadow-lg backdrop-blur"
                 aria-label="Next artwork"
               >
                 ›
@@ -164,13 +164,13 @@ export function ReleaseArtworkLightbox({
             </>
           ) : null}
 
-          <div className="fixed inset-x-3 bottom-3 z-20 rounded-2xl bg-white/90 p-3 shadow-2xl backdrop-blur">
+          <div className="fixed inset-x-3 bottom-3 z-20 rounded-2xl bg-white/90 dark:bg-neutral-900/90 p-3 shadow-2xl backdrop-blur">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-neutral-950">
+                <p className="truncate text-sm font-semibold text-foreground">
                   {activeArtwork.title}
                 </p>
-                <p className="text-xs text-neutral-600">
+                <p className="text-xs text-muted-foreground">
                   {(activeIndex ?? 0) + 1} / {artworks.length}
                 </p>
               </div>

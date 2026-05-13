@@ -51,15 +51,15 @@ export function DevRoleSwitcher() {
   return (
     <div className="fixed bottom-4 right-4 z-9999 font-sans">
       {open ? (
-        <div className="bg-white border border-neutral-200 rounded-xl shadow-xl p-4 w-64 space-y-3">
+        <div className="bg-background border border-border rounded-xl shadow-xl p-4 w-64 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-widest text-neutral-400">
+            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
               Dev: Role Override
             </span>
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="text-neutral-400 hover:text-neutral-600 text-lg leading-none"
+              className="text-muted-foreground hover:text-foreground text-lg leading-none"
               aria-label="Close"
             >
               ×
@@ -86,11 +86,11 @@ export function DevRoleSwitcher() {
           <button
             type="button"
             onClick={apply}
-            className="w-full bg-neutral-900 text-white text-xs font-semibold py-2 rounded-lg hover:bg-neutral-700 transition-colors"
+            className="w-full bg-neutral-900 dark:bg-neutral-700 text-white text-xs font-semibold py-2 rounded-lg hover:bg-neutral-700 dark:hover:bg-neutral-600 transition-colors"
           >
             Apply &amp; reload
           </button>
-          <p className="text-[10px] text-neutral-400 text-center">
+          <p className="text-[10px] text-muted-foreground text-center">
             Sets <code>dev-roles</code> cookie · dev only
           </p>
         </div>
@@ -98,7 +98,7 @@ export function DevRoleSwitcher() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="bg-neutral-900 text-white text-xs font-bold px-3 py-2 rounded-full shadow-lg hover:bg-neutral-700 transition-colors flex items-center gap-1.5"
+          className="bg-neutral-900 dark:bg-neutral-700 text-white text-xs font-bold px-3 py-2 rounded-full shadow-lg hover:bg-neutral-700 dark:hover:bg-neutral-600 transition-colors flex items-center gap-1.5"
           title="Dev role switcher"
         >
           <span>🛠</span>

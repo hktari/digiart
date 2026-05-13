@@ -56,8 +56,8 @@ export function ReleaseArtworkPicker({
 
   if (allArtworks.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-neutral-200 py-10 text-center">
-        <p className="text-sm text-neutral-500">No active artworks yet.</p>
+      <div className="rounded-xl border border-dashed border-border py-10 text-center">
+        <p className="text-sm text-muted-foreground">No active artworks yet.</p>
         <a
           href="/creator/artworks/new"
           className="mt-2 inline-block text-sm font-medium text-fuchsia-600 hover:text-fuchsia-700"
@@ -84,7 +84,7 @@ export function ReleaseArtworkPicker({
               className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-500 ${
                 isSelected
                   ? "border-fuchsia-500 ring-1 ring-fuchsia-500"
-                  : "border-transparent hover:border-neutral-300"
+                  : "border-transparent hover:border-border"
               } ${disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
             >
               <img
