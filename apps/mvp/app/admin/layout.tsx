@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Package,
   Settings,
+  ShoppingBag,
   UserRoundSearch,
   Users,
   Wallet,
@@ -43,6 +44,12 @@ const adminNavLinks = [
     href: "/admin/payouts",
     label: "Payouts",
     icon: Wallet,
+    exact: false,
+  },
+  {
+    href: "/admin/orders",
+    label: "Orders",
+    icon: ShoppingBag,
     exact: false,
   },
   {

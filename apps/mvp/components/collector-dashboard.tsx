@@ -194,6 +194,17 @@ export function CollectorDashboard({ data }: Props) {
             See print, shipping, tax, and total estimate details.
           </p>
         </Link>
+        <Link
+          href={collectorProfile ? "/collector/orders" : "/collector/setup"}
+          className="rounded-xl border border-border bg-card px-4 py-4 transition-colors hover:border-ocean-500/30 hover:bg-ocean-500/5"
+        >
+          <p className="text-sm font-semibold text-card-foreground">
+            My orders
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Track your booklet orders and shipments.
+          </p>
+        </Link>
       </div>
 
       <Card>
