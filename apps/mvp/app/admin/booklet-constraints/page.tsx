@@ -74,7 +74,7 @@ export default function AdminBookletConstraintsPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Booklet Constraints</h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-muted-foreground mt-1">
             Configure min/max page rules for booklet eligibility
           </p>
         </div>
@@ -84,20 +84,20 @@ export default function AdminBookletConstraintsPage() {
             setShowForm(!showForm);
             setEditingConstraint(null);
           }}
-          className="px-4 py-2 bg-fuchsia-600 text-white rounded-md hover:bg-fuchsia-700"
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
         >
           {showForm ? "Cancel" : "New Version"}
         </button>
       </div>
 
       {activeConstraint && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+        <div className="bg-success-bg border border-success-border rounded-lg p-6">
           <div className="flex justify-between items-start">
             <div>
-              <h2 className="text-lg font-semibold text-green-900">
+              <h2 className="text-lg font-semibold text-success-foreground">
                 Active Constraint (v{activeConstraint.version})
               </h2>
-              <div className="mt-2 space-y-1 text-sm text-green-800">
+              <div className="mt-2 space-y-1 text-sm text-success-foreground">
                 <p>
                   <strong>Pages:</strong> {activeConstraint.minPages} -{" "}
                   {activeConstraint.maxPages}
@@ -119,7 +119,7 @@ export default function AdminBookletConstraintsPage() {
             <button
               type="button"
               onClick={() => setEditingConstraint(activeConstraint)}
-              className="text-green-700 hover:underline text-sm"
+              className="text-success hover:underline text-sm"
             >
               Edit
             </button>
@@ -141,85 +141,85 @@ export default function AdminBookletConstraintsPage() {
       <div>
         <h2 className="text-xl font-semibold mb-4">Version History</h2>
         {constraints.length === 0 ? (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-            <p className="text-gray-600">No constraints created yet.</p>
+          <div className="bg-muted border border-border rounded-lg p-8 text-center">
+            <p className="text-muted-foreground">No constraints created yet.</p>
           </div>
         ) : (
-          <div className="bg-white border rounded-lg overflow-hidden">
+          <div className="bg-card border rounded-lg overflow-hidden">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b">
+              <thead className="bg-muted border-b">
                 <tr>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
+                  <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                     Version
                   </th>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
+                  <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                     Pages
                   </th>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
+                  <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                     Max Creators
                   </th>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
+                  <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                     Max Releases
                   </th>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
+                  <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
+                  <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                     Created
                   </th>
-                  <th className="px-6 py-3 text-right text-sm font-medium text-gray-900">
+                  <th className="px-6 py-3 text-right text-sm font-medium text-foreground">
                     Actions
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {constraints.map((constraint) => (
-                  <tr key={constraint.id} className="hover:bg-gray-50">
+                  <tr key={constraint.id} className="hover:bg-muted/50">
                     <td className="px-6 py-4 text-sm font-medium">
                       v{constraint.version}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
                       {constraint.minPages} - {constraint.maxPages}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
                       {constraint.maxCreators ?? "-"}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
                       {constraint.maxReleases ?? "-"}
                     </td>
                     <td className="px-6 py-4">
                       {constraint.isActive ? (
-                        <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                        <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-success-bg text-success-foreground border border-success-border">
                           Active
                         </span>
                       ) : (
-                        <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
+                        <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-muted text-muted-foreground border border-border">
                           Inactive
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
                       {new Date(constraint.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 text-sm text-right space-x-2">
                       <button
                         type="button"
                         onClick={() => handleToggleActive(constraint.id)}
-                        className="text-fuchsia-600 hover:underline"
+                        className="text-primary hover:underline"
                       >
                         {constraint.isActive ? "Deactivate" : "Activate"}
                       </button>
                       <button
                         type="button"
                         onClick={() => setEditingConstraint(constraint)}
-                        className="text-fuchsia-600 hover:underline"
+                        className="text-primary hover:underline"
                       >
                         Edit
                       </button>
                       <button
                         type="button"
                         onClick={() => handleDelete(constraint.id)}
-                        className="text-red-600 hover:underline"
+                        className="text-destructive hover:underline"
                       >
                         Delete
                       </button>

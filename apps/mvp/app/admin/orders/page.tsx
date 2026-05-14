@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { PEECHO_DASHBOARD_URL } from "@/lib/peecho/client";
 import { requireAdmin } from "@/lib/roles";
 
 export default async function AdminOrdersPage() {
@@ -167,7 +168,7 @@ export default async function AdminOrdersPage() {
                   <td className="py-2 px-4">
                     {fulfillment?.providerOrderId ? (
                       <a
-                        href={`https://test.www.peecho.com/mio-dashboard/orders/${fulfillment.providerOrderId}`}
+                        href={`${PEECHO_DASHBOARD_URL}/orders/${fulfillment.providerOrderId}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-xs text-primary hover:underline"

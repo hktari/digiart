@@ -49,17 +49,19 @@ function MetricCard({
   variant?: "positive" | "negative" | "neutral" | "highlight";
 }) {
   const variantStyles = {
-    positive: "bg-jade-50 border-jade-200",
-    negative: "bg-red-50 border-red-200",
-    neutral: "bg-beige-50 border-beige-200",
-    highlight: "bg-fuchsia-50 border-fuchsia-200",
+    positive: "bg-success-bg border-success-border",
+    negative: "bg-destructive-bg border-destructive-border",
+    neutral: "bg-muted border-border",
+    highlight: "bg-primary/10 border-primary/20",
   };
 
   const iconStyles = {
-    positive: "text-jade-600 bg-jade-100",
-    negative: "text-red-600 bg-red-100",
-    neutral: "text-muted-foreground/60 bg-beige-200",
-    highlight: "text-fuchsia-600 bg-fuchsia-100",
+    positive:
+      "text-success-foreground bg-success-bg border border-success-border",
+    negative:
+      "text-destructive-foreground bg-destructive-bg border border-destructive-border",
+    neutral: "text-muted-foreground bg-muted border border-border",
+    highlight: "text-primary bg-primary/10 border border-primary/20",
   };
 
   return (
@@ -81,17 +83,17 @@ function MetricCard({
       {trend && (
         <div className="mt-4 flex items-center gap-1.5">
           {trendDirection === "up" && (
-            <TrendingUp className="h-4 w-4 text-jade-600" />
+            <TrendingUp className="h-4 w-4 text-success-foreground" />
           )}
           {trendDirection === "down" && (
-            <TrendingDown className="h-4 w-4 text-red-600" />
+            <TrendingDown className="h-4 w-4 text-destructive-foreground" />
           )}
           <span
             className={`text-xs font-medium ${
               trendDirection === "up"
-                ? "text-jade-600"
+                ? "text-success-foreground"
                 : trendDirection === "down"
-                  ? "text-red-600"
+                  ? "text-destructive-foreground"
                   : "text-muted-foreground/50"
             }`}
           >
@@ -147,7 +149,7 @@ export function ProfitMetrics({ data }: ProfitMetricsProps) {
       </div>
 
       {/* Detailed Breakdown */}
-      <div className="rounded-lg border border-beige-200 bg-white p-6">
+      <div className="rounded-lg border bg-card p-6">
         <h3 className="text-lg font-semibold text-foreground">
           Profit Breakdown
         </h3>
@@ -164,9 +166,9 @@ export function ProfitMetrics({ data }: ProfitMetricsProps) {
                 {formatCurrency(data.totalRevenue)}
               </span>
             </div>
-            <div className="mt-2 h-3 w-full rounded-full bg-beige-100">
+            <div className="mt-2 h-3 w-full rounded-full bg-muted">
               <div
-                className="h-full rounded-full bg-fuchsia-500"
+                className="h-full rounded-full bg-primary"
                 style={{ width: "100%" }}
               />
             </div>
@@ -184,7 +186,7 @@ export function ProfitMetrics({ data }: ProfitMetricsProps) {
                   {formatCurrency(data.totalCreatorPayouts)}
                 </span>
               </div>
-              <div className="mt-1.5 h-2 w-full rounded-full bg-beige-100">
+              <div className="mt-1.5 h-2 w-full rounded-full bg-muted">
                 <div
                   className="h-full rounded-full bg-ocean-500"
                   style={{
@@ -207,7 +209,7 @@ export function ProfitMetrics({ data }: ProfitMetricsProps) {
                   {formatCurrency(data.totalPrintCosts)}
                 </span>
               </div>
-              <div className="mt-1.5 h-2 w-full rounded-full bg-beige-100">
+              <div className="mt-1.5 h-2 w-full rounded-full bg-muted">
                 <div
                   className="h-full rounded-full bg-beige-400"
                   style={{
@@ -222,17 +224,17 @@ export function ProfitMetrics({ data }: ProfitMetricsProps) {
 
             <div>
               <div className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-2 font-medium text-jade-700">
-                  <span className="h-2 w-2 rounded-full bg-jade-500" />
+                <span className="flex items-center gap-2 font-medium text-success-foreground">
+                  <span className="h-2 w-2 rounded-full bg-success" />
                   Platform Profit
                 </span>
-                <span className="font-mono font-medium text-jade-700">
+                <span className="font-mono font-medium text-success-foreground">
                   {formatCurrency(data.platformProfit)}
                 </span>
               </div>
-              <div className="mt-1.5 h-2 w-full rounded-full bg-beige-100">
+              <div className="mt-1.5 h-2 w-full rounded-full bg-muted">
                 <div
-                  className="h-full rounded-full bg-jade-500"
+                  className="h-full rounded-full bg-success"
                   style={{
                     width:
                       data.totalRevenue > 0
@@ -246,7 +248,7 @@ export function ProfitMetrics({ data }: ProfitMetricsProps) {
         </div>
 
         {/* Key Stats Grid */}
-        <div className="mt-8 grid grid-cols-2 gap-4 border-t border-beige-200 pt-6 sm:grid-cols-4">
+        <div className="mt-8 grid grid-cols-2 gap-4 border-t pt-6 sm:grid-cols-4">
           <div className="text-center">
             <p className="text-xs uppercase tracking-wide text-muted-foreground/50">
               Avg Order Value
@@ -259,7 +261,7 @@ export function ProfitMetrics({ data }: ProfitMetricsProps) {
             <p className="text-xs uppercase tracking-wide text-muted-foreground/50">
               Profit Margin
             </p>
-            <p className="mt-1 text-lg font-semibold text-jade-600">
+            <p className="mt-1 text-lg font-semibold text-success-foreground">
               {profitMargin}%
             </p>
           </div>

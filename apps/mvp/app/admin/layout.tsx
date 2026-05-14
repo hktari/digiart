@@ -101,7 +101,7 @@ export default function AdminLayout({
               href={link.href}
               className={`flex items-center gap-2.5 px-3 py-2 rounded text-sm font-medium transition-colors ${
                 active
-                  ? "bg-jade-600 text-background"
+                  ? "bg-primary text-primary-foreground"
                   : "text-foreground/70 hover:text-foreground hover:bg-accent"
               }`}
             >
@@ -124,7 +124,7 @@ export default function AdminLayout({
                 href={link.href}
                 className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors ${
                   active
-                    ? "bg-jade-600 text-background"
+                    ? "bg-primary text-primary-foreground"
                     : "text-foreground/70 hover:text-foreground hover:bg-accent"
                 }`}
               >

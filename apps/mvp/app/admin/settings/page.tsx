@@ -18,34 +18,34 @@ export default async function AdminSettingsPage({
     <div className="space-y-8 max-w-2xl">
       <div>
         <h1 className="text-3xl font-bold">Platform Settings</h1>
-        <p className="text-gray-600 mt-1">
+        <p className="text-muted-foreground mt-1">
           Manage global platform configuration values
         </p>
       </div>
 
       {error && (
-        <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700">
+        <div className="rounded-lg bg-destructive-bg border border-destructive-border p-4 text-sm text-destructive-foreground">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="rounded-lg bg-green-50 border border-green-200 p-4 text-sm text-green-700">
+        <div className="rounded-lg bg-success-bg border border-success-border p-4 text-sm text-success-foreground">
           Settings saved successfully.
         </div>
       )}
 
-      <div className="bg-white border border-beige-200 rounded-lg p-6 space-y-6">
+      <div className="bg-card border rounded-lg p-6 space-y-6">
         <h2 className="text-xl font-semibold">POD Pricing</h2>
         <form action={updatePlatformConfig} className="space-y-4">
           <div>
             <label
               htmlFor="quoteMarginAmount"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-foreground"
             >
               Quote Margin Rate
             </label>
-            <p className="text-xs text-gray-500 mb-1">
+            <p className="text-xs text-muted-foreground mb-1">
               Fractional margin added to Peecho wholesale quotes (e.g. 0.3 =
               30%). Must match the margin configured in the Peecho merchant
               dashboard.
@@ -59,7 +59,7 @@ export default async function AdminSettingsPage({
               max="1"
               defaultValue={config?.quoteMarginAmount ?? 0.3}
               required
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-fuchsia-500 focus:outline-none focus:ring-1 focus:ring-fuchsia-500"
+              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
             />
           </div>
 
@@ -67,11 +67,11 @@ export default async function AdminSettingsPage({
             <div>
               <label
                 htmlFor="creatorPayoutSplit"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-foreground"
               >
                 Creator Payout Split
               </label>
-              <p className="text-xs text-gray-500 mb-1">
+              <p className="text-xs text-muted-foreground mb-1">
                 Fraction of markup paid to creators (e.g. 0.7 = 70%)
               </p>
               <input
@@ -83,18 +83,18 @@ export default async function AdminSettingsPage({
                 max="1"
                 defaultValue={config?.creatorPayoutSplit ?? 0.7}
                 required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-fuchsia-500 focus:outline-none focus:ring-1 focus:ring-fuchsia-500"
+                className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
               />
             </div>
 
             <div>
               <label
                 htmlFor="platformFeeSplit"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-foreground"
               >
                 Platform Fee Split
               </label>
-              <p className="text-xs text-gray-500 mb-1">
+              <p className="text-xs text-muted-foreground mb-1">
                 Fraction of markup kept as platform fee (e.g. 0.3 = 30%)
               </p>
               <input
@@ -106,7 +106,7 @@ export default async function AdminSettingsPage({
                 max="1"
                 defaultValue={config?.platformFeeSplit ?? 0.3}
                 required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-fuchsia-500 focus:outline-none focus:ring-1 focus:ring-fuchsia-500"
+                className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
               />
             </div>
           </div>
@@ -115,7 +115,7 @@ export default async function AdminSettingsPage({
             <div>
               <label
                 htmlFor="maxArtworksPerRelease"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-foreground"
               >
                 Max Artworks per Release
               </label>
@@ -126,14 +126,14 @@ export default async function AdminSettingsPage({
                 min="1"
                 defaultValue={config?.maxArtworksPerRelease ?? 20}
                 required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-fuchsia-500 focus:outline-none focus:ring-1 focus:ring-fuchsia-500"
+                className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
               />
             </div>
 
             <div>
               <label
                 htmlFor="maxReleasesPerCycle"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-foreground"
               >
                 Max Releases per Cycle
               </label>
@@ -144,7 +144,7 @@ export default async function AdminSettingsPage({
                 min="1"
                 defaultValue={config?.maxReleasesPerCycle ?? 3}
                 required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-fuchsia-500 focus:outline-none focus:ring-1 focus:ring-fuchsia-500"
+                className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
               />
             </div>
           </div>
@@ -152,7 +152,7 @@ export default async function AdminSettingsPage({
           <div className="pt-2">
             <button
               type="submit"
-              className="px-4 py-2 bg-fuchsia-600 text-white text-sm font-medium rounded-md hover:bg-fuchsia-700 transition-colors"
+              className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-md hover:bg-primary/90 transition-colors"
             >
               Save Settings
             </button>
@@ -160,7 +160,7 @@ export default async function AdminSettingsPage({
         </form>
       </div>
 
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
+      <div className="bg-warning-bg border border-warning-border rounded-lg p-4 text-sm text-warning-foreground">
         <p className="font-medium mb-1">
           Important: Keep Peecho margin in sync
         </p>

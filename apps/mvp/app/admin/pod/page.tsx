@@ -56,34 +56,34 @@ function OfferingRow({
 
   return (
     <>
-      <tr className="hover:bg-gray-50">
+      <tr className="hover:bg-muted/50">
         <td className="px-6 py-4 text-sm font-medium">
           <button
             type="button"
             onClick={handleExpand}
-            className="flex items-center gap-1 text-left hover:text-fuchsia-700"
+            className="flex items-center gap-1 text-left hover:text-primary"
             title="Toggle countries"
           >
             <span
-              className={`inline-block transition-transform text-gray-400 ${expanded ? "rotate-90" : ""}`}
+              className={`inline-block transition-transform text-muted-foreground/60 ${expanded ? "rotate-90" : ""}`}
             >
               ▶
             </span>
             {offering.name}
           </button>
         </td>
-        <td className="px-6 py-4 text-sm text-gray-600 font-mono">
+        <td className="px-6 py-4 text-sm text-muted-foreground font-mono">
           {offering.externalId}
         </td>
-        <td className="px-6 py-4 text-sm text-gray-600">
+        <td className="px-6 py-4 text-sm text-muted-foreground">
           {offering.minPages} - {offering.maxPages}
         </td>
-        <td className="px-6 py-4 text-sm text-gray-600">
+        <td className="px-6 py-4 text-sm text-muted-foreground">
           {offering.widthMm && offering.heightMm
             ? `${offering.widthMm} × ${offering.heightMm} mm`
             : "-"}
         </td>
-        <td className="px-6 py-4 text-sm text-gray-600">
+        <td className="px-6 py-4 text-sm text-muted-foreground">
           {offering.syncedAt
             ? new Date(offering.syncedAt).toLocaleString()
             : "Never"}
@@ -92,8 +92,8 @@ function OfferingRow({
           <span
             className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
               offering.isActive
-                ? "bg-green-100 text-green-800"
-                : "bg-gray-100 text-gray-800"
+                ? "bg-success-bg text-success-foreground border border-success-border"
+                : "bg-muted text-muted-foreground border border-border"
             }`}
           >
             {offering.isActive ? "Active" : "Inactive"}
@@ -103,28 +103,30 @@ function OfferingRow({
           <button
             type="button"
             onClick={() => onToggle(offering.id, offering.isActive)}
-            className="text-fuchsia-600 hover:underline"
+            className="text-primary hover:underline"
           >
             {offering.isActive ? "Deactivate" : "Activate"}
           </button>
         </td>
       </tr>
       {expanded && (
-        <tr className="bg-gray-50 border-t">
+        <tr className="bg-muted/50 border-t">
           <td colSpan={7} className="px-8 py-4">
             {countries.loading && (
-              <p className="text-sm text-gray-500">Loading countries…</p>
+              <p className="text-sm text-muted-foreground">
+                Loading countries…
+              </p>
             )}
             {countries.error && (
-              <p className="text-sm text-red-600">{countries.error}</p>
+              <p className="text-sm text-destructive">{countries.error}</p>
             )}
             {countries.data && (
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                   Supported countries ({countries.data.length})
                 </p>
                 {countries.data.length === 0 ? (
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     No countries returned by Peecho for this offering.
                   </p>
                 ) : (
@@ -133,10 +135,10 @@ function OfferingRow({
                       <span
                         key={c.code}
                         title={c.name}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded bg-white border border-gray-200 text-gray-700 font-mono"
+                        className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded bg-card border text-muted-foreground font-mono"
                       >
                         {c.code}
-                        <span className="font-sans text-gray-400">
+                        <span className="font-sans text-muted-foreground/60">
                           {c.name}
                         </span>
                       </span>
@@ -224,14 +226,14 @@ export default function AdminPodPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">POD Provider Configuration</h1>
-        <p className="text-gray-600 mt-1">
+        <p className="text-muted-foreground mt-1">
           Manage Peecho integration and product offerings
         </p>
       </div>
 
       {provider ? (
         <>
-          <div className="bg-white border rounded-lg p-6">
+          <div className="bg-card border rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-4">Provider Details</h2>
             <div className="space-y-2 text-sm">
               <p>
@@ -242,8 +244,8 @@ export default function AdminPodPage() {
                 <span
                   className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
                     provider.environment === "PRODUCTION"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-yellow-100 text-yellow-800"
+                      ? "bg-success-bg text-success-foreground border border-success-border"
+                      : "bg-warning-bg text-warning-foreground border border-warning-border"
                   }`}
                 >
                   {provider.environment}
@@ -254,8 +256,8 @@ export default function AdminPodPage() {
                 <span
                   className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
                     provider.isActive
-                      ? "bg-green-100 text-green-800"
-                      : "bg-gray-100 text-gray-800"
+                      ? "bg-success-bg text-success-foreground border border-success-border"
+                      : "bg-muted text-muted-foreground border border-border"
                   }`}
                 >
                   {provider.isActive ? "Active" : "Inactive"}
@@ -264,14 +266,14 @@ export default function AdminPodPage() {
             </div>
           </div>
 
-          <div className="bg-white border rounded-lg p-6">
+          <div className="bg-card border rounded-lg p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">Product Offerings</h2>
               <button
                 type="button"
                 onClick={handleSync}
                 disabled={isSyncing}
-                className="px-4 py-2 bg-fuchsia-600 text-white rounded-md hover:bg-fuchsia-700 disabled:opacity-50"
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
               >
                 {isSyncing ? "Syncing..." : "Sync Offerings"}
               </button>
@@ -281,8 +283,8 @@ export default function AdminPodPage() {
               <div
                 className={`mb-4 px-4 py-3 rounded ${
                   syncMessage.startsWith("✓")
-                    ? "bg-green-50 border border-green-200 text-green-800"
-                    : "bg-red-50 border border-red-200 text-red-800"
+                    ? "bg-success-bg border border-success-border text-success-foreground"
+                    : "bg-destructive-bg border border-destructive-border text-destructive-foreground"
                 }`}
               >
                 {syncMessage}
@@ -290,41 +292,41 @@ export default function AdminPodPage() {
             )}
 
             {provider.offerings.length === 0 ? (
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-                <p className="text-gray-600">
+              <div className="bg-muted border border-border rounded-lg p-8 text-center">
+                <p className="text-muted-foreground">
                   No offerings synced yet. Click "Sync Offerings" to fetch from
                   Peecho.
                 </p>
               </div>
             ) : (
               <>
-                <p className="text-xs text-gray-500 mb-3">
+                <p className="text-xs text-muted-foreground mb-3">
                   Click an offering name to inspect supported countries (live
                   from Peecho).
                 </p>
                 <div className="overflow-hidden border rounded-lg">
                   <table className="w-full">
-                    <thead className="bg-gray-50 border-b">
+                    <thead className="bg-muted border-b">
                       <tr>
-                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
+                        <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                           Name
                         </th>
-                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
+                        <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                           Peecho ID
                         </th>
-                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
+                        <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                           Pages
                         </th>
-                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
+                        <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                           Dimensions
                         </th>
-                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
+                        <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                           Last Synced
                         </th>
-                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
+                        <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                           Status
                         </th>
-                        <th className="px-6 py-3 text-right text-sm font-medium text-gray-900">
+                        <th className="px-6 py-3 text-right text-sm font-medium text-foreground">
                           Actions
                         </th>
                       </tr>
@@ -345,15 +347,15 @@ export default function AdminPodPage() {
           </div>
         </>
       ) : (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-          <p className="text-gray-600">
+        <div className="bg-muted border border-border rounded-lg p-8 text-center">
+          <p className="text-muted-foreground">
             No POD provider configured. Sync offerings to initialize.
           </p>
           <button
             type="button"
             onClick={handleSync}
             disabled={isSyncing}
-            className="mt-4 px-4 py-2 bg-fuchsia-600 text-white rounded-md hover:bg-fuchsia-700 disabled:opacity-50"
+            className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
           >
             {isSyncing ? "Syncing..." : "Initialize Peecho"}
           </button>

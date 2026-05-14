@@ -52,7 +52,7 @@ export default async function AdminAnalyticsPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold">Analytics Cockpit</h1>
-        <p className="text-gray-600 mt-1">
+        <p className="text-muted-foreground mt-1">
           GTM metrics and funnel tracking for founder decision-making
         </p>
       </div>
@@ -61,19 +61,19 @@ export default async function AdminAnalyticsPage() {
       <div className="flex gap-4 border-b pb-4">
         <Link
           href="/admin/analytics"
-          className="text-fuchsia-600 font-medium border-b-2 border-fuchsia-600 pb-4 -mb-4"
+          className="text-primary font-medium border-b-2 border-primary pb-4 -mb-4"
         >
           Overview
         </Link>
         <Link
           href="/admin/analytics/creators"
-          className="text-gray-600 hover:text-fuchsia-600 font-medium pb-4 -mb-4"
+          className="text-muted-foreground hover:text-primary font-medium pb-4 -mb-4"
         >
           Creator Acquisition
         </Link>
         <Link
           href="/admin/analytics/collectors"
-          className="text-gray-600 hover:text-fuchsia-600 font-medium pb-4 -mb-4"
+          className="text-muted-foreground hover:text-primary font-medium pb-4 -mb-4"
         >
           Collector Funnel
         </Link>
@@ -81,49 +81,53 @@ export default async function AdminAnalyticsPage() {
 
       {/* Key Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white border rounded-lg p-6">
-          <p className="text-sm text-gray-500">Total Leads</p>
+        <div className="bg-card border rounded-lg p-6">
+          <p className="text-sm text-muted-foreground">Total Leads</p>
           <p className="text-3xl font-bold mt-1">{totalLeads}</p>
-          <p className="text-xs text-gray-400 mt-2">
+          <p className="text-xs text-muted-foreground/70 mt-2">
             +{newLeadsThisMonth} this month
           </p>
         </div>
 
-        <div className="bg-white border rounded-lg p-6">
-          <p className="text-sm text-gray-500">Signed Up</p>
+        <div className="bg-card border rounded-lg p-6">
+          <p className="text-sm text-muted-foreground">Signed Up</p>
           <p className="text-3xl font-bold mt-1">{signedUpLeads}</p>
-          <p className="text-xs text-gray-400 mt-2">
+          <p className="text-xs text-muted-foreground/70 mt-2">
             {totalLeads > 0
               ? `${Math.round((signedUpLeads / totalLeads) * 100)}% conversion`
               : "N/A"}
           </p>
         </div>
 
-        <div className="bg-white border rounded-lg p-6">
-          <p className="text-sm text-gray-500">Attribution Sessions</p>
+        <div className="bg-card border rounded-lg p-6">
+          <p className="text-sm text-muted-foreground">Attribution Sessions</p>
           <p className="text-3xl font-bold mt-1">{attributionSessions}</p>
-          <p className="text-xs text-gray-400 mt-2">Pre-auth tracking active</p>
+          <p className="text-xs text-muted-foreground/70 mt-2">
+            Pre-auth tracking active
+          </p>
         </div>
 
-        <div className="bg-white border rounded-lg p-6">
-          <p className="text-sm text-gray-500">Creator Page Views</p>
+        <div className="bg-card border rounded-lg p-6">
+          <p className="text-sm text-muted-foreground">Creator Page Views</p>
           <p className="text-3xl font-bold mt-1">{creatorProfileViews}</p>
-          <p className="text-xs text-gray-400 mt-2">Public profile traffic</p>
+          <p className="text-xs text-muted-foreground/70 mt-2">
+            Public profile traffic
+          </p>
         </div>
       </div>
 
       {/* Lead Types */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white border rounded-lg p-6">
+        <div className="bg-card border rounded-lg p-6">
           <h3 className="font-semibold mb-4">Leads by Type</h3>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-sm">Creator Leads</span>
               <span className="font-medium">{creatorLeads}</span>
             </div>
-            <div className="w-full bg-gray-100 rounded-full h-2">
+            <div className="w-full bg-muted rounded-full h-2">
               <div
-                className="bg-fuchsia-500 h-2 rounded-full"
+                className="bg-primary h-2 rounded-full"
                 style={{
                   width: `${totalLeads > 0 ? (creatorLeads / totalLeads) * 100 : 0}%`,
                 }}
@@ -133,9 +137,9 @@ export default async function AdminAnalyticsPage() {
               <span className="text-sm">Collector Leads</span>
               <span className="font-medium">{collectorLeads}</span>
             </div>
-            <div className="w-full bg-gray-100 rounded-full h-2">
+            <div className="w-full bg-muted rounded-full h-2">
               <div
-                className="bg-ocean-500 h-2 rounded-full"
+                className="bg-secondary h-2 rounded-full"
                 style={{
                   width: `${totalLeads > 0 ? (collectorLeads / totalLeads) * 100 : 0}%`,
                 }}
@@ -144,11 +148,13 @@ export default async function AdminAnalyticsPage() {
           </div>
         </div>
 
-        <div className="bg-white border rounded-lg p-6">
+        <div className="bg-card border rounded-lg p-6">
           <h3 className="font-semibold mb-4">Top Sources</h3>
           <div className="space-y-3">
             {topSources.length === 0 ? (
-              <p className="text-sm text-gray-500">No source data yet</p>
+              <p className="text-sm text-muted-foreground">
+                No source data yet
+              </p>
             ) : (
               topSources.map((source) => (
                 <div
@@ -167,40 +173,40 @@ export default async function AdminAnalyticsPage() {
       </div>
 
       {/* Recent Leads */}
-      <div className="bg-white border rounded-lg overflow-hidden">
+      <div className="bg-card border rounded-lg overflow-hidden">
         <div className="p-6 border-b">
           <h3 className="font-semibold">Recent Leads</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50">
+            <thead className="bg-muted">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                   Type
                 </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                   Status
                 </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                   Source
                 </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                   Creator / User
                 </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                   First Seen
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y">
               {recentLeads.map((lead) => (
-                <tr key={lead.id} className="hover:bg-gray-50">
+                <tr key={lead.id} className="hover:bg-muted/50">
                   <td className="px-4 py-3">
                     <span
-                      className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                      className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${
                         lead.type === "CREATOR"
-                          ? "bg-fuchsia-100 text-fuchsia-800"
-                          : "bg-ocean-100 text-ocean-800"
+                          ? "bg-primary/10 text-primary border-primary/20"
+                          : "bg-info-bg text-info-foreground border-info-border"
                       }`}
                     >
                       {lead.type}
@@ -208,12 +214,12 @@ export default async function AdminAnalyticsPage() {
                   </td>
                   <td className="px-4 py-3">
                     <span
-                      className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                      className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${
                         lead.status === "SIGNED_UP"
-                          ? "bg-green-100 text-green-800"
+                          ? "bg-success-bg text-success-foreground border-success-border"
                           : lead.status === "NEW"
-                            ? "bg-gray-100 text-gray-800"
-                            : "bg-yellow-100 text-yellow-800"
+                            ? "bg-muted text-muted-foreground border-border"
+                            : "bg-warning-bg text-warning-foreground border-warning-border"
                       }`}
                     >
                       {lead.status}
@@ -225,7 +231,7 @@ export default async function AdminAnalyticsPage() {
                       lead.ownerUser?.email ??
                       "—"}
                   </td>
-                  <td className="px-4 py-3 text-gray-500">
+                  <td className="px-4 py-3 text-muted-foreground">
                     {lead.firstSeenAt.toLocaleDateString()}
                   </td>
                 </tr>

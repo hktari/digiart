@@ -62,72 +62,72 @@ export default async function AdminCreatorsPage() {
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="text-3xl font-bold">Creators</h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-muted-foreground mt-1">
             Inspect signed-up creators, publishing progress, GTM source, and
             support readiness.
           </p>
         </div>
         <Link
           href="/admin/analytics/creators"
-          className="text-sm font-medium text-fuchsia-600 hover:underline"
+          className="text-sm font-medium text-primary hover:underline"
         >
           View creator funnel →
         </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white border rounded-lg p-6">
-          <p className="text-sm text-gray-500">Signed Up</p>
+        <div className="bg-card border rounded-lg p-6">
+          <p className="text-sm text-muted-foreground">Signed Up</p>
           <p className="text-3xl font-bold mt-1">{totalCreators}</p>
         </div>
-        <div className="bg-white border rounded-lg p-6">
-          <p className="text-sm text-gray-500">Published Profiles</p>
+        <div className="bg-card border rounded-lg p-6">
+          <p className="text-sm text-muted-foreground">Published Profiles</p>
           <p className="text-3xl font-bold mt-1">{publishedCreators}</p>
         </div>
-        <div className="bg-white border rounded-lg p-6">
-          <p className="text-sm text-gray-500">With Releases</p>
+        <div className="bg-card border rounded-lg p-6">
+          <p className="text-sm text-muted-foreground">With Releases</p>
           <p className="text-3xl font-bold mt-1">{activatedCreators}</p>
         </div>
-        <div className="bg-white border rounded-lg p-6">
-          <p className="text-sm text-gray-500">Active Subscriptions</p>
+        <div className="bg-card border rounded-lg p-6">
+          <p className="text-sm text-muted-foreground">Active Subscriptions</p>
           <p className="text-3xl font-bold mt-1">{activeSubs}</p>
-          <p className="text-xs text-gray-400 mt-2">
+          <p className="text-xs text-muted-foreground/70 mt-2">
             {publishedReleases} published releases
           </p>
         </div>
       </div>
 
-      <div className="bg-white border rounded-lg overflow-hidden">
+      <div className="bg-card border rounded-lg overflow-hidden">
         <div className="p-6 border-b">
           <h2 className="font-semibold">Creator Accounts</h2>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Prioritize support for creators with unpublished profiles, missing
             payout setup, or early collector traction.
           </p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50">
+            <thead className="bg-muted">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                   Creator
                 </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                   Status
                 </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                   Content
                 </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                   Traction
                 </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                   Source
                 </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                   Payout
                 </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                   Joined
                 </th>
               </tr>
@@ -143,17 +143,17 @@ export default async function AdminCreatorsPage() {
                 const campaign = lead?.campaign ?? lead?.utmCampaign;
 
                 return (
-                  <tr key={creator.id} className="hover:bg-gray-50 align-top">
+                  <tr key={creator.id} className="hover:bg-muted/50 align-top">
                     <td className="px-4 py-4">
                       <div className="font-medium text-foreground">
                         {creator.displayName}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-muted-foreground">
                         {creator.user.email}
                       </div>
                       <Link
                         href={`/creators/${creator.slug}`}
-                        className="text-xs text-fuchsia-600 hover:underline"
+                        className="text-xs text-primary hover:underline"
                       >
                         /creators/{creator.slug}
                       </Link>
@@ -162,49 +162,53 @@ export default async function AdminCreatorsPage() {
                       <span
                         className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
                           creator.status === "PUBLISHED"
-                            ? "bg-green-100 text-green-800"
+                            ? "bg-success-bg text-success-foreground border border-success-border"
                             : creator.status === "DRAFT"
-                              ? "bg-amber-100 text-amber-800"
-                              : "bg-gray-100 text-gray-700"
+                              ? "bg-warning-bg text-warning-foreground border border-warning-border"
+                              : "bg-muted text-muted-foreground border border-border"
                         }`}
                       >
                         {creator.status}
                       </span>
                     </td>
-                    <td className="px-4 py-4 text-gray-700">
+                    <td className="px-4 py-4 text-muted-foreground">
                       <div>{creator._count.artworks} artworks</div>
                       <div>{creator._count.releases} releases</div>
                     </td>
-                    <td className="px-4 py-4 text-gray-700">
+                    <td className="px-4 py-4 text-muted-foreground">
                       <div>{creator._count.subscriptions} subscriptions</div>
                       <div>{creator._count.profileViews} profile views</div>
                     </td>
-                    <td className="px-4 py-4 text-gray-700">
+                    <td className="px-4 py-4 text-muted-foreground">
                       <div>{leadSource}</div>
                       {campaign && (
-                        <div className="text-xs text-gray-500">{campaign}</div>
+                        <div className="text-xs text-muted-foreground/70">
+                          {campaign}
+                        </div>
                       )}
                       {lead?.status && (
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-muted-foreground/70">
                           Lead: {lead.status}
                         </div>
                       )}
                     </td>
-                    <td className="px-4 py-4 text-gray-700">
+                    <td className="px-4 py-4 text-muted-foreground">
                       {creator.payoutProfile?.isReady ? (
-                        <span className="text-green-700">Ready</span>
+                        <span className="text-success-foreground">Ready</span>
                       ) : (
-                        <span className="text-amber-700">Needs setup</span>
+                        <span className="text-warning-foreground">
+                          Needs setup
+                        </span>
                       )}
                       {creator.payoutProfile?.isPayPalVerified && (
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-muted-foreground/70">
                           PayPal verified
                         </div>
                       )}
                     </td>
-                    <td className="px-4 py-4 text-gray-700">
+                    <td className="px-4 py-4 text-muted-foreground">
                       {formatDate(creator.createdAt)}
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-muted-foreground/70">
                         User {formatDate(creator.user.createdAt)}
                       </div>
                     </td>
@@ -215,7 +219,7 @@ export default async function AdminCreatorsPage() {
                 <tr>
                   <td
                     colSpan={7}
-                    className="px-4 py-10 text-center text-gray-500"
+                    className="px-4 py-10 text-center text-muted-foreground"
                   >
                     No creator accounts yet.
                   </td>

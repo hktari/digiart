@@ -79,7 +79,7 @@ export default async function AdminCycleFulfillmentPage({
         ].map(([label, count]) => (
           <div
             key={label}
-            className="rounded border border-beige-200 bg-white p-3 text-center"
+            className="rounded border border-border bg-card p-3 text-center"
           >
             <p className="text-2xl font-bold text-foreground">{count}</p>
             <p className="text-xs text-muted-foreground/60">{label}</p>
@@ -90,7 +90,7 @@ export default async function AdminCycleFulfillmentPage({
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-beige-200 text-left">
+            <tr className="border-b border-border text-left">
               <th className="py-2 pr-4 font-medium text-muted-foreground/60">
                 Collector
               </th>
@@ -123,7 +123,7 @@ export default async function AdminCycleFulfillmentPage({
               return (
                 <tr
                   key={record.id}
-                  className="border-b border-beige-100 hover:bg-beige-50"
+                  className="border-b border-border hover:bg-muted/50"
                 >
                   <td className="py-2 pr-4">
                     <p className="font-medium text-foreground">
@@ -145,8 +145,8 @@ export default async function AdminCycleFulfillmentPage({
                       <span
                         className={`text-xs px-1.5 py-0.5 rounded ${
                           record.quoteSnapshot.isFrozen
-                            ? "bg-blue-100 text-blue-700"
-                            : "bg-yellow-100 text-yellow-700"
+                            ? "bg-info-bg text-info-foreground border border-info-border"
+                            : "bg-warning-bg text-warning-foreground border border-warning-border"
                         }`}
                       >
                         {record.quoteSnapshot.isFrozen ? "Frozen" : "Estimate"}
@@ -161,12 +161,12 @@ export default async function AdminCycleFulfillmentPage({
                     <span
                       className={`text-xs px-1.5 py-0.5 rounded ${
                         record.status === "PAID"
-                          ? "bg-green-100 text-green-700"
+                          ? "bg-success-bg text-success-foreground border border-success-border"
                           : record.status === "FAILED"
-                            ? "bg-red-100 text-red-700"
+                            ? "bg-destructive-bg text-destructive-foreground border border-destructive-border"
                             : record.status === "CANCELED"
-                              ? "bg-gray-100 text-gray-600"
-                              : "bg-yellow-100 text-yellow-700"
+                              ? "bg-muted text-muted-foreground border border-border"
+                              : "bg-warning-bg text-warning-foreground border border-warning-border"
                       }`}
                     >
                       {record.status}
@@ -177,10 +177,10 @@ export default async function AdminCycleFulfillmentPage({
                       <span
                         className={`text-xs px-1.5 py-0.5 rounded ${
                           fulfillment.generatedPrintFile.status === "READY"
-                            ? "bg-green-100 text-green-700"
+                            ? "bg-success-bg text-success-foreground border border-success-border"
                             : fulfillment.generatedPrintFile.status === "FAILED"
-                              ? "bg-red-100 text-red-700"
-                              : "bg-yellow-100 text-yellow-700"
+                              ? "bg-destructive-bg text-destructive-foreground border border-destructive-border"
+                              : "bg-warning-bg text-warning-foreground border border-warning-border"
                         }`}
                       >
                         {fulfillment.generatedPrintFile.status}
@@ -197,10 +197,10 @@ export default async function AdminCycleFulfillmentPage({
                         className={`text-xs px-1.5 py-0.5 rounded ${
                           fulfillment.status === "SHIPPED" ||
                           fulfillment.status === "DELIVERED"
-                            ? "bg-green-100 text-green-700"
+                            ? "bg-success-bg text-success-foreground border border-success-border"
                             : fulfillment.status === "FAILED"
-                              ? "bg-red-100 text-red-700"
-                              : "bg-yellow-100 text-yellow-700"
+                              ? "bg-destructive-bg text-destructive-foreground border border-destructive-border"
+                              : "bg-warning-bg text-warning-foreground border border-warning-border"
                         }`}
                       >
                         {fulfillment.status}

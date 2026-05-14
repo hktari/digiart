@@ -5,6 +5,11 @@ const PEECHO_API_URL =
     ? "https://www.peecho.com/rest/v3"
     : "https://test.www.peecho.com/rest/v3";
 
+export const PEECHO_DASHBOARD_URL =
+  process.env.PEECHO_ENV?.toLowerCase() === "production"
+    ? "https://www.peecho.com/mio-dashboard"
+    : "https://test.www.peecho.com/mio-dashboard";
+
 export interface PeechoOffering {
   id: number;
   name: string;

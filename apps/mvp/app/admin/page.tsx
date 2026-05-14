@@ -66,7 +66,7 @@ export default async function AdminDashboardPage() {
           </div>
           <Link
             href="/admin/payouts"
-            className="text-sm text-fuchsia-600 hover:underline"
+            className="text-sm text-primary hover:underline"
           >
             View payouts →
           </Link>
@@ -80,7 +80,7 @@ export default async function AdminDashboardPage() {
           <h2 className="text-xl font-semibold">Current Cycle</h2>
           <Link
             href="/admin/cycles"
-            className="text-sm text-fuchsia-600 hover:underline"
+            className="text-sm text-primary hover:underline"
           >
             Manage cycles →
           </Link>
@@ -93,11 +93,11 @@ export default async function AdminDashboardPage() {
               <span
                 className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
                   cycleStatus === "OPEN"
-                    ? "bg-green-500/10 text-green-600"
+                    ? "bg-success-bg text-success-foreground border border-success-border"
                     : cycleStatus === "LOCKED"
-                      ? "bg-yellow-500/10 text-yellow-600"
+                      ? "bg-warning-bg text-warning-foreground border border-warning-border"
                       : cycleStatus === "PROCESSING"
-                        ? "bg-blue-500/10 text-blue-600"
+                        ? "bg-info-bg text-info-foreground border border-info-border"
                         : "bg-muted text-muted-foreground"
                 }`}
               >
@@ -120,11 +120,11 @@ export default async function AdminDashboardPage() {
               </div>
 
               {lockCountdown && !lockCountdown.isExpired && (
-                <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4">
-                  <p className="text-xs text-amber-600 uppercase tracking-wide">
+                <div className="bg-warning-bg border border-warning-border rounded-lg p-4">
+                  <p className="text-xs text-warning-foreground uppercase tracking-wide">
                     Time to Lock
                   </p>
-                  <p className="mt-1 font-semibold text-sm text-amber-700">
+                  <p className="mt-1 font-semibold text-sm text-warning">
                     {lockCountdown.days > 0 && `${lockCountdown.days}d `}
                     {lockCountdown.hours > 0 && `${lockCountdown.hours}h `}
                     {lockCountdown.minutes}m
@@ -156,7 +156,7 @@ export default async function AdminDashboardPage() {
             <p className="text-muted-foreground mb-3">No active cycle.</p>
             <Link
               href="/admin/cycles/new"
-              className="inline-flex px-4 py-2 bg-fuchsia-600 text-white text-sm rounded-md hover:bg-fuchsia-700"
+              className="inline-flex px-4 py-2 bg-primary text-primary-foreground text-sm rounded-md hover:bg-primary/90"
             >
               Create cycle
             </Link>
@@ -168,7 +168,7 @@ export default async function AdminDashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Link
           href="/admin/cycles"
-          className="bg-card border rounded-lg p-8 hover:border-fuchsia-300 hover:shadow-sm transition-all group"
+          className="bg-card border rounded-lg p-8 hover:border-primary/50 hover:shadow-sm transition-all group"
         >
           <div className="flex justify-between items-start">
             <div>
@@ -177,14 +177,14 @@ export default async function AdminDashboardPage() {
             </div>
             <span className="text-2xl">🗓</span>
           </div>
-          <p className="mt-3 text-sm text-fuchsia-600 group-hover:underline">
+          <p className="mt-3 text-sm text-primary group-hover:underline">
             Manage cycles →
           </p>
         </Link>
 
         <Link
           href="/admin/booklet-constraints"
-          className="bg-card border rounded-lg p-8 hover:border-fuchsia-300 hover:shadow-sm transition-all group"
+          className="bg-card border rounded-lg p-8 hover:border-primary/50 hover:shadow-sm transition-all group"
         >
           <div className="flex justify-between items-start">
             <div>
@@ -204,14 +204,14 @@ export default async function AdminDashboardPage() {
               {activeConstraint.minPages}–{activeConstraint.maxPages} pages
             </p>
           )}
-          <p className="mt-3 text-sm text-fuchsia-600 group-hover:underline">
+          <p className="mt-3 text-sm text-primary group-hover:underline">
             Manage constraints →
           </p>
         </Link>
 
         <Link
           href="/admin/pod"
-          className="bg-card border rounded-lg p-8 hover:border-fuchsia-300 hover:shadow-sm transition-all group"
+          className="bg-card border rounded-lg p-8 hover:border-primary/50 hover:shadow-sm transition-all group"
         >
           <div className="flex justify-between items-start">
             <div>
@@ -226,15 +226,15 @@ export default async function AdminDashboardPage() {
               <span
                 className={
                   podProvider.environment === "PRODUCTION"
-                    ? "text-green-600"
-                    : "text-yellow-600"
+                    ? "text-success-foreground"
+                    : "text-warning-foreground"
                 }
               >
                 {podProvider.environment}
               </span>
             </p>
           )}
-          <p className="mt-3 text-sm text-fuchsia-600 group-hover:underline">
+          <p className="mt-3 text-sm text-primary group-hover:underline">
             Manage offerings →
           </p>
         </Link>

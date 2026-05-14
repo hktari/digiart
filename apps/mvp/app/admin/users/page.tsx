@@ -88,21 +88,18 @@ export default async function AdminUsersPage() {
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="text-3xl font-bold">Users</h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-muted-foreground mt-1">
             Inspect signed-up creators and collectors with GTM, activation, and
             support stats.
           </p>
         </div>
         <div className="flex gap-3 text-sm font-medium">
-          <Link
-            href="/admin/creators"
-            className="text-fuchsia-600 hover:underline"
-          >
+          <Link href="/admin/creators" className="text-primary hover:underline">
             Creator accounts →
           </Link>
           <Link
             href="/admin/analytics/collectors"
-            className="text-fuchsia-600 hover:underline"
+            className="text-primary hover:underline"
           >
             Collector funnel →
           </Link>
@@ -110,66 +107,68 @@ export default async function AdminUsersPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-        <div className="bg-white border rounded-lg p-6">
-          <p className="text-sm text-gray-500">Total Users</p>
+        <div className="bg-card border rounded-lg p-6">
+          <p className="text-sm text-muted-foreground">Total Users</p>
           <p className="text-3xl font-bold mt-1">{totalUsers}</p>
         </div>
-        <div className="bg-white border rounded-lg p-6">
-          <p className="text-sm text-gray-500">Creators</p>
+        <div className="bg-card border rounded-lg p-6">
+          <p className="text-sm text-muted-foreground">Creators</p>
           <p className="text-3xl font-bold mt-1">{creatorUsers}</p>
-          <p className="text-xs text-gray-400 mt-2">
+          <p className="text-xs text-muted-foreground/70 mt-2">
             {activatedCreators} with releases
           </p>
         </div>
-        <div className="bg-white border rounded-lg p-6">
-          <p className="text-sm text-gray-500">Collectors</p>
+        <div className="bg-card border rounded-lg p-6">
+          <p className="text-sm text-muted-foreground">Collectors</p>
           <p className="text-3xl font-bold mt-1">{collectorUsers}</p>
-          <p className="text-xs text-gray-400 mt-2">
+          <p className="text-xs text-muted-foreground/70 mt-2">
             {subscribedCollectors} subscribed
           </p>
         </div>
-        <div className="bg-white border rounded-lg p-6">
-          <p className="text-sm text-gray-500">Paid Collectors</p>
+        <div className="bg-card border rounded-lg p-6">
+          <p className="text-sm text-muted-foreground">Paid Collectors</p>
           <p className="text-3xl font-bold mt-1">{paidCollectors}</p>
         </div>
-        <div className="bg-white border rounded-lg p-6">
-          <p className="text-sm text-gray-500">Recent Scope</p>
+        <div className="bg-card border rounded-lg p-6">
+          <p className="text-sm text-muted-foreground">Recent Scope</p>
           <p className="text-3xl font-bold mt-1">{users.length}</p>
-          <p className="text-xs text-gray-400 mt-2">latest accounts shown</p>
+          <p className="text-xs text-muted-foreground/70 mt-2">
+            latest accounts shown
+          </p>
         </div>
       </div>
 
-      <div className="bg-white border rounded-lg overflow-hidden">
+      <div className="bg-card border rounded-lg overflow-hidden">
         <div className="p-6 border-b">
           <h2 className="font-semibold">Signed-up users</h2>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Use this as a founder support queue: spot incomplete collector
             setup, creator activation gaps, and high-intent leads.
           </p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50">
+            <thead className="bg-muted">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                   User
                 </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                   Roles
                 </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                   Creator Stats
                 </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                   Collector Stats
                 </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                   GTM Source
                 </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                   Support Signal
                 </th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600">
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">
                   Joined
                 </th>
               </tr>
@@ -187,34 +186,36 @@ export default async function AdminUsersPage() {
                   user.creatorProfile._count.releases === 0;
 
                 return (
-                  <tr key={user.id} className="hover:bg-gray-50 align-top">
+                  <tr key={user.id} className="hover:bg-muted/50 align-top">
                     <td className="px-4 py-4">
                       <div className="font-medium text-foreground">
                         {user.name ?? user.email}
                       </div>
-                      <div className="text-xs text-gray-500">{user.email}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {user.email}
+                      </div>
                       {user.lead?.creatorProfile && (
                         <Link
                           href={`/creators/${user.lead.creatorProfile.slug}`}
-                          className="text-xs text-fuchsia-600 hover:underline"
+                          className="text-xs text-primary hover:underline"
                         >
                           entered via {user.lead.creatorProfile.displayName}
                         </Link>
                       )}
                     </td>
-                    <td className="px-4 py-4 text-gray-700">
+                    <td className="px-4 py-4 text-muted-foreground">
                       {formatRoles(user.roles)}
                     </td>
-                    <td className="px-4 py-4 text-gray-700">
+                    <td className="px-4 py-4 text-muted-foreground">
                       {user.creatorProfile ? (
                         <>
                           <Link
                             href={`/creators/${user.creatorProfile.slug}`}
-                            className="font-medium text-fuchsia-600 hover:underline"
+                            className="font-medium text-primary hover:underline"
                           >
                             {user.creatorProfile.displayName}
                           </Link>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-muted-foreground/70">
                             {user.creatorProfile.status}
                           </div>
                           <div>
@@ -229,7 +230,7 @@ export default async function AdminUsersPage() {
                         "—"
                       )}
                     </td>
-                    <td className="px-4 py-4 text-gray-700">
+                    <td className="px-4 py-4 text-muted-foreground">
                       {user.collectorProfile ? (
                         <>
                           <div>{user.collectorProfile.onboardingState}</div>
@@ -243,7 +244,7 @@ export default async function AdminUsersPage() {
                           <div>
                             {user.collectorProfile._count.billingRecords} orders
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-muted-foreground/70">
                             {user.collectorProfile.shippingCountry ??
                               "No country"}
                           </div>
@@ -252,35 +253,37 @@ export default async function AdminUsersPage() {
                         "—"
                       )}
                     </td>
-                    <td className="px-4 py-4 text-gray-700">
+                    <td className="px-4 py-4 text-muted-foreground">
                       <div>{source}</div>
                       {campaign && (
-                        <div className="text-xs text-gray-500">{campaign}</div>
+                        <div className="text-xs text-muted-foreground/70">
+                          {campaign}
+                        </div>
                       )}
                       {user.lead && (
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-muted-foreground/70">
                           {user.lead.type} · {user.lead.status}
                         </div>
                       )}
                     </td>
                     <td className="px-4 py-4">
                       {needsCollectorSetup && (
-                        <div className="text-amber-700">
+                        <div className="text-warning-foreground">
                           Finish collector setup
                         </div>
                       )}
                       {needsCreatorActivation && (
-                        <div className="text-amber-700">
+                        <div className="text-warning-foreground">
                           Help publish first release
                         </div>
                       )}
                       {!needsCollectorSetup && !needsCreatorActivation && (
-                        <span className="text-green-700">
+                        <span className="text-success-foreground">
                           No obvious blocker
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-4 text-gray-700">
+                    <td className="px-4 py-4 text-muted-foreground">
                       {formatDate(user.createdAt)}
                     </td>
                   </tr>
@@ -290,7 +293,7 @@ export default async function AdminUsersPage() {
                 <tr>
                   <td
                     colSpan={7}
-                    className="px-4 py-10 text-center text-gray-500"
+                    className="px-4 py-10 text-center text-muted-foreground"
                   >
                     No users yet.
                   </td>

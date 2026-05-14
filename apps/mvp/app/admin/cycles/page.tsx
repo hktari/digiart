@@ -24,52 +24,52 @@ export default async function AdminCyclesPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Subscription Cycles</h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-muted-foreground mt-1">
             Manage global subscription cycles and lock dates
           </p>
         </div>
         <Link
           href="/admin/cycles/new"
-          className="px-4 py-2 bg-fuchsia-600 text-white rounded-md hover:bg-fuchsia-700"
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
         >
           Create Cycle
         </Link>
       </div>
 
       {cycles.length === 0 ? (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-          <p className="text-gray-600">No cycles created yet.</p>
+        <div className="bg-muted border border-border rounded-lg p-8 text-center">
+          <p className="text-muted-foreground">No cycles created yet.</p>
           <Link
             href="/admin/cycles/new"
-            className="text-fuchsia-600 hover:underline mt-2 inline-block"
+            className="text-primary hover:underline mt-2 inline-block"
           >
             Create your first cycle
           </Link>
         </div>
       ) : (
-        <div className="bg-white border rounded-lg overflow-hidden">
+        <div className="bg-card border rounded-lg overflow-hidden">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b">
+            <thead className="bg-muted border-b">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
+                <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                   Label
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
+                <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                   Period
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
+                <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                   Lock Date
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
+                <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
+                <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                   Releases
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
+                <th className="px-6 py-3 text-left text-sm font-medium text-foreground">
                   Selections
                 </th>
-                <th className="px-6 py-3 text-right text-sm font-medium text-gray-900">
+                <th className="px-6 py-3 text-right text-sm font-medium text-foreground">
                   Actions
                 </th>
               </tr>
@@ -79,26 +79,26 @@ export default async function AdminCyclesPage() {
                 const computedStatus = computeCycleStatus(cycle);
                 const statusColor =
                   computedStatus === "OPEN"
-                    ? "bg-green-100 text-green-800"
+                    ? "bg-success-bg text-success-foreground border border-success-border"
                     : computedStatus === "LOCKED"
-                      ? "bg-yellow-100 text-yellow-800"
+                      ? "bg-warning-bg text-warning-foreground border border-warning-border"
                       : computedStatus === "PROCESSING"
-                        ? "bg-blue-100 text-blue-800"
-                        : "bg-gray-100 text-gray-800";
+                        ? "bg-info-bg text-info-foreground border border-info-border"
+                        : "bg-muted text-muted-foreground border border-border";
 
                 return (
-                  <tr key={cycle.id} className="hover:bg-gray-50">
+                  <tr key={cycle.id} className="hover:bg-muted/50">
                     <td className="px-6 py-4 text-sm font-medium">
                       {cycle.label}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
                       {new Date(2024, cycle.month - 1).toLocaleString(
                         "default",
                         { month: "long" },
                       )}{" "}
                       {cycle.year}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
                       {new Date(cycle.lockDate).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4">
@@ -108,16 +108,16 @@ export default async function AdminCyclesPage() {
                         {computedStatus}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
                       {cycle._count.releases}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td className="px-6 py-4 text-sm text-muted-foreground">
                       {cycle._count.selections}
                     </td>
                     <td className="px-6 py-4 text-sm text-right space-x-2">
                       <Link
                         href={`/admin/cycles/${cycle.id}`}
-                        className="text-fuchsia-600 hover:underline"
+                        className="text-primary hover:underline"
                       >
                         Edit
                       </Link>
@@ -132,7 +132,7 @@ export default async function AdminCyclesPage() {
                           >
                             <button
                               type="submit"
-                              className="text-red-600 hover:underline"
+                              className="text-destructive hover:underline"
                             >
                               Delete
                             </button>
