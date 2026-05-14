@@ -1,12 +1,14 @@
-import { CreditCard } from "lucide-react";
+import { Package, ShoppingCart, Zap } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { PricingEstimateCard } from "@/components/pricing-estimate-card";
 import { PricingQuoteDisplay } from "@/components/pricing-quote-display";
 import { getCollectorCartSummary } from "@/lib/actions/collector";
 import { auth } from "@/lib/auth";
 import { computeBookletPageCount } from "@/lib/booklet/page-count";
 import { getCurrentCycle } from "@/lib/cycle-utils";
 import { db } from "@/lib/db";
+import { getQuote } from "@/lib/peecho/quote-service";
 
 export default async function CollectorPricingPage() {
   const session = await auth();
@@ -19,6 +21,7 @@ export default async function CollectorPricingPage() {
     select: {
       id: true,
       shippingCountry: true,
+      shippingStateCode: true,
       shippingCity: true,
       shippingAddressLine1: true,
       shippingZip: true,
@@ -50,6 +53,7 @@ export default async function CollectorPricingPage() {
             platformMarkupAmount: true,
             quoteInputPageCount: true,
             updatedAt: true,
+            orderedManually: true,
           },
         })
       : null;
@@ -79,6 +83,43 @@ export default async function CollectorPricingPage() {
   const isCommitted =
     !!checkoutIntent?.committedAt && !!checkoutIntent.retailTotalAmount;
 
+  // Fetch initial estimate for non-committed orders
+  let initialEstimate: {
+    baseAmount: number;
+    shippingAmount: number;
+    markupAmount: number;
+    taxAmount: number;
+    totalEstimate: number;
+    currency: string;
+    pageCount: number;
+  } | null = null;
+
+  if (
+    !isCommitted &&
+    collectorProfile.shippingCountry &&
+    currentCycle &&
+    summary.totalArtworks > 0
+  ) {
+    try {
+      const quote = await getQuote({
+        country: collectorProfile.shippingCountry,
+        countryStateCode: collectorProfile.shippingStateCode ?? undefined,
+        pageCount: currentPageCount,
+      });
+      initialEstimate = {
+        baseAmount: quote.baseAmount,
+        shippingAmount: quote.shippingAmount,
+        markupAmount: quote.markupAmount,
+        taxAmount: quote.taxAmount,
+        totalEstimate: quote.totalEstimate,
+        currency: quote.currency,
+        pageCount: currentPageCount,
+      };
+    } catch {
+      // Best-effort estimate fetch
+    }
+  }
+
   return (
     <div className="max-w-xl space-y-6">
       <div>
@@ -98,46 +139,88 @@ export default async function CollectorPricingPage() {
           to get a pricing estimate.
         </div>
       ) : !currentCycle ? (
-        <div className="rounded-lg border border-beige-200 bg-white p-8 text-center text-sm text-muted-foreground/60">
+        <div className="rounded-lg border border-border bg-card p-8 text-center text-sm text-muted-foreground/60">
           No active subscription cycle.
         </div>
-      ) : !isCommitted ? (
-        <div className="rounded-lg border border-beige-200 bg-white p-6 space-y-3">
+      ) : summary.totalArtworks === 0 ? (
+        <div className="rounded-lg border border-border bg-card p-6 space-y-3">
           <div className="flex items-start gap-3">
-            <CreditCard className="h-5 w-5 text-muted-foreground/40 shrink-0 mt-0.5" />
+            <Package className="h-5 w-5 text-muted-foreground/40 shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-semibold text-foreground">
-                No order placed yet
+                No releases selected
               </p>
               <p className="text-sm text-muted-foreground/60 mt-1">
-                Complete checkout to place your order. A price estimate based on
-                your delivery address and current selections will be shown here.
+                Select releases to build your booklet and get a price estimate.
               </p>
             </div>
           </div>
           <Link
-            href="/collector/checkout"
+            href="/collector/releases"
             className="inline-block rounded-lg bg-fuchsia-600 px-4 py-2 text-sm font-semibold text-white hover:bg-fuchsia-700 transition-colors"
           >
-            Go to checkout
+            Browse releases
           </Link>
         </div>
+      ) : !isCommitted ? (
+        <>
+          <PricingEstimateCard
+            estimate={initialEstimate}
+            totalReleases={summary.totalReleases}
+            totalPages={currentPageCount}
+            cycleLockDate={currentCycle.lockDate?.toISOString() ?? null}
+          />
+          <div className="rounded-lg border border-fuchsia-200 bg-fuchsia-50 p-4">
+            <p className="text-sm font-medium text-fuchsia-800 mb-2">
+              Ready to order?
+            </p>
+            <p className="text-sm text-fuchsia-700 mb-3">
+              Complete checkout to lock in your price and place your order.
+            </p>
+            <Link
+              href="/collector/checkout"
+              className="inline-flex items-center rounded-lg bg-fuchsia-600 px-4 py-2 text-sm font-semibold text-white hover:bg-fuchsia-700 transition-colors"
+            >
+              <ShoppingCart className="h-4 w-4 mr-2" />
+              Order Now
+            </Link>
+          </div>
+        </>
       ) : (
-        <PricingQuoteDisplay
-          committed={true}
-          initialPricing={{
-            retailTotalAmount: Number(checkoutIntent.retailTotalAmount),
-            wholesaleTotalAmount: Number(checkoutIntent.wholesaleTotalAmount),
-            platformMarkupAmount: Number(checkoutIntent.platformMarkupAmount),
-            currency: "EUR",
-            pageCount: checkoutIntent.quoteInputPageCount ?? currentPageCount,
-            updatedAt: checkoutIntent.updatedAt,
-            peechoOrderId: checkoutIntent.peechoOrderId ?? undefined,
-          }}
-          cycleLockDate={currentCycle.lockDate?.toISOString() ?? null}
-          totalReleases={summary.totalReleases}
-          totalPages={currentPageCount}
-        />
+        <>
+          <PricingQuoteDisplay
+            committed={true}
+            initialPricing={{
+              retailTotalAmount: Number(checkoutIntent.retailTotalAmount),
+              wholesaleTotalAmount: Number(checkoutIntent.wholesaleTotalAmount),
+              platformMarkupAmount: Number(checkoutIntent.platformMarkupAmount),
+              currency: "EUR",
+              pageCount: checkoutIntent.quoteInputPageCount ?? currentPageCount,
+              updatedAt: checkoutIntent.updatedAt,
+              peechoOrderId: checkoutIntent.peechoOrderId ?? undefined,
+            }}
+            cycleLockDate={currentCycle.lockDate?.toISOString() ?? null}
+            totalReleases={summary.totalReleases}
+            totalPages={currentPageCount}
+          />
+          {!checkoutIntent.orderedManually && (
+            <div className="rounded-lg border border-fuchsia-200 bg-fuchsia-50 p-4">
+              <p className="text-sm font-medium text-fuchsia-800 mb-2">
+                Want your booklet sooner?
+              </p>
+              <p className="text-sm text-fuchsia-700 mb-3">
+                Skip the wait and get your booklet printed immediately.
+              </p>
+              <Link
+                href="/collector/checkout"
+                className="inline-flex items-center rounded-lg bg-fuchsia-600 px-4 py-2 text-sm font-semibold text-white hover:bg-fuchsia-700 transition-colors"
+              >
+                <Zap className="h-4 w-4 mr-2" />
+                Order Now — skip the wait
+              </Link>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

@@ -1,13 +1,22 @@
 "use client";
 
+import { CheckCircle, Lock, Package } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
+
+type CheckoutIntentData = {
+  orderedManually: boolean;
+  orderedAt: string | null;
+  retailTotalAmount: number | null;
+  committedAt: string | null;
+};
 
 type CollectorData = {
   collectorProfile: any;
   subscriptions: any[];
   selections: any[];
   currentCycle: any;
+  checkoutIntent: CheckoutIntentData | null;
 };
 
 type Props = {
@@ -15,7 +24,23 @@ type Props = {
 };
 
 export function CollectorDashboard({ data }: Props) {
-  const { collectorProfile, subscriptions, selections, currentCycle } = data;
+  const {
+    collectorProfile,
+    subscriptions,
+    selections,
+    currentCycle,
+    checkoutIntent,
+  } = data;
+
+  const hasSelections = selections.length > 0;
+  const alreadyOrdered = checkoutIntent?.orderedManually ?? false;
+  const isCommitted = checkoutIntent?.committedAt != null;
+  const lockDate = currentCycle?.lockDate
+    ? new Date(currentCycle.lockDate).toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+      })
+    : null;
 
   return (
     <div className="mt-8 space-y-8">
@@ -51,6 +76,76 @@ export function CollectorDashboard({ data }: Props) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Order CTA Card */}
+      {hasSelections && (
+        <Card
+          className={
+            alreadyOrdered
+              ? "border-jade-200 bg-jade-50"
+              : isCommitted
+                ? "border-fuchsia-200 bg-fuchsia-50"
+                : "border-ocean-200 bg-ocean-50/50"
+          }
+        >
+          <CardContent className="p-5">
+            {alreadyOrdered ? (
+              <Link href="/collector/orders" className="flex items-start gap-3">
+                <div className="rounded-full bg-jade-100 p-2">
+                  <CheckCircle className="h-5 w-5 text-jade-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-jade-800">Booklet ordered</p>
+                  <p className="text-sm text-jade-700 mt-0.5">
+                    Your booklet is being printed and will ship soon. Track your
+                    order in My Orders.
+                  </p>
+                </div>
+              </Link>
+            ) : isCommitted ? (
+              <div className="flex items-start gap-3">
+                <div className="rounded-full bg-fuchsia-100 p-2">
+                  <Lock className="h-5 w-5 text-fuchsia-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-fuchsia-800">
+                    Booklet committed
+                  </p>
+                  <p className="text-sm text-fuchsia-700 mt-0.5">
+                    Your card will be charged{lockDate ? ` on ${lockDate}` : ""}
+                    . You can still change selections until then.
+                  </p>
+                  <Link
+                    href="/collector/checkout"
+                    className="mt-3 inline-flex items-center rounded-lg bg-fuchsia-600 px-4 py-2 text-sm font-semibold text-white hover:bg-fuchsia-700 transition-colors"
+                  >
+                    Order Now — skip the wait
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <Link
+                href="/collector/checkout"
+                className="flex items-start gap-3"
+              >
+                <div className="rounded-full bg-ocean-100 p-2">
+                  <Package className="h-5 w-5 text-ocean-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-ocean-800">
+                    Order your booklet
+                  </p>
+                  <p className="text-sm text-ocean-700 mt-0.5">
+                    {selections.length} release
+                    {selections.length !== 1 ? "s" : ""} selected. Review
+                    pricing and place your order.
+                  </p>
+                </div>
+              </Link>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-3 sm:grid-cols-2">
         <Link
