@@ -16,9 +16,18 @@ Creators publish releases each cycle. Collectors subscribe to creators and the s
 
 The collector has agency: they can review the releases assigned to their booklet and deselect any. The platform shows a running total of images (pages) that will be in their final booklet. This updates live as the collector changes their selection.
 
+### Dual Fulfillment Mode
+
+Collectors fall into one of two fulfillment paths:
+
+- **Active collector** — clicks "Order Now" at any point before cycle lock once satisfied with selections and within page limits. The platform immediately freezes the quote, charges Stripe, generates the PDF, and submits the Peecho order. A `COLLECTOR_ORDER_CONFIRMED` notification is logged. The cycle-lock job will skip these collectors entirely.
+- **Passive collector** — never places a manual order. At cycle lock the platform auto-fulfills them: generates the PDF, creates the Peecho order, and freezes the quote. They receive a `COLLECTOR_AUTO_LOCK_REMINDER` before lock and a `COLLECTOR_ORDER_CONFIRMED` after.
+
+The distinction is tracked via `CheckoutIntent.orderedManually` (Boolean, default `false`) and `orderedAt` (DateTime).
+
 ### Automatic Generation
 
-Booklet PDF generation is fully automatic once the cycle lock date is reached. The only manual edge case requiring admin attention is when a creator has **not uploaded new art for the cycle** — in this case no release exists to include.
+Booklet PDF generation is fully automatic once the cycle lock date is reached **for passive collectors**. Active collectors have their PDF generated at the time they place their order. The only manual edge case requiring admin attention is when a creator has **not uploaded new art for the cycle** — in this case no release exists to include.
 
 ## Flow Diagram
 
@@ -348,6 +357,26 @@ Shipping cost varies by destination country. Per Peecho/Prodigi research:
 | Tier 3 | UK/Europe non-EU | €11–16         |
 | Tier 4 | North America    | €17–22         |
 | Tier 5 | Asia-Pacific     | €23–27         |
+
+## Notification Events
+
+| Event                           | Trigger                                                                   | Audience                                   |
+| ------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------ |
+| `COLLECTOR_AUTO_LOCK_REMINDER`  | Pre-lock (admin triggers via `/api/admin/cycles/[id]/lock`)               | Passive collectors with pending selections |
+| `COLLECTOR_ORDER_CONFIRMED`     | Order submitted to Peecho (active: at order time; passive: at cycle lock) | All collectors                             |
+| `COLLECTOR_BOOKLET_SHIPPED`     | Peecho webhook `shipped` event                                            | All collectors                             |
+| `COLLECTOR_FULFILLMENT_BLOCKED` | Peecho webhook `failed` event                                             | All collectors                             |
+
+## Admin Cycle Lock Endpoint
+
+`POST /api/admin/cycles/[id]/lock` — locks the cycle and runs the full passive-collector pipeline in one call:
+
+1. Sets cycle status to `LOCKED`.
+2. Calls `sendPreLockReminders` — logs `COLLECTOR_AUTO_LOCK_REMINDER` for all passive collectors.
+3. Calls `triggerPdfGenerationForCycle` — enqueues PDF jobs for passive collectors only.
+4. Calls `freezeCollectorCycleQuotes` — creates Peecho orders and freezes quotes for passive collectors.
+
+Active collectors (`orderedManually = true`) are skipped in steps 2–4.
 
 ## Error Handling
 

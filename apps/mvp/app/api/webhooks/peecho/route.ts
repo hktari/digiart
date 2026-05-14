@@ -82,6 +82,31 @@ export async function POST(request: Request) {
           trackingUrl: payload.tracking_url ?? undefined,
         },
       });
+
+      if (newStatus === "SHIPPED" || newStatus === "FAILED") {
+        const collectorUser = await db.user.findFirst({
+          where: {
+            collectorProfile: {
+              id: fulfillmentOrder.collectorProfileId,
+            },
+          },
+          select: { id: true },
+        });
+
+        if (collectorUser) {
+          await db.emailNotificationLog.create({
+            data: {
+              userId: collectorUser.id,
+              type:
+                newStatus === "SHIPPED"
+                  ? "COLLECTOR_BOOKLET_SHIPPED"
+                  : "COLLECTOR_FULFILLMENT_BLOCKED",
+              cycleId: fulfillmentOrder.cycleId,
+              status: "PENDING",
+            },
+          });
+        }
+      }
     }
 
     return NextResponse.json({ received: true });

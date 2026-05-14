@@ -8,13 +8,13 @@
 # Database
 
 - use the `db:migrate` script inside package.json to run migrations during development
-- when using pnpm prisma you always need to prefix the command with `dotenv -- `
-- never manually generate migration files. Always use `prisma migrate dev`
+- when using pnpm prisma you always need to prefix the command with `dotenv run`
+- never manually generate migration files. Always use `pnpm db:migrate`
 
 - **Always create new migrations for schema changes** — If you need to change the database:
 
   ```bash
-  cd apps/mvp && pnpm prisma migrate dev --name describe_your_change
+  cd apps/mvp && pnpm db:migrate --name describe_your_change
   ```
 
 # E2E testing

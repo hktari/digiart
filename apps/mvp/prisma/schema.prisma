@@ -501,6 +501,10 @@ model CheckoutIntent {
   wholesaleTotalAmount Decimal? @db.Decimal(10, 2)
   platformMarkupAmount Decimal? @db.Decimal(10, 2)
 
+  // Fulfillment mode: true = collector ordered manually before cycle lock
+  orderedManually Boolean   @default(false)
+  orderedAt       DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -706,6 +710,9 @@ enum EmailNotificationType {
   COLLECTOR_LOCK_CONFIRMED
   COLLECTOR_CREATOR_AT_RISK
   COLLECTOR_FULFILLMENT_BLOCKED
+  COLLECTOR_AUTO_LOCK_REMINDER
+  COLLECTOR_ORDER_CONFIRMED
+  COLLECTOR_BOOKLET_SHIPPED
 }
 
 enum EmailNotificationStatus {

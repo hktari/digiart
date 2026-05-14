@@ -42,6 +42,12 @@ export async function freezeCollectorCycleQuotes(
   for (const intent of checkoutIntents) {
     const collectorId = intent.collectorProfileId;
 
+    // Skip collectors who already ordered manually — they are already fulfilled
+    if (intent.orderedManually) {
+      result.ineligible += 1;
+      continue;
+    }
+
     try {
       if (!intent.collectorProfile.shippingCountry) {
         result.ineligible += 1;
@@ -212,6 +218,22 @@ export async function freezeCollectorCycleQuotes(
                 orderDetails.total_wholesale_price_inc_taxes,
             },
           });
+
+          // Notify passive collector that their booklet has been ordered
+          const collectorUser = await db.user.findFirst({
+            where: { collectorProfile: { id: collectorId } },
+            select: { id: true },
+          });
+          if (collectorUser) {
+            await db.emailNotificationLog.create({
+              data: {
+                userId: collectorUser.id,
+                type: "COLLECTOR_ORDER_CONFIRMED",
+                cycleId,
+                status: "PENDING",
+              },
+            });
+          }
         }
       } catch (error) {
         logger.warn(

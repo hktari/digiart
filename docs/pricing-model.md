@@ -51,12 +51,21 @@ marginPercentage is further split into platformFee and creatorPayout
 
 ## Subscription Billing Model
 
-**Delayed first payment (Netflix model):**
+Two billing paths depending on how the collector engages:
 
-- Collector subscribes at any time during the month
-- First charge occurs on the **next cycle lock date** (1st of month)
-- Billing aligns to lock date going forward (monthly on the 1st)
-- Stripe supports this via trial periods or scheduled subscription start dates
+**Active collector (Order Now):**
+
+- Collector manually finalises their selections and clicks "Order Now" at any point before cycle lock.
+- Stripe is charged immediately at that moment for the exact quoted amount.
+- Fulfillment (PDF generation → Peecho order) starts right away.
+- Cycle lock does not re-bill or re-process these collectors.
+
+**Passive collector (Delayed / Netflix model):**
+
+- Collector subscribes and lets the platform auto-populate their booklet.
+- First charge occurs on the **next cycle lock date** (1st of month).
+- Billing aligns to lock date going forward (monthly on the 1st).
+- Stripe supports this via trial periods or scheduled subscription start dates.
 
 **Example:**
 

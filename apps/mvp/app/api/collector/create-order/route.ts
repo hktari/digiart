@@ -162,6 +162,8 @@ export async function POST(request: Request) {
           selectionSnapshot: selections.map((s) => ({
             releaseId: s.releaseId,
           })),
+          orderedManually: true,
+          orderedAt: new Date(),
         },
       });
     } else {
@@ -178,9 +180,20 @@ export async function POST(request: Request) {
           selectionSnapshot: selections.map((s) => ({
             releaseId: s.releaseId,
           })),
+          orderedManually: true,
+          orderedAt: new Date(),
         },
       });
     }
+
+    await db.emailNotificationLog.create({
+      data: {
+        userId: session.user.id,
+        type: "COLLECTOR_ORDER_CONFIRMED",
+        cycleId: currentCycle.id,
+        status: "PENDING",
+      },
+    });
 
     return NextResponse.json({
       exactPrice: {

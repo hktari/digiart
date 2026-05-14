@@ -42,6 +42,24 @@ export async function triggerPdfGenerationForCycle(
     const collectorId = record.collectorProfile.id;
 
     try {
+      // Skip collectors who already ordered manually — PDF generated at order time
+      const intent = await db.checkoutIntent.findUnique({
+        where: {
+          collectorProfileId_cycleId: {
+            collectorProfileId: collectorId,
+            cycleId,
+          },
+        },
+        select: { orderedManually: true },
+      });
+      if (intent?.orderedManually) {
+        result.skipped.push({
+          collectorId,
+          reason: "Already ordered manually",
+        });
+        continue;
+      }
+
       const selections = await db.collectorReleaseSelection.findMany({
         where: {
           collectorProfileId: collectorId,
