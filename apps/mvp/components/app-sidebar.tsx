@@ -1,13 +1,20 @@
 "use client";
 
 import {
+  Bell,
+  BookOpen,
+  CalendarClock,
   Eye,
   LayoutDashboard,
   LogOut,
+  Package,
   Palette,
   Settings,
   ShoppingBag,
   User,
+  UserRoundSearch,
+  Users,
+  Wallet,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -280,6 +287,126 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <span>Admin</span>
                   </Link>
                 </SidebarMenuButton>
+                <SidebarMenuSub>
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton
+                      asChild
+                      isActive={pathname === "/admin"}
+                    >
+                      <Link href="/admin" onClick={handleLinkClick}>
+                        <LayoutDashboard className="size-3.5 mr-1" />
+                        Dashboard
+                      </Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton
+                      asChild
+                      isActive={pathname.startsWith("/admin/creators")}
+                    >
+                      <Link href="/admin/creators" onClick={handleLinkClick}>
+                        <Users className="size-3.5 mr-1" />
+                        Creators
+                      </Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton
+                      asChild
+                      isActive={pathname.startsWith("/admin/users")}
+                    >
+                      <Link href="/admin/users" onClick={handleLinkClick}>
+                        <UserRoundSearch className="size-3.5 mr-1" />
+                        Users
+                      </Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton
+                      asChild
+                      isActive={pathname.startsWith("/admin/cycles")}
+                    >
+                      <Link href="/admin/cycles" onClick={handleLinkClick}>
+                        <CalendarClock className="size-3.5 mr-1" />
+                        Cycles
+                      </Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton
+                      asChild
+                      isActive={pathname.startsWith("/admin/payouts")}
+                    >
+                      <Link href="/admin/payouts" onClick={handleLinkClick}>
+                        <Wallet className="size-3.5 mr-1" />
+                        Payouts
+                      </Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton
+                      asChild
+                      isActive={pathname.startsWith("/admin/orders")}
+                    >
+                      <Link href="/admin/orders" onClick={handleLinkClick}>
+                        <ShoppingBag className="size-3.5 mr-1" />
+                        Orders
+                      </Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton
+                      asChild
+                      isActive={pathname.startsWith("/admin/pod")}
+                    >
+                      <Link href="/admin/pod" onClick={handleLinkClick}>
+                        <Package className="size-3.5 mr-1" />
+                        POD
+                      </Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton
+                      asChild
+                      isActive={pathname.startsWith(
+                        "/admin/booklet-constraints",
+                      )}
+                    >
+                      <Link
+                        href="/admin/booklet-constraints"
+                        onClick={handleLinkClick}
+                      >
+                        <BookOpen className="size-3.5 mr-1" />
+                        Constraints
+                      </Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton
+                      asChild
+                      isActive={pathname.startsWith("/admin/notifications")}
+                    >
+                      <Link
+                        href="/admin/notifications"
+                        onClick={handleLinkClick}
+                      >
+                        <Bell className="size-3.5 mr-1" />
+                        Notifications
+                      </Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton
+                      asChild
+                      isActive={pathname.startsWith("/admin/settings")}
+                    >
+                      <Link href="/admin/settings" onClick={handleLinkClick}>
+                        <Settings className="size-3.5 mr-1" />
+                        Settings
+                      </Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                </SidebarMenuSub>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroup>
