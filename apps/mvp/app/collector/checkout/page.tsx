@@ -100,7 +100,7 @@ export default async function CollectorCheckoutPage() {
     : null;
 
   return (
-    <div className="max-w-xl mx-auto px-4 py-10 space-y-6 text-white">
+    <div className="max-w-xl mx-auto px-4 py-10 space-y-6 text-foreground">
       <div>
         <BackLink
           href="/collector/releases"
@@ -119,7 +119,7 @@ export default async function CollectorCheckoutPage() {
         </p>
       </div>
 
-      <div className="rounded-lg border border-beige-200 bg-white p-4">
+      <div className="rounded-lg border border-border bg-card p-4">
         <p className="text-sm text-muted-foreground/70">
           <span className="font-medium text-foreground">
             {summary.totalReleases}

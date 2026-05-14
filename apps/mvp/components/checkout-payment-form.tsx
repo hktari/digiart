@@ -80,16 +80,16 @@ function EstimateBlock({
     : null;
 
   return (
-    <div className="rounded-lg border border-beige-200 bg-white p-5 space-y-2">
+    <div className="rounded-lg border border-border bg-card p-5 space-y-2">
       <div className="flex items-center justify-between mb-1">
         <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground/50">
           Price Estimate
         </h2>
         <div className="flex items-center gap-2">
           {isRefreshing && (
-            <RefreshCw className="h-3 w-3 text-amber-600 animate-spin" />
+            <RefreshCw className="h-3 w-3 text-warning-foreground animate-spin" />
           )}
-          <span className="text-[10px] font-medium uppercase tracking-wider text-amber-600 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">
+          <span className="text-[10px] font-medium uppercase tracking-wider text-warning-foreground bg-warning-bg border border-warning-border rounded px-1.5 py-0.5">
             Estimate
           </span>
         </div>
@@ -120,11 +120,11 @@ function EstimateBlock({
           <span>{formatCurrency(estimate.taxAmount, estimate.currency)}</span>
         </div>
       )}
-      <div className="flex justify-between text-base font-semibold text-foreground pt-2 border-t border-beige-200">
+      <div className="flex justify-between text-base font-semibold text-foreground pt-2 border-t border-border">
         <span>Estimated total</span>
         <span>{formatCurrency(estimate.totalEstimate, estimate.currency)}</span>
       </div>
-      <p className="text-xs text-amber-700 bg-amber-50 rounded p-2 mt-1">
+      <p className="text-xs text-warning-foreground bg-warning-bg rounded p-2 mt-1">
         This estimate is based on your current selections and delivery country.
         The final price will be recalculated at cycle lock based on your actual
         artwork count and delivery address.
@@ -163,19 +163,19 @@ function ExactPriceBlock({
     : null;
 
   return (
-    <div className="rounded-lg border border-jade-300 bg-jade-50 p-5 space-y-2">
+    <div className="rounded-lg border border-success-border bg-success-bg p-5 space-y-2">
       <div className="flex items-center justify-between mb-1">
-        <h2 className="text-sm font-semibold uppercase tracking-widest text-jade-700">
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-success-foreground">
           Price Estimate
         </h2>
-        <span className="text-[10px] font-medium uppercase tracking-wider text-jade-700 bg-jade-100 border border-jade-300 rounded px-1.5 py-0.5">
+        <span className="text-[10px] font-medium uppercase tracking-wider text-success-foreground bg-success-bg border border-success-border rounded px-1.5 py-0.5">
           Estimate
         </span>
       </div>
-      <div className="flex justify-between text-2xl font-bold text-jade-800">
+      <div className="flex justify-between text-2xl font-bold text-success-foreground">
         <span>{formatCurrency(exact.amount, exact.currency)}</span>
       </div>
-      <p className="text-xs text-jade-700">
+      <p className="text-xs text-success-foreground">
         This is a price estimate based on your current selections and delivery
         address. You will be charged the final recalculated amount at cycle lock
         {lockDate ? ` on ${lockDate}` : ""}.{" "}
@@ -264,8 +264,8 @@ function CheckoutFormInner({
   };
 
   // Phase 2: user sees exact price, clicks "Confirm & save card"
-  const handleConfirm = async () => {
-    if (!stripe || !elements) return;
+  const handleConfirm = async (options?: { redirect: boolean }) => {
+    if (!stripe || !elements) return false;
 
     setError(null);
     setIsSubmitting(true);
@@ -277,7 +277,7 @@ function CheckoutFormInner({
       const data = await setupRes.json();
       setError(data.error ?? "Failed to initialize payment setup.");
       setIsSubmitting(false);
-      return;
+      return false;
     }
     const { clientSecret } = await setupRes.json();
 
@@ -293,7 +293,7 @@ function CheckoutFormInner({
     if (confirmError) {
       setError(confirmError.message ?? "Card setup failed.");
       setIsSubmitting(false);
-      return;
+      return false;
     }
 
     if (setupIntent?.status === "succeeded") {
@@ -307,11 +307,40 @@ function CheckoutFormInner({
         const data = await confirmRes.json();
         setError(data.error ?? "Failed to finalise order.");
         setIsSubmitting(false);
-        return;
+        return false;
       }
 
-      router.push("/collector/checkout/complete");
+      // Redirect unless explicitly disabled (when called from handleOrderNow)
+      if (options?.redirect !== false) {
+        router.push("/collector/checkout/complete");
+      }
+
+      return true;
     }
+    return false;
+  };
+
+  // Phase 3: user clicks "Order Now" — save card then charge immediately
+  const handleOrderNow = async () => {
+    const confirmed = await handleConfirm({ redirect: false });
+    if (!confirmed) {
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Now charge immediately
+    const chargeRes = await fetch("/api/collector/charge-now", {
+      method: "POST",
+    });
+
+    if (!chargeRes.ok) {
+      const data = await chargeRes.json();
+      setError(data.error ?? "Failed to process immediate charge.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    router.push("/collector/checkout/complete?mode=immediate");
   };
 
   if (step === "confirm" && exactPrice) {
@@ -319,42 +348,40 @@ function CheckoutFormInner({
       <div className="space-y-5">
         <ExactPriceBlock exact={exactPrice} cycleLockDate={cycleLockDate} />
 
-        <div className="rounded-lg border border-beige-100 bg-beige-50 p-4 text-sm text-muted-foreground/70">
-          <p className="flex items-center gap-2 font-medium text-muted-foreground/80 mb-1">
-            <Lock className="h-3.5 w-3.5" />
-            No charge today
-          </p>
-          <p>
-            Your card will be saved securely. You will only be charged{" "}
-            {lockDate ? `on ${lockDate}` : "at cycle lock"}, after your final
-            selections are confirmed. You can still modify your booklet until
-            then.
-          </p>
-        </div>
-
         {error && (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-3 flex items-start gap-2 text-sm text-red-700">
+          <div className="rounded-lg border border-destructive-border bg-destructive-bg p-3 flex items-start gap-2 text-sm text-destructive-foreground">
             <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
         )}
 
-        <div className="flex gap-3">
+        <div className="space-y-3">
+          {/* Primary CTA: Order Now */}
           <button
             type="button"
-            onClick={() => {
-              setStep("form");
-              setExactPrice(null);
-            }}
-            className="flex-1 rounded-lg border border-beige-200 px-4 py-3 text-sm font-medium text-muted-foreground/70 hover:bg-beige-50 transition-colors"
-          >
-            Edit address / card
-          </button>
-          <button
-            type="button"
-            onClick={handleConfirm}
+            onClick={handleOrderNow}
             disabled={isSubmitting}
-            className="flex-2 rounded-lg bg-fuchsia-600 px-4 py-3 text-sm font-semibold text-white hover:bg-fuchsia-700 disabled:opacity-50 transition-colors"
+            className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-opacity"
+          >
+            {isSubmitting ? (
+              <span className="flex items-center justify-center gap-2">
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                Processing…
+              </span>
+            ) : (
+              <>
+                Order Now — Pay{" "}
+                {formatCurrency(exactPrice.amount, exactPrice.currency)} today
+              </>
+            )}
+          </button>
+
+          {/* Secondary CTA: Save for later */}
+          <button
+            type="button"
+            onClick={() => handleConfirm()}
+            disabled={isSubmitting}
+            className="w-full rounded-lg border border-border bg-background px-4 py-3 text-sm font-medium text-muted-foreground/70 hover:bg-muted disabled:opacity-50 transition-colors"
           >
             {isSubmitting ? (
               <span className="flex items-center justify-center gap-2">
@@ -362,9 +389,49 @@ function CheckoutFormInner({
                 Saving…
               </span>
             ) : (
-              <>Confirm & save card{lockDate ? ` — charged ${lockDate}` : ""}</>
+              <>Save & pay {lockDate ? `at ${lockDate}` : "at cycle lock"}</>
             )}
           </button>
+
+          {/* Edit button */}
+          <button
+            type="button"
+            onClick={() => {
+              setStep("form");
+              setExactPrice(null);
+            }}
+            disabled={isSubmitting}
+            className="w-full rounded-lg border border-transparent px-4 py-2 text-sm font-medium text-muted-foreground/50 hover:text-muted-foreground/70 disabled:opacity-50 transition-colors"
+          >
+            Edit address / card
+          </button>
+        </div>
+
+        {/* Explanation cards */}
+        <div className="space-y-3">
+          <div className="rounded-lg border border-info-border bg-info-bg p-4 text-sm">
+            <p className="font-medium text-info-foreground mb-1">
+              Order Now — your booklet prints today
+            </p>
+            <p className="text-info-foreground">
+              Your card will be charged{" "}
+              {formatCurrency(exactPrice.amount, exactPrice.currency)}{" "}
+              immediately. Your booklet will be printed and shipped right away.
+              Your selections are now locked.
+            </p>
+          </div>
+
+          <div className="rounded-lg border border-border bg-muted p-4 text-sm text-muted-foreground/70">
+            <p className="flex items-center gap-2 font-medium text-muted-foreground/80 mb-1">
+              <Lock className="h-3.5 w-3.5" />
+              Save & pay later
+            </p>
+            <p>
+              Your selections can still change until lock date. You&apos;ll be
+              charged the final recalculated amount{" "}
+              {lockDate ? `at ${lockDate}` : "at cycle lock"}.
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -372,7 +439,7 @@ function CheckoutFormInner({
 
   return (
     <form onSubmit={handleCalculate} className="space-y-5">
-      <div className="rounded-lg border border-beige-200 bg-white p-5">
+      <div className="rounded-lg border border-border bg-card p-5">
         <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground/50 mb-4">
           Delivery Address
         </h2>
@@ -431,7 +498,7 @@ function CheckoutFormInner({
         />
       </div>
 
-      <div className="rounded-lg border border-beige-200 bg-white p-5">
+      <div className="rounded-lg border border-border bg-card p-5">
         <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground/50 mb-4">
           Payment Method
         </h2>
@@ -439,7 +506,7 @@ function CheckoutFormInner({
       </div>
 
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 flex items-start gap-2 text-sm text-red-700">
+        <div className="rounded-lg border border-destructive-border bg-destructive-bg p-3 flex items-start gap-2 text-sm text-destructive-foreground">
           <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
@@ -448,7 +515,7 @@ function CheckoutFormInner({
       <button
         type="submit"
         disabled={isCalculating || !stripe || !elements}
-        className="w-full rounded-lg bg-fuchsia-600 px-4 py-3 text-sm font-semibold text-white hover:bg-fuchsia-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
       >
         {isCalculating ? (
           <span className="flex items-center justify-center gap-2">
@@ -488,6 +555,15 @@ export function CheckoutPaymentForm(props: CheckoutPaymentFormProps) {
       );
   }, []);
 
+  const stripeColorPrimary = useMemo(() => {
+    if (typeof window === "undefined") return "#a21caf";
+    return (
+      getComputedStyle(document.documentElement)
+        .getPropertyValue("--primary")
+        .trim() || "#a21caf"
+    );
+  }, []);
+
   const options = useMemo(
     () =>
       clientSecret
@@ -496,14 +572,14 @@ export function CheckoutPaymentForm(props: CheckoutPaymentFormProps) {
             appearance: {
               theme: "stripe" as const,
               variables: {
-                colorPrimary: "#a21caf",
+                colorPrimary: stripeColorPrimary,
                 fontFamily: "inherit",
                 borderRadius: "6px",
               },
             },
           }
         : null,
-    [clientSecret],
+    [clientSecret, stripeColorPrimary],
   );
 
   return (
@@ -517,13 +593,13 @@ export function CheckoutPaymentForm(props: CheckoutPaymentFormProps) {
       )}
 
       {loadError && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="rounded-lg border border-destructive-border bg-destructive-bg p-3 text-sm text-destructive-foreground">
           {loadError}
         </div>
       )}
 
       {!clientSecret && !loadError && (
-        <div className="rounded-lg border border-beige-200 bg-white p-5 animate-pulse h-48" />
+        <div className="rounded-lg border border-border bg-card p-5 animate-pulse h-48" />
       )}
 
       {clientSecret && options && (
