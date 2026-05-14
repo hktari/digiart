@@ -257,3 +257,214 @@ export async function freezeCollectorCycleQuotes(
 
   return result;
 }
+
+/**
+ * Freeze a single collector's quote and create Peecho order immediately.
+ * Used for "Order Now" immediate fulfillment flow.
+ */
+export async function freezeSingleCollectorCycle(
+  collectorId: string,
+  cycleId: string,
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const cycle = await db.subscriptionCycle.findUnique({
+      where: { id: cycleId },
+    });
+
+    if (!cycle) {
+      return { success: false, error: `Cycle ${cycleId} not found` };
+    }
+
+    const intent = await db.checkoutIntent.findUnique({
+      where: {
+        collectorProfileId_cycleId: {
+          collectorProfileId: collectorId,
+          cycleId,
+        },
+      },
+      include: {
+        collectorProfile: {
+          select: {
+            id: true,
+            shippingCountry: true,
+            shippingStateCode: true,
+          },
+        },
+      },
+    });
+
+    if (!intent) {
+      return { success: false, error: "No checkout intent found" };
+    }
+
+    if (!intent.collectorProfile.shippingCountry) {
+      return { success: false, error: "No shipping country set" };
+    }
+
+    const selections = await db.collectorReleaseSelection.findMany({
+      where: {
+        collectorProfileId: collectorId,
+        cycleId,
+      },
+      include: {
+        release: {
+          include: {
+            artworks: {
+              include: {
+                artwork: { select: { id: true } },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (selections.length === 0) {
+      return { success: false, error: "No selections found" };
+    }
+
+    const pageCountResult = computeBookletPageCount(selections as any);
+
+    // Get quote for quote snapshot
+    const quoteData = await getQuote({
+      country: intent.collectorProfile.shippingCountry,
+      countryStateCode: intent.collectorProfile.shippingStateCode ?? undefined,
+      pageCount: pageCountResult.totalPages,
+    });
+
+    const snapshot = await createQuoteSnapshot(
+      collectorId,
+      cycleId,
+      pageCountResult.totalPages,
+      quoteData,
+    );
+
+    await db.pricingQuoteSnapshot.update({
+      where: { id: snapshot.id },
+      data: {
+        isFrozen: true,
+        frozenAt: new Date(),
+      },
+    });
+
+    // Create the Peecho order immediately
+    const printFile = await db.generatedPrintFile.findUnique({
+      where: {
+        collectorProfileId_cycleId: {
+          collectorProfileId: collectorId,
+          cycleId,
+        },
+      },
+    });
+
+    if (printFile?.storageUrl && printFile.status === "READY") {
+      const key = extractKeyFromStorageUrl(printFile.storageUrl);
+      if (!key) {
+        return {
+          success: false,
+          error: `Failed to extract S3 key from URL: ${printFile.storageUrl}`,
+        };
+      }
+      const presignedUrl = await getPresignedGetUrl(key);
+
+      const collectorProfile = await db.collectorProfile.findUnique({
+        where: { id: collectorId },
+        include: { user: { select: { email: true, name: true } } },
+      });
+
+      if (!collectorProfile) {
+        return { success: false, error: "Collector profile not found" };
+      }
+
+      const offering = await db.podOffering.findFirst({
+        where: {
+          isActive: true,
+          minPages: { lte: pageCountResult.totalPages },
+          maxPages: { gte: pageCountResult.totalPages },
+        },
+        orderBy: { createdAt: "asc" },
+      });
+
+      if (!offering) {
+        return {
+          success: false,
+          error: `No offering found for ${pageCountResult.totalPages} pages`,
+        };
+      }
+
+      const displayName =
+        collectorProfile.user.name ??
+        collectorProfile.displayName ??
+        "Collector";
+      const nameParts = displayName.trim().split(" ");
+      const firstName = nameParts[0] ?? "";
+      const lastName = nameParts.slice(1).join(" ");
+
+      const offeringId = parseInt(offering.externalId, 10);
+      if (Number.isNaN(offeringId) || offeringId === 0) {
+        return {
+          success: false,
+          error: "Offering not synced with Peecho. Please run admin sync.",
+        };
+      }
+
+      const orderResponse = await peechoClient.createOrder({
+        currency: "EUR",
+        order_reference: `immediate-${collectorId}-${cycleId}-${Date.now()}`,
+        item_details: [
+          {
+            item_reference: `booklet-${collectorId}-${cycleId}`,
+            offering_id: offeringId,
+            quantity: 1,
+            file_details: {
+              content_url: presignedUrl,
+              content_width: printFile.widthMm ?? 148,
+              content_height: printFile.heightMm ?? 210,
+              number_of_pages:
+                printFile.pageCount ?? pageCountResult.totalPages,
+            },
+          },
+        ],
+        address_details: {
+          email_address: collectorProfile.user.email ?? "",
+          shipping_address: {
+            first_name: firstName,
+            last_name: lastName,
+            address_line_1: collectorProfile.shippingAddressLine1 ?? "",
+            address_line_2: collectorProfile.shippingAddressLine2 ?? undefined,
+            city: collectorProfile.shippingCity ?? "",
+            zip_code: collectorProfile.shippingZip ?? "",
+            state: collectorProfile.shippingStateCode ?? null,
+            country_code: collectorProfile.shippingCountry ?? "",
+          },
+        },
+      });
+
+      const orderDetails = await peechoClient.getOrderDetails(
+        orderResponse.order_id,
+      );
+
+      await db.checkoutIntent.update({
+        where: { id: intent.id },
+        data: {
+          peechoOrderId: String(orderResponse.order_id),
+          wholesaleTotalAmount: orderDetails.total_wholesale_price_inc_taxes,
+          retailTotalAmount: orderDetails.total_retail_price_inc_taxes,
+          platformMarkupAmount:
+            orderDetails.total_retail_price_inc_taxes -
+            orderDetails.total_wholesale_price_inc_taxes,
+        },
+      });
+    }
+
+    return { success: true };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    logger.error("Failed to freeze single collector cycle", {
+      collectorId,
+      cycleId,
+      error: message,
+    });
+    return { success: false, error: message };
+  }
+}

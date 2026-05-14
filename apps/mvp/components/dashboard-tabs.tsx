@@ -6,11 +6,19 @@ import type { CreatorDashboardStats } from "@/lib/actions/creator";
 import { CollectorDashboard } from "./collector-dashboard";
 import { CreatorDashboard } from "./creator-dashboard";
 
+type CheckoutIntentData = {
+  orderedManually: boolean;
+  orderedAt: string | null;
+  retailTotalAmount: number | null;
+  committedAt: string | null;
+};
+
 type CollectorData = {
   collectorProfile: any;
   subscriptions: any[];
   selections: any[];
   currentCycle: any;
+  checkoutIntent: CheckoutIntentData | null;
 };
 
 type Props = {

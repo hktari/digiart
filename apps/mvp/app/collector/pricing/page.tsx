@@ -81,7 +81,8 @@ export default async function CollectorPricingPage() {
   }
 
   const isCommitted =
-    !!checkoutIntent?.committedAt && !!checkoutIntent.retailTotalAmount;
+    (!!checkoutIntent?.committedAt && !!checkoutIntent.retailTotalAmount) ||
+    !!checkoutIntent?.orderedManually;
 
   // Fetch initial estimate for non-committed orders
   let initialEstimate: {
@@ -121,17 +122,17 @@ export default async function CollectorPricingPage() {
   }
 
   return (
-    <div className="max-w-xl space-y-6">
+    <div className="mx-auto max-w-xl space-y-8 py-6 ">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Booklet Pricing</h1>
-        <p className="text-sm text-muted-foreground/60 mt-1">
+        <p className="text-sm text-foreground mt-2">
           Current amount due at cycle lock based on your selections and delivery
           address.
         </p>
       </div>
 
       {!collectorProfile.shippingCountry ? (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+        <div className="rounded-lg border border-warning-border bg-warning-bg p-4 text-sm text-warning-foreground">
           Please set your shipping country in{" "}
           <Link href="/collector/setup" className="underline font-medium">
             profile settings

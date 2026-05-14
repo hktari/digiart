@@ -83,13 +83,13 @@ export function PricingEstimateCard({
     <div className="space-y-4">
       {/* Charge date banner */}
       {lockDate && (
-        <div className="rounded-lg border border-jade-200 bg-jade-50 p-4 flex items-start gap-3">
-          <Calendar className="h-5 w-5 text-jade-600 shrink-0 mt-0.5" />
+        <div className="rounded-lg border border-success-border bg-success-bg p-4 flex items-start gap-3">
+          <Calendar className="h-5 w-5 text-success-foreground shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-semibold text-jade-800">
+            <p className="text-sm font-semibold text-success-foreground">
               Charge date: {lockDate}
             </p>
-            <p className="text-xs text-jade-700 mt-0.5">
+            <p className="text-xs text-success-foreground/80 mt-0.5">
               Your card will be charged automatically at cycle lock. No action
               needed.
             </p>
@@ -98,7 +98,7 @@ export function PricingEstimateCard({
       )}
 
       {/* Estimate display */}
-      <div className="rounded-lg border border-amber-200 bg-amber-50/30 p-5">
+      <div className="rounded-lg border border-warning-border bg-warning-bg/30 p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/50">
@@ -115,19 +115,19 @@ export function PricingEstimateCard({
           </div>
           <div className="flex items-center gap-2">
             {justRefreshed && (
-              <span className="flex items-center gap-1 text-xs text-jade-700 bg-jade-50 border border-jade-200 rounded px-2 py-1">
+              <span className="flex items-center gap-1 text-xs text-success-foreground bg-success-bg border border-success-border rounded px-2 py-1">
                 <CheckCircle className="h-3.5 w-3.5" />
                 Updated
               </span>
             )}
-            <span className="text-[10px] font-medium uppercase tracking-wider text-amber-600 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">
+            <span className="text-[10px] font-medium uppercase tracking-wider text-warning-foreground bg-warning-bg border border-warning-border rounded px-1.5 py-0.5">
               Estimate
             </span>
           </div>
         </div>
 
         {displayEstimate && (
-          <div className="space-y-2 border-t border-amber-100 pt-4">
+          <div className="space-y-2 border-t border-warning-border/30 pt-4">
             <div className="flex justify-between text-sm text-muted-foreground/70">
               <span>Production</span>
               <span>
@@ -170,7 +170,7 @@ export function PricingEstimateCard({
                 </span>
               </div>
             )}
-            <div className="flex justify-between text-sm font-semibold text-foreground border-t border-amber-100 pt-2 mt-1">
+            <div className="flex justify-between text-sm font-semibold text-foreground border-t border-warning-border/30 pt-2 mt-1">
               <span>Estimated total</span>
               <span>
                 {formatCurrency(
@@ -182,7 +182,7 @@ export function PricingEstimateCard({
           </div>
         )}
 
-        <p className="text-xs text-amber-700 bg-amber-50 rounded p-2 mt-3 flex items-start gap-1.5">
+        <p className="text-xs text-warning-foreground bg-warning-bg rounded p-2 mt-3 flex items-start gap-1.5">
           <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />
           <span>
             This is an estimate based on your current selections and delivery
@@ -205,7 +205,7 @@ export function PricingEstimateCard({
       </div>
 
       {/* Dynamic pricing notice */}
-      <div className="rounded-lg border border-amber-100 bg-amber-50 p-4 text-sm text-amber-800">
+      <div className="rounded-lg border border-warning-border bg-warning-bg p-4 text-sm text-warning-foreground">
         <p className="font-medium mb-1">Price changes with your selections</p>
         <p className="text-xs">
           Before an order is created, estimates use Peecho&apos;s wholesale
@@ -215,7 +215,7 @@ export function PricingEstimateCard({
       </div>
 
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 flex items-start gap-2 text-sm text-red-700">
+        <div className="rounded-lg border border-destructive-border bg-destructive-bg p-3 flex items-start gap-2 text-sm text-destructive-foreground">
           <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>

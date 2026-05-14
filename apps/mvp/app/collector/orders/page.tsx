@@ -20,7 +20,7 @@ export default async function CollectorOrdersPage() {
   const billingRecords = await db.billingRecord.findMany({
     where: { collectorProfileId: collectorProfile.id },
     include: {
-      cycle: { select: { label: true, lockDate: true } },
+      cycle: { select: { label: true, lockDate: true, id: true } },
       quoteSnapshot: {
         select: { isFrozen: true, totalEstimate: true, currency: true },
       },
@@ -37,6 +37,33 @@ export default async function CollectorOrdersPage() {
     orderBy: { createdAt: "desc" },
   });
 
+  // Fetch checkout intents to determine order mode
+  const cycleIds = billingRecords.map((r) => r.cycleId);
+  const checkoutIntents =
+    cycleIds.length > 0
+      ? await db.checkoutIntent.findMany({
+          where: {
+            collectorProfileId: collectorProfile.id,
+            cycleId: { in: cycleIds },
+          },
+          select: {
+            cycleId: true,
+            orderedManually: true,
+            orderedAt: true,
+          },
+        })
+      : [];
+
+  const checkoutIntentMap = new Map(
+    checkoutIntents.map((ci) => [
+      ci.cycleId,
+      {
+        orderedManually: ci.orderedManually,
+        orderedAt: ci.orderedAt?.toISOString() ?? null,
+      },
+    ]),
+  );
+
   const formattedBillingRecords = billingRecords.map((record) => ({
     ...record,
     cycle: {
@@ -49,11 +76,15 @@ export default async function CollectorOrdersPage() {
           totalEstimate: Number(record.quoteSnapshot.totalEstimate),
         }
       : null,
+    orderMode: checkoutIntentMap.get(record.cycleId)?.orderedManually
+      ? ("manual" as const)
+      : ("auto" as const),
+    orderedAt: checkoutIntentMap.get(record.cycleId)?.orderedAt ?? null,
   }));
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-foregroundmb-6">My Orders</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-6">My Orders</h1>
 
       <CollectorOrdersClient
         billingRecords={formattedBillingRecords}

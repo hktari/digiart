@@ -1,5 +1,6 @@
 "use client";
 
+import { Lock, Zap } from "lucide-react";
 import { useState } from "react";
 
 type BillingRecord = {
@@ -13,6 +14,8 @@ type BillingRecord = {
     totalEstimate: number;
     currency: string;
   } | null;
+  orderMode: "manual" | "auto";
+  orderedAt: string | null;
 };
 
 type FulfillmentOrder = {
@@ -30,8 +33,8 @@ type CollectorOrdersClientProps = {
 };
 
 const statusTimeline = [
-  "Quote frozen",
-  "Charge pending",
+  "Order placed",
+  "Awaiting charge",
   "Charge paid",
   "Generating",
   "Processing",
@@ -193,7 +196,7 @@ export function CollectorOrdersClient({
                         ? "bg-fuchsia-600"
                         : i === currentStep
                           ? "bg-fuchsia-400 animate-pulse"
-                          : "bg-beige-200"
+                          : "bg-muted-foreground/20"
                     }`}
                   />
                   <span className="text-[10px] text-muted-foreground/50 hidden sm:inline">
@@ -201,6 +204,21 @@ export function CollectorOrdersClient({
                   </span>
                 </div>
               ))}
+            </div>
+
+            {/* Mode badge */}
+            <div className="mt-2">
+              {record.orderMode === "manual" ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-jade-100 px-2 py-1 text-xs font-medium text-jade-700">
+                  <Zap className="h-3 w-3" />
+                  Ordered manually
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
+                  <Lock className="h-3 w-3" />
+                  Auto-fulfilled at lock
+                </span>
+              )}
             </div>
 
             {record.status === "FAILED" && (

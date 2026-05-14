@@ -343,10 +343,171 @@ function CheckoutFormInner({
     router.push("/collector/checkout/complete?mode=immediate");
   };
 
-  if (step === "confirm" && exactPrice) {
-    return (
-      <div className="space-y-5">
-        <ExactPriceBlock exact={exactPrice} cycleLockDate={cycleLockDate} />
+  return (
+    <>
+      {/* Confirm step overlay — shown on top when step === "confirm" */}
+      {step === "confirm" && exactPrice && (
+        <div className="space-y-5">
+          <ExactPriceBlock exact={exactPrice} cycleLockDate={cycleLockDate} />
+
+          {error && (
+            <div className="rounded-lg border border-destructive-border bg-destructive-bg p-3 flex items-start gap-2 text-sm text-destructive-foreground">
+              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <div className="space-y-3">
+            {/* Primary CTA: Order Now */}
+            <button
+              type="button"
+              onClick={handleOrderNow}
+              disabled={isSubmitting}
+              className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-opacity"
+            >
+              {isSubmitting ? (
+                <span className="flex items-center justify-center gap-2">
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  Processing…
+                </span>
+              ) : (
+                <>
+                  Order Now — Pay{" "}
+                  {formatCurrency(exactPrice.amount, exactPrice.currency)} today
+                </>
+              )}
+            </button>
+
+            {/* Secondary CTA: Save for later */}
+            <button
+              type="button"
+              onClick={() => handleConfirm()}
+              disabled={isSubmitting}
+              className="w-full rounded-lg border border-border bg-background px-4 py-3 text-sm font-medium text-muted-foreground/70 hover:bg-muted disabled:opacity-50 transition-colors"
+            >
+              {isSubmitting ? (
+                <span className="flex items-center justify-center gap-2">
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  Saving…
+                </span>
+              ) : (
+                <>Save & pay {lockDate ? `at ${lockDate}` : "at cycle lock"}</>
+              )}
+            </button>
+
+            {/* Edit button */}
+            <button
+              type="button"
+              onClick={() => {
+                setStep("form");
+                setExactPrice(null);
+              }}
+              disabled={isSubmitting}
+              className="w-full rounded-lg border border-transparent px-4 py-2 text-sm font-medium text-muted-foreground/50 hover:text-muted-foreground/70 disabled:opacity-50 transition-colors"
+            >
+              Edit address / card
+            </button>
+          </div>
+
+          {/* Explanation cards */}
+          <div className="space-y-3">
+            <div className="rounded-lg border border-info-border bg-info-bg p-4 text-sm">
+              <p className="font-medium text-info-foreground mb-1">
+                Order Now — your booklet prints today
+              </p>
+              <p className="text-info-foreground">
+                Your card will be charged{" "}
+                {formatCurrency(exactPrice.amount, exactPrice.currency)}{" "}
+                immediately. Your booklet will be printed and shipped right
+                away. Your selections are now locked.
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-border bg-muted p-4 text-sm text-muted-foreground/70">
+              <p className="flex items-center gap-2 font-medium text-muted-foreground/80 mb-1">
+                <Lock className="h-3.5 w-3.5" />
+                Save & pay later
+              </p>
+              <p>
+                Your selections can still change until lock date. You&apos;ll be
+                charged the final recalculated amount{" "}
+                {lockDate ? `at ${lockDate}` : "at cycle lock"}.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Form is always rendered so Stripe elements stay mounted; hidden during confirm step */}
+      <form
+        onSubmit={handleCalculate}
+        className={step === "confirm" ? "hidden" : "space-y-5"}
+      >
+        <div className="rounded-lg border border-border bg-card p-5">
+          <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground/50 mb-4">
+            Delivery Address
+          </h2>
+          <AddressElement
+            options={{
+              mode: "shipping",
+              allowedCountries:
+                allowedCountries.length > 0 ? allowedCountries : undefined,
+              defaultValues: defaultAddress
+                ? {
+                    name: defaultAddress.name ?? "",
+                    address: {
+                      line1: defaultAddress.line1 ?? "",
+                      city: defaultAddress.city ?? "",
+                      state: defaultAddress.state ?? "",
+                      postal_code: defaultAddress.postal_code ?? "",
+                      country: defaultAddress.country ?? "",
+                    },
+                  }
+                : undefined,
+            }}
+            onChange={async (event) => {
+              const addr = event.value?.address;
+              if (!addr?.country) return;
+
+              const currentCountry = liveEstimate
+                ? undefined
+                : defaultAddress?.country;
+
+              // Only refetch if country changed from initial or previous
+              if (addr.country === currentCountry) return;
+
+              onRefreshingChange(true);
+              setError(null);
+
+              const result = await fetchLiveQuote(
+                addr.country,
+                addr.state || undefined,
+              );
+
+              if ("error" in result && result.error) {
+                setError(result.error);
+              } else if ("quote" in result && result.quote) {
+                onEstimateChange({
+                  baseAmount: result.quote.baseAmount,
+                  shippingAmount: result.quote.shippingAmount,
+                  markupAmount: result.quote.markupAmount,
+                  taxAmount: result.quote.taxAmount,
+                  totalEstimate: result.quote.totalEstimate,
+                  currency: result.quote.currency,
+                });
+              }
+
+              onRefreshingChange(false);
+            }}
+          />
+        </div>
+
+        <div className="rounded-lg border border-border bg-card p-5">
+          <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground/50 mb-4">
+            Payment Method
+          </h2>
+          <PaymentElement options={{ layout: "tabs" }} />
+        </div>
 
         {error && (
           <div className="rounded-lg border border-destructive-border bg-destructive-bg p-3 flex items-start gap-2 text-sm text-destructive-foreground">
@@ -355,183 +516,27 @@ function CheckoutFormInner({
           </div>
         )}
 
-        <div className="space-y-3">
-          {/* Primary CTA: Order Now */}
-          <button
-            type="button"
-            onClick={handleOrderNow}
-            disabled={isSubmitting}
-            className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 transition-opacity"
-          >
-            {isSubmitting ? (
-              <span className="flex items-center justify-center gap-2">
-                <RefreshCw className="h-4 w-4 animate-spin" />
-                Processing…
-              </span>
-            ) : (
-              <>
-                Order Now — Pay{" "}
-                {formatCurrency(exactPrice.amount, exactPrice.currency)} today
-              </>
-            )}
-          </button>
+        <button
+          type="submit"
+          disabled={isCalculating || !stripe || !elements}
+          className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+        >
+          {isCalculating ? (
+            <span className="flex items-center justify-center gap-2">
+              <RefreshCw className="h-4 w-4 animate-spin" />
+              Calculating price estimate…
+            </span>
+          ) : (
+            "Calculate price estimate & review"
+          )}
+        </button>
 
-          {/* Secondary CTA: Save for later */}
-          <button
-            type="button"
-            onClick={() => handleConfirm()}
-            disabled={isSubmitting}
-            className="w-full rounded-lg border border-border bg-background px-4 py-3 text-sm font-medium text-muted-foreground/70 hover:bg-muted disabled:opacity-50 transition-colors"
-          >
-            {isSubmitting ? (
-              <span className="flex items-center justify-center gap-2">
-                <RefreshCw className="h-4 w-4 animate-spin" />
-                Saving…
-              </span>
-            ) : (
-              <>Save & pay {lockDate ? `at ${lockDate}` : "at cycle lock"}</>
-            )}
-          </button>
-
-          {/* Edit button */}
-          <button
-            type="button"
-            onClick={() => {
-              setStep("form");
-              setExactPrice(null);
-            }}
-            disabled={isSubmitting}
-            className="w-full rounded-lg border border-transparent px-4 py-2 text-sm font-medium text-muted-foreground/50 hover:text-muted-foreground/70 disabled:opacity-50 transition-colors"
-          >
-            Edit address / card
-          </button>
-        </div>
-
-        {/* Explanation cards */}
-        <div className="space-y-3">
-          <div className="rounded-lg border border-info-border bg-info-bg p-4 text-sm">
-            <p className="font-medium text-info-foreground mb-1">
-              Order Now — your booklet prints today
-            </p>
-            <p className="text-info-foreground">
-              Your card will be charged{" "}
-              {formatCurrency(exactPrice.amount, exactPrice.currency)}{" "}
-              immediately. Your booklet will be printed and shipped right away.
-              Your selections are now locked.
-            </p>
-          </div>
-
-          <div className="rounded-lg border border-border bg-muted p-4 text-sm text-muted-foreground/70">
-            <p className="flex items-center gap-2 font-medium text-muted-foreground/80 mb-1">
-              <Lock className="h-3.5 w-3.5" />
-              Save & pay later
-            </p>
-            <p>
-              Your selections can still change until lock date. You&apos;ll be
-              charged the final recalculated amount{" "}
-              {lockDate ? `at ${lockDate}` : "at cycle lock"}.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <form onSubmit={handleCalculate} className="space-y-5">
-      <div className="rounded-lg border border-border bg-card p-5">
-        <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground/50 mb-4">
-          Delivery Address
-        </h2>
-        <AddressElement
-          options={{
-            mode: "shipping",
-            allowedCountries:
-              allowedCountries.length > 0 ? allowedCountries : undefined,
-            defaultValues: defaultAddress
-              ? {
-                  name: defaultAddress.name ?? "",
-                  address: {
-                    line1: defaultAddress.line1 ?? "",
-                    city: defaultAddress.city ?? "",
-                    state: defaultAddress.state ?? "",
-                    postal_code: defaultAddress.postal_code ?? "",
-                    country: defaultAddress.country ?? "",
-                  },
-                }
-              : undefined,
-          }}
-          onChange={async (event) => {
-            const addr = event.value?.address;
-            if (!addr?.country) return;
-
-            const currentCountry = liveEstimate
-              ? undefined
-              : defaultAddress?.country;
-
-            // Only refetch if country changed from initial or previous
-            if (addr.country === currentCountry) return;
-
-            onRefreshingChange(true);
-            setError(null);
-
-            const result = await fetchLiveQuote(
-              addr.country,
-              addr.state || undefined,
-            );
-
-            if ("error" in result && result.error) {
-              setError(result.error);
-            } else if ("quote" in result && result.quote) {
-              onEstimateChange({
-                baseAmount: result.quote.baseAmount,
-                shippingAmount: result.quote.shippingAmount,
-                markupAmount: result.quote.markupAmount,
-                taxAmount: result.quote.taxAmount,
-                totalEstimate: result.quote.totalEstimate,
-                currency: result.quote.currency,
-              });
-            }
-
-            onRefreshingChange(false);
-          }}
-        />
-      </div>
-
-      <div className="rounded-lg border border-border bg-card p-5">
-        <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground/50 mb-4">
-          Payment Method
-        </h2>
-        <PaymentElement options={{ layout: "tabs" }} />
-      </div>
-
-      {error && (
-        <div className="rounded-lg border border-destructive-border bg-destructive-bg p-3 flex items-start gap-2 text-sm text-destructive-foreground">
-          <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-          <span>{error}</span>
-        </div>
-      )}
-
-      <button
-        type="submit"
-        disabled={isCalculating || !stripe || !elements}
-        className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
-      >
-        {isCalculating ? (
-          <span className="flex items-center justify-center gap-2">
-            <RefreshCw className="h-4 w-4 animate-spin" />
-            Calculating price estimate…
-          </span>
-        ) : (
-          "Calculate price estimate & review"
-        )}
-      </button>
-
-      <p className="text-xs text-muted-foreground/50 text-center">
-        No charge today. We calculate a price estimate from your address, then
-        you confirm before we save your card.
-      </p>
-    </form>
+        <p className="text-xs text-muted-foreground/50 text-center">
+          No charge today. We calculate a price estimate from your address, then
+          you confirm before we save your card.
+        </p>
+      </form>
+    </>
   );
 }
 

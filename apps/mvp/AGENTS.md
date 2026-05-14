@@ -4,6 +4,12 @@
 - when implementing React pages you need to use semantic colors that support dark/light mode (e.g. text-foreground instead of text-ink)
   bad examples: bg-white, border-neutral, text-neutral-200, border-beige, bg-paper, text-beige, etc.
   good examples: text-foreground, text-muted-foreground, border-border, bg-muted, bg-background
+- **Use semantic alert colors for all states** — Never use raw Tailwind colors like `bg-amber-50`, `border-amber-200`, `text-amber-800`, `bg-red-50`, `border-jade-200`. Use semantic colors instead:
+  - Warnings/alerts: `bg-warning-bg border-warning-border text-warning-foreground`
+  - Success/info: `bg-success-bg border-success-border text-success-foreground`
+  - Info notices: `bg-info-bg border-info-border text-info-foreground`
+  - Error states: `bg-destructive-bg border-destructive-border text-destructive-foreground`
+  - Semantic colors are defined in `app/globals.css` and automatically adapt to dark mode
 
 # Database
 

@@ -1,6 +1,8 @@
 "use client";
 
+import { CheckCircle, Package } from "lucide-react";
 import Link from "next/link";
+import { useMemo } from "react";
 import { InfiniteScrollSentinel } from "@/components/infinite-scroll-sentinel";
 import { ReleaseSelectionGrid } from "@/components/release-selection-grid";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
@@ -43,16 +45,39 @@ type CurrentCycle = {
   lockDate: string;
 };
 
+type QuoteData = {
+  totalEstimate: number;
+  currency: string;
+  pageCount: number;
+};
+
+type CheckoutIntentData = {
+  orderedManually: boolean;
+  orderedAt: string | null;
+  retailTotalAmount: number | null;
+};
+
 type CollectorReleasesClientProps = {
   initialReleases: Release[];
   initialSelectedReleaseIds: Set<string>;
   currentCycle: CurrentCycle;
+  initialQuote: QuoteData | null;
+  checkoutIntent: CheckoutIntentData | null;
 };
+
+function formatCurrency(amount: number, currency: string) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: currency || "EUR",
+  }).format(amount);
+}
 
 export function CollectorReleasesClient({
   initialReleases,
   initialSelectedReleaseIds,
   currentCycle,
+  initialQuote,
+  checkoutIntent,
 }: CollectorReleasesClientProps) {
   const { items, isLoading, isLoadingMore, hasMore, sentinelRef } =
     useInfiniteScroll<Release>({
@@ -62,8 +87,18 @@ export function CollectorReleasesClient({
       fallback: initialReleases,
     });
 
+  const selectedCount = initialSelectedReleaseIds.size;
+  const hasSelections = selectedCount > 0;
+  const alreadyOrdered = checkoutIntent?.orderedManually ?? false;
+
+  // Calculate total page count from selections
+  const totalPages = useMemo(() => {
+    if (!initialQuote?.pageCount) return 0;
+    return initialQuote.pageCount;
+  }, [initialQuote]);
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-32">
       <div className="max-w-5xl mx-auto px-4 py-12">
         <div className="mb-8">
           <div className="flex items-start justify-between">
@@ -170,6 +205,51 @@ export function CollectorReleasesClient({
           </div>
         )}
       </div>
+
+      {/* Sticky bottom CTA bar */}
+      {hasSelections && (
+        <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-background/95 backdrop-blur-sm px-4 py-4 shadow-lg">
+          <div className="mx-auto max-w-5xl flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="rounded-full bg-fuchsia-100 p-2">
+                <Package className="h-5 w-5 text-fuchsia-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">
+                  {selectedCount} release{selectedCount !== 1 ? "s" : ""}
+                  {totalPages > 0 && ` · ${totalPages} pages`}
+                </p>
+                {initialQuote?.totalEstimate && !alreadyOrdered && (
+                  <p className="text-xs text-muted-foreground">
+                    Est.{" "}
+                    {formatCurrency(
+                      initialQuote.totalEstimate,
+                      initialQuote.currency,
+                    )}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {alreadyOrdered ? (
+              <Link
+                href="/collector/orders"
+                className="flex items-center gap-2 rounded-lg bg-jade-100 px-4 py-2 text-sm font-medium text-jade-700 hover:bg-jade-200 transition-colors"
+              >
+                <CheckCircle className="h-4 w-4" />
+                Booklet ordered
+              </Link>
+            ) : (
+              <Link
+                href="/collector/checkout"
+                className="rounded-lg bg-fuchsia-600 px-4 py-2 text-sm font-semibold text-white hover:bg-fuchsia-700 transition-colors"
+              >
+                Review & Order
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -14,6 +14,26 @@ import { trackPageView } from "@/lib/analytics/events";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
+async function getCollectorCheckoutIntent(
+  collectorProfileId: string,
+  cycleId: string,
+) {
+  return db.checkoutIntent.findUnique({
+    where: {
+      collectorProfileId_cycleId: {
+        collectorProfileId,
+        cycleId,
+      },
+    },
+    select: {
+      orderedManually: true,
+      orderedAt: true,
+      retailTotalAmount: true,
+      committedAt: true,
+    },
+  });
+}
+
 function PublicHomePage() {
   return (
     <div className="flex min-h-screen flex-col">
@@ -150,6 +170,12 @@ export default async function HomePage({ searchParams }: HomePageProps) {
       ? await getCollectorReleaseSelections(session.user.id, currentCycle.id)
       : [];
 
+  // Fetch checkout intent for the dashboard
+  const checkoutIntent =
+    isCollector && collectorProfile && currentCycle
+      ? await getCollectorCheckoutIntent(collectorProfile.id, currentCycle.id)
+      : null;
+
   // Track page view for authenticated users
   void trackPageView("/", { userId: session.user.id });
 
@@ -176,7 +202,24 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           creatorProfile={creatorProfile}
           collectorData={
             isCollector
-              ? { collectorProfile, subscriptions, selections, currentCycle }
+              ? {
+                  collectorProfile,
+                  subscriptions,
+                  selections,
+                  currentCycle,
+                  checkoutIntent: checkoutIntent
+                    ? {
+                        orderedManually: checkoutIntent.orderedManually,
+                        orderedAt:
+                          checkoutIntent.orderedAt?.toISOString() ?? null,
+                        retailTotalAmount: checkoutIntent.retailTotalAmount
+                          ? Number(checkoutIntent.retailTotalAmount)
+                          : null,
+                        committedAt:
+                          checkoutIntent.committedAt?.toISOString() ?? null,
+                      }
+                    : null,
+                }
               : null
           }
         />

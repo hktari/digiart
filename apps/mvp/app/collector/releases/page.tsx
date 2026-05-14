@@ -8,6 +8,8 @@ import {
   getCurrentCycle,
 } from "@/lib/actions/cycles";
 import { auth } from "@/lib/auth";
+import { computeBookletPageCount } from "@/lib/booklet/page-count";
+import { db } from "@/lib/db";
 import { CollectorReleasesClient } from "./collector-releases-client";
 
 export default async function CollectorReleasesPage() {
@@ -80,6 +82,52 @@ export default async function CollectorReleasesPage() {
     selections.map((s: { release: { id: string } }) => s.release.id),
   );
 
+  // Fetch checkout intent for order status
+  const checkoutIntent = await db.checkoutIntent.findUnique({
+    where: {
+      collectorProfileId_cycleId: {
+        collectorProfileId: collectorProfile.id,
+        cycleId: currentCycle.id,
+      },
+    },
+    select: {
+      orderedManually: true,
+      orderedAt: true,
+      retailTotalAmount: true,
+      quoteInputPageCount: true,
+    },
+  });
+
+  // Get latest quote snapshot for pricing info
+  const quoteSnapshot = await db.pricingQuoteSnapshot.findFirst({
+    where: {
+      collectorProfileId: collectorProfile.id,
+      cycleId: currentCycle.id,
+    },
+    orderBy: { quotedAt: "desc" },
+  });
+
+  // Calculate page count from selections
+  let totalPages = 0;
+  if (selections.length > 0) {
+    const { totalPages: pages } = computeBookletPageCount(selections as any);
+    totalPages = pages;
+  }
+
+  const quoteData = quoteSnapshot
+    ? {
+        totalEstimate: Number(quoteSnapshot.totalEstimate),
+        currency: quoteSnapshot.currency,
+        pageCount: totalPages,
+      }
+    : checkoutIntent?.quoteInputPageCount
+      ? {
+          totalEstimate: Number(checkoutIntent.retailTotalAmount ?? 0),
+          currency: "EUR",
+          pageCount: checkoutIntent.quoteInputPageCount,
+        }
+      : null;
+
   return (
     <CollectorReleasesClient
       initialReleases={availableReleases}
@@ -89,6 +137,18 @@ export default async function CollectorReleasesPage() {
         label: currentCycle.label,
         lockDate: currentCycle.lockDate.toISOString(),
       }}
+      initialQuote={quoteData}
+      checkoutIntent={
+        checkoutIntent
+          ? {
+              orderedManually: checkoutIntent.orderedManually,
+              orderedAt: checkoutIntent.orderedAt?.toISOString() ?? null,
+              retailTotalAmount: checkoutIntent.retailTotalAmount
+                ? Number(checkoutIntent.retailTotalAmount)
+                : null,
+            }
+          : null
+      }
     />
   );
 }
