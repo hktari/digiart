@@ -220,6 +220,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <SidebarMenuSubItem>
                     <SidebarMenuSubButton
                       asChild
+                      isActive={pathname === "/collector/orders"}
+                    >
+                      <Link href="/collector/orders" onClick={handleLinkClick}>
+                        Orders
+                      </Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                  <SidebarMenuSubItem>
+                    <SidebarMenuSubButton
+                      asChild
                       isActive={pathname === "/collector/pricing"}
                     >
                       <Link href="/collector/pricing" onClick={handleLinkClick}>

@@ -29,6 +29,7 @@ export default async function AdminOrdersPage() {
       status: true,
       trackingNumber: true,
       trackingUrl: true,
+      providerOrderId: true,
       generatedPrintFile: { select: { status: true } },
     },
   });
@@ -102,6 +103,9 @@ export default async function AdminOrdersPage() {
                 Fulfillment
               </th>
               <th className="py-2 px-4 font-medium text-muted-foreground">
+                Peecho
+              </th>
+              <th className="py-2 px-4 font-medium text-muted-foreground">
                 Tracking
               </th>
             </tr>
@@ -161,12 +165,26 @@ export default async function AdminOrdersPage() {
                     )}
                   </td>
                   <td className="py-2 px-4">
+                    {fulfillment?.providerOrderId ? (
+                      <a
+                        href={`https://test.www.peecho.com/mio-dashboard/orders/${fulfillment.providerOrderId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-primary hover:underline"
+                      >
+                        #{fulfillment.providerOrderId}
+                      </a>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </td>
+                  <td className="py-2 px-4">
                     {fulfillment?.trackingUrl ? (
                       <a
                         href={fulfillment.trackingUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-fuchsia-600 hover:underline"
+                        className="text-xs text-primary hover:underline"
                       >
                         {fulfillment.trackingNumber ?? "Track"}
                       </a>
@@ -180,7 +198,7 @@ export default async function AdminOrdersPage() {
             {billingRecords.length === 0 && (
               <tr>
                 <td
-                  colSpan={8}
+                  colSpan={9}
                   className="py-8 text-center text-muted-foreground"
                 >
                   No orders yet.

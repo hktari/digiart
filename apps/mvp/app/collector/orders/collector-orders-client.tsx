@@ -176,7 +176,7 @@ export function CollectorOrdersClient({
         return (
           <div
             key={record.id}
-            className="rounded border border-beige-200 bg-white p-4"
+            className="rounded border border-border bg-card p-4"
           >
             <h2 className="font-semibold text-foreground">
               {record.cycle.label}
