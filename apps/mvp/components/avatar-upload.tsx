@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, useTransition } from "react";
 import ReactCrop, {
   type Crop,
   centerCrop,
@@ -29,16 +29,13 @@ export function AvatarUpload({
   displayName,
 }: AvatarUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const formRef = useRef<HTMLFormElement>(null);
-  const keyInputRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [phase, setPhase] = useState<UploadPhase>("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [crop, setCrop] = useState<Crop>();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-
-  const [, formAction, isSaving] = useActionState(saveAvatar, null);
+  const [isSaving, startTransition] = useTransition();
 
   const initials = displayName
     .split(" ")
@@ -161,10 +158,13 @@ export function AvatarUpload({
         xhr.send(croppedFile);
       });
 
-      // Write the key directly into the DOM before submitting
-      if (keyInputRef.current) keyInputRef.current.value = key;
-      setPhase("done");
-      formRef.current?.requestSubmit();
+      setPhase("saving");
+      startTransition(async () => {
+        const fd = new FormData();
+        fd.set("key", key);
+        await saveAvatar(null, fd);
+        setPhase("done");
+      });
     } catch (err) {
       setPhase("error");
       setErrorMsg(err instanceof Error ? err.message : "Upload failed");
@@ -311,11 +311,6 @@ export function AvatarUpload({
         className="sr-only"
         onChange={handleChange}
       />
-
-      {/* Hidden form — submitted automatically after S3 upload */}
-      <form ref={formRef} action={formAction} className="hidden">
-        <input ref={keyInputRef} type="hidden" name="key" defaultValue="" />
-      </form>
 
       {/* Crop Modal */}
       {isCropping && preview && (
