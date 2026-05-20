@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useRef, useState, useTransition } from "react";
+import {
+  useActionState,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import ReactCrop, {
   type Crop,
   centerCrop,
@@ -13,6 +20,7 @@ import { saveAvatar } from "@/lib/actions/creator";
 interface AvatarUploadProps {
   currentAvatar?: string | null;
   displayName: string;
+  onAvatarUpdate?: (avatarUrl: string) => void;
 }
 
 type UploadPhase =
@@ -27,6 +35,7 @@ type UploadPhase =
 export function AvatarUpload({
   currentAvatar,
   displayName,
+  onAvatarUpdate,
 }: AvatarUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -35,7 +44,8 @@ export function AvatarUpload({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [crop, setCrop] = useState<Crop>();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isSaving, startTransition] = useTransition();
+  const [saveState, saveAction, isSaving] = useActionState(saveAvatar, null);
+  const [, startTransition] = useTransition();
 
   const initials = displayName
     .split(" ")
@@ -159,17 +169,16 @@ export function AvatarUpload({
       });
 
       setPhase("saving");
-      startTransition(async () => {
-        const fd = new FormData();
-        fd.set("key", key);
-        await saveAvatar(null, fd);
-        setPhase("done");
+      const fd = new FormData();
+      fd.set("key", key);
+      startTransition(() => {
+        saveAction(fd);
       });
     } catch (err) {
       setPhase("error");
       setErrorMsg(err instanceof Error ? err.message : "Upload failed");
     }
-  }, [selectedFile, getCroppedImage]);
+  }, [selectedFile, getCroppedImage, saveAction]);
 
   const handleCropCancel = useCallback(() => {
     setPhase("idle");
@@ -195,6 +204,23 @@ export function AvatarUpload({
     },
     [handleFile],
   );
+
+  // Update preview when save is successful
+  useEffect(() => {
+    if (saveState?.success && saveState.avatarUrl) {
+      setPreview(saveState.avatarUrl);
+      setPhase("done");
+      // Notify parent component of the avatar update
+      onAvatarUpdate?.(saveState.avatarUrl);
+      // Clean up the old blob URL to prevent memory leaks
+      if (preview?.startsWith("blob:")) {
+        URL.revokeObjectURL(preview);
+      }
+    } else if (saveState?.success === false && saveState.error) {
+      setPhase("error");
+      setErrorMsg(saveState.error);
+    }
+  }, [saveState, preview, onAvatarUpdate]);
 
   const avatarSrc = preview ?? currentAvatar;
   const isLoading = phase === "uploading" || isSaving;

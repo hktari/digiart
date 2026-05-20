@@ -1,7 +1,6 @@
 "use client";
 
 import { ChevronDownIcon, PencilIcon } from "lucide-react";
-import Link from "next/link";
 import {
   useActionState,
   useCallback,
@@ -36,6 +35,7 @@ const SOURCE_PLATFORMS = [
 ] as const;
 
 interface CreatorSetupFormProps {
+  initialArtworkCount?: number;
   initialData?: {
     displayName?: string;
     slug?: string;
@@ -55,7 +55,10 @@ interface FormData {
   paypalEmail: string;
 }
 
-export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
+export function CreatorSetupForm({
+  initialData,
+  initialArtworkCount = 0,
+}: CreatorSetupFormProps) {
   const [step, setStep] = useState<Step>("profile");
   const [, startTransition] = useTransition();
   const [formData, setFormData] = useState<FormData>({
@@ -66,12 +69,17 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
     platformLinks: {},
     paypalEmail: initialData?.paypalEmail ?? "",
   });
-  const [_isComplete, _setIsComplete] = useState(false);
+  const [completeError, setCompleteError] = useState<string | null>(null);
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(
     !!initialData?.slug,
   );
   const [slugEditing, setSlugEditing] = useState(!initialData?.slug);
-  const [uploadedArtworks, setUploadedArtworks] = useState<string[]>([]);
+  const [uploadedArtworks, setUploadedArtworks] = useState<string[]>(
+    Array(initialArtworkCount).fill(""),
+  );
+  const [currentAvatar, setCurrentAvatar] = useState<string | null>(
+    initialData?.avatar ?? null,
+  );
   const [hasTransitioned, setHasTransitioned] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
   const [slugCheckState, slugCheckAction, isCheckingSlug] = useActionState(
@@ -131,6 +139,10 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
   //     }
   //   }
   // }, []);
+
+  const handleAvatarUpdate = useCallback((avatarUrl: string) => {
+    setCurrentAvatar(avatarUrl);
+  }, []);
 
   const toSlug = useCallback(
     (name: string) =>
@@ -330,8 +342,9 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
           <div className="space-y-6">
             {/* Avatar Upload */}
             <AvatarUpload
-              currentAvatar={initialData?.avatar}
+              currentAvatar={currentAvatar}
               displayName={formData.displayName || "Artist"}
+              onAvatarUpdate={handleAvatarUpdate}
             />
 
             <div>
@@ -662,9 +675,9 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
           <div className="space-y-6">
             <div className="rounded-lg border bg-muted p-4">
               <p className="text-sm text-foreground/80">
-                <strong>Recommended:</strong> Upload at least 5 artworks to make
-                your profile more attractive to collectors. You can always add
-                more later.
+                <strong>Required:</strong> Upload at least 1 artwork to
+                continue. Upload 3 or more to skip ahead. We recommend 5+ to
+                make your profile more attractive to collectors.
               </p>
             </div>
 
@@ -685,20 +698,14 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
               </button>
               <button
                 type="button"
-                disabled={isCompleting}
-                onClick={async () => {
-                  setIsCompleting(true);
-                  await completeCreatorOnboarding();
-                  setIsCompleting(false);
-                  setStep("share");
-                }}
+                disabled={
+                  uploadedArtworks.length === 0 ||
+                  (uploadedArtworks.length > 0 && uploadedArtworks.length < 3)
+                }
+                onClick={() => setStep("share")}
                 className="flex-1 rounded-lg bg-fuchsia-600 px-5 py-3 text-sm font-semibold text-white hover:bg-fuchsia-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {isCompleting
-                  ? "Saving..."
-                  : uploadedArtworks.length > 0
-                    ? "Continue"
-                    : "Skip for now"}
+                Continue
               </button>
             </div>
           </div>
@@ -736,11 +743,14 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                   />
                   <button
                     type="button"
-                    onClick={() => {
-                      navigator.clipboard.writeText(
-                        `${process.env.NEXT_PUBLIC_APP_URL}/creators/${formData.slug}`,
-                      );
-                      // Could add toast notification here
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(
+                          `${process.env.NEXT_PUBLIC_APP_URL}/creators/${formData.slug}`,
+                        );
+                      } catch {
+                        // Clipboard API unavailable or permission denied
+                      }
                     }}
                     className="rounded-lg border px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors"
                   >
@@ -769,6 +779,9 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
               </div>
             </div>
 
+            {completeError && (
+              <p className="text-sm text-destructive">{completeError}</p>
+            )}
             <div className="flex gap-3">
               <button
                 type="button"
@@ -777,12 +790,24 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
               >
                 Back
               </button>
-              <Link
-                href="/"
-                className="flex-1 rounded-lg bg-fuchsia-600 px-5 py-3 text-sm font-semibold text-white hover:bg-fuchsia-700 transition-colors text-center"
+              <button
+                type="button"
+                disabled={isCompleting}
+                onClick={async () => {
+                  setIsCompleting(true);
+                  setCompleteError(null);
+                  const result = await completeCreatorOnboarding();
+                  setIsCompleting(false);
+                  if (!result.success) {
+                    setCompleteError(result.error);
+                    return;
+                  }
+                  window.location.href = "/";
+                }}
+                className="flex-1 rounded-lg bg-fuchsia-600 px-5 py-3 text-sm font-semibold text-white hover:bg-fuchsia-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                Go to Dashboard
-              </Link>
+                {isCompleting ? "Finishing..." : "Go to Dashboard"}
+              </button>
             </div>
           </div>
         )}

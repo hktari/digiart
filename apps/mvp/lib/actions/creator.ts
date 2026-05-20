@@ -268,7 +268,9 @@ export async function getCreatorDashboardData(): Promise<any> {
 export async function saveAvatar(
   _prevState: unknown,
   formData: FormData,
-): Promise<{ success: true } | { success: false; error: string }> {
+): Promise<
+  { success: true; avatarUrl: string } | { success: false; error: string }
+> {
   const session = await auth();
   if (!session?.user?.id) redirect("/auth/sign-in");
 
@@ -305,7 +307,7 @@ export async function saveAvatar(
   revalidatePath("/creator");
   revalidatePath("/creator/profile");
 
-  return { success: true };
+  return { success: true, avatarUrl };
 }
 
 const payoutSchema = z.object({

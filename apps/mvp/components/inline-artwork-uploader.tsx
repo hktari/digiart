@@ -113,7 +113,7 @@ export function InlineArtworkUploader({
         <span className="text-sm text-muted-foreground">
           {totalUploaded} uploaded
           {totalUploaded < 5 && (
-            <span className="text-beige-600"> (5 recommended)</span>
+            <span className="text-muted-foreground"> (5 recommended)</span>
           )}
         </span>
       </div>
@@ -125,7 +125,7 @@ export function InlineArtworkUploader({
         onDragOver={(e) => e.preventDefault()}
         onClick={() => fileInputRef.current?.click()}
         onKeyDown={(e) => e.key === "Enter" && fileInputRef.current?.click()}
-        className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-fuchsia-300 bg-fuchsia-50/30 hover:border-fuchsia-400 hover:bg-fuchsia-50 transition-colors cursor-pointer py-6 px-4 text-center"
+        className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-fuchsia-300 dark:border-fuchsia-700 bg-fuchsia-50/30 dark:bg-fuchsia-950/20 hover:border-fuchsia-400 hover:bg-fuchsia-50/60 dark:hover:bg-fuchsia-950/40 transition-colors cursor-pointer py-6 px-4 text-center"
       >
         <div className="text-fuchsia-600 font-medium text-sm">
           + Upload Artwork
@@ -143,7 +143,7 @@ export function InlineArtworkUploader({
         />
       </div>
 
-      <div className="rounded-lg border border-beige-200 bg-beige-50 px-3 py-2 text-xs text-beige-800">
+      <div className="rounded-lg border border-info-border bg-info-bg px-3 py-2 text-xs text-info-foreground">
         <strong>🖨 A5 print format:</strong> Images are scaled to fit the page —
         any aspect ratio is accepted. For edge-to-edge coverage, use a portrait
         image close to a <strong>2:3 ratio</strong> (e.g. 1748 × 2480 px).
@@ -163,9 +163,9 @@ export function InlineArtworkUploader({
                 key={entry.id}
                 className={`flex items-center gap-3 rounded-lg border px-3 py-2 ${
                   isDone
-                    ? "border-jade-200 bg-jade-50"
+                    ? "border-success-border bg-success-bg"
                     : isError
-                      ? "border-red-200 bg-red-50"
+                      ? "border-destructive-border bg-destructive-bg"
                       : "border bg-background"
                 }`}
               >
@@ -198,13 +198,15 @@ export function InlineArtworkUploader({
                   )}
 
                   {isDone && (
-                    <p className="text-xs text-jade-600 font-medium">
+                    <p className="text-xs text-success-foreground font-medium">
                       ✓ Uploaded
                     </p>
                   )}
 
                   {isError && (
-                    <p className="text-xs text-red-600">{state.message}</p>
+                    <p className="text-xs text-destructive-foreground">
+                      {state.message}
+                    </p>
                   )}
                 </div>
 
@@ -253,14 +255,6 @@ export function InlineArtworkUploader({
             ? `Uploading ${queuedCount}…`
             : `Upload ${queuedCount} ${queuedCount === 1 ? "file" : "files"}`}
         </button>
-      )}
-
-      {totalUploaded < 5 && (
-        <div className="rounded-lg border border-ocean-200 bg-ocean-50 p-3 text-sm text-ocean-800">
-          💡 <strong>Tip:</strong> Collectors are more likely to subscribe to
-          creators with a diverse portfolio. We recommend uploading at least 5
-          artworks before sharing your profile.
-        </div>
       )}
     </div>
   );
