@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AvatarUpload } from "@/components/avatar-upload";
 import { PayoutForm } from "@/components/payout-form";
+import { ProfileInfoForm } from "@/components/profile-info-form";
 import { SocialLinksForm } from "@/components/social-links-form";
 import { getCreatorProfile } from "@/lib/actions/creator";
 import { getSocialLinks } from "@/lib/actions/social-links";
@@ -36,6 +37,20 @@ export default async function CreatorProfileEditPage() {
         <AvatarUpload
           currentAvatar={profile.avatar}
           displayName={profile.displayName}
+        />
+      </div>
+
+      <div>
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+          Profile Information
+        </h2>
+        <ProfileInfoForm
+          initialData={{
+            displayName: profile.displayName,
+            slug: profile.slug,
+            bio: profile.bio,
+            sourcePlatform: profile.sourcePlatform,
+          }}
         />
       </div>
 
