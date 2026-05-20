@@ -14,6 +14,7 @@ import {
   checkSlugAvailability,
   saveCreatorProfile,
 } from "@/lib/actions/creator";
+import { AvatarUpload } from "./avatar-upload";
 import { InlineArtworkUploader } from "./inline-artwork-uploader";
 
 type Step = "profile" | "artwork" | "share";
@@ -40,6 +41,7 @@ interface CreatorSetupFormProps {
     bio?: string;
     sourcePlatforms?: string[];
     paypalEmail?: string;
+    avatar?: string;
   };
 }
 
@@ -320,6 +322,12 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
         {/* Step 1: Profile */}
         {step === "profile" && (
           <div className="space-y-6">
+            {/* Avatar Upload */}
+            <AvatarUpload
+              currentAvatar={initialData?.avatar}
+              displayName={formData.displayName || "Artist"}
+            />
+
             <div>
               <label
                 htmlFor="displayName"
