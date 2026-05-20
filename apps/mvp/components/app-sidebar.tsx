@@ -49,6 +49,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const isAdmin = session?.user?.roles?.includes("ADMIN") ?? false;
   const isCollector = session?.user?.roles?.includes("COLLECTOR") ?? false;
   const isCreator = session?.user?.roles?.includes("CREATOR") ?? false;
+  const isCreatorOnboardingComplete =
+    session?.user?.creatorOnboardingComplete ?? false;
 
   const handleLinkClick = () => {
     if (isMobile) {
@@ -117,16 +119,33 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   </Link>
                 </SidebarMenuButton>
                 <SidebarMenuSub>
-                  <SidebarMenuSubItem>
-                    <SidebarMenuSubButton
-                      asChild
-                      isActive={pathname === "/creator/artworks"}
-                    >
-                      <Link href="/creator/artworks" onClick={handleLinkClick}>
-                        Artworks
-                      </Link>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
+                  {!isCreatorOnboardingComplete && (
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton
+                        asChild
+                        isActive={pathname === "/creator/setup"}
+                      >
+                        <Link href="/creator/setup" onClick={handleLinkClick}>
+                          Setup
+                        </Link>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  )}
+                  {isCreatorOnboardingComplete && (
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton
+                        asChild
+                        isActive={pathname === "/creator/artworks"}
+                      >
+                        <Link
+                          href="/creator/artworks"
+                          onClick={handleLinkClick}
+                        >
+                          Artworks
+                        </Link>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  )}
                   <SidebarMenuSubItem>
                     <SidebarMenuSubButton
                       asChild

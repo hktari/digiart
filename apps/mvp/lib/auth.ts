@@ -27,6 +27,12 @@ const nextAuthResult: NextAuthResult = NextAuth({
     async session({ session, user }) {
       session.user.id = user.id;
       session.user.roles = await getUserRoles(user.id);
+      const creatorProfile = await db.creatorProfile.findUnique({
+        where: { userId: user.id },
+        select: { onboardingComplete: true },
+      });
+      session.user.creatorOnboardingComplete =
+        creatorProfile?.onboardingComplete ?? false;
       return session;
     },
     async redirect({ url, baseUrl }) {
@@ -89,6 +95,10 @@ export async function auth() {
       const roles: Role[] = rawRoles
         ? (rawRoles.split(",").map((r) => r.trim()) as Role[])
         : await getUserRoles(userId);
+      const creatorProfile = await db.creatorProfile.findUnique({
+        where: { userId },
+        select: { onboardingComplete: true },
+      });
       return {
         user: {
           id: user.id,
@@ -96,6 +106,8 @@ export async function auth() {
           name: user.name,
           image: user.image,
           roles,
+          creatorOnboardingComplete:
+            creatorProfile?.onboardingComplete ?? false,
         },
         expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       };
