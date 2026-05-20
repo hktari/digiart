@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, Lock, Plus, Settings, Users } from "lucide-react";
+import { AlertCircle, Eye, Lock, Plus, Settings, Users } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import type { CreatorDashboardStats } from "@/lib/actions/creator";
@@ -8,9 +8,14 @@ import type { CreatorDashboardStats } from "@/lib/actions/creator";
 type Props = {
   stats: CreatorDashboardStats | null;
   creatorProfile: any;
+  onboardingComplete?: boolean;
 };
 
-export function CreatorDashboard({ stats, creatorProfile }: Props) {
+export function CreatorDashboard({
+  stats,
+  creatorProfile,
+  onboardingComplete,
+}: Props) {
   if (!stats) {
     return (
       <Card className="mt-8 border-dashed">
@@ -66,6 +71,31 @@ export function CreatorDashboard({ stats, creatorProfile }: Props) {
 
   return (
     <div className="mt-8 space-y-8">
+      {/* Incomplete onboarding banner */}
+      {!onboardingComplete && (
+        <div className="flex items-start gap-4 rounded-xl border border-warning-border bg-warning-bg px-5 py-4">
+          <AlertCircle
+            className="mt-0.5 h-5 w-5 shrink-0 text-warning-foreground"
+            strokeWidth={1.5}
+          />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-warning-foreground">
+              Your profile is not visible to collectors yet
+            </p>
+            <p className="mt-0.5 text-sm text-warning-foreground/80">
+              Upload at least one artwork to publish your profile and start
+              attracting subscribers.
+            </p>
+          </div>
+          <Link
+            href="/creator/setup"
+            className="shrink-0 rounded-lg bg-warning-foreground px-4 py-2 text-sm font-semibold text-warning-bg hover:opacity-90 transition-opacity"
+          >
+            Complete setup
+          </Link>
+        </div>
+      )}
+
       {/* Hero stat row */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard

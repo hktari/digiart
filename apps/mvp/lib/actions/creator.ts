@@ -141,7 +141,6 @@ export async function saveCreatorProfile(
       displayName,
       bio: bio || null,
       sourcePlatform,
-      status: "PUBLISHED",
       payoutProfile: {
         create: {
           paypalEmail: paypalEmail || null,
@@ -201,6 +200,33 @@ export async function saveCreatorProfile(
       });
     }
   }
+
+  revalidatePath("/");
+  revalidatePath("/creator");
+  revalidatePath("/creator/setup");
+
+  return { success: true };
+}
+
+export async function completeCreatorOnboarding(): Promise<
+  { success: true } | { success: false; error: string }
+> {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/auth/sign-in");
+
+  const profile = await db.creatorProfile.findUnique({
+    where: { userId: session.user.id },
+    select: { id: true },
+  });
+
+  if (!profile) {
+    return { success: false, error: "No creator profile found" };
+  }
+
+  await db.creatorProfile.update({
+    where: { userId: session.user.id },
+    data: { status: "PUBLISHED", onboardingComplete: true },
+  });
 
   revalidatePath("/");
   revalidatePath("/creator");

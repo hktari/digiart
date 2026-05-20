@@ -27,6 +27,7 @@ type Props = {
   creatorStats: CreatorDashboardStats | null;
   collectorData: CollectorData | null;
   creatorProfile: any;
+  creatorOnboardingComplete: boolean;
 };
 
 export function DashboardTabs({
@@ -35,6 +36,7 @@ export function DashboardTabs({
   creatorStats,
   collectorData,
   creatorProfile,
+  creatorOnboardingComplete,
 }: Props) {
   const [activeTab, setActiveTab] = useState<"creator" | "collector">(
     collectorData?.collectorProfile
@@ -56,6 +58,7 @@ export function DashboardTabs({
           <CreatorDashboard
             stats={creatorStats}
             creatorProfile={creatorProfile}
+            onboardingComplete={creatorOnboardingComplete}
           />
         )}
         {isCollector && collectorData && (
@@ -83,6 +86,7 @@ export function DashboardTabs({
           <CreatorDashboard
             stats={creatorStats}
             creatorProfile={creatorProfile}
+            onboardingComplete={creatorOnboardingComplete}
           />
         )}
       </TabsContent>

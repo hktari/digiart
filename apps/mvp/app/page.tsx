@@ -200,6 +200,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           isCollector={isCollector}
           creatorStats={creatorStats}
           creatorProfile={creatorProfile}
+          creatorOnboardingComplete={
+            creatorProfile?.onboardingComplete ?? false
+          }
           collectorData={
             isCollector
               ? {

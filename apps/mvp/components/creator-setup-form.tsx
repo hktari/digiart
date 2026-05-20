@@ -12,6 +12,7 @@ import {
 import {
   type CheckSlugResult,
   checkSlugAvailability,
+  completeCreatorOnboarding,
   saveCreatorProfile,
 } from "@/lib/actions/creator";
 import { AvatarUpload } from "./avatar-upload";
@@ -72,6 +73,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
   const [slugEditing, setSlugEditing] = useState(!initialData?.slug);
   const [uploadedArtworks, setUploadedArtworks] = useState<string[]>([]);
   const [hasTransitioned, setHasTransitioned] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
   const [slugCheckState, slugCheckAction, isCheckingSlug] = useActionState(
     checkSlugAvailability,
     null,
@@ -678,10 +680,20 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
               </button>
               <button
                 type="button"
-                onClick={() => setStep("share")}
-                className="flex-1 rounded-lg bg-fuchsia-600 px-5 py-3 text-sm font-semibold text-white hover:bg-fuchsia-700 transition-colors"
+                disabled={isCompleting}
+                onClick={async () => {
+                  setIsCompleting(true);
+                  await completeCreatorOnboarding();
+                  setIsCompleting(false);
+                  setStep("share");
+                }}
+                className="flex-1 rounded-lg bg-fuchsia-600 px-5 py-3 text-sm font-semibold text-white hover:bg-fuchsia-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {uploadedArtworks.length >= 5 ? "Continue" : "Skip for now"}
+                {isCompleting
+                  ? "Saving..."
+                  : uploadedArtworks.length > 0
+                    ? "Continue"
+                    : "Skip for now"}
               </button>
             </div>
           </div>

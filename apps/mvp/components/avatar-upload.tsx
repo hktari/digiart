@@ -1,6 +1,13 @@
 "use client";
 
 import { useActionState, useCallback, useRef, useState } from "react";
+import ReactCrop, {
+  type Crop,
+  centerCrop,
+  makeAspectCrop,
+} from "react-image-crop";
+import "react-image-crop/dist/ReactCrop.css";
+import { X } from "lucide-react";
 import { saveAvatar } from "@/lib/actions/creator";
 
 interface AvatarUploadProps {
@@ -8,7 +15,14 @@ interface AvatarUploadProps {
   displayName: string;
 }
 
-type UploadPhase = "idle" | "uploading" | "saving" | "done" | "error";
+type UploadPhase =
+  | "idle"
+  | "selecting"
+  | "cropping"
+  | "uploading"
+  | "saving"
+  | "done"
+  | "error";
 
 export function AvatarUpload({
   currentAvatar,
@@ -17,9 +31,12 @@ export function AvatarUpload({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const keyInputRef = useRef<HTMLInputElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [phase, setPhase] = useState<UploadPhase>("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [crop, setCrop] = useState<Crop>();
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const [, formAction, isSaving] = useActionState(saveAvatar, null);
 
@@ -29,6 +46,60 @@ export function AvatarUpload({
     .join("")
     .toUpperCase()
     .slice(0, 2);
+
+  const onImageLoad = useCallback(
+    (e: React.SyntheticEvent<HTMLImageElement>) => {
+      const { width, height } = e.currentTarget;
+      // Create a square crop centered on the image
+      const crop = centerCrop(
+        makeAspectCrop({ unit: "%", width: 90 }, 1, width, height),
+        width,
+        height,
+      );
+      setCrop(crop);
+    },
+    [],
+  );
+
+  const getCroppedImage = useCallback(async (): Promise<Blob | null> => {
+    if (!imgRef.current || !crop) return null;
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+
+    const image = imgRef.current;
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+
+    // Calculate crop dimensions in pixels
+    const cropX = crop.x * scaleX;
+    const cropY = crop.y * scaleY;
+    const cropWidth = crop.width * scaleX;
+    const cropHeight = crop.height * scaleY;
+
+    // Set canvas size to the cropped area (max 512x512 for avatar)
+    const outputSize = Math.min(512, cropWidth, cropHeight);
+    canvas.width = outputSize;
+    canvas.height = outputSize;
+
+    // Draw the cropped portion
+    ctx.drawImage(
+      image,
+      cropX,
+      cropY,
+      cropWidth,
+      cropHeight,
+      0,
+      0,
+      outputSize,
+      outputSize,
+    );
+
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.9);
+    });
+  }, [crop]);
 
   const handleFile = useCallback(async (file: File) => {
     const ALLOWED = ["image/jpeg", "image/png", "image/webp"];
@@ -42,14 +113,33 @@ export function AvatarUpload({
     }
 
     setErrorMsg(null);
+    setSelectedFile(file);
     setPreview(URL.createObjectURL(file));
+    setPhase("cropping");
+  }, []);
+
+  const handleCropConfirm = useCallback(async () => {
+    if (!selectedFile) return;
+
     setPhase("uploading");
 
     try {
+      const croppedBlob = await getCroppedImage();
+      if (!croppedBlob) {
+        throw new Error("Failed to crop image");
+      }
+
+      const croppedFile = new File([croppedBlob], "avatar.jpg", {
+        type: "image/jpeg",
+      });
+
       const presignRes = await fetch("/api/avatar/presign", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contentType: file.type, fileSize: file.size }),
+        body: JSON.stringify({
+          contentType: "image/jpeg",
+          fileSize: croppedFile.size,
+        }),
       });
 
       if (!presignRes.ok) {
@@ -62,13 +152,13 @@ export function AvatarUpload({
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open("PUT", uploadUrl);
-        xhr.setRequestHeader("Content-Type", file.type);
+        xhr.setRequestHeader("Content-Type", "image/jpeg");
         xhr.onload = () =>
           xhr.status < 300
             ? resolve()
             : reject(new Error(`S3 error ${xhr.status}`));
         xhr.onerror = () => reject(new Error("Network error"));
-        xhr.send(file);
+        xhr.send(croppedFile);
       });
 
       // Write the key directly into the DOM before submitting
@@ -79,6 +169,13 @@ export function AvatarUpload({
       setPhase("error");
       setErrorMsg(err instanceof Error ? err.message : "Upload failed");
     }
+  }, [selectedFile, getCroppedImage]);
+
+  const handleCropCancel = useCallback(() => {
+    setPhase("idle");
+    setPreview(null);
+    setSelectedFile(null);
+    setCrop(undefined);
   }, []);
 
   const handleChange = useCallback(
@@ -101,6 +198,7 @@ export function AvatarUpload({
 
   const avatarSrc = preview ?? currentAvatar;
   const isLoading = phase === "uploading" || isSaving;
+  const isCropping = phase === "cropping";
 
   return (
     <div className="flex items-center gap-5">
@@ -109,9 +207,14 @@ export function AvatarUpload({
         role="button"
         tabIndex={0}
         aria-label="Upload avatar"
-        onClick={() => !isLoading && fileInputRef.current?.click()}
+        onClick={() =>
+          !isLoading && !isCropping && fileInputRef.current?.click()
+        }
         onKeyDown={(e) =>
-          e.key === "Enter" && !isLoading && fileInputRef.current?.click()
+          e.key === "Enter" &&
+          !isLoading &&
+          !isCropping &&
+          fileInputRef.current?.click()
         }
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
@@ -132,7 +235,7 @@ export function AvatarUpload({
         {/* Hover overlay */}
         <div
           className={`absolute inset-0 flex items-center justify-center rounded-full transition-opacity ${
-            isLoading
+            isLoading || isCropping
               ? "bg-black/40"
               : "bg-black/0 group-hover:bg-black/40 opacity-0 group-hover:opacity-100"
           }`}
@@ -179,8 +282,10 @@ export function AvatarUpload({
       <div className="space-y-1">
         <button
           type="button"
-          onClick={() => !isLoading && fileInputRef.current?.click()}
-          disabled={isLoading}
+          onClick={() =>
+            !isLoading && !isCropping && fileInputRef.current?.click()
+          }
+          disabled={isLoading || isCropping}
           className="text-sm font-medium text-fuchsia-600 hover:text-fuchsia-700 disabled:opacity-50 transition-colors"
         >
           {isLoading
@@ -211,6 +316,65 @@ export function AvatarUpload({
       <form ref={formRef} action={formAction} className="hidden">
         <input ref={keyInputRef} type="hidden" name="key" defaultValue="" />
       </form>
+
+      {/* Crop Modal */}
+      {isCropping && preview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="relative w-full max-w-lg rounded-lg bg-background p-6 shadow-lg">
+            <button
+              onClick={handleCropCancel}
+              className="absolute right-4 top-4 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+              aria-label="Cancel"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <h3 className="mb-4 text-lg font-semibold text-foreground">
+              Crop your avatar
+            </h3>
+            <p className="mb-4 text-sm text-muted-foreground">
+              Drag to adjust the crop area. Your avatar will be displayed as a
+              circle.
+            </p>
+
+            <div className="mb-6 flex justify-center overflow-hidden rounded-lg bg-muted">
+              <ReactCrop
+                crop={crop}
+                onChange={(c) => setCrop(c)}
+                aspect={1}
+                circularCrop
+                keepSelection
+                className="max-h-[400px]"
+              >
+                <img
+                  ref={imgRef}
+                  src={preview}
+                  alt="Crop preview"
+                  onLoad={onImageLoad}
+                  className="max-h-[400px] max-w-full object-contain"
+                />
+              </ReactCrop>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={handleCropCancel}
+                className="flex-1 rounded-lg border px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleCropConfirm}
+                className="flex-1 rounded-lg bg-fuchsia-600 px-4 py-2 text-sm font-semibold text-white hover:bg-fuchsia-700 transition-colors"
+              >
+                Crop & Upload
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -103,8 +103,9 @@ model CreatorProfile {
   bio            String?       @db.Text
   sourcePlatform String? // Where creator is coming from (ArtStation, DeviantArt, Instagram, etc.)
   referralCode   String?       @unique // short code for tracking follower signups (e.g. "artbykarim")
-  status         PublishStatus @default(DRAFT)
-  createdAt      DateTime      @default(now())
+  status              PublishStatus @default(DRAFT)
+  onboardingComplete  Boolean       @default(false)
+  createdAt           DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
   user          User                           @relation(fields: [userId], references: [id], onDelete: Cascade)
