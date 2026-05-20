@@ -18,7 +18,7 @@ Ask the creator to prepare:
 - Artist name and preferred public profile URL slug.
 - A short bio for collectors, ideally 2 to 4 sentences.
 - Links to the places where they already share art.
-- 5 to 10 finished artworks that feel cohesive together.
+- 5 to 10 finished artworks that feel cohesive together and meet the print resolution requirements below.
 - PayPal email for payouts, if they are ready to provide it.
 
 ## Setup Steps
@@ -30,7 +30,7 @@ Ask the creator to prepare:
    Payout setup can be skipped during the first session, but explain that it must be completed before money can be paid out.
 
 3. Upload initial artworks.
-   Start with at least 5 strong pieces. Prefer a coherent theme over a random portfolio dump.
+   Start with at least 5 strong pieces that meet the print resolution requirements. Prefer a coherent theme over a random portfolio dump.
 
 4. Create the first release.
    Give the release a simple title, short description, and a clear theme. The first release should be easy for the creator's existing audience to understand in one sentence.
@@ -51,6 +51,21 @@ A good first release should be:
 - Audience-relevant: close to the type of work followers already like from the creator.
 
 Avoid asking early creators to overproduce. The first release is a learning artifact, not a final commercial launch.
+
+## Artwork Requirements For Print
+
+Minimum resolution:
+
+- Portrait: 1748 x 2480 px at 300 DPI.
+- Landscape: 2480 x 1748 px at 300 DPI.
+
+A5 print format:
+
+- Images are scaled to fit the page.
+- Any aspect ratio is accepted.
+- For edge-to-edge coverage, use a portrait image close to a 2:3 ratio, for example 1748 x 2480 px.
+
+When reviewing artwork with creators, check resolution before discussing release copy. Low-resolution images may look acceptable on screen but will not hold up in print.
 
 ## Suggested Launch Copy
 
