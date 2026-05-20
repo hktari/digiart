@@ -1,6 +1,15 @@
 "use client";
 
-import { AlertCircle, Eye, Lock, Plus, Settings, Users } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowRight,
+  Eye,
+  Lock,
+  Megaphone,
+  Plus,
+  Settings,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import type { CreatorDashboardStats } from "@/lib/actions/creator";
@@ -93,6 +102,54 @@ export function CreatorDashboard({
           >
             Complete setup
           </Link>
+        </div>
+      )}
+
+      {/* Next steps panel — shown after onboarding, before first release */}
+      {onboardingComplete && stats.releaseCount === 0 && (
+        <div className="rounded-xl border border-info-border bg-info-bg p-5 space-y-4">
+          <p className="text-xs font-semibold uppercase tracking-widest text-info-foreground/70">
+            Getting started
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Link
+              href="/creator/releases/new"
+              className="flex items-start gap-4 rounded-xl border border-border bg-card px-4 py-4 transition-colors hover:border-fuchsia-500/30 hover:bg-fuchsia-500/5 group"
+            >
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-fuchsia-500/10 text-sm font-bold text-fuchsia-500">
+                1
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-card-foreground">
+                  Create or curate a release
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Build your first release so collectors can select it in the
+                  next cycle.
+                </p>
+              </div>
+              <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground group-hover:text-fuchsia-500 transition-colors" />
+            </Link>
+
+            <Link
+              href="/creator/share"
+              className="flex items-start gap-4 rounded-xl border border-border bg-card px-4 py-4 transition-colors hover:border-fuchsia-500/30 hover:bg-fuchsia-500/5 group"
+            >
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-fuchsia-500/10 text-sm font-bold text-fuchsia-500">
+                2
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-card-foreground">
+                  Start promoting
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Get copy-ready blurbs, your referral link, and tips for
+                  driving traffic from your channels.
+                </p>
+              </div>
+              <Megaphone className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground group-hover:text-fuchsia-500 transition-colors" />
+            </Link>
+          </div>
         </div>
       )}
 

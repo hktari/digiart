@@ -714,68 +714,53 @@ export function CreatorSetupForm({
         {/* Step 5: Share */}
         {step === "share" && (
           <div className="space-y-6">
-            <div className="rounded-lg border bg-jade-500/10 p-4 text-center">
+            <div className="rounded-lg border bg-success-bg border-success-border p-4 text-center">
               <div className="text-4xl mb-2">🎉</div>
-              <h2 className="text-lg font-semibold text-jade-600">
+              <h2 className="text-lg font-semibold text-success-foreground">
                 You&apos;re all set!
               </h2>
-              <p className="text-sm text-jade-500/80 mt-1">
-                Your creator profile is ready. Share it with your audience to
-                start growing your collector base.
+              <p className="text-sm text-success-foreground/80 mt-1">
+                Your creator profile is live. Here&apos;s what to do next.
               </p>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <label
-                  htmlFor="creator-profile-link"
-                  className="block text-sm font-medium text-foreground/80 mb-1"
-                >
-                  Your Profile Link
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    id="creator-profile-link"
-                    type="text"
-                    readOnly
-                    value={`${process.env.NEXT_PUBLIC_APP_URL}/creators/${formData.slug}`}
-                    className="flex-1 rounded-lg border px-3 py-2 text-sm bg-muted text-muted-foreground"
-                  />
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      try {
-                        await navigator.clipboard.writeText(
-                          `${process.env.NEXT_PUBLIC_APP_URL}/creators/${formData.slug}`,
-                        );
-                      } catch {
-                        // Clipboard API unavailable or permission denied
-                      }
-                    }}
-                    className="rounded-lg border px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors"
-                  >
-                    Copy
-                  </button>
+            <div className="space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Your next steps
+              </p>
+
+              <div className="rounded-xl border border-border bg-card px-5 py-4 flex items-start gap-4">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-fuchsia-500/10 text-sm font-bold text-fuchsia-500">
+                  1
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-card-foreground">
+                    Create or curate a release
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Build your first release — pick artwork, set a title, and
+                    publish it so collectors can select it in the next cycle.
+                  </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <a
-                  href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out my art on this new platform! ${process.env.NEXT_PUBLIC_APP_URL}/creators/${formData.slug}`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-lg border px-4 py-3 text-sm font-medium text-foreground hover:bg-accent transition-colors text-center"
-                >
-                  Share on Twitter/X
-                </a>
-                <a
-                  href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`${process.env.NEXT_PUBLIC_APP_URL}/creators/${formData.slug}`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-lg border px-4 py-3 text-sm font-medium text-foreground hover:bg-accent transition-colors text-center"
-                >
-                  Share on Facebook
-                </a>
+              <div className="rounded-xl border border-border bg-card px-5 py-4 flex items-start gap-4">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-fuchsia-500/10 text-sm font-bold text-fuchsia-500">
+                  2
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-card-foreground">
+                    Promote your profile
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Visit your{" "}
+                    <span className="font-medium text-fuchsia-500">
+                      /share page
+                    </span>{" "}
+                    to get copy-ready blurbs, your referral link, and tips on
+                    driving traffic from your channels.
+                  </p>
+                </div>
               </div>
             </div>
 
