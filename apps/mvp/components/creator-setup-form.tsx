@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckIcon, ChevronDownIcon, PencilIcon } from "lucide-react";
+import { ChevronDownIcon, PencilIcon } from "lucide-react";
 import Link from "next/link";
 import {
   useActionState,
@@ -84,50 +84,53 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
   );
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  // PayPal verification state
-  const [payPalStatus, setPayPalStatus] = useState<{
-    isVerified: boolean;
-    verifiedAt: string | null;
-    isLoading: boolean;
-  }>({ isVerified: false, verifiedAt: null, isLoading: true });
+  // TODO: Add PayPal verification support in the future
+  // PayPal verification state - disabled for now
+  // const [payPalStatus, setPayPalStatus] = useState<{
+  //   isVerified: boolean;
+  //   verifiedAt: string | null;
+  //   isLoading: boolean;
+  // }>({ isVerified: false, verifiedAt: null, isLoading: true });
 
-  // Load PayPal verification status on mount
-  useEffect(() => {
-    async function loadPayPalStatus() {
-      try {
-        const response = await fetch("/api/paypal/status");
-        if (response.ok) {
-          const data = await response.json();
-          setPayPalStatus({
-            isVerified: data.isVerified,
-            verifiedAt: data.verifiedAt,
-            isLoading: false,
-          });
-        }
-      } catch {
-        // Silently fail - verification is optional
-      } finally {
-        setPayPalStatus((prev) => ({ ...prev, isLoading: false }));
-      }
-    }
-    void loadPayPalStatus();
-  }, []);
+  // TODO: Add PayPal verification support in the future
+  // Load PayPal verification status on mount - disabled for now
+  // useEffect(() => {
+  //   async function loadPayPalStatus() {
+  //     try {
+  //       const response = await fetch("/api/paypal/status");
+  //       if (response.ok) {
+  //         const data = await response.json();
+  //         setPayPalStatus({
+  //           isVerified: data.isVerified,
+  //           verifiedAt: data.verifiedAt,
+  //           isLoading: false,
+  //         });
+  //       }
+  //     } catch {
+  //       // Silently fail - verification is optional
+  //     } finally {
+  //       setPayPalStatus((prev) => ({ ...prev, isLoading: false }));
+  //     }
+  //   }
+  //   void loadPayPalStatus();
+  // }, []);
 
-  // Check for PayPal verification success in URL
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("paypal_verified") === "true") {
-        setPayPalStatus({
-          isVerified: true,
-          verifiedAt: new Date().toISOString(),
-          isLoading: false,
-        });
-        // Clean up URL
-        window.history.replaceState({}, "", window.location.pathname);
-      }
-    }
-  }, []);
+  // TODO: Add PayPal verification support in the future
+  // Check for PayPal verification success in URL - disabled for now
+  // useEffect(() => {
+  //   if (typeof window !== "undefined") {
+  //     const params = new URLSearchParams(window.location.search);
+  //     if (params.get("paypal_verified") === "true") {
+  //       setPayPalStatus({
+  //         isVerified: true,
+  //         verifiedAt: new Date().toISOString(),
+  //         isLoading: false,
+  //       });
+  //       // Clean up URL
+  //       window.history.replaceState({}, "", window.location.pathname);
+  //     }
+  //   }
+  // }, []);
 
   const toSlug = useCallback(
     (name: string) =>
@@ -210,15 +213,16 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
       errors.bio = "Bio must be at most 500 characters";
     }
 
-    // Validate PayPal email if provided
-    if (formData.paypalEmail) {
-      // RFC 5322 compliant email regex for better validation
-      const emailRegex =
-        /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-      if (!emailRegex.test(formData.paypalEmail)) {
-        errors.paypalEmail = "Please enter a valid PayPal email address";
-      }
-    }
+    // TODO: Add PayPal email validation support in the future
+    // Validate PayPal email if provided - disabled for now
+    // if (formData.paypalEmail) {
+    //   // RFC 5322 compliant email regex for better validation
+    //   const emailRegex =
+    //     /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    //   if (!emailRegex.test(formData.paypalEmail)) {
+    //     errors.paypalEmail = "Please enter a valid PayPal email address";
+    //   }
+    // }
 
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -601,8 +605,9 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                   </p>
                 )}
 
-                {/* PayPal Verification UI */}
-                {formData.paypalEmail && !allErrors.paypalEmail && (
+                {/* TODO: Add PayPal Verification UI support in the future */}
+                {/* PayPal Verification UI - disabled for now */}
+                {/* {formData.paypalEmail && !allErrors.paypalEmail && (
                   <div className="mt-3">
                     {payPalStatus.isLoading ? (
                       <span className="text-sm text-muted-foreground">
@@ -637,7 +642,7 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
                       </div>
                     )}
                   </div>
-                )}
+                )} */}
               </div>
             </div>
 
