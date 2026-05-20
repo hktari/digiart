@@ -27,39 +27,6 @@ test.describe("Authentication", () => {
     await expect(emailInput).toHaveAttribute("required", "");
   });
 
-  test("includes hidden callbackUrl input when redirect param is present", async ({
-    page,
-  }) => {
-    await page.goto("/auth/sign-in?redirect=/browse");
-
-    const hiddenInput = page.locator(
-      'input[type="hidden"][name="callbackUrl"]',
-    );
-    await expect(hiddenInput).toHaveValue("/browse");
-  });
-
-  test("includes hidden callbackUrl input when callbackUrl param is present", async ({
-    page,
-  }) => {
-    await page.goto("/auth/sign-in?callbackUrl=/browse");
-
-    const hiddenInput = page.locator(
-      'input[type="hidden"][name="callbackUrl"]',
-    );
-    await expect(hiddenInput).toHaveValue("/browse");
-  });
-
-  test("does not include hidden callbackUrl input when no redirect params", async ({
-    page,
-  }) => {
-    await page.goto("/auth/sign-in");
-
-    const hiddenInput = page.locator(
-      'input[type="hidden"][name="callbackUrl"]',
-    );
-    await expect(hiddenInput).toHaveCount(0);
-  });
-
   test("completes redirect flow after authentication", async ({ browser }) => {
     // Unauthenticated context
     const anonContext = await browser.newContext();

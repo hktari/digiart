@@ -13,7 +13,6 @@ export async function proxy(req: NextRequest) {
   const session = await middlewareAuth();
   if (!session && !req.nextUrl.pathname.includes("/auth/sign-in")) {
     const signIn = new URL("/auth/sign-in", req.url);
-    signIn.searchParams.set("callbackUrl", req.nextUrl.pathname);
     return NextResponse.redirect(signIn);
   }
   return NextResponse.next();
