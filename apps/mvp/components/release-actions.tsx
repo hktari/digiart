@@ -1,9 +1,19 @@
 "use client";
 
+import { AlertTriangle, Archive, Rocket } from "lucide-react";
 import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { archiveRelease, publishRelease } from "@/lib/actions/releases";
+import { Button } from "./ui/button";
 
 interface ReleaseActionsProps {
   releaseId: string;
@@ -18,14 +28,11 @@ export function ReleaseActions({
 }: ReleaseActionsProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [showPublishDialog, setShowPublishDialog] = useState(false);
+  const [showArchiveDialog, setShowArchiveDialog] = useState(false);
 
-  const handlePublish = () => {
-    const confirmed = confirm(
-      "Once published, this release cannot be edited.\n\n" +
-        "Collectors who have selected this release will receive exactly these artworks in their booklet.\n\n" +
-        "Are you sure you want to publish?",
-    );
-    if (!confirmed) return;
+  const handlePublishConfirm = () => {
+    setShowPublishDialog(false);
 
     startTransition(async () => {
       const result = await publishRelease(releaseId);
@@ -38,13 +45,9 @@ export function ReleaseActions({
     });
   };
 
-  const handleArchive = () => {
-    if (
-      !confirm(
-        "Archive this release? It will no longer be visible to collectors.",
-      )
-    )
-      return;
+  const handleArchiveConfirm = () => {
+    setShowArchiveDialog(false);
+
     startTransition(async () => {
       const result = await archiveRelease(releaseId);
       if (!result.success) {
@@ -55,40 +58,110 @@ export function ReleaseActions({
     });
   };
 
+  const handleArchive = () => {
+    setShowArchiveDialog(true);
+  };
+
   return (
     <div className="flex items-center gap-3">
       {status === "DRAFT" && (
         <>
           {artworkCount < 5 && (
-            <p className="text-xs text-beige-600">
+            <p className="text-xs text-warning-foreground">
               {artworkCount === 0
                 ? "Add at least 5 artworks to publish."
                 : `${5 - artworkCount} more artwork${5 - artworkCount === 1 ? "" : "s"} needed to publish.`}
             </p>
           )}
-          <button
-            type="button"
-            onClick={handlePublish}
+          <Button
+            onClick={() => setShowPublishDialog(true)}
             disabled={isPending || artworkCount < 5}
-            className="rounded-lg bg-jade-600 px-4 py-2 text-sm font-semibold text-white hover:bg-jade-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
+            <Rocket className="mr-2 h-4 w-4" />
             {isPending ? "Publishing…" : "Publish"}
-          </button>
+          </Button>
         </>
       )}
       {status === "PUBLISHED" && (
-        <button
-          type="button"
-          onClick={handleArchive}
-          disabled={isPending}
-          className="rounded-lg border px-4 py-2 text-sm font-medium text-foreground hover:bg-accent disabled:opacity-40 transition-colors"
-        >
+        <Button variant="outline" onClick={handleArchive} disabled={isPending}>
+          <Archive className="mr-2 h-4 w-4" />
           {isPending ? "Archiving…" : "Archive"}
-        </button>
+        </Button>
       )}
       {status === "ARCHIVED" && (
         <span className="text-sm text-muted-foreground">Archived</span>
       )}
+
+      {/* Publish Confirmation Dialog */}
+      <Dialog open={showPublishDialog} onOpenChange={setShowPublishDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="rounded-full bg-warning-bg p-2">
+                <AlertTriangle className="h-5 w-5 text-warning-foreground" />
+              </div>
+              <DialogTitle>Publish Release?</DialogTitle>
+            </div>
+            <DialogDescription className="pt-2">
+              Once published, this release <strong>cannot be edited</strong>.
+              Collectors who selected this release will receive exactly these
+              artworks in their booklet.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button
+              variant="ghost"
+              onClick={() => setShowPublishDialog(false)}
+              disabled={isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handlePublishConfirm}
+              disabled={isPending}
+              className="bg-jade-600 hover:bg-jade-700"
+            >
+              <Rocket className="mr-2 h-4 w-4" />
+              {isPending ? "Publishing…" : "Publish Release"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Archive Confirmation Dialog */}
+      <Dialog open={showArchiveDialog} onOpenChange={setShowArchiveDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="rounded-full bg-muted p-2">
+                <Archive className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <DialogTitle>Archive Release?</DialogTitle>
+            </div>
+            <DialogDescription className="pt-2">
+              This release will no longer be visible to collectors. You cannot
+              re-publish an archived release.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button
+              variant="ghost"
+              onClick={() => setShowArchiveDialog(false)}
+              disabled={isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleArchiveConfirm}
+              disabled={isPending}
+            >
+              <Archive className="mr-2 h-4 w-4" />
+              {isPending ? "Archiving…" : "Archive Release"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
