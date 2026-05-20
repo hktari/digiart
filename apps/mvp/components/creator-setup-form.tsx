@@ -16,20 +16,19 @@ import {
 } from "@/lib/actions/creator";
 import { InlineArtworkUploader } from "./inline-artwork-uploader";
 
-type Step = "profile" | "payout" | "review" | "artwork" | "share";
+type Step = "profile" | "artwork" | "share";
 
 const SOURCE_PLATFORMS = [
-  { value: "artstation", label: "ArtStation" },
   { value: "deviantart", label: "DeviantArt" },
   { value: "instagram", label: "Instagram" },
-  { value: "behance", label: "Behance" },
-  { value: "dribbble", label: "Dribbble" },
-  { value: "twitter", label: "Twitter/X" },
-  { value: "cara", label: "Cara" },
-  { value: "pixiv", label: "Pixiv" },
+  { value: "threads", label: "Threads" },
   { value: "midjourney", label: "Midjourney" },
   { value: "discord", label: "Discord" },
   { value: "leonardo", label: "Leonardo.ai" },
+  { value: "artstation", label: "ArtStation" },
+  { value: "behance", label: "Behance" },
+  { value: "dribbble", label: "Dribbble" },
+  { value: "pixiv", label: "Pixiv" },
   { value: "seaart", label: "SeaArt" },
   { value: "other", label: "Other" },
 ] as const;
@@ -40,7 +39,6 @@ interface CreatorSetupFormProps {
     slug?: string;
     bio?: string;
     sourcePlatforms?: string[];
-    legalName?: string;
     paypalEmail?: string;
   };
 }
@@ -51,7 +49,6 @@ interface FormData {
   bio: string;
   sourcePlatforms: string[];
   platformLinks: Record<string, string>;
-  legalName: string;
   paypalEmail: string;
 }
 
@@ -64,7 +61,6 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
     bio: initialData?.bio ?? "",
     sourcePlatforms: initialData?.sourcePlatforms ?? [],
     platformLinks: {},
-    legalName: initialData?.legalName ?? "",
     paypalEmail: initialData?.paypalEmail ?? "",
   });
   const [_isComplete, _setIsComplete] = useState(false);
@@ -187,19 +183,6 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
       errors.bio = "Bio must be at most 500 characters";
     }
 
-    setFieldErrors(errors);
-    return Object.keys(errors).length === 0;
-  }, [formData]);
-
-  const handleProfileNext = useCallback(() => {
-    if (validateProfileStep()) {
-      setStep("payout");
-    }
-  }, [validateProfileStep]);
-
-  const validatePayoutStep = useCallback((): boolean => {
-    const errors: Record<string, string> = {};
-
     // Validate PayPal email if provided
     if (formData.paypalEmail) {
       // RFC 5322 compliant email regex for better validation
@@ -214,13 +197,9 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
     return Object.keys(errors).length === 0;
   }, [formData]);
 
-  const handlePayoutNext = useCallback(() => {
-    if (validatePayoutStep()) {
-      setStep("review");
-    }
-  }, [validatePayoutStep]);
+  const handleProfileSubmit = useCallback(() => {
+    if (!validateProfileStep()) return;
 
-  const handleReviewNext = useCallback(() => {
     // Save profile before moving to artwork step
     const fd = new FormData();
     fd.append("displayName", formData.displayName);
@@ -228,26 +207,23 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
     fd.append("bio", formData.bio);
     fd.append("sourcePlatforms", JSON.stringify(formData.sourcePlatforms));
     fd.append("platformLinks", JSON.stringify(formData.platformLinks));
-    fd.append("legalName", formData.legalName);
     fd.append("paypalEmail", formData.paypalEmail);
 
     setHasTransitioned(false);
     startTransition(() => {
       saveAction(fd);
     });
-  }, [formData, saveAction]);
+  }, [formData, saveAction, validateProfileStep]);
 
   useEffect(() => {
-    if (saveState?.success && !hasTransitioned && step === "review") {
+    if (saveState?.success && !hasTransitioned && step === "profile") {
       setHasTransitioned(true);
       setStep("artwork");
     }
   }, [saveState, hasTransitioned, step]);
 
   const handleBack = useCallback(() => {
-    if (step === "payout") setStep("profile");
-    else if (step === "review") setStep("payout");
-    else if (step === "artwork") setStep("review");
+    if (step === "artwork") setStep("profile");
     else if (step === "share") setStep("artwork");
   }, [step]);
 
@@ -281,24 +257,6 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
           />
           <div
             className={`h-2 flex-1 rounded-full ${
-              step === "payout"
-                ? "bg-fuchsia-500"
-                : step === "review"
-                  ? "bg-fuchsia-200"
-                  : "bg-muted"
-            }`}
-          />
-          <div
-            className={`h-2 flex-1 rounded-full ${
-              step === "review"
-                ? "bg-fuchsia-500"
-                : step === "artwork"
-                  ? "bg-fuchsia-200"
-                  : "bg-muted"
-            }`}
-          />
-          <div
-            className={`h-2 flex-1 rounded-full ${
               step === "artwork"
                 ? "bg-fuchsia-500"
                 : step === "share"
@@ -314,8 +272,6 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
         </div>
         <div className="mt-2 flex justify-between text-xs text-muted-foreground">
           <span>Profile</span>
-          <span>Payout</span>
-          <span>Review</span>
           <span>Artwork</span>
           <span>Share</span>
         </div>
@@ -336,7 +292,6 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
           name="platformLinks"
           value={JSON.stringify(formData.platformLinks)}
         />
-        <input type="hidden" name="legalName" value={formData.legalName} />
         <input type="hidden" name="paypalEmail" value={formData.paypalEmail} />
 
         {/* Step 1: Profile */}
@@ -520,213 +475,89 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
               </p>
             </fieldset>
 
+            {/* Payout section within Profile step */}
+            <div className="pt-6 border-t">
+              <div className="rounded-lg border bg-muted p-4 mb-4">
+                <p className="text-sm text-foreground/80">
+                  <strong>Optional:</strong> You can complete payout information
+                  later, but you&apos;ll need it to receive payments.
+                </p>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="paypalEmail"
+                  className="block text-sm font-medium text-foreground/80 mb-1"
+                >
+                  PayPal Email
+                </label>
+                <input
+                  type="email"
+                  id="paypalEmail"
+                  name="paypalEmail"
+                  value={formData.paypalEmail}
+                  onChange={(e) => updateField("paypalEmail", e.target.value)}
+                  placeholder="you@example.com"
+                  className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500 ${
+                    allErrors.paypalEmail
+                      ? "border-red-300 focus:border-red-500"
+                      : "border"
+                  }`}
+                />
+                {allErrors.paypalEmail && (
+                  <p className="mt-1 text-sm text-destructive">
+                    {allErrors.paypalEmail}
+                  </p>
+                )}
+
+                {/* PayPal Verification UI */}
+                {formData.paypalEmail && !allErrors.paypalEmail && (
+                  <div className="mt-3">
+                    {payPalStatus.isLoading ? (
+                      <span className="text-sm text-muted-foreground">
+                        Checking verification status...
+                      </span>
+                    ) : payPalStatus.isVerified ? (
+                      <div className="flex items-center gap-2 text-jade-600 bg-jade-500/10 rounded-lg px-3 py-2">
+                        <CheckIcon className="w-4 h-4" />
+                        <span className="text-sm font-medium">
+                          PayPal account verified
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <p className="text-sm text-muted-foreground">
+                          Optional: Verify your PayPal account to ensure smooth
+                          payouts
+                        </p>
+                        <a
+                          href={`/api/paypal/connect?email=${encodeURIComponent(formData.paypalEmail)}&returnTo=${encodeURIComponent("/creator/setup")}`}
+                          className="inline-flex items-center gap-2 rounded-lg bg-[#0070BA] px-4 py-2 text-sm font-semibold text-white hover:bg-[#005ea6] transition-colors"
+                        >
+                          <svg
+                            className="w-4 h-4"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                          >
+                            <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.59 3.025-2.566 6.082-8.558 6.082H9.63l-1.496 9.478h2.79c.457 0 .85-.334.922-.788l.04-.19.73-4.627.047-.255a.933.933 0 0 1 .922-.788h.58c3.76 0 6.704-1.528 7.565-5.946.354-1.818.177-3.334-.777-4.57l-.226-.298z" />
+                          </svg>
+                          Connect with PayPal
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
             <button
               type="button"
-              onClick={handleProfileNext}
-              className="w-full rounded-lg bg-fuchsia-600 px-5 py-3 text-sm font-semibold text-white hover:bg-fuchsia-700 transition-colors"
+              onClick={handleProfileSubmit}
+              disabled={isSaving}
+              className="w-full rounded-lg bg-fuchsia-600 px-5 py-3 text-sm font-semibold text-white hover:bg-fuchsia-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              Continue to Payout Settings
+              {isSaving ? "Saving..." : "Continue"}
             </button>
-          </div>
-        )}
-
-        {/* Step 2: Payout */}
-        {step === "payout" && (
-          <div className="space-y-6">
-            <div className="rounded-lg border bg-muted p-4">
-              <p className="text-sm text-foreground/80">
-                <strong>Optional:</strong> You can complete payout information
-                later, but you&apos;ll need it to receive payments.
-              </p>
-            </div>
-
-            <div>
-              <label
-                htmlFor="legalName"
-                className="block text-sm font-medium text-foreground/80 mb-1"
-              >
-                Legal Name
-              </label>
-              <input
-                type="text"
-                id="legalName"
-                name="legalName"
-                value={formData.legalName}
-                onChange={(e) => updateField("legalName", e.target.value)}
-                placeholder="Your full legal name"
-                className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500 ${
-                  allErrors.legalName
-                    ? "border-red-300 focus:border-red-500"
-                    : "border"
-                }`}
-              />
-              {allErrors.legalName && (
-                <p className="mt-1 text-sm text-destructive">
-                  {allErrors.legalName}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label
-                htmlFor="paypalEmail"
-                className="block text-sm font-medium text-foreground/80 mb-1"
-              >
-                PayPal Email
-              </label>
-              <input
-                type="email"
-                id="paypalEmail"
-                name="paypalEmail"
-                value={formData.paypalEmail}
-                onChange={(e) => updateField("paypalEmail", e.target.value)}
-                placeholder="you@example.com"
-                className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500 ${
-                  allErrors.paypalEmail
-                    ? "border-red-300 focus:border-red-500"
-                    : "border"
-                }`}
-              />
-              {allErrors.paypalEmail && (
-                <p className="mt-1 text-sm text-destructive">
-                  {allErrors.paypalEmail}
-                </p>
-              )}
-
-              {/* PayPal Verification UI */}
-              {formData.paypalEmail && !allErrors.paypalEmail && (
-                <div className="mt-3">
-                  {payPalStatus.isLoading ? (
-                    <span className="text-sm text-muted-foreground">
-                      Checking verification status...
-                    </span>
-                  ) : payPalStatus.isVerified ? (
-                    <div className="flex items-center gap-2 text-jade-600 bg-jade-500/10 rounded-lg px-3 py-2">
-                      <CheckIcon className="w-4 h-4" />
-                      <span className="text-sm font-medium">
-                        PayPal account verified
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground">
-                        Optional: Verify your PayPal account to ensure smooth
-                        payouts
-                      </p>
-                      <a
-                        href={`/api/paypal/connect?email=${encodeURIComponent(formData.paypalEmail)}&returnTo=${encodeURIComponent("/creator/setup")}`}
-                        className="inline-flex items-center gap-2 rounded-lg bg-[#0070BA] px-4 py-2 text-sm font-semibold text-white hover:bg-[#005ea6] transition-colors"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          viewBox="0 0 24 24"
-                          fill="currentColor"
-                        >
-                          <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.59 3.025-2.566 6.082-8.558 6.082H9.63l-1.496 9.478h2.79c.457 0 .85-.334.922-.788l.04-.19.73-4.627.047-.255a.933.933 0 0 1 .922-.788h.58c3.76 0 6.704-1.528 7.565-5.946.354-1.818.177-3.334-.777-4.57l-.226-.298z" />
-                        </svg>
-                        Connect with PayPal
-                      </a>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={handleBack}
-                className="flex-1 rounded-lg border px-5 py-3 text-sm font-semibold text-foreground hover:bg-accent transition-colors"
-              >
-                Back
-              </button>
-              <button
-                type="button"
-                onClick={handlePayoutNext}
-                className="flex-1 rounded-lg bg-fuchsia-600 px-5 py-3 text-sm font-semibold text-white hover:bg-fuchsia-700 transition-colors"
-              >
-                Review
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Step 3: Review */}
-        {step === "review" && (
-          <div className="space-y-6">
-            <div className="rounded-lg border p-4 space-y-4">
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Display Name
-                </p>
-                <p className="text-sm text-foreground">
-                  {formData.displayName}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Profile URL
-                </p>
-                <p className="text-sm text-foreground">
-                  {process.env.NEXT_PUBLIC_APP_URL}/creators/{formData.slug}
-                </p>
-              </div>
-              {formData.bio && (
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    Bio
-                  </p>
-                  <p className="text-sm text-foreground line-clamp-3">
-                    {formData.bio}
-                  </p>
-                </div>
-              )}
-              {formData.sourcePlatforms.length > 0 && (
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                    Current Platforms
-                  </p>
-                  <p className="text-sm text-foreground">
-                    {formData.sourcePlatforms
-                      .map(
-                        (value) =>
-                          SOURCE_PLATFORMS.find((p) => p.value === value)
-                            ?.label,
-                      )
-                      .filter(Boolean)
-                      .join(", ")}
-                  </p>
-                </div>
-              )}
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Payout Ready
-                </p>
-                <p className="text-sm text-foreground">
-                  {formData.legalName && formData.paypalEmail
-                    ? "Yes - Legal name and PayPal provided"
-                    : "No - Complete payout info later"}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={handleBack}
-                className="flex-1 rounded-lg border px-5 py-3 text-sm font-semibold text-foreground hover:bg-accent transition-colors"
-              >
-                Back
-              </button>
-              <button
-                type="button"
-                onClick={handleReviewNext}
-                disabled={isSaving}
-                className="flex-1 rounded-lg bg-fuchsia-600 px-5 py-3 text-sm font-semibold text-white hover:bg-fuchsia-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {isSaving ? "Saving..." : "Continue"}
-              </button>
-            </div>
           </div>
         )}
 
