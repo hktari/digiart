@@ -56,14 +56,14 @@ Avoid asking early creators to overproduce. The first release is a learning arti
 
 Minimum resolution:
 
-- Portrait: 1748 x 2480 px at 300 DPI.
-- Landscape: 2480 x 1748 px at 300 DPI.
+- Portrait: 1696 x 2528 px at 2:3 ratio.
+- Landscape: 2528 x 1696 px at 2:3 ratio.
 
 A5 print format:
 
 - Images are scaled to fit the page.
 - Any aspect ratio is accepted.
-- For edge-to-edge coverage, use a portrait image close to a 2:3 ratio, for example 1748 x 2480 px.
+- For edge-to-edge coverage, use a portrait image close to a 2:3 ratio, for example 1696 x 2528 px.
 
 When reviewing artwork with creators, check resolution before discussing release copy. Low-resolution images may look acceptable on screen but will not hold up in print.
 
