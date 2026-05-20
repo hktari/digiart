@@ -44,10 +44,11 @@ export function BrowseReleasesGrid({
 }: BrowseReleasesGridProps) {
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {releases.map((release) => (
+      {releases.map((release, index) => (
         <ReleaseCard
           key={release.id}
           release={release}
+          index={index}
           isAuthenticated={isAuthenticated}
           hasCollectorRole={hasCollectorRole}
           cycleId={cycleId}
@@ -59,11 +60,13 @@ export function BrowseReleasesGrid({
 
 function ReleaseCard({
   release,
+  index,
   isAuthenticated,
   hasCollectorRole,
   cycleId,
 }: {
   release: ReleaseItem;
+  index: number;
   isAuthenticated: boolean;
   hasCollectorRole: boolean;
   cycleId: string | null;
@@ -100,6 +103,8 @@ function ReleaseCard({
             src={coverArtwork.thumbnailUrl}
             alt={coverArtwork.title}
             fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            priority={index < 6}
             className="object-cover"
           />
         </div>
