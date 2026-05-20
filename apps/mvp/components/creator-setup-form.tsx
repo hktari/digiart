@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckIcon } from "lucide-react";
+import { CheckIcon, ChevronDownIcon } from "lucide-react";
 import Link from "next/link";
 import {
   useActionState,
@@ -384,96 +384,106 @@ export function CreatorSetupForm({ initialData }: CreatorSetupFormProps) {
               )}
             </div>
 
-            <div>
-              <label
-                htmlFor="bio"
-                className="block text-sm font-medium text-foreground/80 mb-1"
-              >
-                Bio
-              </label>
-              <textarea
-                id="bio"
-                name="bio"
-                value={formData.bio}
-                onChange={(e) => updateField("bio", e.target.value)}
-                placeholder="Tell collectors about yourself and your art..."
-                rows={4}
-                className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500 ${
-                  allErrors.bio
-                    ? "border-red-300 focus:border-red-500"
-                    : "border"
-                }`}
-              />
-              <p className="mt-1 text-xs text-muted-foreground">
-                {formData.bio.length}/500 characters
-              </p>
-              {allErrors.bio && (
-                <p className="mt-1 text-sm text-destructive">{allErrors.bio}</p>
-              )}
-            </div>
-
-            <fieldset>
-              <legend className="block text-sm font-medium text-foreground/80 mb-2">
-                Where do you currently share your art?
-              </legend>
-              <div className="flex flex-wrap gap-2">
-                {SOURCE_PLATFORMS.map((platform) => {
-                  const isSelected = formData.sourcePlatforms.includes(
-                    platform.value,
-                  );
-                  return (
-                    <button
-                      key={platform.value}
-                      type="button"
-                      onClick={() => togglePlatform(platform.value)}
-                      className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-                        isSelected
-                          ? "bg-fuchsia-600 text-white"
-                          : "bg-muted text-foreground hover:bg-accent border"
-                      }`}
-                    >
-                      {platform.label}
-                    </button>
-                  );
-                })}
-              </div>
-              {formData.sourcePlatforms.length > 0 && (
-                <div className="mt-3 space-y-2">
-                  <p className="text-xs font-medium text-foreground/70">
-                    Add your profile links{" "}
-                    <span className="text-muted-foreground/60 font-normal">
-                      (optional)
-                    </span>
+            <details className="group rounded-lg border">
+              <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-medium text-foreground/80 hover:bg-muted/50 transition-colors">
+                <span>Bio &amp; Social Links</span>
+                <ChevronDownIcon className="w-4 h-4 text-muted-foreground transition-transform group-open:rotate-180" />
+              </summary>
+              <div className="px-4 pb-4 pt-2 space-y-5 border-t">
+                <div>
+                  <label
+                    htmlFor="bio"
+                    className="block text-sm font-medium text-foreground/80 mb-1"
+                  >
+                    Bio
+                  </label>
+                  <textarea
+                    id="bio"
+                    name="bio"
+                    value={formData.bio}
+                    onChange={(e) => updateField("bio", e.target.value)}
+                    placeholder="Tell collectors about yourself and your art..."
+                    rows={4}
+                    className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500 ${
+                      allErrors.bio
+                        ? "border-red-300 focus:border-red-500"
+                        : "border"
+                    }`}
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {formData.bio.length}/500 characters
                   </p>
-                  {formData.sourcePlatforms.map((value) => {
-                    const platform = SOURCE_PLATFORMS.find(
-                      (p) => p.value === value,
-                    );
-                    if (!platform) return null;
-                    return (
-                      <div key={value} className="flex items-center gap-2">
-                        <span className="w-24 shrink-0 text-xs font-medium text-muted-foreground truncate">
-                          {platform.label}
-                        </span>
-                        <input
-                          type="url"
-                          value={formData.platformLinks[value] ?? ""}
-                          onChange={(e) =>
-                            updatePlatformLink(value, e.target.value)
-                          }
-                          placeholder={`https://...`}
-                          className="flex-1 rounded-lg border px-3 py-1.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
-                        />
-                      </div>
-                    );
-                  })}
+                  {allErrors.bio && (
+                    <p className="mt-1 text-sm text-destructive">
+                      {allErrors.bio}
+                    </p>
+                  )}
                 </div>
-              )}
-              <p className="mt-2 text-xs text-muted-foreground">
-                Select all that apply. This helps us understand our creator
-                community better.
-              </p>
-            </fieldset>
+
+                <fieldset>
+                  <legend className="block text-sm font-medium text-foreground/80 mb-2">
+                    Where do you currently share your art?
+                  </legend>
+                  <div className="flex flex-wrap gap-2">
+                    {SOURCE_PLATFORMS.map((platform) => {
+                      const isSelected = formData.sourcePlatforms.includes(
+                        platform.value,
+                      );
+                      return (
+                        <button
+                          key={platform.value}
+                          type="button"
+                          onClick={() => togglePlatform(platform.value)}
+                          className={`rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                            isSelected
+                              ? "bg-fuchsia-600 text-white"
+                              : "bg-muted text-foreground hover:bg-accent border"
+                          }`}
+                        >
+                          {platform.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {formData.sourcePlatforms.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      <p className="text-xs font-medium text-foreground/70">
+                        Add your profile links{" "}
+                        <span className="text-muted-foreground/60 font-normal">
+                          (optional)
+                        </span>
+                      </p>
+                      {formData.sourcePlatforms.map((value) => {
+                        const platform = SOURCE_PLATFORMS.find(
+                          (p) => p.value === value,
+                        );
+                        if (!platform) return null;
+                        return (
+                          <div key={value} className="flex items-center gap-2">
+                            <span className="w-24 shrink-0 text-xs font-medium text-muted-foreground truncate">
+                              {platform.label}
+                            </span>
+                            <input
+                              type="url"
+                              value={formData.platformLinks[value] ?? ""}
+                              onChange={(e) =>
+                                updatePlatformLink(value, e.target.value)
+                              }
+                              placeholder={`https://...`}
+                              className="flex-1 rounded-lg border px-3 py-1.5 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Select all that apply. This helps us understand our creator
+                    community better.
+                  </p>
+                </fieldset>
+              </div>
+            </details>
 
             {/* Payout section within Profile step */}
             <div className="pt-6 border-t">
