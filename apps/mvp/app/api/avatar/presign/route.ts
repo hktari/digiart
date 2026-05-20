@@ -15,15 +15,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const creatorProfile = await db.creatorProfile.findUnique({
+  let creatorProfile = await db.creatorProfile.findUnique({
     where: { userId: session.user.id },
     select: { id: true },
   });
+
+  // Create a minimal creator profile if it doesn't exist
   if (!creatorProfile) {
-    return NextResponse.json(
-      { error: "Creator profile not found" },
-      { status: 403 },
-    );
+    const uniqueSuffix = session.user.id.slice(0, 8);
+    creatorProfile = await db.creatorProfile.create({
+      data: {
+        userId: session.user.id,
+        displayName: session.user.name ?? "Artist",
+        slug: `artist-${uniqueSuffix}`,
+      },
+      select: { id: true },
+    });
   }
 
   let body: { contentType: string; fileSize: number };

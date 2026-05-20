@@ -257,10 +257,15 @@ export function CreatorSharePanel({ referral }: CreatorSharePanelProps) {
           </p>
         </div>
         <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-          <li>Add your link to your Instagram / TikTok bio</li>
-          <li>Post a story or caption mentioning the pilot</li>
+          <li>
+            Add your link to your Instagram / Threads / DeviantArt / Civitai
+            profile
+          </li>
+          <li>
+            Post a story inviting people to view your art in printed format
+          </li>
           <li>Share in your Discord server or community</li>
-          <li>Include in your newsletter or Substack</li>
+          <li>Publish an exclusive art release via DigiArt</li>
           <li>Add to your ArtStation / portfolio description</li>
         </ul>
       </div>
