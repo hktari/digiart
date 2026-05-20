@@ -302,6 +302,31 @@ export async function setReleaseArtworks(
     return { success: false, error: "Some artworks not found" };
   }
 
+  // Prevent adding artworks already in another release in this cycle
+  if (release.cycleId && artworkIds.length > 0) {
+    const existingReleaseArtworks = await db.releaseArtwork.findFirst({
+      where: {
+        artworkId: { in: artworkIds },
+        release: {
+          cycleId: release.cycleId,
+          creatorProfileId,
+          id: { not: releaseId }, // exclude current release
+        },
+      },
+      include: {
+        artwork: { select: { title: true } },
+        release: { select: { title: true } },
+      },
+    });
+
+    if (existingReleaseArtworks) {
+      return {
+        success: false,
+        error: `"${existingReleaseArtworks.artwork.title}" is already part of the release "${existingReleaseArtworks.release.title}" in this cycle`,
+      };
+    }
+  }
+
   await db.$transaction([
     db.releaseArtwork.deleteMany({ where: { releaseId } }),
     db.releaseArtwork.createMany({

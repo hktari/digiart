@@ -35,9 +35,19 @@ export default async function CreatorReleaseNewPage() {
     redirect("/creator/setup");
   }
 
-  // Get existing artworks for selection
+  // Get existing artworks for selection (exclude those already in a release for this cycle)
   const artworks = await db.artwork.findMany({
-    where: { creatorProfileId: creatorProfile.id, status: "ACTIVE" },
+    where: {
+      creatorProfileId: creatorProfile.id,
+      status: "ACTIVE",
+      releaseArtworks: {
+        none: {
+          release: {
+            cycleId: currentCycle.id,
+          },
+        },
+      },
+    },
     orderBy: { createdAt: "desc" },
     select: { id: true, title: true, storageKey: true },
   });
