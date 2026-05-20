@@ -254,7 +254,7 @@ export function BrowseClient({
           ))}
       </div>
 
-      {hasCollectorRole ? <CollectorBookletCart /> : <DiscoverBookletBar />}
+      {isAuthenticated ? <CollectorBookletCart /> : <DiscoverBookletBar />}
     </div>
   );
 }

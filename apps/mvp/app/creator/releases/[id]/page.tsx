@@ -1,4 +1,5 @@
 import type { CycleStatus, SubscriptionCycle } from "@prisma/client";
+import { AlertCircle, CheckCircle2, Info, Lightbulb } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CycleLockedBanner } from "@/components/cycle-locked-banner";
@@ -138,6 +139,84 @@ export default async function CreatorReleaseDetailPage({
         )}
       </section>
 
+      {/* Artwork Guidance Cards for Draft */}
+      {release.status === "DRAFT" && !isLocked && (
+        <section>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Progress Card */}
+            <div
+              className={`rounded-xl border p-4 ${
+                selectedIds.length >= 5
+                  ? "bg-success-bg border-success-border"
+                  : "bg-warning-bg border-warning-border"
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <div
+                  className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${
+                    selectedIds.length >= 5
+                      ? "bg-jade-100 dark:bg-jade-900/30"
+                      : "bg-amber-100 dark:bg-amber-900/30"
+                  }`}
+                >
+                  {selectedIds.length >= 5 ? (
+                    <CheckCircle2 className="h-5 w-5 text-jade-600" />
+                  ) : (
+                    <AlertCircle className="h-5 w-5 text-amber-600" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-semibold text-foreground">
+                    Artwork Requirements
+                  </h3>
+                  <div className="mt-2 flex items-center gap-2">
+                    <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${
+                          selectedIds.length >= 5
+                            ? "bg-jade-500"
+                            : "bg-amber-500"
+                        }`}
+                        style={{
+                          width: `${Math.min((selectedIds.length / 5) * 100, 100)}%`,
+                        }}
+                      />
+                    </div>
+                    <span className="text-xs font-medium text-muted-foreground">
+                      {selectedIds.length}/5
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {selectedIds.length >= 5
+                      ? "✓ Minimum requirement met. Add more for better collector choice!"
+                      : `Add ${5 - selectedIds.length} more artwork${5 - selectedIds.length === 1 ? "" : "s"} to publish.`}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Tips Card */}
+            <div className="bg-info-bg border border-info-border rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <div className="shrink-0 w-10 h-10 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-900/30 flex items-center justify-center">
+                  <Lightbulb className="h-5 w-5 text-fuchsia-600" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground">
+                    Success Tips
+                  </h3>
+                  <ul className="text-xs text-muted-foreground mt-1 space-y-1">
+                    <li>• Aim for 15-20 artworks per release</li>
+                    <li>• Curate around a theme or style</li>
+                    <li>• Once published, releases cannot be edited</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Artwork picker */}
       <section>
         <div className="flex items-center justify-between mb-4">
@@ -155,6 +234,45 @@ export default async function CreatorReleaseDetailPage({
           disabled={isLocked}
         />
       </section>
+
+      {/* Info Card for Published Releases */}
+      {release.status === "PUBLISHED" && (
+        <section className="bg-success-bg border border-success-border rounded-xl p-4">
+          <div className="flex items-start gap-3">
+            <Info className="h-5 w-5 text-success-foreground shrink-0 mt-0.5" />
+            <div>
+              <h3 className="text-sm font-semibold text-foreground">
+                Published and Active
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                This release is visible to subscribers and available for
+                selection.
+                {release._count.selections > 0 && (
+                  <>
+                    {" "}
+                    <strong className="text-foreground">
+                      {release._count.selections} collector
+                      {release._count.selections === 1 ? "" : "s"} already
+                      selected
+                    </strong>{" "}
+                    this release for their booklet.
+                  </>
+                )}
+              </p>
+              <div className="mt-3 p-3 bg-background rounded-lg border">
+                <p className="text-xs text-muted-foreground">
+                  <strong className="text-foreground">
+                    Maximize your reach:
+                  </strong>{" "}
+                  Create more releases to increase your chances of being
+                  selected by collectors. Check your main releases page to see
+                  how many releases you can still create this cycle.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Publish / archive */}
       <section className="flex items-center justify-between border-t pt-6">

@@ -11,6 +11,20 @@ export interface ArtworkWithThumbnail extends Artwork {
   thumbnailUrl?: string;
 }
 
+export async function getCreatorArtworkCount(): Promise<number> {
+  const session = await auth();
+  if (!session?.user?.id) return 0;
+
+  const profile = await db.creatorProfile.findUnique({
+    where: { userId: session.user.id },
+    select: {
+      _count: { select: { artworks: { where: { status: "ACTIVE" } } } },
+    },
+  });
+
+  return profile?._count.artworks ?? 0;
+}
+
 export async function getCreatorArtworks(): Promise<ArtworkWithThumbnail[]> {
   const session = await auth();
   if (!session?.user?.id) {

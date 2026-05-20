@@ -236,7 +236,7 @@ export default async function CreatorProfilePage({
             </div>
           )}
         </div>
-        {hasCollectorRole ? <CollectorBookletCart /> : <DiscoverBookletBar />}
+        {isAuthenticated ? <CollectorBookletCart /> : <DiscoverBookletBar />}
       </div>
     </>
   );

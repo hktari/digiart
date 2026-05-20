@@ -161,7 +161,7 @@ export default async function PublicReleaseDetailPage({ params }: Props) {
           initiallySelected={isSelected}
         />
       </div>
-      {hasCollectorRole ? <CollectorBookletCart /> : <DiscoverBookletBar />}
+      {isAuthenticated ? <CollectorBookletCart /> : <DiscoverBookletBar />}
     </div>
   );
 }
