@@ -124,7 +124,7 @@ export default async function AdminSettingsPage({
                 id="maxArtworksPerRelease"
                 name="maxArtworksPerRelease"
                 min="1"
-                defaultValue={config?.maxArtworksPerRelease ?? 20}
+                defaultValue={config?.maxArtworksPerRelease ?? 7}
                 required
                 className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
               />

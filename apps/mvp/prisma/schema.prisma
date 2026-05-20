@@ -576,7 +576,7 @@ model PlatformConfig {
   quoteMarginAmount    Float    @default(0.3) // fractional margin rate (e.g. 0.3 = 30%); markup = (productPrice + vat) * rate
   creatorPayoutSplit   Float    @default(0.7) // fraction of margin going to creators
   platformFeeSplit     Float    @default(0.3) // fraction of margin kept as platform fee
-  maxArtworksPerRelease Int     @default(20) // maximum artworks allowed per release
+  maxArtworksPerRelease Int     @default(7) // maximum artworks allowed per release
   maxReleasesPerCycle   Int     @default(3)  // maximum releases a creator can publish per cycle
   updatedAt            DateTime @updatedAt
   updatedBy            String? // admin user ID who last updated

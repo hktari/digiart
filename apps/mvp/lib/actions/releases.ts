@@ -37,7 +37,7 @@ async function getPlatformLimits() {
     orderBy: { updatedAt: "desc" },
   });
   return {
-    maxArtworksPerRelease: config?.maxArtworksPerRelease ?? 20,
+    maxArtworksPerRelease: config?.maxArtworksPerRelease ?? 7,
     maxReleasesPerCycle: config?.maxReleasesPerCycle ?? 3,
   };
 }

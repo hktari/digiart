@@ -10,8 +10,8 @@ const platformConfigSchema = z.object({
   quoteMarginAmount: z.number().min(0).max(1),
   creatorPayoutSplit: z.number().min(0).max(1),
   platformFeeSplit: z.number().min(0).max(1),
-  maxArtworksPerRelease: z.number().min(1),
-  maxReleasesPerCycle: z.number().min(1),
+  maxArtworksPerRelease: z.number().min(1).default(7),
+  maxReleasesPerCycle: z.number().min(1).default(3),
 });
 
 export async function getPlatformConfig() {
