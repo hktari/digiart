@@ -1,10 +1,14 @@
 "use client";
 
 import type { Artwork, ArtworkStatus, Orientation } from "@prisma/client";
-import { Archive, ImageOff, RefreshCw } from "lucide-react";
+import { Archive, ImageOff, RefreshCw, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useState } from "react";
-import { archiveArtwork, reactivateArtwork } from "@/lib/actions/artworks";
+import {
+  archiveArtwork,
+  deleteArtwork,
+  reactivateArtwork,
+} from "@/lib/actions/artworks";
 
 function getOrientationLabel(orientation: Orientation): string {
   const labels: Record<Orientation, string> = {
@@ -18,6 +22,7 @@ function getOrientationLabel(orientation: Orientation): string {
 
 interface ArtworkWithThumbnail extends Artwork {
   thumbnailUrl?: string;
+  isInRelease: boolean;
 }
 
 interface ArtworksListProps {
@@ -27,6 +32,7 @@ interface ArtworksListProps {
 export function ArtworksList({ artworks }: ArtworksListProps) {
   const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
   const [items, setItems] = useState(artworks);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const handleArchive = useCallback(async (artworkId: string) => {
     setPendingIds((prev) => new Set(prev).add(artworkId));
@@ -71,6 +77,28 @@ export function ArtworksList({ artworks }: ArtworksListProps) {
         next.delete(artworkId);
         return next;
       });
+    }
+  }, []);
+
+  const handleDelete = useCallback(async (artworkId: string) => {
+    setPendingIds((prev) => new Set(prev).add(artworkId));
+    try {
+      await deleteArtwork(artworkId);
+      setItems((prev) => prev.filter((item) => item.id !== artworkId));
+    } catch (err) {
+      console.error("Failed to delete artwork:", err);
+      alert(
+        err instanceof Error
+          ? err.message
+          : "Failed to delete artwork. Please try again.",
+      );
+    } finally {
+      setPendingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(artworkId);
+        return next;
+      });
+      setDeleteConfirmId(null);
     }
   }, []);
 
@@ -164,14 +192,28 @@ export function ArtworksList({ artworks }: ArtworksListProps) {
 
               <div className="flex gap-2">
                 {artwork.status === "ACTIVE" ? (
-                  <button
-                    onClick={() => handleArchive(artwork.id)}
-                    disabled={pendingIds.has(artwork.id)}
-                    className="flex-1 flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium text-foreground hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <Archive className="h-4 w-4" />
-                    {pendingIds.has(artwork.id) ? "..." : "Archive"}
-                  </button>
+                  <>
+                    {!artwork.isInRelease && (
+                      <button
+                        onClick={() => setDeleteConfirmId(artwork.id)}
+                        disabled={pendingIds.has(artwork.id)}
+                        className="flex items-center justify-center gap-1.5 rounded-lg border border-destructive-border px-3 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive-bg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        {pendingIds.has(artwork.id) ? "..." : "Delete"}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleArchive(artwork.id)}
+                      disabled={pendingIds.has(artwork.id)}
+                      className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium text-foreground hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
+                        artwork.isInRelease ? "" : "ml-auto"
+                      }`}
+                    >
+                      <Archive className="h-4 w-4" />
+                      {pendingIds.has(artwork.id) ? "..." : "Archive"}
+                    </button>
+                  </>
                 ) : (
                   <button
                     onClick={() => handleReactivate(artwork.id)}
@@ -187,6 +229,38 @@ export function ArtworksList({ artworks }: ArtworksListProps) {
           </div>
         ))}
       </div>
+
+      {/* Delete confirmation dialog */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-background rounded-lg border border-border max-w-md w-full p-6 space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold text-foreground">
+                Delete artwork?
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                This action cannot be undone. The artwork will be permanently
+                deleted.
+              </p>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setDeleteConfirmId(null)}
+                className="flex-1 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDelete(deleteConfirmId)}
+                disabled={pendingIds.has(deleteConfirmId)}
+                className="flex-1 rounded-lg bg-destructive-bg border border-destructive-border px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive-bg/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {pendingIds.has(deleteConfirmId) ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

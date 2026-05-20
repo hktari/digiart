@@ -9,6 +9,7 @@ import { getPresignedStorageUrl } from "@/lib/s3";
 
 export interface ArtworkWithThumbnail extends Artwork {
   thumbnailUrl?: string;
+  isInRelease: boolean;
 }
 
 export async function getCreatorArtworkCount(): Promise<number> {
@@ -42,6 +43,9 @@ export async function getCreatorArtworks(): Promise<ArtworkWithThumbnail[]> {
 
   const artworks = await db.artwork.findMany({
     where: { creatorProfileId: profile.id },
+    include: {
+      releaseArtworks: true,
+    },
     orderBy: { createdAt: "desc" },
   });
 
@@ -49,6 +53,7 @@ export async function getCreatorArtworks(): Promise<ArtworkWithThumbnail[]> {
     artworks.map(async (artwork) => ({
       ...artwork,
       thumbnailUrl: await getPresignedStorageUrl(artwork.storageKey),
+      isInRelease: artwork.releaseArtworks.length > 0,
     })),
   );
 }
@@ -118,5 +123,48 @@ export async function reactivateArtwork(artworkId: string): Promise<void> {
     where: { id: artworkId },
     data: { status: "ACTIVE" },
   });
+  revalidatePath("/creator/artworks");
+}
+
+export async function deleteArtwork(artworkId: string): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    redirect("/auth/sign-in");
+  }
+
+  const profile = await db.creatorProfile.findUnique({
+    where: { userId: session.user.id },
+    select: { id: true },
+  });
+
+  if (!profile) {
+    throw new Error("Creator profile not found");
+  }
+
+  // Check if artwork belongs to this creator
+  const artwork = await db.artwork.findFirst({
+    where: {
+      id: artworkId,
+      creatorProfileId: profile.id,
+    },
+    include: {
+      releaseArtworks: true,
+    },
+  });
+
+  if (!artwork) {
+    throw new Error("Artwork not found");
+  }
+
+  // Check if artwork is in any releases
+  if (artwork.releaseArtworks.length > 0) {
+    throw new Error("Cannot delete artwork that is in a release");
+  }
+
+  // Delete the artwork
+  await db.artwork.delete({
+    where: { id: artworkId },
+  });
+
   revalidatePath("/creator/artworks");
 }

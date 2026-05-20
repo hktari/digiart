@@ -129,15 +129,15 @@ export function ReleaseArtworkLightbox({
             ×
           </button>
 
-          <div className="absolute inset-0 overflow-auto overscroll-contain">
-            <div className="flex min-h-full min-w-full items-center justify-center p-2">
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="flex h-full w-full items-center justify-center p-4">
               <Image
                 src={activeArtwork.imageUrl}
                 alt={activeArtwork.title}
                 width={1800}
                 height={1800}
                 sizes="100vw"
-                className="h-auto w-auto max-w-none select-none object-contain"
+                className="max-h-[85vh] max-w-full select-none object-contain"
                 priority
               />
             </div>

@@ -88,7 +88,7 @@ function ReleaseCard({
   return (
     <Link
       href={`/creators/${release.creatorProfile.slug}/releases/${release.id}`}
-      className={`bg-white rounded-lg border overflow-hidden transition-all block ${
+      className={`bg-card rounded-lg border overflow-hidden transition-all block ${
         isSelected && isHydrated
           ? "border-fuchsia-400 shadow-md"
           : "border-border hover:border-fuchsia-300 hover:shadow-md"
@@ -127,7 +127,7 @@ function ReleaseCard({
             {release._count.artworks === 1 ? "page" : "pages"}
           </span>
           {isSelected && isHydrated && (
-            <span className="rounded-full bg-fuchsia-100 px-2 py-0.5 text-fuchsia-700">
+            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-primary">
               Selected
             </span>
           )}
@@ -138,7 +138,7 @@ function ReleaseCard({
             {release.tags.slice(0, 3).map((rt) => (
               <span
                 key={rt.slug}
-                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-beige-100 text-beige-800"
+                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-secondary text-secondary-foreground"
               >
                 {rt.name}
               </span>
@@ -161,7 +161,7 @@ function ReleaseCard({
           disabled={isPending || !isHydrated}
           className={`w-full px-3 py-2 text-sm font-medium rounded-md transition-colors disabled:opacity-50 ${
             isSelected && isHydrated
-              ? "bg-red-50 text-red-700 border border-red-200 hover:bg-red-100"
+              ? "bg-destructive-bg text-destructive-foreground border border-destructive-border hover:bg-destructive-bg/80"
               : "bg-fuchsia-600 text-white hover:bg-fuchsia-700"
           }`}
         >

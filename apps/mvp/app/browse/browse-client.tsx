@@ -117,8 +117,8 @@ export function BrowseClient({
               href="/browse?view=creators"
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                 view === "creators"
-                  ? "bg-fuchsia-600 text-white"
-                  : "bg-card text-foreground border hover:border-fuchsia-300"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card text-foreground border hover:border-primary/50"
               }`}
             >
               Creators
@@ -127,8 +127,8 @@ export function BrowseClient({
               href="/browse?view=releases"
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                 view === "releases"
-                  ? "bg-fuchsia-600 text-white"
-                  : "bg-card text-foreground border hover:border-fuchsia-300"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card text-foreground border hover:border-primary/50"
               }`}
             >
               Releases
@@ -143,8 +143,8 @@ export function BrowseClient({
                 href={`/browse?view=${view}`}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                   !tag
-                    ? "bg-ocean-600 text-white"
-                    : "bg-card text-foreground border hover:border-ocean-300"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-card text-foreground border hover:border-primary/50"
                 }`}
               >
                 All
@@ -155,8 +155,8 @@ export function BrowseClient({
                   href={`/browse?view=${view}&tag=${t.slug}`}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                     tag === t.slug
-                      ? "bg-ocean-600 text-white"
-                      : "bg-card text-foreground border hover:border-ocean-300"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-card text-foreground border hover:border-primary/50"
                   }`}
                 >
                   {t.name} ({t._count.releaseTags})
@@ -190,8 +190,8 @@ export function BrowseClient({
                           className="rounded-lg object-cover"
                         />
                       ) : (
-                        <div className="w-16 h-16 rounded-lg bg-linear-to-br from-fuchsia-500/10 to-ocean-500/10 flex items-center justify-center">
-                          <span className="text-2xl font-bold">
+                        <div className="w-16 h-16 rounded-lg bg-linear-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+                          <span className="text-2xl font-bold text-foreground">
                             {creator.displayName.charAt(0).toUpperCase()}
                           </span>
                         </div>

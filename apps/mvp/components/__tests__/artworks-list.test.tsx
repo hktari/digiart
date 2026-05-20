@@ -6,6 +6,7 @@ import { ArtworksList } from "../artworks-list";
 vi.mock("@/lib/actions/artworks", () => ({
   archiveArtwork: vi.fn(),
   reactivateArtwork: vi.fn(),
+  deleteArtwork: vi.fn(),
 }));
 
 describe("ArtworksList", () => {
@@ -24,6 +25,7 @@ describe("ArtworksList", () => {
       updatedAt: new Date("2024-01-01"),
       creatorProfileId: "creator-1",
       thumbnailUrl: "https://example.com/test1.jpg",
+      isInRelease: false,
     },
     {
       id: "artwork-2",
@@ -39,6 +41,7 @@ describe("ArtworksList", () => {
       updatedAt: new Date("2024-01-02"),
       creatorProfileId: "creator-1",
       thumbnailUrl: "https://example.com/test2.jpg",
+      isInRelease: false,
     },
   ];
 
@@ -95,6 +98,28 @@ describe("ArtworksList", () => {
       render(<ArtworksList artworks={mockArtworks} />);
 
       expect(screen.getByText("Archived")).toBeInTheDocument();
+    });
+
+    it("shows delete button for artworks not in releases", () => {
+      render(<ArtworksList artworks={mockArtworks} />);
+
+      const deleteButtons = screen.getAllByRole("button", {
+        name: /Delete/i,
+      });
+      expect(deleteButtons.length).toBe(1);
+    });
+
+    it("does not show delete button for artworks in releases", () => {
+      const artworksInRelease = [
+        { ...mockArtworks[0], isInRelease: true },
+        mockArtworks[1],
+      ];
+      render(<ArtworksList artworks={artworksInRelease} />);
+
+      const deleteButtons = screen.queryAllByRole("button", {
+        name: /Delete/i,
+      });
+      expect(deleteButtons.length).toBe(0);
     });
   });
 });

@@ -112,7 +112,7 @@ export function BookletCartUI({
                     e.stopPropagation();
                     onRemove(item.releaseId);
                   }}
-                  className="absolute top-2 right-2 p-1.5 rounded-md hover:bg-red-50 text-red-600 hover:text-red-700 disabled:opacity-50 transition-colors z-10"
+                  className="absolute top-2 right-2 p-1.5 rounded-md hover:bg-destructive-bg text-destructive hover:text-destructive-foreground disabled:opacity-50 transition-colors z-10"
                   aria-label="Remove"
                 >
                   <X className="h-4 w-4" />
@@ -266,7 +266,7 @@ export function BookletCartUI({
                       e.stopPropagation();
                       onRemove(item.releaseId);
                     }}
-                    className="shrink-0 p-2 rounded-md hover:bg-red-50 text-red-600 hover:text-red-700 disabled:opacity-50 transition-colors"
+                    className="shrink-0 p-2 rounded-md hover:bg-destructive-bg text-destructive hover:text-destructive-foreground disabled:opacity-50 transition-colors"
                     aria-label="Remove"
                   >
                     <X className="h-5 w-5" />
