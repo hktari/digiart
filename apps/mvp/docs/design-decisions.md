@@ -426,6 +426,68 @@ If we outgrow Next.js Image Optimization, prefer this migration order:
 
 ---
 
+## Image Hosting: Private Bucket with Presigned URLs
+
+### Decision
+
+Use **Railway S3 (private bucket) with server-generated presigned URLs** for all artwork images and creator avatars. Do not introduce a CDN or separate image hosting service at MVP stage.
+
+### Context
+
+Railway S3 does not support public bucket policies or public object ACLs. All objects are private by default. When the app was first wired up, artwork and avatar URLs were constructed as direct `https://t3.storageapi.dev/<bucket>/<key>` URLs, which resulted in 403 Forbidden errors in production.
+
+### Rationale
+
+**Why not a CDN (Cloudflare, CloudFront)?**
+
+- Adds vendor surface, DNS changes, and configuration overhead not justified at MVP scale
+- Railway S3 has no native CDN integration
+
+**Why not Cloudflare R2 or AWS S3?**
+
+- Migrating object storage requires data migration, credential rotation, and env var changes across Railway services
+- The platform has a small number of creators and artworks at this stage
+- Storage migration is a meaningful operational event — deferred until scale demands it
+
+**Why presigned URLs are acceptable now:**
+
+- `getSignedUrl()` is a CPU-only operation (HMAC signing), no network round-trip
+- 1-hour TTL is sufficient for all interactive use cases
+- Server actions and API routes already run server-side, so signing adds negligible latency
+- Next.js Image Optimization caches optimized variants with `minimumCacheTTL: 60`
+
+### Implementation
+
+All artwork and avatar URLs are generated server-side via `getPresignedStorageUrl(key)` (1-hour TTL) in `lib/s3.ts`. They are never stored in the database — only the S3 key is persisted.
+
+**Avatar field migration:** The `avatar` column on `CreatorProfile` previously stored full public URLs. It now stores only the S3 key (e.g. `avatars/<profileId>/<uuid>.jpg`). `resolveAvatarUrl()` handles both legacy full-URL values and new key-only values transparently.
+
+**Where presigning happens:**
+
+- All server actions (`lib/actions/artworks.ts`, `browse.ts`, `releases.ts`, `creator.ts`)
+- All API routes that return image data (`/api/browse/releases`, `/api/browse/creators`, `/api/collector/releases`, `/api/collector/subscriptions`, `/api/creators/[slug]/releases`)
+- Registration route (`/api/artworks/register`) — presigns the `storageUrl` returned to the client after upload
+
+### Trade-offs Accepted
+
+- ❌ Presigned URLs contain expiry timestamps → Next.js image optimizer treats each unique URL as a distinct cache entry, reducing cache hit rate
+- ❌ Images break if a client holds a page open longer than 1 hour (e.g. lightbox left open overnight)
+- ❌ No CDN edge caching — all image requests pass through Railway
+- ✅ No new vendors or infrastructure
+- ✅ Access control enforced server-side — public browse pages presign on the server, not the client
+- ✅ Zero database schema changes required
+
+### When to Revisit
+
+Migrate to a public-capable storage provider (Cloudflare R2 recommended — free egress, S3-compatible, built-in public bucket toggle, env-var-only swap) when any of the following occur:
+
+1. Image-related 403s or expiry issues are reported by users
+2. Railway resource pressure from image optimization is measurable
+3. Creator upload volume grows beyond ~1,000 artworks
+4. Open Graph / email / embed use cases require stable, non-expiring image URLs
+
+---
+
 ## Future Considerations
 
 ### When This Design May Need Revision
