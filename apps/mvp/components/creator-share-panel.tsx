@@ -1,33 +1,33 @@
 "use client";
 
-import { Check, Copy, ExternalLink, Share2, Users } from "lucide-react";
+import {
+  BarChart3,
+  Check,
+  Copy,
+  ExternalLink,
+  Eye,
+  Share2,
+  TrendingUp,
+  Users,
+} from "lucide-react";
 import { useState } from "react";
 import type { ReferralStats } from "@/lib/actions/creator";
 
 const LAUNCH_BLURBS = [
   {
-    channel: "Instagram / TikTok bio or story",
+    channel: "Short bio or story",
     text: (url: string) =>
-      `I'm releasing new work as printed booklets — limited print runs, straight to your door. Subscribe here and you'll get my next one: {URL}`.replace(
-        "{URL}",
-        url,
-      ),
+      `I'm testing a new way to turn my digital art into printed booklet releases. If you want to follow the first drop and help shape the pilot, you can subscribe here: ${url}`,
   },
   {
     channel: "Post caption",
     text: (url: string) =>
-      `New work, new format. I'm releasing prints as curated booklets — you can subscribe to mine here and get the next cycle delivered. Link: {URL}`.replace(
-        "{URL}",
-        url,
-      ),
+      `I'm trying something new: a curated print booklet release built from my digital art. The platform handles printing and delivery, and I'm using this first run to learn what collectors want. Follow the release here: ${url}`,
   },
   {
-    channel: "Discord / Newsletter",
+    channel: "Discord or newsletter",
     text: (url: string) =>
-      `Hey — I've joined an art subscription platform where I release curated print booklets each cycle. If you want the next one in your hands, subscribe here: {URL}\n\nNo algorithm. Just prints.`.replace(
-        "{URL}",
-        url,
-      ),
+      `I'm part of an early pilot for a platform that turns digital art releases into printed booklets for subscribers. I uploaded my first release and would love feedback from people who already follow my work. You can view it here: ${url}`,
   },
 ];
 
@@ -58,20 +58,82 @@ export function CreatorSharePanel({ referral }: CreatorSharePanelProps) {
         <div className="flex items-center gap-2 mb-1">
           <Share2 className="h-4 w-4 text-fuchsia-600 dark:text-fuchsia-400" />
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Share & grow
+            Promote & track
           </p>
         </div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">
-          Your referral link
+          Promotion tools
         </h1>
         <p className="mt-1 text-sm text-muted-foreground max-w-lg">
-          Share this link in your bio, story, caption, or newsletter. Every
-          subscription through it is tracked to you.
+          Share your profile link, track profile views from your campaigns, and
+          see how your promotion efforts convert into subscribers.
         </p>
+      </div>
+
+      {/* Traffic stats */}
+      <div className="rounded-xl border border-border bg-background p-6 space-y-4">
+        <div className="flex items-center gap-2 mb-2">
+          <BarChart3 className="h-4 w-4 text-fuchsia-600 dark:text-fuchsia-400" />
+          <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+            Profile traffic
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="rounded-lg border border-border bg-muted/50 p-4 text-center">
+            <p className="text-2xl font-bold text-foreground">
+              {referral.profileViews.last7Days}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">Last 7 days</p>
+          </div>
+          <div className="rounded-lg border border-border bg-muted/50 p-4 text-center">
+            <p className="text-2xl font-bold text-foreground">
+              {referral.profileViews.last30Days}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">Last 30 days</p>
+          </div>
+          <div className="rounded-lg border border-border bg-muted/50 p-4 text-center">
+            <p className="text-2xl font-bold text-foreground">
+              {referral.profileViews.thisCycle}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">This cycle</p>
+          </div>
+          <div className="rounded-lg border border-border bg-muted/50 p-4 text-center">
+            <p className="text-2xl font-bold text-foreground">
+              {referral.profileViews.total}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">All time</p>
+          </div>
+        </div>
+
+        {referral.profileViews.total === 0 && (
+          <p className="text-xs text-muted-foreground border-t border-border pt-3">
+            No profile views yet. Share your link below to start driving
+            traffic.
+          </p>
+        )}
+
+        {referral.profileViews.total > 0 && referral.totalSignups > 0 && (
+          <div className="flex items-center gap-2 border-t border-border pt-3">
+            <TrendingUp className="h-3.5 w-3.5 text-fuchsia-600 dark:text-fuchsia-400" />
+            <p className="text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">
+                {Math.round(
+                  (referral.totalSignups / referral.profileViews.total) * 100,
+                )}
+                %
+              </span>{" "}
+              of profile visitors subscribed
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Referral link card */}
       <div className="rounded-xl border border-border bg-background p-6 space-y-4">
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
+          Your share link
+        </h2>
         <div className="flex items-center gap-3">
           <div className="flex-1 min-w-0 rounded-lg border border-border bg-muted px-4 py-2.5">
             <p className="text-sm font-mono text-foreground truncate">
@@ -187,16 +249,19 @@ export function CreatorSharePanel({ referral }: CreatorSharePanelProps) {
       </div>
 
       {/* Tip */}
-      <div className="rounded-xl border border-ocean-200 dark:border-ocean-800 bg-ocean-50 dark:bg-ocean-950/30 px-5 py-4">
-        <p className="text-sm font-semibold text-ocean-800 dark:text-ocean-200 mb-1">
-          Where to share
-        </p>
-        <ul className="text-sm text-ocean-700 dark:text-ocean-300 space-y-1 list-disc list-inside">
-          <li>Instagram / TikTok bio link</li>
-          <li>Story or post caption with link in bio</li>
-          <li>Discord server announcement</li>
-          <li>Newsletter or Substack</li>
-          <li>ArtStation / DeviantArt profile description</li>
+      <div className="rounded-xl border border-border bg-muted/30 px-5 py-4">
+        <div className="flex items-center gap-2 mb-2">
+          <Eye className="h-4 w-4 text-muted-foreground" />
+          <p className="text-sm font-semibold text-foreground">
+            Tips for driving views
+          </p>
+        </div>
+        <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+          <li>Add your link to your Instagram / TikTok bio</li>
+          <li>Post a story or caption mentioning the pilot</li>
+          <li>Share in your Discord server or community</li>
+          <li>Include in your newsletter or Substack</li>
+          <li>Add to your ArtStation / portfolio description</li>
         </ul>
       </div>
     </div>

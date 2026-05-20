@@ -641,6 +641,12 @@ export type ReferralStats = {
   referralCode: string;
   shareUrl: string;
   totalSignups: number; // unique subscribers acquired via this referral code
+  profileViews: {
+    total: number;
+    last7Days: number;
+    last30Days: number;
+    thisCycle: number;
+  };
 };
 
 export async function getOrGenerateReferralCode(): Promise<ReferralStats> {
@@ -664,14 +670,59 @@ export async function getOrGenerateReferralCode(): Promise<ReferralStats> {
 
   const code = profile.referralCode as string;
 
-  const totalSignups = await db.collectorCreatorSubscription.count({
-    where: { creatorProfileId: profile.id, referralCode: code, isActive: true },
+  const now = new Date();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+  const currentCycle = await db.subscriptionCycle.findFirst({
+    where: { status: "OPEN" },
+    orderBy: { lockDate: "asc" },
   });
+
+  const [
+    totalSignups,
+    totalViews,
+    last7DaysViews,
+    last30DaysViews,
+    thisCycleViews,
+  ] = await Promise.all([
+    db.collectorCreatorSubscription.count({
+      where: {
+        creatorProfileId: profile.id,
+        referralCode: code,
+        isActive: true,
+      },
+    }),
+    db.creatorProfileView.count({
+      where: { creatorProfileId: profile.id },
+    }),
+    db.creatorProfileView.count({
+      where: { creatorProfileId: profile.id, viewedAt: { gte: sevenDaysAgo } },
+    }),
+    db.creatorProfileView.count({
+      where: { creatorProfileId: profile.id, viewedAt: { gte: thirtyDaysAgo } },
+    }),
+    currentCycle
+      ? db.creatorProfileView.count({
+          where: { creatorProfileId: profile.id, cycleId: currentCycle.id },
+        })
+      : 0,
+  ]);
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
   const shareUrl = `${baseUrl}/creators/${profile.slug}?ref=${code}`;
 
-  return { referralCode: code, shareUrl, totalSignups };
+  return {
+    referralCode: code,
+    shareUrl,
+    totalSignups,
+    profileViews: {
+      total: totalViews,
+      last7Days: last7DaysViews,
+      last30Days: last30DaysViews,
+      thisCycle: thisCycleViews,
+    },
+  };
 }
 
 export async function getPublicReleaseDetail(
