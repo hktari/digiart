@@ -452,13 +452,13 @@ Railway S3 does not support public bucket policies or public object ACLs. All ob
 **Why presigned URLs are acceptable now:**
 
 - `getSignedUrl()` is a CPU-only operation (HMAC signing), no network round-trip
-- 1-hour TTL is sufficient for all interactive use cases
+- 24-hour TTL covers all interactive use cases and reduces Next.js image optimizer cache misses from unique expiry timestamps
 - Server actions and API routes already run server-side, so signing adds negligible latency
 - Next.js Image Optimization caches optimized variants with `minimumCacheTTL: 60`
 
 ### Implementation
 
-All artwork and avatar URLs are generated server-side via `getPresignedStorageUrl(key)` (1-hour TTL) in `lib/s3.ts`. They are never stored in the database — only the S3 key is persisted.
+All artwork and avatar URLs are generated server-side via `getPresignedStorageUrl(key)` (24-hour TTL) in `lib/s3.ts`. They are never stored in the database — only the S3 key is persisted.
 
 **Avatar field migration:** The `avatar` column on `CreatorProfile` previously stored full public URLs. It now stores only the S3 key (e.g. `avatars/<profileId>/<uuid>.jpg`). `resolveAvatarUrl()` handles both legacy full-URL values and new key-only values transparently.
 

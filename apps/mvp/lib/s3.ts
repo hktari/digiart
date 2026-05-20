@@ -93,10 +93,12 @@ export async function getPresignedGetUrl(
 
 /**
  * Primary URL resolver for serving storage objects.
- * Always uses presigned URLs (1 hour TTL) since the bucket is private.
+ * Uses presigned URLs with a 24-hour TTL. TTL matches the page cache duration
+ * (pages are server-rendered on demand) and reduces Next.js image optimizer
+ * cache misses caused by unique expiry timestamps in short-lived URLs.
  */
 export async function getPresignedStorageUrl(key: string): Promise<string> {
-  return getPresignedGetUrl(key, 60 * 60); // 1 hour
+  return getPresignedGetUrl(key, 24 * 60 * 60); // 24 hours
 }
 
 /**
