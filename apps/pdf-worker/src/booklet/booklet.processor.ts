@@ -9,8 +9,8 @@ import { DEFAULT_PAGE_FORMAT, PAGE_DIMENSIONS } from "./booklet.types";
 import type { PdfBuilderService } from "./pdf/pdf-builder.service";
 import type { StorageService } from "./storage/storage.service";
 
-const MIN_WIDTH_PX = 1240;
-const MIN_HEIGHT_PX = 1748;
+const MIN_WIDTH_PX = 1696;
+const MIN_HEIGHT_PX = 2528;
 
 @Processor("booklet-generation")
 export class BookletProcessor extends WorkerHost {

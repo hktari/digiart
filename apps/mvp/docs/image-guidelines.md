@@ -6,21 +6,23 @@ This document outlines the validation rules, requirements, and implementation pa
 
 We handle two types of image uploads:
 
-| Upload Type | Purpose | Max Size | Formats | Dimension Requirements |
-|-------------|---------|----------|---------|----------------------|
-| **Avatar** | Creator profile picture | 5 MB | JPEG, PNG, WebP | None |
-| **Artwork** | Printable magazine content | 50 MB | JPEG, PNG only | Min 1754×2480 px (300 DPI for A5) |
+| Upload Type | Purpose                    | Max Size | Formats         | Dimension Requirements            |
+| ----------- | -------------------------- | -------- | --------------- | --------------------------------- |
+| **Avatar**  | Creator profile picture    | 5 MB     | JPEG, PNG, WebP | None                              |
+| **Artwork** | Printable magazine content | 50 MB    | JPEG, PNG only  | Min 1696×2528 px (2K @ 2:3 ratio) |
 
 ## Avatar Upload
 
 ### Validation Rules
 
 **Client-side (`AvatarUpload` component):**
+
 - Allowed formats: `image/jpeg`, `image/png`, `image/webp`
 - Maximum file size: 5 MB
 - User feedback: "JPEG, PNG or WebP · max 5 MB"
 
 **Server-side (`/api/avatar/presign`):**
+
 ```ts
 const ALLOWED_CONTENT_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
@@ -44,10 +46,12 @@ const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
 ### Validation Rules
 
 **Client-side (`lib/artwork-upload.ts`):**
+
 - Allowed formats: `image/jpeg`, `image/png` (WebP **not** accepted)
 - Maximum file size: 50 MB
 
 **Server-side - Presign (`/api/artworks/presign`):**
+
 ```ts
 const ALLOWED_CONTENT_TYPES = ["image/jpeg", "image/png"];
 const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
@@ -57,21 +61,21 @@ const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
 
 Uses [Sharp](https://sharp.pixelplumbing.com/) to analyze the actual image:
 
-| Check | Requirement | Error Code |
-|-------|-------------|------------|
-| File size | ≤ 50 MB | `FILE_TOO_LARGE` |
-| Format | JPEG or PNG only | `INVALID_FORMAT` |
-| Dimensions | Min 1754×2480 px (portrait) or 2480×1754 px (landscape) | `LOW_RESOLUTION` |
-| Color space | Non-RGB spaces trigger warning | — |
+| Check       | Requirement                                             | Error Code       |
+| ----------- | ------------------------------------------------------- | ---------------- |
+| File size   | ≤ 50 MB                                                 | `FILE_TOO_LARGE` |
+| Format      | JPEG or PNG only                                        | `INVALID_FORMAT` |
+| Dimensions  | Min 1696×2528 px (portrait) or 2528×1696 px (landscape) | `LOW_RESOLUTION` |
+| Color space | Non-RGB spaces trigger warning                          | —                |
 
 ### Resolution Requirements
 
 ```ts
-const MIN_PRINT_WIDTH_PX = 1754;   // A5 width @ 300 DPI (148mm)
-const MIN_PRINT_HEIGHT_PX = 2480;  // A5 height @ 300 DPI (210mm)
+const MIN_PRINT_WIDTH_PX = 1696; // 2K width @ 2:3 aspect ratio
+const MIN_PRINT_HEIGHT_PX = 2528; // 2K height @ 2:3 aspect ratio
 ```
 
-These minimums ensure print quality for the booklet format (A5: 148mm × 210mm).
+These minimums ensure print quality at 2K resolution with a 2:3 aspect ratio.
 
 **Aspect Ratio Policy**: We accept **any aspect ratio** to keep uploads frictionless. Images only need to meet the minimum dimensions in at least one orientation (portrait or landscape). The PDF worker centers and scales images to fit the page while preserving aspect ratio.
 
@@ -82,7 +86,7 @@ Non-RGB color spaces (CMYK, grayscale, etc.) trigger a warning but are accepted.
 ```ts
 if (space && space !== "srgb" && space !== "rgb") {
   warnings.push(
-    `Color space "${space}" will be converted to RGB for print compatibility.`
+    `Color space "${space}" will be converted to RGB for print compatibility.`,
   );
 }
 ```
@@ -90,6 +94,7 @@ if (space && space !== "srgb" && space !== "rgb") {
 ### Orientation Detection
 
 Images are classified as:
+
 - `PORTRAIT` — height > width
 - `LANDSCAPE` — width > height
 - `SQUARE` — width = height
@@ -127,11 +132,11 @@ Return artwork ID + warnings
 
 ## Error Codes
 
-| Code | Meaning | User Message |
-|------|---------|--------------|
-| `INVALID_FORMAT` | Unsupported file type | "Only JPEG and PNG files are accepted." |
-| `LOW_RESOLUTION` | Image too small for print | "Image is too small for A5 print (W×H px). Minimum is 1754×2480 px (portrait) or 2480×1754 px (landscape) at 300 DPI." |
-| `FILE_TOO_LARGE` | Exceeds size limit | "File must be under 50 MB." (or 5 MB for avatars) |
+| Code             | Meaning                   | User Message                                                                                                                 |
+| ---------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `INVALID_FORMAT` | Unsupported file type     | "Only JPEG and PNG files are accepted."                                                                                      |
+| `LOW_RESOLUTION` | Image too small for print | "Image is too small for print (W×H px). Minimum is 1696×2528 px (portrait) or 2528×1696 px (landscape) at 2:3 aspect ratio." |
+| `FILE_TOO_LARGE` | Exceeds size limit        | "File must be under 50 MB." (or 5 MB for avatars)                                                                            |
 
 ## Future Enhancements
 
@@ -149,6 +154,7 @@ This would be **opt-in** — users who don't care about precise framing can skip
 ### Print Bleed & Safe Zones
 
 For edge-to-edge printing:
+
 - **Trim size**: 148×210mm (A5)
 - **Safe zone**: 138×200mm (5mm margin — critical content should stay inside)
 - **Bleed**: 156×218mm (4mm overprint area for edge-to-edge images)
@@ -165,6 +171,7 @@ When implementing a new image upload feature:
    - Dimension requirements (if any)
 
 2. **Implement client validation:**
+
    ```ts
    const ALLOWED = ["image/jpeg", "image/png"];
    if (!ALLOWED.includes(file.type)) {

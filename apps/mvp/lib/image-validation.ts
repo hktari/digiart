@@ -25,10 +25,10 @@ export interface ValidationFailure {
 export type ValidationResult = ValidationSuccess | ValidationFailure;
 
 const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
-// A5 @ 300 DPI: 148mm × 210mm = 1748px × 2480px
+// 2K @ 2:3 aspect ratio = 1696px × 2528px
 // We accept both portrait and landscape orientations
-const MIN_PRINT_WIDTH_PX = 1748;
-const MIN_PRINT_HEIGHT_PX = 2480;
+const MIN_PRINT_WIDTH_PX = 1696;
+const MIN_PRINT_HEIGHT_PX = 2528;
 
 export async function validateArtworkImage(
   buffer: Buffer,
@@ -82,7 +82,7 @@ export async function validateArtworkImage(
     return {
       valid: false,
       code: "LOW_RESOLUTION",
-      message: `Image is too small for A5 print (${width}×${height} px). Minimum is ${MIN_PRINT_WIDTH_PX}×${MIN_PRINT_HEIGHT_PX} px (portrait) or ${MIN_PRINT_HEIGHT_PX}×${MIN_PRINT_WIDTH_PX} px (landscape) at 300 DPI.`,
+      message: `Image is too small for print (${width}×${height} px). Minimum is ${MIN_PRINT_WIDTH_PX}×${MIN_PRINT_HEIGHT_PX} px (portrait) or ${MIN_PRINT_HEIGHT_PX}×${MIN_PRINT_WIDTH_PX} px (landscape) at 2:3 aspect ratio.`,
     };
   }
 

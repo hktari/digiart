@@ -103,7 +103,7 @@ export default function CreatorArtworkNewPage() {
             Upload artworks
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            JPEG or PNG · min 1748 × 2480 px (portrait) · max 50 MB · multiple
+            JPEG or PNG · min 1696 × 2528 px (portrait) · max 50 MB · multiple
             files supported
           </p>
         </div>
@@ -165,8 +165,8 @@ export default function CreatorArtworkNewPage() {
         <strong>🖨 Print format:</strong> Your artwork will be printed at A5 (148
         × 210 mm). Any aspect ratio is accepted — images are scaled to fit the
         page with white margins on the shorter sides. For edge-to-edge coverage,
-        use a portrait image close to <strong>2:3 ratio</strong> (e.g. 1748 ×
-        2480 px).
+        use a portrait image close to <strong>2:3 ratio</strong> (e.g. 1696 ×
+        2528 px).
       </div>
 
       {/* File list */}

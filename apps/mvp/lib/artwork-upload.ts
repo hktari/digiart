@@ -15,9 +15,9 @@ export interface FileEntry {
 export const ALLOWED_ARTWORK_TYPES = ["image/jpeg", "image/png"];
 
 const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
-// A5 @ 300 DPI — must satisfy portrait (1748×2480) or landscape (2480×1748)
-const MIN_PRINT_WIDTH_PX = 1748;
-const MIN_PRINT_HEIGHT_PX = 2480;
+// 2K @ 2:3 aspect ratio — must satisfy portrait (1696×2528) or landscape (2528×1696)
+const MIN_PRINT_WIDTH_PX = 1696;
+const MIN_PRINT_HEIGHT_PX = 2528;
 
 function getImageDimensions(
   url: string,
@@ -65,7 +65,7 @@ export async function validateArtworkFile(
   if (!fitsPortrait && !fitsLandscape) {
     return {
       valid: false,
-      message: `Image is too small for A5 print (${width}\u00d7${height} px). Minimum is ${MIN_PRINT_WIDTH_PX}\u00d7${MIN_PRINT_HEIGHT_PX} px (portrait) or ${MIN_PRINT_HEIGHT_PX}\u00d7${MIN_PRINT_WIDTH_PX} px (landscape) at 300 DPI.`,
+      message: `Image is too small for print (${width}\u00d7${height} px). Minimum is ${MIN_PRINT_WIDTH_PX}\u00d7${MIN_PRINT_HEIGHT_PX} px (portrait) or ${MIN_PRINT_HEIGHT_PX}\u00d7${MIN_PRINT_WIDTH_PX} px (landscape) at 2:3 aspect ratio.`,
     };
   }
 

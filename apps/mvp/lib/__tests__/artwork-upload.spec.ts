@@ -48,15 +48,15 @@ describe("validateArtworkFile", () => {
     if (!result.valid) expect(result.message).toMatch(/too small/i);
   });
 
-  it("accepts valid portrait image (1748×2480)", async () => {
-    mockImageDimensions(1748, 2480);
+  it("accepts valid portrait image (1696×2528)", async () => {
+    mockImageDimensions(1696, 2528);
     const file = makeFile("image/jpeg", 1000);
     const result = await validateArtworkFile(file, "blob:test");
     expect(result.valid).toBe(true);
   });
 
-  it("accepts valid landscape image (2480×1748)", async () => {
-    mockImageDimensions(2480, 1748);
+  it("accepts valid landscape image (2528×1696)", async () => {
+    mockImageDimensions(2528, 1696);
     const file = makeFile("image/jpeg", 1000);
     const result = await validateArtworkFile(file, "blob:test");
     expect(result.valid).toBe(true);

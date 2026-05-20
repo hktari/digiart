@@ -76,6 +76,7 @@ CREATOR_NAMES="Artist One,Artist Two" \
 ```
 
 **What it does:**
+
 - Scans directory for `.jpg`, `.jpeg`, `.png` files
 - Auto-detects orientation (landscape vs portrait)
 - Generates front cover, artwork pages, back cover
@@ -118,30 +119,35 @@ curl -X POST http://localhost:3000/api/fulfillment/generate-booklet \
 Or via browser console (when logged in as admin):
 
 ```javascript
-fetch('/api/fulfillment/generate-booklet', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+fetch("/api/fulfillment/generate-booklet", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
     collectorProfileId: "YOUR_ID",
-    cycleId: "YOUR_CYCLE_ID"
-  })
-}).then(r => r.json()).then(console.log)
+    cycleId: "YOUR_CYCLE_ID",
+  }),
+})
+  .then((r) => r.json())
+  .then(console.log);
 ```
 
 ## PDF Layout Specifications
 
 ### Page Dimensions
+
 - **Format**: A6 (148mm × 105mm)
 - **Width**: 419.53 pt
 - **Height**: 595.28 pt
 - **Margin**: 28.35 pt (10mm)
 
 ### Artwork Requirements
-- **Minimum dimensions**: 1240px × 1748px
+
+- **Minimum dimensions**: 1696px × 2528px
 - **Orientation**: Must be set (PORTRAIT or LANDSCAPE)
 - **Formats**: JPEG or PNG
 
 ### Page Structure
+
 1. **Front Cover** (beige background)
    - Logo (centered, 40% page width)
    - Issue label (e.g., "April 2026")
@@ -171,9 +177,9 @@ const isLandscape = orientation === "LANDSCAPE";
 if (isLandscape) {
   // Rotate image 90° clockwise
   const scale = Math.min(printH / image.width, printW / image.height);
-  drawW = image.height * scale;  // Swapped!
-  drawH = image.width * scale;   // Swapped!
-  drawX = MARGIN_PT + (printW - drawW) / 2 + drawW;  // Offset for rotation
+  drawW = image.height * scale; // Swapped!
+  drawH = image.width * scale; // Swapped!
+  drawX = MARGIN_PT + (printW - drawW) / 2 + drawW; // Offset for rotation
   drawY = MARGIN_PT + (printH - drawH) / 2;
   rotate = degrees(90);
 } else {
@@ -250,16 +256,19 @@ To test landscape functionality:
 ## Troubleshooting
 
 ### Worker not processing jobs
+
 - Check Redis is running: `docker ps | grep redis`
 - Check worker logs: `tail -f /tmp/pdf-worker.log`
 - Verify `REDIS_URL` in `.env`
 
 ### Images not downloading
+
 - For S3/MinIO: Check `AWS_*` env vars
 - Verify images exist at storage URLs
 - Check MinIO console: http://localhost:9001
 
 ### PDF generation fails
+
 - Check artwork dimensions meet minimums
 - Verify image formats (JPEG/PNG only)
 - Check orientation is set (not UNKNOWN)
