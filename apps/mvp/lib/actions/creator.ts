@@ -279,10 +279,27 @@ export async function saveAvatar(
 
   const avatarUrl = getPublicStorageUrl(key);
 
-  await db.creatorProfile.update({
+  const existing = await db.creatorProfile.findUnique({
     where: { userId: session.user.id },
-    data: { avatar: avatarUrl },
+    select: { id: true },
   });
+
+  if (existing) {
+    await db.creatorProfile.update({
+      where: { userId: session.user.id },
+      data: { avatar: avatarUrl },
+    });
+  } else {
+    const uniqueSuffix = session.user.id.slice(0, 8);
+    await db.creatorProfile.create({
+      data: {
+        userId: session.user.id,
+        displayName: session.user.name ?? "Artist",
+        slug: `artist-${uniqueSuffix}`,
+        avatar: avatarUrl,
+      },
+    });
+  }
 
   revalidatePath("/");
   revalidatePath("/creator");
