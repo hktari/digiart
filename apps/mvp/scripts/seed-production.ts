@@ -16,7 +16,7 @@ if (!ADMIN_EMAIL) {
   process.exit(1);
 }
 
-const PEECHO_ENVIRONMENT = process.env.PEECHO_ENVIRONMENT || "SANDBOX";
+const PEECHO_ENV = process.env.PEECHO_ENV || "SANDBOX";
 
 const adapter = new PrismaPg({ connectionString });
 const db = new PrismaClient({ adapter });
@@ -80,7 +80,7 @@ async function seedProduction() {
       const provider = await db.podProviderConfig.create({
         data: {
           provider: "Peecho",
-          environment: PEECHO_ENVIRONMENT as "SANDBOX" | "PRODUCTION",
+          environment: PEECHO_ENV as "SANDBOX" | "PRODUCTION",
           isActive: true,
         },
       });

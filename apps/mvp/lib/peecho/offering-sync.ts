@@ -57,9 +57,7 @@ export async function syncPeechoOfferings(): Promise<{
         data: {
           provider: "Peecho",
           environment:
-            process.env.PEECHO_ENVIRONMENT === "PRODUCTION"
-              ? "PRODUCTION"
-              : "SANDBOX",
+            process.env.PEECHO_ENV === "PRODUCTION" ? "PRODUCTION" : "SANDBOX",
           isActive: true,
         },
       });

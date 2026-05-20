@@ -210,11 +210,11 @@ describe("syncPeechoOfferings", () => {
     expect(result.error).toContain("Peecho API error");
   });
 
-  it("uses PRODUCTION environment when PEECHO_ENVIRONMENT is PRODUCTION", async () => {
+  it("uses PRODUCTION environment when PEECHO_ENV is PRODUCTION", async () => {
     const { db } = await import("@/lib/db");
     const { peechoClient } = await import("../peecho/client");
 
-    process.env.PEECHO_ENVIRONMENT = "PRODUCTION";
+    process.env.PEECHO_ENV = "PRODUCTION";
     vi.mocked(db.podProviderConfig.findFirst).mockResolvedValue(null);
     vi.mocked(db.podProviderConfig.create).mockResolvedValue({
       id: "p1",
@@ -234,6 +234,6 @@ describe("syncPeechoOfferings", () => {
       data: expect.objectContaining({ environment: "PRODUCTION" }),
     });
 
-    delete process.env.PEECHO_ENVIRONMENT;
+    delete process.env.PEECHO_ENV;
   });
 });

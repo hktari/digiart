@@ -9,15 +9,18 @@ Sprint 4 successfully implemented the platform control layer that enables admins
 ### T16: Admin Cycles Management ✅
 
 **Admin Role Guard:**
+
 - Added `requireAdmin()` helper to `lib/roles.ts` for route protection
 - Redirects non-admin users to home page
 
 **Cycle Status Logic:**
+
 - Created `lib/cycle-status.ts` with automatic status transitions based on dates
 - Status flow: OPEN → LOCKED → PROCESSING → COMPLETE
 - Manual override capability for testing
 
 **Cycle Utilities:**
+
 - Created `lib/cycle-utils.ts` with helper functions:
   - `getCurrentCycle()` - fetch active cycle with computed status
   - `canEditRelease()` - check if cycle allows editing
@@ -26,28 +29,33 @@ Sprint 4 successfully implemented the platform control layer that enables admins
   - `getTimeUntilLock()` - countdown calculations
 
 **API Routes:**
+
 - `app/api/admin/cycles/route.ts` - GET (list), POST (create)
 - `app/api/admin/cycles/[id]/route.ts` - GET, PATCH, DELETE
 - Full validation with Zod schemas
 - Unique month/year constraint enforcement
 
 **Admin UI:**
+
 - `app/admin/cycles/page.tsx` - List view with status badges
 - `app/admin/cycles/new/page.tsx` - Create form
 - `app/admin/cycles/[id]/page.tsx` - Edit form with status override
 - `components/cycle-form.tsx` - Reusable form component
 
 **Server Actions:**
+
 - `lib/actions/cycle-actions.ts` - createCycle, updateCycle, deleteCycle, updateCycleStatus
 
 ### T17: Booklet Constraints Configuration ✅
 
 **API Routes:**
+
 - `app/api/admin/booklet-constraints/route.ts` - GET (list), POST (create)
 - `app/api/admin/booklet-constraints/[id]/route.ts` - GET, PATCH, DELETE
 - Auto-deactivate other constraints when activating one
 
 **Admin UI:**
+
 - `app/admin/booklet-constraints/page.tsx` - Full management interface
 - Active constraint highlighted in green
 - Version history table
@@ -55,32 +63,38 @@ Sprint 4 successfully implemented the platform control layer that enables admins
 - `components/constraint-form.tsx` - Reusable form component
 
 **Server Actions:**
+
 - `lib/actions/constraint-actions.ts` - createConstraint, updateConstraint, deleteConstraint, toggleConstraintActive
 
 ### T18: Peecho Integration ✅
 
 **Peecho API Client:**
+
 - `lib/peecho/client.ts` - HTTP client for Peecho API
 - Methods: `getOfferings()`, `getQuote()`
-- Environment variables: `PEECHO_API_KEY`, `PEECHO_API_URL`, `PEECHO_ENVIRONMENT`
+- Environment variables: `PEECHO_API_KEY`, `PEECHO_API_URL`, `PEECHO_ENV`
 
 **Offering Sync Service:**
+
 - `lib/peecho/offering-sync.ts` - Sync offerings from Peecho to DB
 - Maps Peecho fields to `PodOffering` schema
 - Updates `syncedAt` timestamp
 
 **Quote Service:**
+
 - `lib/peecho/quote-service.ts` - Get pricing quotes
 - Auto-selects default offering if not specified
 - Returns: shipping, product, tax, total amounts
 
 **API Routes:**
+
 - `app/api/admin/pod/sync/route.ts` - POST to trigger sync
 - `app/api/admin/pod/provider/route.ts` - GET provider with offerings
 - `app/api/admin/pod/offerings/[id]/route.ts` - PATCH to toggle active status
 - `app/api/pricing/quote/route.ts` - POST to get quote (authenticated users)
 
 **Admin UI:**
+
 - `app/admin/pod/page.tsx` - Full POD management interface
 - Provider details display
 - Offerings table with sync timestamps
@@ -90,16 +104,19 @@ Sprint 4 successfully implemented the platform control layer that enables admins
 ### T19: Collector Pricing Display ✅
 
 **Quote Snapshot Service:**
+
 - `lib/pricing/quote-snapshot.ts` - Persist quotes to DB
 - `createQuoteSnapshot()` - Save quote data
 - `getLatestQuote()` - Fetch most recent quote
 
 **Pricing Actions:**
+
 - `lib/actions/pricing-actions.ts` - fetchAndPersistQuote server action
 - Validates collector has shipping country set
 - Uses default page count of 20 for MVP
 
 **Collector UI:**
+
 - `app/collector/pricing/page.tsx` - Pricing estimate display
 - Shows breakdown: product, shipping, tax, total
 - Displays last quote timestamp
@@ -109,17 +126,20 @@ Sprint 4 successfully implemented the platform control layer that enables admins
 ### T20: Cycle Status UI Enforcement ✅
 
 **Status Components:**
+
 - `components/cycle-status-badge.tsx` - Color-coded status badges
 - `components/cycle-lock-countdown.tsx` - Real-time countdown timer
 - `components/cycle-locked-banner.tsx` - Warning banners for locked cycles
 
 **Release Actions Updates:**
+
 - Added cycle status checks to `lib/actions/releases.ts`:
   - `updateRelease()` - blocks if cycle locked
   - `setReleaseArtworks()` - blocks if cycle locked
   - `publishRelease()` - blocks if cycle locked
 
 **Creator UI Updates:**
+
 - `app/creator/releases/page.tsx`:
   - Displays current cycle status badge
   - Shows countdown to lock date when OPEN
@@ -136,6 +156,7 @@ Sprint 4 successfully implemented the platform control layer that enables admins
 ### Seed Scripts ✅
 
 **Development/Test Seed (`scripts/reset-test-db.ts`):**
+
 - Resets test DB and seeds deterministic E2E/dev data
 - Creates creator user (CREATOR) and no-role user
 - Seeds collector profile, catalog data, subscriptions, and selections
@@ -143,6 +164,7 @@ Sprint 4 successfully implemented the platform control layer that enables admins
 - Writes session credentials to `.env.test.local`
 
 **Production Seed (`scripts/seed-production.ts`):**
+
 - Creates admin user from `ADMIN_EMAIL` env var
 - Creates initial booklet constraint (30-50 pages)
 - Creates POD provider config (Peecho)
@@ -151,6 +173,7 @@ Sprint 4 successfully implemented the platform control layer that enables admins
 - No test data - production-ready only
 
 **Package.json Scripts:**
+
 - `pnpm db:seed` - Run development seed
 - `pnpm db:seed:production` - Run production seed
 
@@ -160,7 +183,7 @@ Sprint 4 successfully implemented the platform control layer that enables admins
 # Peecho POD Integration
 PEECHO_API_KEY=your_sandbox_key
 PEECHO_API_URL=https://sandbox.peecho.com/api/v1
-PEECHO_ENVIRONMENT=SANDBOX  # or PRODUCTION
+PEECHO_ENV=SANDBOX  # or PRODUCTION
 
 # Production Seed
 ADMIN_EMAIL=admin@yourplatform.com
@@ -169,6 +192,7 @@ ADMIN_EMAIL=admin@yourplatform.com
 ## Files Created
 
 ### Core Logic
+
 - `lib/roles.ts` (modified - added requireAdmin)
 - `lib/cycle-status.ts`
 - `lib/cycle-utils.ts`
@@ -178,12 +202,14 @@ ADMIN_EMAIL=admin@yourplatform.com
 - `lib/pricing/quote-snapshot.ts`
 
 ### Server Actions
+
 - `lib/actions/cycle-actions.ts`
 - `lib/actions/constraint-actions.ts`
 - `lib/actions/pricing-actions.ts`
 - `lib/actions/releases.ts` (modified - added cycle checks)
 
 ### API Routes
+
 - `app/api/admin/cycles/route.ts`
 - `app/api/admin/cycles/[id]/route.ts`
 - `app/api/admin/booklet-constraints/route.ts`
@@ -194,6 +220,7 @@ ADMIN_EMAIL=admin@yourplatform.com
 - `app/api/pricing/quote/route.ts`
 
 ### Admin Pages
+
 - `app/admin/cycles/page.tsx` (replaced placeholder)
 - `app/admin/cycles/new/page.tsx`
 - `app/admin/cycles/[id]/page.tsx`
@@ -201,14 +228,17 @@ ADMIN_EMAIL=admin@yourplatform.com
 - `app/admin/pod/page.tsx` (replaced placeholder)
 
 ### Collector Pages
+
 - `app/collector/pricing/page.tsx` (replaced placeholder)
 
 ### Creator Pages (modified)
+
 - `app/creator/releases/page.tsx` (added cycle status)
 - `app/creator/releases/new/page.tsx` (added cycle check)
 - `app/creator/releases/[id]/page.tsx` (added cycle lock banner)
 
 ### Components
+
 - `components/cycle-form.tsx`
 - `components/constraint-form.tsx`
 - `components/pricing-quote-display.tsx`
@@ -217,6 +247,7 @@ ADMIN_EMAIL=admin@yourplatform.com
 - `components/cycle-locked-banner.tsx`
 
 ### Scripts
+
 - `scripts/reset-test-db.ts` (modified)
 - `scripts/seed-production.ts`
 - `package.json` (modified - added seed scripts)
@@ -224,6 +255,7 @@ ADMIN_EMAIL=admin@yourplatform.com
 ## Key Features
 
 ### Admin Controls
+
 - ✅ Create/edit/delete subscription cycles
 - ✅ Set lock and fulfillment dates
 - ✅ Manual status override for testing
@@ -233,6 +265,7 @@ ADMIN_EMAIL=admin@yourplatform.com
 - ✅ Toggle offering active status
 
 ### Cycle Status Enforcement
+
 - ✅ Automatic status transitions based on dates
 - ✅ Block release creation when cycle locked
 - ✅ Block release editing when cycle locked
@@ -241,6 +274,7 @@ ADMIN_EMAIL=admin@yourplatform.com
 - ✅ User-friendly error messages
 
 ### Pricing Integration
+
 - ✅ Peecho API integration
 - ✅ Offering sync to database
 - ✅ Quote generation with breakdown
@@ -251,6 +285,7 @@ ADMIN_EMAIL=admin@yourplatform.com
 ## Testing Recommendations
 
 ### Manual Testing Checklist
+
 - [ ] Admin can create cycles with date validation
 - [ ] Only one constraint can be active at a time
 - [ ] Peecho offering sync populates database
@@ -265,6 +300,7 @@ ADMIN_EMAIL=admin@yourplatform.com
 - [ ] Cannot change selections when cycle locked
 
 ### Unit Tests Needed
+
 - Cycle status transition logic
 - Constraint activation/deactivation
 - Quote calculation (with mocked Peecho)
@@ -272,6 +308,7 @@ ADMIN_EMAIL=admin@yourplatform.com
 - Time until lock calculations
 
 ### Integration Tests Needed
+
 - Admin CRUD operations for cycles/constraints
 - Peecho offering sync (with mock API)
 - Quote API endpoint
@@ -302,6 +339,7 @@ ADMIN_EMAIL=admin@yourplatform.com
 ## Dependencies
 
 No new dependencies added. Using existing:
+
 - `zod` for validation
 - `@prisma/client` for DB operations
 - Native `fetch` for Peecho API calls
