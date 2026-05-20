@@ -13,6 +13,7 @@ import { getCurrentCycle } from "@/lib/actions/cycles";
 import { trackPageView } from "@/lib/analytics/events";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getUserRoles } from "@/lib/roles";
 
 async function getCollectorCheckoutIntent(
   collectorProfileId: string,
@@ -134,7 +135,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     );
   }
 
-  const roles = session.user.roles ?? [];
+  const roles = await getUserRoles(session.user.id);
   const isCreator = roles.includes("CREATOR");
   const isCollector = roles.includes("COLLECTOR");
 
