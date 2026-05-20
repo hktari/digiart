@@ -495,7 +495,6 @@ async function resetAndSeed() {
       await db.creatorPayoutProfile.create({
         data: {
           creatorProfileId: profile.id,
-          legalName: `Test Legal Name (${profile.slug})`,
           paypalEmail: `${profile.slug}@paypal-test.digiart`,
           isReady: true,
         },

@@ -16,12 +16,9 @@ export default async function SignInPage({
 }: {
   searchParams: Promise<{
     error?: string;
-    callbackUrl?: string;
-    redirect?: string;
   }>;
 }) {
-  const { error, callbackUrl: callbackUrlParam, redirect } = await searchParams;
-  const callbackUrl = callbackUrlParam ?? redirect;
+  const { error } = await searchParams;
 
   // Track sign-in started
   void trackAnonymousEvent(AnalyticsEvents.AUTH_SIGNIN_STARTED, {
@@ -44,9 +41,6 @@ export default async function SignInPage({
             </p>
           )}
           <form action={sendMagicLink} className="space-y-4">
-            {callbackUrl && (
-              <input type="hidden" name="callbackUrl" value={callbackUrl} />
-            )}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input

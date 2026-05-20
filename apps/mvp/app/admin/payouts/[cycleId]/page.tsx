@@ -25,7 +25,6 @@ export default async function AdminCyclePayoutsPage({
                 select: {
                   paypalEmail: true,
                   isReady: true,
-                  legalName: true,
                   isPayPalVerified: true,
                 },
               },
@@ -150,9 +149,6 @@ export default async function AdminCyclePayoutsPage({
                     Creator
                   </th>
                   <th className="px-6 py-3 text-left font-medium text-muted-foreground">
-                    Legal Name
-                  </th>
-                  <th className="px-6 py-3 text-left font-medium text-muted-foreground">
                     PayPal Email
                   </th>
                   <th className="px-6 py-3 text-left font-medium text-muted-foreground">
@@ -182,11 +178,6 @@ export default async function AdminCyclePayoutsPage({
                       <p className="text-xs text-muted-foreground/60">
                         @{payout.creatorProfile.slug}
                       </p>
-                    </td>
-                    <td className="px-6 py-4 text-muted-foreground">
-                      {payout.creatorProfile.payoutProfile?.legalName ?? (
-                        <span className="text-muted-foreground/40">—</span>
-                      )}
                     </td>
                     <td className="px-6 py-4 text-muted-foreground">
                       {payout.creatorProfile.payoutProfile?.paypalEmail ? (

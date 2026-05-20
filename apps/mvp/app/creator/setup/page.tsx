@@ -24,7 +24,6 @@ export default async function CreatorSetupPage() {
               slug: profile.slug,
               bio: profile.bio ?? undefined,
               sourcePlatforms: profile.sourcePlatform?.split(",") ?? undefined,
-              legalName: profile.payoutProfile?.legalName ?? undefined,
               paypalEmail: profile.payoutProfile?.paypalEmail ?? undefined,
             }
           : undefined

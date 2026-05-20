@@ -121,7 +121,6 @@ model CreatorProfile {
 model CreatorPayoutProfile {
   id               String    @id @default(cuid())
   creatorProfileId String    @unique
-  legalName        String?
   taxId            String?
   bankAccountInfo  String?   @db.Text
   paypalEmail      String?
