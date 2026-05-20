@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { decodeCursor, encodeCursor } from "@/lib/cursor";
 import { db } from "@/lib/db";
-import { getPublicStorageUrl } from "@/lib/s3";
+import { getPresignedStorageUrl, resolveAvatarUrl } from "@/lib/s3";
 
 export const runtime = "nodejs";
 
@@ -99,18 +99,29 @@ export async function GET(
   const hasMore = items.length > take;
   const itemsToReturn = hasMore ? items.slice(0, take) : items;
 
-  // Transform the data to include thumbnailUrl and flatten tags structure
-  const transformedItems = itemsToReturn.map((release) => ({
-    ...release,
-    artworks: release.artworks.map((artworkRelease) => ({
-      ...artworkRelease,
-      artwork: {
-        ...artworkRelease.artwork,
-        thumbnailUrl: getPublicStorageUrl(artworkRelease.artwork.storageKey),
+  const transformedItems = await Promise.all(
+    itemsToReturn.map(async (release) => ({
+      ...release,
+      creatorProfile: {
+        ...release.creatorProfile,
+        avatar: release.creatorProfile.avatar
+          ? await resolveAvatarUrl(release.creatorProfile.avatar)
+          : null,
       },
+      artworks: await Promise.all(
+        release.artworks.map(async (artworkRelease) => ({
+          ...artworkRelease,
+          artwork: {
+            ...artworkRelease.artwork,
+            thumbnailUrl: await getPresignedStorageUrl(
+              artworkRelease.artwork.storageKey,
+            ),
+          },
+        })),
+      ),
+      tags: release.tags.map((releaseTag) => releaseTag.tag),
     })),
-    tags: release.tags.map((releaseTag) => releaseTag.tag),
-  }));
+  );
 
   const nextCursor =
     hasMore && itemsToReturn.length > 0

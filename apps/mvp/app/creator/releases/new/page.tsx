@@ -7,7 +7,7 @@ import { auth } from "@/lib/auth";
 import { computeCycleStatus } from "@/lib/cycle-status";
 import { getCurrentCycle } from "@/lib/cycle-utils";
 import { db } from "@/lib/db";
-import { getPublicStorageUrl } from "@/lib/s3";
+import { getPresignedStorageUrl } from "@/lib/s3";
 
 export default async function CreatorReleaseNewPage() {
   const session = await auth();
@@ -42,11 +42,13 @@ export default async function CreatorReleaseNewPage() {
     select: { id: true, title: true, storageKey: true },
   });
 
-  const existingArtworks = artworks.map((a) => ({
-    id: a.id,
-    title: a.title,
-    thumbnailUrl: getPublicStorageUrl(a.storageKey),
-  }));
+  const existingArtworks = await Promise.all(
+    artworks.map(async (a) => ({
+      id: a.id,
+      title: a.title,
+      thumbnailUrl: await getPresignedStorageUrl(a.storageKey),
+    })),
+  );
 
   // Get platform limits
   const platformConfig = await db.platformConfig.findFirst({

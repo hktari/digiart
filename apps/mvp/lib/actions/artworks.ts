@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { getPublicStorageUrl } from "@/lib/s3";
+import { getPresignedStorageUrl } from "@/lib/s3";
 
 export interface ArtworkWithThumbnail extends Artwork {
   thumbnailUrl?: string;
@@ -45,12 +45,12 @@ export async function getCreatorArtworks(): Promise<ArtworkWithThumbnail[]> {
     orderBy: { createdAt: "desc" },
   });
 
-  // Generate thumbnail URLs from S3 storage keys
-  // Note: In production, you'd want to use a CDN or presigned URLs
-  return artworks.map((artwork) => ({
-    ...artwork,
-    thumbnailUrl: getPublicStorageUrl(artwork.storageKey),
-  }));
+  return Promise.all(
+    artworks.map(async (artwork) => ({
+      ...artwork,
+      thumbnailUrl: await getPresignedStorageUrl(artwork.storageKey),
+    })),
+  );
 }
 
 export async function archiveArtwork(artworkId: string): Promise<void> {

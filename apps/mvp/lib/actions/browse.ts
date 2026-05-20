@@ -2,7 +2,7 @@
 
 import type { Tag } from "@prisma/client";
 import { db } from "@/lib/db";
-import { getPublicStorageUrl } from "@/lib/s3";
+import { getPresignedStorageUrl } from "@/lib/s3";
 
 export async function getAllPublishedCreators(
   tagSlug?: string,
@@ -133,18 +133,23 @@ export async function getAllPublishedReleases(
     },
   });
 
-  // Transform the data to include thumbnailUrl and flatten tags structure
-  return releases.map((release) => ({
-    ...release,
-    artworks: release.artworks.map((artworkRelease) => ({
-      ...artworkRelease,
-      artwork: {
-        ...artworkRelease.artwork,
-        thumbnailUrl: getPublicStorageUrl(artworkRelease.artwork.storageKey),
-      },
+  return Promise.all(
+    releases.map(async (release) => ({
+      ...release,
+      artworks: await Promise.all(
+        release.artworks.map(async (artworkRelease) => ({
+          ...artworkRelease,
+          artwork: {
+            ...artworkRelease.artwork,
+            thumbnailUrl: await getPresignedStorageUrl(
+              artworkRelease.artwork.storageKey,
+            ),
+          },
+        })),
+      ),
+      tags: release.tags.map((releaseTag) => releaseTag.tag),
     })),
-    tags: release.tags.map((releaseTag) => releaseTag.tag),
-  }));
+  );
 }
 
 export async function getAllTags(): Promise<

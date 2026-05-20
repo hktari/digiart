@@ -91,6 +91,37 @@ export async function getPresignedGetUrl(
   return getSignedUrl(getS3Client(), command, { expiresIn: expiresInSeconds });
 }
 
+/**
+ * Primary URL resolver for serving storage objects.
+ * Always uses presigned URLs (1 hour TTL) since the bucket is private.
+ */
+export async function getPresignedStorageUrl(key: string): Promise<string> {
+  return getPresignedGetUrl(key, 60 * 60); // 1 hour
+}
+
+/**
+ * Resolves the S3 key from an avatar field value.
+ * Handles both legacy full-URL values and new key-only values.
+ * Returns null if the value cannot be resolved to a key.
+ */
+export function extractAvatarKey(avatarFieldValue: string): string | null {
+  if (avatarFieldValue.startsWith("avatars/")) {
+    return avatarFieldValue;
+  }
+  return extractKeyFromStorageUrl(avatarFieldValue);
+}
+
+/**
+ * Resolves an avatar field value (key or legacy full URL) to a presigned URL.
+ */
+export async function resolveAvatarUrl(
+  avatarFieldValue: string,
+): Promise<string | null> {
+  const key = extractAvatarKey(avatarFieldValue);
+  if (!key) return null;
+  return getPresignedStorageUrl(key);
+}
+
 export const s3 = new Proxy({} as S3Client, {
   get(_target, prop) {
     return (getS3Client() as unknown as Record<string | symbol, unknown>)[prop];

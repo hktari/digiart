@@ -8,7 +8,7 @@ import { AnalyticsEvents, trackUserEvent } from "@/lib/analytics/events";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { enqueueAutoAssignRelease } from "@/lib/queue/auto-assign";
-import { getPublicStorageUrl } from "@/lib/s3";
+import { getPresignedStorageUrl } from "@/lib/s3";
 import { getReleaseTags, setReleaseTags } from "./tags";
 
 // ---------------------------------------------------------------------------
@@ -28,8 +28,11 @@ async function requireCreatorProfile() {
   return profile.id;
 }
 
-function withThumbnail<T extends { storageKey: string }>(artwork: T) {
-  return { ...artwork, thumbnailUrl: getPublicStorageUrl(artwork.storageKey) };
+async function withThumbnail<T extends { storageKey: string }>(artwork: T) {
+  return {
+    ...artwork,
+    thumbnailUrl: await getPresignedStorageUrl(artwork.storageKey),
+  };
 }
 
 async function getPlatformLimits() {
@@ -94,10 +97,12 @@ export async function getRelease(id: string): Promise<any> {
   return {
     ...release,
     tags: tags.map((tag) => tag.name),
-    artworks: release.artworks.map((ra) => ({
-      ...ra,
-      artwork: withThumbnail(ra.artwork),
-    })),
+    artworks: await Promise.all(
+      release.artworks.map(async (ra) => ({
+        ...ra,
+        artwork: await withThumbnail(ra.artwork),
+      })),
+    ),
   };
 }
 
@@ -109,7 +114,7 @@ export async function getCreatorArtworksForRelease(): Promise<any[]> {
     orderBy: { createdAt: "desc" },
   });
 
-  return artworks.map(withThumbnail);
+  return Promise.all(artworks.map(withThumbnail));
 }
 
 // ---------------------------------------------------------------------------

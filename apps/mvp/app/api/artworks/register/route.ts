@@ -9,7 +9,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { validateArtworkImage } from "@/lib/image-validation";
-import { getPublicStorageUrl, getS3Bucket, s3 } from "@/lib/s3";
+import { getPresignedStorageUrl, getS3Bucket, s3 } from "@/lib/s3";
 
 async function streamToBuffer(stream: Readable): Promise<Buffer> {
   const chunks: Uint8Array[] = [];
@@ -97,7 +97,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     .send(new DeleteObjectCommand({ Bucket: bucket, Key: pendingKey }))
     .catch(() => {});
 
-  const storageUrl = getPublicStorageUrl(finalKey);
+  const storageUrl = await getPresignedStorageUrl(finalKey);
 
   const artwork = await db.artwork.create({
     data: {

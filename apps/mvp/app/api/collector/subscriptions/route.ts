@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { decodeCursor, encodeCursor } from "@/lib/cursor";
 import { db } from "@/lib/db";
+import { resolveAvatarUrl } from "@/lib/s3";
 
 export const runtime = "nodejs";
 
@@ -85,8 +86,20 @@ export async function GET(request: NextRequest) {
         )
       : null;
 
+  const resolvedItems = await Promise.all(
+    itemsToReturn.map(async (item) => ({
+      ...item,
+      creatorProfile: {
+        ...item.creatorProfile,
+        avatar: item.creatorProfile.avatar
+          ? await resolveAvatarUrl(item.creatorProfile.avatar)
+          : null,
+      },
+    })),
+  );
+
   return NextResponse.json({
-    items: itemsToReturn,
+    items: resolvedItems,
     nextCursor,
   });
 }

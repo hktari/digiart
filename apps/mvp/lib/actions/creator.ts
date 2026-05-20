@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { getPublicStorageUrl } from "@/lib/s3";
+import { getPresignedStorageUrl, resolveAvatarUrl } from "@/lib/s3";
 
 const slugSchema = z
   .string()
@@ -279,8 +279,6 @@ export async function saveAvatar(
     return { success: false, error: "Invalid avatar key" };
   }
 
-  const avatarUrl = getPublicStorageUrl(key);
-
   const existing = await db.creatorProfile.findUnique({
     where: { userId: session.user.id },
     select: { id: true },
@@ -289,7 +287,7 @@ export async function saveAvatar(
   if (existing) {
     await db.creatorProfile.update({
       where: { userId: session.user.id },
-      data: { avatar: avatarUrl },
+      data: { avatar: key },
     });
   } else {
     const uniqueSuffix = session.user.id.slice(0, 8);
@@ -298,7 +296,7 @@ export async function saveAvatar(
         userId: session.user.id,
         displayName: session.user.name ?? "Artist",
         slug: `artist-${uniqueSuffix}`,
-        avatar: avatarUrl,
+        avatar: key,
       },
     });
   }
@@ -307,6 +305,7 @@ export async function saveAvatar(
   revalidatePath("/creator");
   revalidatePath("/creator/profile");
 
+  const avatarUrl = await getPresignedStorageUrl(key);
   return { success: true, avatarUrl };
 }
 
@@ -409,19 +408,24 @@ export async function getPublicCreatorProfile(slug: string): Promise<any> {
 
   if (!profile) return null;
 
-  return {
-    ...profile,
-    releases: profile.releases.map((release) => ({
+  const releases = await Promise.all(
+    profile.releases.map(async (release) => ({
       ...release,
-      artworks: release.artworks.map((ra) => ({
-        ...ra,
-        artwork: {
-          ...ra.artwork,
-          thumbnailUrl: getPublicStorageUrl(ra.artwork.storageKey),
-        },
-      })),
+      artworks: await Promise.all(
+        release.artworks.map(async (ra) => ({
+          ...ra,
+          artwork: {
+            ...ra.artwork,
+            thumbnailUrl: await getPresignedStorageUrl(ra.artwork.storageKey),
+          },
+        })),
+      ),
     })),
-  };
+  );
+
+  const avatar = profile.avatar ? await resolveAvatarUrl(profile.avatar) : null;
+
+  return { ...profile, avatar, releases };
 }
 
 export async function getPublicCreatorReleases(slug: string): Promise<any[]> {
@@ -777,11 +781,9 @@ export async function getPublicReleaseDetail(
     return null;
   }
 
-  return {
-    ...release,
-    creatorProfile: profile,
-    artworks: release.artworks.map((item) => {
-      const imageUrl = getPublicStorageUrl(item.artwork.storageKey);
+  const artworks = await Promise.all(
+    release.artworks.map(async (item) => {
+      const imageUrl = await getPresignedStorageUrl(item.artwork.storageKey);
       return {
         ...item,
         artwork: {
@@ -791,6 +793,12 @@ export async function getPublicReleaseDetail(
         },
       };
     }),
+  );
+
+  return {
+    ...release,
+    creatorProfile: profile,
+    artworks,
     tags: release.tags.map((item) => item.tag),
   };
 }
