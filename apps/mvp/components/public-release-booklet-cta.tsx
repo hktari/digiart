@@ -39,6 +39,7 @@ export function PublicReleaseBookletCta({
       isAuthenticated,
       hasCollectorRole,
       cycleId,
+      initiallySelected,
     },
   );
 
@@ -123,7 +124,7 @@ export function PublicReleaseBookletCta({
           disabled={isPending || !isHydrated}
           className={`inline-flex justify-center rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50 ${
             effectiveSelected
-              ? "border border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
+              ? "border border-destructive-border bg-destructive-bg text-destructive-foreground hover:opacity-90"
               : "bg-fuchsia-600 text-white hover:bg-fuchsia-700"
           }`}
         >

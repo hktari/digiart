@@ -7,8 +7,9 @@ import {
   useState,
   useTransition,
 } from "react";
-import { mutate } from "swr";
+import useSWR, { mutate } from "swr";
 import { CART_SUMMARY_KEY } from "@/components/collector-booklet-cart";
+import type { CollectorCartSummary } from "@/lib/actions/collector";
 import { toggleReleaseSelection } from "@/lib/actions/collector";
 import { dispatchDiscoverBookletUpdated } from "@/lib/discover-booklet-events";
 
@@ -74,6 +75,7 @@ export type UseBookletToggleOptions = {
   isAuthenticated: boolean;
   hasCollectorRole: boolean;
   cycleId: string | null;
+  initiallySelected?: boolean;
 };
 
 export type UseBookletToggleReturn = {
@@ -83,21 +85,45 @@ export type UseBookletToggleReturn = {
   toggle: () => void;
 };
 
+interface CartData extends CollectorCartSummary {
+  quote: unknown | null;
+  checkoutIntent: unknown | null;
+  cycleLockDate: string | null;
+}
+
+const cartFetcher = async (url: string): Promise<CartData> => {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to load cart summary");
+  return res.json();
+};
+
 export function useBookletToggle(
   releaseId: string,
   releaseData: ReleaseData | null,
   options: UseBookletToggleOptions,
 ): UseBookletToggleReturn {
-  const { isAuthenticated, hasCollectorRole, cycleId } = options;
+  const { isAuthenticated, hasCollectorRole, cycleId, initiallySelected } =
+    options;
   const canUseServer = isAuthenticated && hasCollectorRole && cycleId !== null;
 
   const [isPending, startTransition] = useTransition();
   const [localSelected, setLocalSelected] = useState<boolean | null>(null);
-  const [serverSelected, setServerSelected] = useState<boolean | null>(null);
+  // Optimistic override: null means "use SWR/initiallySelected as source of truth"
+  const [optimisticOverride, setOptimisticOverride] = useState<boolean | null>(
+    null,
+  );
   const [isHydrated, setIsHydrated] = useState(false);
 
+  // Subscribe to the live cart state so sidebar removals and other page toggles
+  // are reflected here without a page reload.
+  const { data: cartData } = useSWR<CartData>(
+    canUseServer ? CART_SUMMARY_KEY : null,
+    cartFetcher,
+    { revalidateOnFocus: true },
+  );
+
   useEffect(() => {
-    // Hydrate local selection from localStorage
+    // Hydrate local selection from localStorage (used by anon / non-collector paths)
     const items = getStoredBooklet();
     setLocalSelected(items.some((i) => i.releaseId === releaseId));
     setIsHydrated(true);
@@ -105,27 +131,43 @@ export function useBookletToggle(
 
   const isSelected = useMemo(() => {
     if (canUseServer) {
-      return serverSelected ?? localSelected ?? false;
+      // If we have an in-flight optimistic update, use that
+      if (optimisticOverride !== null) return optimisticOverride;
+      // If SWR has loaded, derive from the live cart
+      if (cartData) {
+        return cartData.selectedReleases.some((r) => r.releaseId === releaseId);
+      }
+      // Fall back to SSR-computed value while SWR is loading
+      return initiallySelected ?? false;
     }
     return localSelected ?? false;
-  }, [canUseServer, serverSelected, localSelected]);
+  }, [
+    canUseServer,
+    optimisticOverride,
+    cartData,
+    releaseId,
+    initiallySelected,
+    localSelected,
+  ]);
 
   const toggle = useCallback(() => {
     if (canUseServer && cycleId) {
       const nextSelected = !isSelected;
-      setServerSelected(nextSelected);
+      setOptimisticOverride(nextSelected);
       startTransition(async () => {
         try {
           const result = await toggleReleaseSelection(releaseId, cycleId);
           if (!result.success) {
             // Revert on failure
-            setServerSelected((prev) => !prev);
+            setOptimisticOverride((prev) => (prev === null ? null : !prev));
             return;
           }
+          // Clear optimistic override and let SWR give us the truth
+          setOptimisticOverride(null);
           mutate(CART_SUMMARY_KEY);
         } catch {
           // Revert on error
-          setServerSelected((prev) => !prev);
+          setOptimisticOverride((prev) => (prev === null ? null : !prev));
         }
       });
       return;

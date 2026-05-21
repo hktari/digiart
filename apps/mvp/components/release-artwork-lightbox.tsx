@@ -43,6 +43,7 @@ export function ReleaseArtworkLightbox({
       isAuthenticated,
       hasCollectorRole,
       cycleId,
+      initiallySelected,
     },
   );
   const effectiveSelected = isHydrated ? isSelected : initiallySelected;
@@ -180,7 +181,7 @@ export function ReleaseArtworkLightbox({
                 disabled={isPending || !isHydrated}
                 className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold disabled:opacity-50 ${
                   effectiveSelected
-                    ? "border border-red-200 bg-red-50 text-red-700"
+                    ? "border border-destructive-border bg-destructive-bg text-destructive-foreground"
                     : "bg-fuchsia-600 text-white"
                 }`}
               >
