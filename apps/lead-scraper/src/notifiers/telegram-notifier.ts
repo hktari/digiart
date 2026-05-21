@@ -43,6 +43,23 @@ export class TelegramNotifier {
     });
   }
 
+  async sendErrorAlert(error: Error, context?: string): Promise<void> {
+    const message = `🚨 *Lead Scraper Error*
+
+${context ? `*Context:* ${this.escapeMarkdown(context)}\n\n` : ""}*Error:* ${this.escapeMarkdown(error.message)}
+
+*Stack:*
+\`\`\`
+${error.stack?.substring(0, 500) || "No stack trace"}
+\`\`\`
+
+*Time:* ${this.formatDate(new Date())}`;
+
+    await this.bot.sendMessage(this.chatId, message, {
+      parse_mode: "Markdown",
+    });
+  }
+
   private formatHotLeadMessage(post: QualifiedPost): string {
     const qual = post.qualification!;
 

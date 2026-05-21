@@ -1,4 +1,5 @@
 import { LeadScraperOrchestrator } from "./graph/orchestrator.js";
+import { TelegramNotifier } from "./notifiers/telegram-notifier.js";
 import { loadConfig, SUBREDDITS } from "./utils/config.js";
 
 async function main() {
@@ -42,7 +43,22 @@ async function main() {
       console.log(`   Errors: ${result.errors.length}`);
     }
   } catch (error) {
-    console.error("❌ Error during scraping:", error);
+    console.error("❌ Fatal error during scraping:", error);
+
+    // Send error notification to Telegram
+    try {
+      const notifier = new TelegramNotifier(
+        config.TELEGRAM_BOT_TOKEN,
+        config.TELEGRAM_CHAT_ID,
+      );
+      await notifier.sendErrorAlert(
+        error instanceof Error ? error : new Error(String(error)),
+        "Lead scraper failed to complete",
+      );
+    } catch (notifError) {
+      console.error("❌ Failed to send error notification:", notifError);
+    }
+
     process.exit(1);
   }
 }

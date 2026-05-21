@@ -113,15 +113,47 @@ pnpm run format
 
 ## Scheduling (Linux Cron)
 
-Run daily at 9am:
+### Recommended: Use Wrapper Script (with error notifications)
 
 ```bash
 # Edit crontab
 crontab -e
 
-# Add line:
-0 9 * * * cd /path/to/apps/lead-scraper && pnpm run scrape >> logs/scraper.log 2>&1
+# Run every 2 hours (recommended)
+0 */2 * * * /path/to/apps/lead-scraper/scripts/run-scraper.sh
+
+# Or every hour
+0 * * * * /path/to/apps/lead-scraper/scripts/run-scraper.sh
+
+# Or daily at 9am
+0 9 * * * /path/to/apps/lead-scraper/scripts/run-scraper.sh
 ```
+
+The wrapper script:
+- ✅ Logs all output with timestamps
+- ✅ Sends Telegram alerts on fatal errors
+- ✅ Cleans up old logs automatically (keeps 30 days)
+
+### Alternative: Direct pnpm execution
+
+```bash
+0 */2 * * * cd /path/to/apps/lead-scraper && pnpm run scrape >> logs/scraper.log 2>&1
+```
+
+**Note:** Direct execution only sends error notifications for caught errors. Use wrapper script for complete coverage.
+
+## Error Notifications
+
+Errors are automatically sent to Telegram:
+
+- 🚨 **Fatal errors**: Sent immediately (crashes, database failures, etc.)
+- ⚠️ **Non-fatal errors**: Included in daily summary (RSS parsing failures, etc.)
+
+All errors include:
+- Error message
+- Stack trace
+- Context
+- Timestamp
 
 ## Database Schema
 
