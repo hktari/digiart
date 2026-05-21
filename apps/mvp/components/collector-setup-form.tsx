@@ -2,6 +2,7 @@
 
 import type { FulfillmentCountry, FulfillmentState } from "@prisma/client";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useActionState, useEffect, useState } from "react";
 import type { CollectorSetupResult } from "@/lib/actions/collector";
 import { saveCollectorProfile } from "@/lib/actions/collector";
@@ -20,8 +21,12 @@ export function CollectorSetupForm({
   redirectTo = "/",
 }: CollectorSetupFormProps) {
   const router = useRouter();
+  const { update: updateSession } = useSession();
   const [shippingCountry, setShippingCountry] = useState(
     initialData?.shippingCountry || "",
+  );
+  const [shippingStateCode, setShippingStateCode] = useState(
+    initialData?.shippingStateCode || "",
   );
   const [countries, setCountries] = useState<FulfillmentCountry[]>([]);
   const [states, setStates] = useState<FulfillmentState[]>([]);
@@ -30,13 +35,19 @@ export function CollectorSetupForm({
   const [state, formAction, isPending] = useActionState<
     CollectorSetupResult,
     FormData
-  >(saveCollectorProfile, { success: false, errors: {} });
+  >(
+    async (prevState, formData) => {
+      const result = await saveCollectorProfile(prevState, formData);
+      return result;
+    },
+    { success: false, errors: {} },
+  );
 
   useEffect(() => {
     if (state.success) {
-      router.push(redirectTo);
+      updateSession().then(() => router.push(redirectTo));
     }
-  }, [state.success, router, redirectTo]);
+  }, [state, router, redirectTo, updateSession]);
 
   useEffect(() => {
     async function fetchCountries() {
@@ -124,10 +135,13 @@ export function CollectorSetupForm({
             <select
               id="shippingCountry"
               name="shippingCountry"
-              defaultValue={initialData?.shippingCountry}
+              value={shippingCountry}
               required
               disabled={isLoadingCountries}
-              onChange={(event) => setShippingCountry(event.target.value)}
+              onChange={(event) => {
+                setShippingCountry(event.target.value);
+                setShippingStateCode("");
+              }}
               className="mt-1 block w-full rounded-md border bg-background px-3 py-2 shadow-sm focus:border-fuchsia-500 focus:outline-none focus:ring-1 focus:ring-fuchsia-500 disabled:opacity-50"
             >
               <option value="">
@@ -157,9 +171,10 @@ export function CollectorSetupForm({
               <select
                 id="shippingStateCode"
                 name="shippingStateCode"
-                defaultValue={initialData?.shippingStateCode}
+                value={shippingStateCode}
                 required
                 disabled={isLoadingStates}
+                onChange={(event) => setShippingStateCode(event.target.value)}
                 className="mt-1 block w-full rounded-md border bg-background px-3 py-2 shadow-sm focus:border-fuchsia-500 focus:outline-none focus:ring-1 focus:ring-fuchsia-500 disabled:opacity-50"
               >
                 <option value="">
