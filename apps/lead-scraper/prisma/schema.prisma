@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ScrapingRun {
+  id            String    @id @default(cuid())
+  startedAt     DateTime  @default(now())
+  completedAt   DateTime?
+  status        String    // "running" | "completed" | "failed"
+  totalPosts    Int       @default(0)
+  filteredPosts Int       @default(0)
+  qualifiedLeads Int      @default(0)
+  hotLeads      Int       @default(0)
+  errors        Json?     // Array of error messages
+  leads         Lead[]
+  
+  @@index([startedAt])
+}
+
+model Lead {
+  id              String       @id @default(cuid())
+  postId          String       @unique // Reddit post ID from URL
+  postUrl         String
+  subreddit       String
+  title           String
+  content         String       @db.Text
+  author          String
+  publishedAt     DateTime
+  scrapedAt       DateTime     @default(now())
+  
+  // Filtering
+  passedFilter    Boolean      @default(false)
+  matchedKeywords String[]     @default([])
+  
+  // Qualification
+  qualified       Boolean      @default(false)
+  qualifiedAt     DateTime?
+  score           Int?         // 0-100
+  reasoning       String?      @db.Text
+  isHotLead       Boolean      @default(false)
+  
+  // Notifications
+  notifiedAt      DateTime?
+  
+  // Relations
+  scrapingRunId   String
+  scrapingRun     ScrapingRun  @relation(fields: [scrapingRunId], references: [id], onDelete: Cascade)
+  painPoints      PainPoint[]
+  
+  @@index([subreddit, scrapedAt])
+  @@index([score])
+  @@index([isHotLead])
+}
+
+model PainPoint {
+  id          String   @id @default(cuid())
+  category    String   // "monetization" | "platform_fees" | "discovery" | "spam_bots" | "payment_issues" | "disclosure_requirements"
+  description String   @db.Text
+  severity    String   // "low" | "medium" | "high"
+  
+  leadId      String
+  lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  
+  @@index([category])
+  @@index([severity])
+}
