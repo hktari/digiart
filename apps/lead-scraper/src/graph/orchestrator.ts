@@ -46,6 +46,30 @@ export class LeadScraperOrchestrator {
     };
   }
 
+  async deduplicateNode(
+    state: GraphStateType,
+  ): Promise<Partial<GraphStateType>> {
+    console.log(`🔍 Checking ${state.allPosts.length} posts for duplicates...`);
+
+    if (state.allPosts.length === 0) {
+      console.log("✓ No posts to deduplicate");
+      return {};
+    }
+
+    const postIds = state.allPosts.map((p) => p.id);
+    const existingIds = await this.db.getExistingPostIds(postIds);
+
+    const newPosts = state.allPosts.filter((p) => !existingIds.has(p.id));
+    const duplicateCount = state.allPosts.length - newPosts.length;
+
+    console.log(
+      `✓ ${newPosts.length} new posts, ${duplicateCount} duplicates skipped`,
+    );
+
+    // Return new array to replace the old one
+    return { allPosts: newPosts };
+  }
+
   async filterNode(state: GraphStateType): Promise<Partial<GraphStateType>> {
     console.log(`🔍 Filtering ${state.allPosts.length} posts...`);
 
@@ -147,12 +171,14 @@ export class LeadScraperOrchestrator {
   buildGraph() {
     const workflow = new StateGraph(GraphState)
       .addNode("scrape", this.scrapeNode.bind(this))
+      .addNode("deduplicate", this.deduplicateNode.bind(this))
       .addNode("filter", this.filterNode.bind(this))
       .addNode("qualify", this.qualifyNode.bind(this))
       .addNode("store", this.storeNode.bind(this))
       .addNode("notify", this.notifyNode.bind(this))
       .addEdge("__start__", "scrape")
-      .addEdge("scrape", "filter")
+      .addEdge("scrape", "deduplicate")
+      .addEdge("deduplicate", "filter")
       .addEdge("filter", "qualify")
       .addEdge("qualify", "store")
       .addEdge("store", "notify")

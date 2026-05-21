@@ -64,7 +64,10 @@ ${error.stack?.substring(0, 500) || "No stack trace"}
     const qual = post.qualification!;
 
     const painPointsList = qual.painPoints
-      .map((pp) => `  • ${pp.category} (${pp.severity}): ${pp.description}`)
+      .map(
+        (pp) =>
+          `  • ${pp.category} (${pp.severity}): ${this.escapeMarkdown(pp.description)}`,
+      )
       .join("\n");
 
     return `🔥 *HOT LEAD DETECTED* 🔥
@@ -72,7 +75,7 @@ ${error.stack?.substring(0, 500) || "No stack trace"}
 *Score:* ${qual.score}/100
 
 *Subreddit:* r/${post.subreddit}
-*Author:* u/${post.author}
+*Author:* u/${this.escapeMarkdown(post.author)}
 *Posted:* ${this.formatDate(post.publishedAt)}
 
 *Title:* ${this.escapeMarkdown(post.title)}
@@ -169,6 +172,9 @@ ${stats.errors > 0 ? `• Errors: ${stats.errors}` : ""}
 
   private escapeMarkdown(text: string): string {
     // Escape Telegram markdown special characters
-    return text.replace(/([_*[\]()~`>#+\-=|{}.!])/g, "\\$1");
+    // Need to escape backslash first, then other special chars
+    return text
+      .replace(/\\/g, "\\\\")
+      .replace(/([_*[\]()~`>#+\-=|{}.!])/g, "\\$1");
   }
 }

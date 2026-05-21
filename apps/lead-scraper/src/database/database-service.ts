@@ -142,6 +142,19 @@ export class DatabaseService {
     return leadIds;
   }
 
+  async getExistingPostIds(postIds: string[]): Promise<Set<string>> {
+    if (postIds.length === 0) {
+      return new Set();
+    }
+
+    const leads = await this.prisma.lead.findMany({
+      where: { postId: { in: postIds } },
+      select: { postId: true },
+    });
+
+    return new Set(leads.map((l) => l.postId));
+  }
+
   async markLeadNotified(leadId: string): Promise<void> {
     await this.prisma.lead.update({
       where: { id: leadId },
