@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useTransition } from "react";
-import { mutate } from "swr";
+import { useMemo, useState, useTransition } from "react";
+import useSWR, { mutate } from "swr";
 import { CART_SUMMARY_KEY } from "@/components/collector-booklet-cart";
+import type { CollectorCartSummary } from "@/lib/actions/collector";
 import { toggleReleaseSelection } from "@/lib/actions/collector";
 
 type Release = {
@@ -38,34 +39,78 @@ interface ReleaseSelectionGridProps {
   cycleId: string;
 }
 
+interface CartData extends CollectorCartSummary {
+  quote: unknown | null;
+  checkoutIntent: unknown | null;
+  cycleLockDate: string | null;
+}
+
+const fetcher = async (url: string): Promise<CartData> => {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to load cart summary");
+  return res.json();
+};
+
 export function ReleaseSelectionGrid({
   releases,
   selectedReleaseIds: initialSelectedIds,
   cycleId,
 }: ReleaseSelectionGridProps) {
-  const [selectedIds, setSelectedIds] = useState(initialSelectedIds);
+  // Optimistic overrides: releaseId -> boolean, applied on top of SWR truth
+  const [optimisticOverrides, setOptimisticOverrides] = useState<
+    Map<string, boolean>
+  >(new Map());
   const [isPending, startTransition] = useTransition();
 
-  const handleToggle = (releaseId: string) => {
-    const newSelectedIds = new Set(selectedIds);
-    if (newSelectedIds.has(releaseId)) {
-      newSelectedIds.delete(releaseId);
-    } else {
-      newSelectedIds.add(releaseId);
+  const { data: cartData } = useSWR<CartData>(CART_SUMMARY_KEY, fetcher, {
+    revalidateOnFocus: true,
+  });
+
+  // SWR cart is source of truth; fall back to SSR value while loading
+  const serverIds = useMemo<Set<string>>(() => {
+    if (cartData) {
+      return new Set(cartData.selectedReleases.map((r) => r.releaseId));
     }
-    setSelectedIds(newSelectedIds);
+    return initialSelectedIds;
+  }, [cartData, initialSelectedIds]);
+
+  // Apply any in-flight optimistic overrides on top
+  const selectedIds = useMemo<Set<string>>(() => {
+    if (optimisticOverrides.size === 0) return serverIds;
+    const result = new Set(serverIds);
+    for (const [id, selected] of optimisticOverrides) {
+      if (selected) result.add(id);
+      else result.delete(id);
+    }
+    return result;
+  }, [serverIds, optimisticOverrides]);
+
+  const clearOverride = (releaseId: string) => {
+    setOptimisticOverrides((prev) => {
+      const next = new Map(prev);
+      next.delete(releaseId);
+      return next;
+    });
+  };
+
+  const handleToggle = (releaseId: string) => {
+    const nextSelected = !selectedIds.has(releaseId);
+    setOptimisticOverrides((prev) =>
+      new Map(prev).set(releaseId, nextSelected),
+    );
 
     startTransition(async () => {
       try {
         const result = await toggleReleaseSelection(releaseId, cycleId);
         if (!result.success) {
-          setSelectedIds(selectedIds);
+          clearOverride(releaseId);
           return;
         }
+        clearOverride(releaseId);
         mutate(CART_SUMMARY_KEY);
       } catch (error) {
         console.error("Failed to toggle selection:", error);
-        setSelectedIds(selectedIds);
+        clearOverride(releaseId);
       }
     });
   };
@@ -110,10 +155,10 @@ export function ReleaseSelectionGrid({
           <Link
             key={release.id}
             href={`/creators/${release.creatorProfile.slug}/releases/${release.id}`}
-            className={`bg-white rounded-lg border-2 overflow-hidden transition-all block ${
+            className={`bg-card rounded-lg border-2 overflow-hidden transition-all block ${
               isSelected
                 ? "border-fuchsia-500 shadow-lg"
-                : "border-border hover:border-neutral-300"
+                : "border-border hover:border-fuchsia-300 hover:shadow-md"
             }`}
           >
             {coverArtwork && (
@@ -164,7 +209,7 @@ export function ReleaseSelectionGrid({
                   {release.artworks.length === 1 ? "page" : "pages"}
                 </span>
                 {isSelected && (
-                  <span className="rounded-full bg-fuchsia-100 px-2 py-0.5 text-fuchsia-700">
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-primary">
                     In booklet
                   </span>
                 )}
@@ -178,11 +223,11 @@ export function ReleaseSelectionGrid({
                   handleToggle(release.id);
                 }}
                 disabled={isPending}
-                className={`w-full px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                className={`w-full px-3 py-2 text-sm font-medium rounded-md transition-colors disabled:opacity-50 ${
                   isSelected
-                    ? "bg-red-50 text-red-700 border border-red-200 hover:bg-red-100"
+                    ? "bg-destructive-bg text-destructive-foreground border border-destructive-border hover:opacity-90"
                     : "bg-fuchsia-600 text-white hover:bg-fuchsia-700"
-                } disabled:opacity-50`}
+                }`}
               >
                 {isSelected ? "Remove" : "Add to booklet"}
               </button>
@@ -192,7 +237,7 @@ export function ReleaseSelectionGrid({
                   {release.tags.slice(0, 3).map((rt) => (
                     <span
                       key={rt.tag.slug}
-                      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-beige-100 text-beige-800"
+                      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-secondary text-secondary-foreground"
                     >
                       {rt.tag.name}
                     </span>

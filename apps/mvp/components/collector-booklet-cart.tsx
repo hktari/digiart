@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Suspense, useMemo, useTransition } from "react";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 import { BookletCartUI } from "@/components/booklet-cart-ui";
 import type { CollectorCartSummary } from "@/lib/actions/collector";
 import { toggleReleaseSelection } from "@/lib/actions/collector";
@@ -68,6 +68,7 @@ function CollectorBookletCartInner() {
     if (!summary?.cycleId) return;
     startTransition(async () => {
       await toggleReleaseSelection(releaseId, summary.cycleId as string);
+      mutate(CART_SUMMARY_KEY);
     });
   };
 
