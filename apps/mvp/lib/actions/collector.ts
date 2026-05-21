@@ -21,7 +21,8 @@ const collectorSetupSchema = z.object({
   shippingCountry: z.string().length(2, "Shipping country is required"),
   shippingStateCode: z
     .union([z.string(), z.null()])
-    .transform((value) => (value === null ? "" : value))
+    .optional()
+    .transform((value) => (value === null || value === undefined ? "" : value))
     .pipe(
       z
         .string()
@@ -259,11 +260,13 @@ export async function saveCollectorProfile(
     redirect("/auth/sign-in");
   }
 
-  const parsed = collectorSetupSchema.safeParse({
+  const rawData = {
     displayName: formData.get("displayName"),
     shippingCountry: formData.get("shippingCountry"),
     shippingStateCode: formData.get("shippingStateCode"),
-  });
+  };
+
+  const parsed = collectorSetupSchema.safeParse(rawData);
 
   if (!parsed.success) {
     const errors: Record<string, string> = {};

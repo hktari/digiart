@@ -135,6 +135,24 @@ async function resetAndSeed() {
       },
     });
 
+    // ---- Fulfillment countries & states (needed for collector setup form) ---
+    await db.$executeRawUnsafe(`
+      INSERT INTO "FulfillmentCountry" (code, name, region, "isActive", "syncedAt", "createdAt", "updatedAt")
+      VALUES
+        ('SI', 'Slovenia',       'EU', true, NOW(), NOW(), NOW()),
+        ('GB', 'United Kingdom', 'EU', true, NOW(), NOW(), NOW()),
+        ('US', 'United States',  'US', true, NOW(), NOW(), NOW())
+      ON CONFLICT (code) DO NOTHING
+    `);
+
+    await db.$executeRawUnsafe(`
+      INSERT INTO "FulfillmentState" ("countryCode", "stateCode", name, "isActive", "syncedAt", "createdAt", "updatedAt")
+      VALUES
+        ('US', 'CA', 'California', true, NOW(), NOW(), NOW()),
+        ('US', 'NY', 'New York',   true, NOW(), NOW(), NOW())
+      ON CONFLICT ("countryCode", "stateCode") DO NOTHING
+    `);
+
     // ---- Booklet constraint -----------------------------------------------
     await db.bookletConstraint.create({
       data: {

@@ -698,10 +698,7 @@ export function CreatorSetupForm({
               </button>
               <button
                 type="button"
-                disabled={
-                  uploadedArtworks.length === 0 ||
-                  (uploadedArtworks.length > 0 && uploadedArtworks.length < 3)
-                }
+                disabled={uploadedArtworks.length === 0}
                 onClick={() => setStep("share")}
                 className="flex-1 rounded-lg bg-fuchsia-600 px-5 py-3 text-sm font-semibold text-white hover:bg-fuchsia-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >

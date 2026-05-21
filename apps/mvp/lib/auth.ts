@@ -20,6 +20,8 @@ const nextAuthResult: NextAuthResult = NextAuth({
   ],
   pages: {
     signIn: "/auth/sign-in",
+    newUser: "/onboarding",
+    signOut: "/",
     verifyRequest: "/auth/verify",
     error: "/auth/error",
   },
