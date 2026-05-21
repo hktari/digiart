@@ -47,7 +47,8 @@ export function CollectorSetupForm({
     if (state.success) {
       updateSession().then(() => router.push(redirectTo));
     }
-  }, [state, router, redirectTo, updateSession]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.success, redirectTo, router.push, updateSession]);
 
   useEffect(() => {
     async function fetchCountries() {
