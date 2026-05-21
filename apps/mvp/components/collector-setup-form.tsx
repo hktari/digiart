@@ -3,7 +3,7 @@
 import type { FulfillmentCountry, FulfillmentState } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import type { CollectorSetupResult } from "@/lib/actions/collector";
 import { saveCollectorProfile } from "@/lib/actions/collector";
 
@@ -22,6 +22,7 @@ export function CollectorSetupForm({
 }: CollectorSetupFormProps) {
   const router = useRouter();
   const { update: updateSession } = useSession();
+  const redirectedRef = useRef(false);
   const [shippingCountry, setShippingCountry] = useState(
     initialData?.shippingCountry || "",
   );
@@ -44,11 +45,11 @@ export function CollectorSetupForm({
   );
 
   useEffect(() => {
-    if (state.success) {
+    if (state.success && !redirectedRef.current) {
+      redirectedRef.current = true;
       updateSession().then(() => router.push(redirectTo));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.success, redirectTo, router.push, updateSession]);
+  }, [state.success, redirectTo, router, updateSession]);
 
   useEffect(() => {
     async function fetchCountries() {
