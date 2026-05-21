@@ -202,7 +202,7 @@ enum Orientation {
 model Artwork {
   id               String        @id @default(cuid())
   creatorProfileId String
-  title            String
+  title            String?
   storageKey       String
   mimeType         String?
   fileSize         Int?

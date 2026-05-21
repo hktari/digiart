@@ -1,6 +1,6 @@
 "use client";
 
-import type { Artwork, ArtworkStatus, Orientation } from "@prisma/client";
+import type { Artwork, ArtworkStatus } from "@prisma/client";
 import { Archive, ImageOff, RefreshCw, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useState } from "react";
@@ -9,16 +9,6 @@ import {
   deleteArtwork,
   reactivateArtwork,
 } from "@/lib/actions/artworks";
-
-function getOrientationLabel(orientation: Orientation): string {
-  const labels: Record<Orientation, string> = {
-    PORTRAIT: "Portrait",
-    LANDSCAPE: "Landscape",
-    SQUARE: "Square",
-    UNKNOWN: "Unknown",
-  };
-  return labels[orientation];
-}
 
 interface ArtworkWithThumbnail extends Artwork {
   thumbnailUrl?: string;
@@ -159,7 +149,7 @@ export function ArtworksList({ artworks }: ArtworksListProps) {
               {artwork.thumbnailUrl ? (
                 <img
                   src={artwork.thumbnailUrl}
-                  alt={artwork.title}
+                  alt={artwork.title || "Artwork"}
                   className="w-full h-full object-cover"
                   loading="lazy"
                 />
@@ -179,11 +169,12 @@ export function ArtworksList({ artworks }: ArtworksListProps) {
 
             <div className="p-4 space-y-3">
               <div>
-                <h3 className="font-medium text-foreground truncate">
-                  {artwork.title}
-                </h3>
+                {artwork.title && (
+                  <h3 className="font-medium text-foreground truncate">
+                    {artwork.title}
+                  </h3>
+                )}
                 <p className="text-xs text-muted-foreground">
-                  {getOrientationLabel(artwork.orientation)} ·{" "}
                   {artwork.width && artwork.height
                     ? `${artwork.width}×${artwork.height}px`
                     : "Dimensions unknown"}

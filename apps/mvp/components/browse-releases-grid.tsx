@@ -16,7 +16,7 @@ type ReleaseItem = {
   artworks: Array<{
     artwork: {
       storageKey: string;
-      title: string;
+      title: string | null;
       thumbnailUrl: string;
     };
   }>;
@@ -101,7 +101,7 @@ function ReleaseCard({
         <div className="relative aspect-4/3 bg-muted">
           <Image
             src={coverArtwork.thumbnailUrl}
-            alt={coverArtwork.title}
+            alt={coverArtwork.title || "Artwork"}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
             priority={index < 6}

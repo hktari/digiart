@@ -102,7 +102,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const artwork = await db.artwork.create({
     data: {
       creatorProfileId: creatorProfile.id,
-      title: title?.trim() || "Untitled",
+      title: title?.trim() || null,
       storageKey: finalKey,
       mimeType: validation.mimeType,
       fileSize,

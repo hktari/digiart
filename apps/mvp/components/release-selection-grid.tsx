@@ -20,7 +20,7 @@ type Release = {
   artworks: Array<{
     artwork: {
       id: string;
-      title: string;
+      title: string | null;
       storageKey: string;
       thumbnailUrl: string;
     };
@@ -165,7 +165,7 @@ export function ReleaseSelectionGrid({
               <div className="relative aspect-4/3 bg-muted">
                 <Image
                   src={coverArtwork.thumbnailUrl}
-                  alt={coverArtwork.title}
+                  alt={coverArtwork.title || "Artwork"}
                   fill
                   className="object-cover"
                 />

@@ -6,7 +6,7 @@ import { type ReleaseData, useBookletToggle } from "@/hooks/use-booklet-toggle";
 
 type ArtworkImage = {
   id: string;
-  title: string;
+  title: string | null;
   orientation: string;
   imageUrl: string;
   thumbnailUrl: string;
@@ -92,23 +92,26 @@ export function ReleaseArtworkLightbox({
               type="button"
               onClick={() => setActiveIndex(index)}
               className="group relative block aspect-square w-full bg-muted text-left"
-              aria-label={`Open ${artwork.title} in full screen`}
+              aria-label={
+                artwork.title
+                  ? `Open ${artwork.title} in full screen`
+                  : `Open artwork ${index + 1} in full screen`
+              }
             >
               <Image
                 src={artwork.thumbnailUrl}
-                alt={artwork.title}
+                alt={artwork.title || "Artwork"}
                 fill
                 sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                 className="object-cover transition duration-300 group-hover:scale-[1.03]"
               />
-              <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 to-transparent px-3 pb-3 pt-8">
-                <p className="truncate text-sm font-semibold text-white">
-                  {artwork.title}
-                </p>
-                <p className="text-xs text-white/70">
-                  {artwork.orientation.toLowerCase()}
-                </p>
-              </div>
+              {artwork.title && (
+                <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 to-transparent px-3 pb-3 pt-8">
+                  <p className="truncate text-sm font-semibold text-white">
+                    {artwork.title}
+                  </p>
+                </div>
+              )}
             </button>
           </article>
         ))}
@@ -119,7 +122,11 @@ export function ReleaseArtworkLightbox({
           className="fixed inset-0 z-50 bg-black"
           role="dialog"
           aria-modal="true"
-          aria-label={`${activeArtwork.title} image viewer`}
+          aria-label={
+            activeArtwork.title
+              ? `${activeArtwork.title} image viewer`
+              : "Artwork image viewer"
+          }
         >
           <button
             type="button"
@@ -134,7 +141,7 @@ export function ReleaseArtworkLightbox({
             <div className="flex h-full w-full items-center justify-center p-4">
               <Image
                 src={activeArtwork.imageUrl}
-                alt={activeArtwork.title}
+                alt={activeArtwork.title || "Artwork"}
                 width={1800}
                 height={1800}
                 sizes="100vw"
@@ -168,9 +175,11 @@ export function ReleaseArtworkLightbox({
           <div className="fixed inset-x-3 bottom-3 z-20 rounded-2xl bg-white/90 dark:bg-neutral-900/90 p-3 shadow-2xl backdrop-blur">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-foreground">
-                  {activeArtwork.title}
-                </p>
+                {activeArtwork.title && (
+                  <p className="truncate text-sm font-semibold text-foreground">
+                    {activeArtwork.title}
+                  </p>
+                )}
                 <p className="text-xs text-muted-foreground">
                   {(activeIndex ?? 0) + 1} / {artworks.length}
                 </p>

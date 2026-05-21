@@ -5,7 +5,7 @@ import { setReleaseArtworks } from "@/lib/actions/releases";
 
 interface Artwork {
   id: string;
-  title: string;
+  title: string | null;
   thumbnailUrl: string;
 }
 
@@ -89,7 +89,7 @@ export function ReleaseArtworkPicker({
             >
               <img
                 src={artwork.thumbnailUrl}
-                alt={artwork.title}
+                alt={artwork.title || "Artwork"}
                 className="h-full w-full object-cover"
               />
               {/* Overlay on selected */}
@@ -101,9 +101,11 @@ export function ReleaseArtworkPicker({
                 </div>
               )}
               {/* Title tooltip on hover */}
-              <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/60 to-transparent px-2 py-1.5 opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
-                <p className="text-xs text-white truncate">{artwork.title}</p>
-              </div>
+              {artwork.title && (
+                <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/60 to-transparent px-2 py-1.5 opacity-0 hover:opacity-100 transition-opacity pointer-events-none">
+                  <p className="text-xs text-white truncate">{artwork.title}</p>
+                </div>
+              )}
             </button>
           );
         })}
