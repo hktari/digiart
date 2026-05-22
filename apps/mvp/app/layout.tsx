@@ -40,28 +40,43 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "Booklet Drops — Art Subscription Platform",
+  metadataBase: new URL("https://app.digiart.btechhub.top"),
+  title: {
+    default: "DigiArt — Digital Art Booklet Subscription Platform",
+    template: "%s | DigiArt",
+  },
   description:
-    "Turn digital art into printed booklet experiences. Subscribe to artists you already follow and receive curated A5 booklet drops, delivered straight to your home",
+    "DigiArt turns digital art into printed booklet experiences. Subscribe to artists you already follow and receive curated A5 booklet drops delivered to your home every month.",
+  keywords: [
+    "digiart",
+    "digiart app",
+    "digital art subscription",
+    "art booklet subscription",
+    "printed art drops",
+    "subscribe to digital artists",
+    "art booklet drop",
+  ],
   openGraph: {
-    title: "Booklet Drops — Art Subscription Platform",
+    title: "DigiArt — Digital Art Booklet Subscription Platform",
     description:
-      "Turn digital art into printed booklet experiences. Subscribe to artists you already follow and receive curated A5 booklet drops, delivered straight to your home",
+      "DigiArt turns digital art into printed booklet experiences. Subscribe to artists you already follow and receive curated A5 booklet drops delivered to your home.",
     type: "website",
+    url: "https://app.digiart.btechhub.top",
+    siteName: "DigiArt",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Booklet Drops — Art Subscription Platform",
+        alt: "DigiArt — Digital Art Booklet Subscription Platform",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Booklet Drops — Art Subscription Platform",
+    title: "DigiArt — Digital Art Booklet Subscription Platform",
     description:
-      "Turn digital art into printed booklet experiences. Subscribe to artists you already follow and receive curated A5 booklet drops, delivered straight to your home",
+      "DigiArt turns digital art into printed booklet experiences. Subscribe to artists you already follow and receive curated A5 booklet drops delivered to your home.",
     images: ["/twitter-image.png"],
   },
 };

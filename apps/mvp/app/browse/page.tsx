@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   getAllPublishedCreators,
   getAllPublishedReleases,
@@ -7,6 +8,18 @@ import { getCollectorProfile } from "@/lib/actions/collector";
 import { getCurrentCycle } from "@/lib/actions/cycles";
 import { auth } from "@/lib/auth";
 import { BrowseClient } from "./browse-client";
+
+export const metadata: Metadata = {
+  title: "Browse Digital Art Creators & Booklet Releases",
+  description:
+    "Explore digital art creators and curated booklet releases on DigiArt. Subscribe to your favourite artists and receive printed A5 art booklets delivered to your door monthly.",
+  openGraph: {
+    title: "Browse Digital Art Creators & Booklet Releases",
+    description:
+      "Explore digital art creators and curated booklet releases on DigiArt. Subscribe and receive printed art delivered monthly.",
+    url: "https://app.digiart.btechhub.top/browse",
+  },
+};
 
 type Props = {
   searchParams: Promise<{ tag?: string; view?: "creators" | "releases" }>;

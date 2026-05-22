@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -26,6 +27,46 @@ type Props = {
     ref?: string;
   }>;
 };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const profile = await getPublicCreatorProfile(slug);
+
+  if (!profile) {
+    return { title: "Creator Not Found" };
+  }
+
+  const title = `${profile.displayName} — Digital Art Booklets`;
+  const description = profile.bio
+    ? `${profile.bio.slice(0, 155)}…`
+    : `Subscribe to ${profile.displayName} on DigiArt and receive curated digital art printed as A5 booklets delivered to your door every month.`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `https://app.digiart.btechhub.top/creators/${slug}`,
+      images: profile.avatar
+        ? [
+            {
+              url: profile.avatar,
+              width: 400,
+              height: 400,
+              alt: profile.displayName,
+            },
+          ]
+        : undefined,
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+      images: profile.avatar ? [profile.avatar] : undefined,
+    },
+  };
+}
 
 export default async function CreatorProfilePage({
   params,
