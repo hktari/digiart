@@ -35,15 +35,22 @@ pnpm run browse
 
 The interactive browser provides:
 
-- **Statistics Dashboard**: Total leads, hot leads, and recent leads (last 24h)
-- **Filtered Views**: All leads, hot leads only, or new leads
+- **Statistics Dashboard**: Total leads, hot leads, recent leads, contacted status
+- **Filtered Views**: 
+  - All leads
+  - Hot leads only (score ≥ 80)
+  - New leads (last 24 hours)
+  - Contacted leads
+  - **Not contacted leads (DEFAULT)** - Focus on fresh leads
 - **Lead Details**: 
   - Title, subreddit, score, and timestamp
   - Hot lead indicator (🔥)
+  - Contacted status badge (✓ Contacted / ○ Not contacted)
   - Color-coded scores (red = 80+, yellow = 60-79, dim = <60)
   - Qualification reasoning
   - Pain points with severity indicators (🔴 high, 🟡 medium, 🟢 low)
 - **URL Opening**: Open Reddit posts in your browser with one keystroke
+- **Outreach Tracking**: Mark leads as contacted with optional notes
 
 ### Navigation Commands
 
@@ -212,9 +219,15 @@ pnpm run scrape
 pnpm run browse:dev
 ```
 
-- Review hot leads first (`h` command)
-- Open interesting leads in browser (type the number)
-- Note which leads you want to reach out to
+**On startup:**
+- Browser automatically shows **not contacted leads** (the default filter)
+- Sorted by score (hot leads first)
+- This focuses your attention on fresh leads that need outreach
+
+**To view other leads:**
+- Type `a` to show all leads (including contacted)
+- Type `h` to show only hot leads
+- Type `c` to show only contacted leads
 
 ### 3. Draft Outreach Messages
 

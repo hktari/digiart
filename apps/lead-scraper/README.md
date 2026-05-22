@@ -112,10 +112,12 @@ pnpm run browse:dev
 
 Features:
 - 📊 View statistics (total leads, hot leads, recent)
-- 🔍 Filter by: all leads, hot leads, or new leads (last 24h)
+- 🔍 Filter by: all leads, hot leads, new leads (last 24h), contacted, not contacted
+- 🎯 **Default filter: Not contacted** (shows only leads you haven't reached out to yet)
 - 🌐 Open lead URLs in browser with one keystroke
 - 🎨 Color-coded display (hot leads, score, pain points)
 - ⚡ Real-time navigation
+- 📝 Mark leads as contacted with optional notes
 
 Commands in browser:
 - `[1-N]` - Open lead URL in browser

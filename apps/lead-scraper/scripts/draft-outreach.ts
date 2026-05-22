@@ -4,7 +4,7 @@
  * Usage: npm run draft-outreach <lead-id>
  */
 
-import { PrismaClient } from "@prisma/client";
+import { type Lead, type PainPoint, PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -127,13 +127,19 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  let lead;
+  let lead:
+    | (Lead & {
+        painPoints: PainPoint[];
+      })
+    | null = null;
 
   // Check if input is a number (lead position from browser)
   const leadNumber = Number.parseInt(input, 10);
   if (!Number.isNaN(leadNumber) && leadNumber > 0) {
     // Fetch leads sorted by score (same as browser default)
+    // Filter out contacted leads by default
     const leads = await prisma.lead.findMany({
+      where: { reachedOut: false },
       orderBy: [
         { isHotLead: "desc" },
         { score: "desc" },

@@ -203,7 +203,7 @@ ${colors.bright}${colors.cyan}╔═══════════════�
 
   let currentLeads: LeadWithDetails[] = [];
   let currentFilter: "all" | "hot" | "new" | "contacted" | "not-contacted" =
-    "all";
+    "not-contacted"; // Default to not-contacted to focus on fresh leads
   let currentSort: "score" | "date" = "score";
 
   async function displayLeads(): Promise<void> {
@@ -234,7 +234,7 @@ ${colors.bright}Commands:${colors.reset}
   ${colors.green}h${colors.reset} - Show hot leads only
   ${colors.green}n${colors.reset} - Show new leads (last 24h)
   ${colors.green}c${colors.reset} - Show contacted leads
-  ${colors.green}nc${colors.reset} - Show not contacted leads
+  ${colors.green}nc${colors.reset} - Show not contacted leads ${colors.dim}(default)${colors.reset}
   ${colors.green}ss${colors.reset} - Sort by score
   ${colors.green}sd${colors.reset} - Sort by date
   ${colors.green}r${colors.reset} - Refresh current view
@@ -424,8 +424,8 @@ ${colors.cyan}>${colors.reset} `);
     });
   }
 
-  // Initial load
-  currentLeads = await fetchLeads("all", currentSort);
+  // Initial load - use default filter (not-contacted)
+  currentLeads = await fetchLeads(currentFilter, currentSort);
   await displayLeads();
   prompt();
 }
