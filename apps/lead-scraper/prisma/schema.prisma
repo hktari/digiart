@@ -47,6 +47,11 @@ model Lead {
   // Notifications
   notifiedAt      DateTime?
   
+  // Outreach tracking
+  reachedOut      Boolean      @default(false)
+  reachedOutAt    DateTime?
+  outreachNotes   String?      @db.Text
+  
   // Relations
   scrapingRunId   String
   scrapingRun     ScrapingRun  @relation(fields: [scrapingRunId], references: [id], onDelete: Cascade)
@@ -55,6 +60,7 @@ model Lead {
   @@index([subreddit, scrapedAt])
   @@index([score])
   @@index([isHotLead])
+  @@index([reachedOut])
 }
 
 model PainPoint {

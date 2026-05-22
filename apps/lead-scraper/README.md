@@ -94,9 +94,13 @@ Features:
 
 Commands in browser:
 - `[1-N]` - Open lead URL in browser
+- `m [1-N]` - Mark lead as contacted (e.g., `m 1`)
+- `d [1-N]` - Show command to draft outreach (e.g., `d 1`)
 - `a` - Show all leads
 - `h` - Show hot leads only
 - `n` - Show new leads (last 24h)
+- `c` - Show contacted leads
+- `nc` - Show not contacted leads
 - `ss` - Sort by score (high to low)
 - `sd` - Sort by date (newest first)
 - `r` - Refresh current view
@@ -107,7 +111,16 @@ Commands in browser:
 
 **Generate personalized outreach message:**
 ```bash
-pnpm run draft-outreach <lead-id>
+pnpm run draft-outreach <lead-number>
+```
+
+Examples:
+```bash
+# Use lead number from browser
+pnpm run draft-outreach 1
+
+# Or use database ID (starts with 'clt...')
+pnpm run draft-outreach clt123abc...
 ```
 
 This generates a customized Reddit DM based on:
@@ -116,12 +129,14 @@ This generates a customized Reddit DM based on:
 - Post title
 - Suggested subject line and message body
 
-**Workflow:**
-1. Browse leads with `pnpm run browse`
-2. Note the lead ID from the database
-3. Run `pnpm run draft-outreach <lead-id>`
-4. Customize the message
-5. Send via Reddit DM
+**Quick workflow from browser:**
+```bash
+# In the browser, type:
+> d 1
+
+# It will show:
+# npm run draft-outreach 1
+```
 
 ### Development
 

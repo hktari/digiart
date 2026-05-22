@@ -21,6 +21,9 @@ interface LeadWithDetails {
   isHotLead: boolean;
   reasoning: string;
   scrapedAt: Date;
+  reachedOut: boolean;
+  reachedOutAt: Date | null;
+  outreachNotes: string | null;
   painPoints: Array<{
     category: string;
     description: string;
@@ -61,6 +64,10 @@ function formatLead(lead: LeadWithDetails, index: number): string {
     ? `${colors.red}${colors.bright}🔥 HOT${colors.reset}`
     : `${colors.dim}○${colors.reset}`;
 
+  const reachedOutBadge = lead.reachedOut
+    ? `${colors.green}✓ Contacted${colors.reset}`
+    : `${colors.dim}○ Not contacted${colors.reset}`;
+
   const scoreColor =
     lead.score >= 80
       ? colors.red
@@ -83,20 +90,32 @@ function formatLead(lead: LeadWithDetails, index: number): string {
     minute: "2-digit",
   });
 
+  const outreachInfo =
+    lead.reachedOut && lead.reachedOutAt
+      ? `\n  ${colors.green}Reached out: ${new Date(
+          lead.reachedOutAt,
+        ).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })}${colors.reset}${lead.outreachNotes ? `\n  ${colors.dim}Notes: ${lead.outreachNotes}${colors.reset}` : ""}`
+      : "";
+
   return `
-${colors.bright}[${index}]${colors.reset} ${hotLeadBadge} ${colors.bright}${lead.title}${colors.reset}
+${colors.bright}[${index}]${colors.reset} ${hotLeadBadge} ${reachedOutBadge} ${colors.bright}${lead.title}${colors.reset}
   ${colors.dim}r/${lead.subreddit} • Score: ${scoreColor}${lead.score}${colors.reset}${colors.dim} • ${date}${colors.reset}
   ${colors.blue}${lead.url}${colors.reset}
   
   ${colors.yellow}Reasoning:${colors.reset} ${lead.reasoning}
   
   ${colors.yellow}Pain Points:${colors.reset}
-${painPointsList}
+${painPointsList}${outreachInfo}
 `;
 }
 
 async function fetchLeads(
-  filter: "all" | "hot" | "new",
+  filter: "all" | "hot" | "new" | "contacted" | "not-contacted",
   sortBy: "score" | "date" = "score",
   limit = 20,
 ): Promise<LeadWithDetails[]> {
@@ -109,7 +128,11 @@ async function fetchLeads(
               gte: new Date(Date.now() - 24 * 60 * 60 * 1000), // Last 24h
             },
           }
-        : {};
+        : filter === "contacted"
+          ? { reachedOut: true }
+          : filter === "not-contacted"
+            ? { reachedOut: false }
+            : {};
 
   const orderBy =
     sortBy === "score"
@@ -147,12 +170,19 @@ async function showStats(): Promise<void> {
       },
     },
   });
+  const contacted = await prisma.lead.count({ where: { reachedOut: true } });
+  const notContacted = await prisma.lead.count({
+    where: { reachedOut: false },
+  });
 
   console.log(`
 ${colors.bright}📊 Lead Statistics${colors.reset}
   Total Leads: ${colors.cyan}${totalLeads}${colors.reset}
   Hot Leads: ${colors.red}${hotLeads}${colors.reset}
   Last 24h: ${colors.green}${last24h}${colors.reset}
+  
+  Contacted: ${colors.green}${contacted}${colors.reset}
+  Not Contacted: ${colors.yellow}${notContacted}${colors.reset}
 `);
 }
 
@@ -172,7 +202,8 @@ ${colors.bright}${colors.cyan}╔═══════════════�
   });
 
   let currentLeads: LeadWithDetails[] = [];
-  let currentFilter: "all" | "hot" | "new" = "all";
+  let currentFilter: "all" | "hot" | "new" | "contacted" | "not-contacted" =
+    "all";
   let currentSort: "score" | "date" = "score";
 
   async function displayLeads(): Promise<void> {
@@ -197,9 +228,13 @@ ${colors.bright}${colors.cyan}╔═══════════════�
     console.log(`
 ${colors.bright}Commands:${colors.reset}
   ${colors.green}[1-${currentLeads.length}]${colors.reset} - Open lead URL in browser
+  ${colors.green}m [1-${currentLeads.length}]${colors.reset} - Mark lead as contacted (e.g., "m 1")
+  ${colors.green}d [1-${currentLeads.length}]${colors.reset} - Draft outreach message (e.g., "d 1")
   ${colors.green}a${colors.reset} - Show all leads
   ${colors.green}h${colors.reset} - Show hot leads only
   ${colors.green}n${colors.reset} - Show new leads (last 24h)
+  ${colors.green}c${colors.reset} - Show contacted leads
+  ${colors.green}nc${colors.reset} - Show not contacted leads
   ${colors.green}ss${colors.reset} - Sort by score
   ${colors.green}sd${colors.reset} - Sort by date
   ${colors.green}r${colors.reset} - Refresh current view
@@ -243,6 +278,94 @@ ${colors.cyan}>${colors.reset} `);
         currentFilter = "new";
         currentLeads = await fetchLeads("new", currentSort);
         await displayLeads();
+        prompt();
+        return;
+      }
+
+      if (input === "c") {
+        currentFilter = "contacted";
+        currentLeads = await fetchLeads("contacted", currentSort);
+        await displayLeads();
+        prompt();
+        return;
+      }
+
+      if (input === "nc") {
+        currentFilter = "not-contacted";
+        currentLeads = await fetchLeads("not-contacted", currentSort);
+        await displayLeads();
+        prompt();
+        return;
+      }
+
+      // Check for "m N" command (mark as contacted)
+      if (input.startsWith("m ")) {
+        const leadIndex = Number.parseInt(input.substring(2), 10);
+        if (
+          !Number.isNaN(leadIndex) &&
+          leadIndex >= 1 &&
+          leadIndex <= currentLeads.length
+        ) {
+          const lead = currentLeads[leadIndex - 1];
+
+          // Prompt for optional notes
+          rl.question(
+            `${colors.yellow}Add notes (optional, press Enter to skip):${colors.reset} `,
+            async (notes) => {
+              const trimmedNotes = notes.trim();
+
+              await prisma.lead.update({
+                where: { id: lead.id },
+                data: {
+                  reachedOut: true,
+                  reachedOutAt: new Date(),
+                  outreachNotes: trimmedNotes || null,
+                },
+              });
+
+              console.log(
+                `\n${colors.green}✓ Marked as contacted:${colors.reset} ${lead.title}\n`,
+              );
+
+              // Refresh the current view
+              currentLeads = await fetchLeads(currentFilter, currentSort);
+              await displayLeads();
+              prompt();
+            },
+          );
+          return;
+        }
+        console.log(
+          `${colors.red}Invalid lead number. Please try again.${colors.reset}\n`,
+        );
+        showMenu();
+        prompt();
+        return;
+      }
+
+      // Check for "d N" command (draft outreach)
+      if (input.startsWith("d ")) {
+        const leadIndex = Number.parseInt(input.substring(2), 10);
+        if (
+          !Number.isNaN(leadIndex) &&
+          leadIndex >= 1 &&
+          leadIndex <= currentLeads.length
+        ) {
+          console.log(
+            `\n${colors.cyan}To draft outreach message for lead #${leadIndex}, run:${colors.reset}`,
+          );
+          console.log(
+            `${colors.green}npm run draft-outreach ${leadIndex}${colors.reset}\n`,
+          );
+
+          showMenu();
+          prompt();
+          return;
+        }
+        console.log(
+          `${colors.red}Invalid lead number. Please try again.${colors.reset}\n`,
+        );
+        showMenu();
         prompt();
         return;
       }

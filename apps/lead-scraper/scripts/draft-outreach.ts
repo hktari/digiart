@@ -114,22 +114,57 @@ URL: ${lead.url}`;
 }
 
 async function main(): Promise<void> {
-  const leadId = process.argv[2];
+  const input = process.argv[2];
 
-  if (!leadId) {
-    console.error("Usage: npm run draft-outreach <lead-id>");
-    console.error("\nTo get lead IDs, run: npm run browse");
+  if (!input) {
+    console.error("Usage: npm run draft-outreach <lead-number-or-id>");
+    console.error("\nExamples:");
+    console.error(
+      "  npm run draft-outreach 1          # Use lead #1 from browser",
+    );
+    console.error("  npm run draft-outreach clt123...  # Use database ID");
+    console.error("\nTip: Run 'npm run browse' to see lead numbers");
     process.exit(1);
   }
 
-  const lead = await prisma.lead.findUnique({
-    where: { id: leadId },
-    include: { painPoints: true },
-  });
+  let lead;
 
-  if (!lead) {
-    console.error(`Lead not found: ${leadId}`);
-    process.exit(1);
+  // Check if input is a number (lead position from browser)
+  const leadNumber = Number.parseInt(input, 10);
+  if (!Number.isNaN(leadNumber) && leadNumber > 0) {
+    // Fetch leads sorted by score (same as browser default)
+    const leads = await prisma.lead.findMany({
+      orderBy: [
+        { isHotLead: "desc" },
+        { score: "desc" },
+        { scrapedAt: "desc" },
+      ],
+      take: leadNumber,
+      include: { painPoints: true },
+    });
+
+    if (leadNumber > leads.length) {
+      console.error(
+        `Lead #${leadNumber} not found. Only ${leads.length} leads available.`,
+      );
+      process.exit(1);
+    }
+
+    lead = leads[leadNumber - 1];
+  } else {
+    // Assume it's a database ID
+    lead = await prisma.lead.findUnique({
+      where: { id: input },
+      include: { painPoints: true },
+    });
+
+    if (!lead) {
+      console.error(`Lead not found: ${input}`);
+      console.error(
+        "\nTip: Use lead number (1, 2, 3...) from 'npm run browse' instead",
+      );
+      process.exit(1);
+    }
   }
 
   const message = generateOutreachMessage({

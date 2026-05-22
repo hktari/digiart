@@ -40,14 +40,38 @@ The interactive browser provides:
 | Command | Action |
 |---------|--------|
 | `[1-N]` | Open lead #N URL in browser |
+| `m [1-N]` | Mark lead as contacted (prompts for optional notes) |
+| `d [1-N]` | Show command to draft outreach message |
 | `a` | Show all leads |
 | `h` | Show hot leads only (score ≥ 80) |
 | `n` | Show new leads (last 24 hours) |
+| `c` | Show contacted leads |
+| `nc` | Show not contacted leads |
 | `ss` | Sort by score (high to low) |
 | `sd` | Sort by date (newest first) |
 | `r` | Refresh current view |
 | `s` | Show statistics |
 | `q` | Quit |
+
+### Outreach Tracking
+
+Mark leads as contacted to track your outreach efforts:
+
+```
+> m 1
+Add notes (optional, press Enter to skip): Sent DM about monetization platform
+✓ Marked as contacted: Looking for platform to sell my AI art
+```
+
+The browser displays:
+- **✓ Contacted** badge for reached-out leads
+- **○ Not contacted** badge for new leads
+- Reached out date and notes in lead details
+- Statistics showing contacted vs. not contacted counts
+
+Filter by outreach status:
+- `c` - Show only contacted leads
+- `nc` - Show only leads you haven't reached out to yet
 
 ### Example Session
 
@@ -89,14 +113,19 @@ When you type `1`, the browser automatically opens the Reddit post in your defau
 
 ### Usage
 
-First, you need the lead ID from the database. You can find this in Prisma Studio or by checking the database directly.
-
 ```bash
-# Get lead ID from Prisma Studio
-npm run db:studio
+# Use lead number from browser (easiest!)
+npm run draft-outreach 1
 
-# Then draft outreach message
-npm run draft-outreach cltxxxxxxxxxxxxxxx
+# Or use database ID
+npm run draft-outreach clt123abc...
+```
+
+**Quick tip from browser:**
+```
+> d 1
+To draft outreach message for lead #1, run:
+npm run draft-outreach 1
 ```
 
 ### Output
