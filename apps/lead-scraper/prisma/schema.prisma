@@ -59,7 +59,7 @@ model Lead {
 
 model PainPoint {
   id          String   @id @default(cuid())
-  category    String   // "monetization" | "platform_fees" | "discovery" | "spam_bots" | "payment_issues" | "disclosure_requirements"
+  category    String   // "monetization" | "platform_fees" | "discovery" | "spam_bots" | "payment_issues" | "disclosure_requirements" | "print_physical" | "quality_curation"
   description String   @db.Text
   severity    String   // "low" | "medium" | "high"
   

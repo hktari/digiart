@@ -6,7 +6,9 @@ export type PainPointCategory =
   | "discovery"
   | "spam_bots"
   | "payment_issues"
-  | "disclosure_requirements";
+  | "disclosure_requirements"
+  | "print_physical"
+  | "quality_curation";
 
 export interface KeywordMatch {
   category: PainPointCategory;
@@ -102,6 +104,34 @@ export class KeywordFilter {
         { term: "watermark", weight: 2 },
         { term: "transparent", weight: 2 },
         { term: "declare", weight: 2 },
+      ],
+    },
+    {
+      category: "print_physical",
+      keywords: [
+        { term: "print", weight: 3 },
+        { term: "physical", weight: 3 },
+        { term: "poster", weight: 3 },
+        { term: "canvas", weight: 3 },
+        { term: "framed", weight: 2 },
+        { term: "shipping", weight: 2 },
+        { term: "tangible", weight: 2 },
+        { term: "merchandise", weight: 2 },
+        { term: "wall art", weight: 3 },
+      ],
+    },
+    {
+      category: "quality_curation",
+      keywords: [
+        { term: "too much content", weight: 3 },
+        { term: "oversaturated", weight: 3 },
+        { term: "low quality", weight: 3 },
+        { term: "spam content", weight: 3 },
+        { term: "quality control", weight: 3 },
+        { term: "curated", weight: 2 },
+        { term: "overwhelmed", weight: 2 },
+        { term: "flooding", weight: 2 },
+        { term: "diluted", weight: 2 },
       ],
     },
   ];

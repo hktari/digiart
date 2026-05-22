@@ -10,6 +10,8 @@ export const PainPointSchema = z.object({
     "spam_bots",
     "payment_issues",
     "disclosure_requirements",
+    "print_physical",
+    "quality_curation",
   ]),
   description: z.string().describe("Brief description of the pain point"),
   severity: z
@@ -104,10 +106,19 @@ POST CONTENT: ${post.content}
 
 MATCHED PAIN POINT CATEGORIES: ${matchedCategories}
 
+Our platform solves:
+- **Monetization**: Fair revenue sharing for AI artists
+- **Platform Fees**: Low commission rates (unlike traditional platforms)
+- **Discovery**: Curated marketplace with quality control
+- **Print/Physical**: Digital to physical art printing and shipping
+- **Quality Curation**: Monthly upload limits ensure quality > quantity
+- **Payment Issues**: Reliable payment processing
+- **Disclosure**: Transparent AI art labeling
+
 Evaluate this lead based on:
-1. **Pain Intensity**: How much is this person struggling with monetization/platform issues?
+1. **Pain Intensity**: How much is this person struggling with these issues?
 2. **Buying Intent**: Are they actively looking for solutions or just venting?
-3. **Fit**: Would our platform (AI art monetization with fair fees) solve their problem?
+3. **Fit**: Would our platform solve their problem?
 4. **Urgency**: Do they need a solution now or just discussing generally?
 
 SCORING GUIDE:
