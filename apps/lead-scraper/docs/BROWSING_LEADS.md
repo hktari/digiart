@@ -5,12 +5,17 @@ This guide shows you how to browse scraped leads, view their details, and draft 
 ## Quick Start
 
 ```bash
-# 1. Browse leads interactively
-npm run browse
+# 1. Browse leads interactively (DEVELOPMENT)
+pnpm run browse:dev
 
 # 2. Draft outreach message for a specific lead
-npm run draft-outreach <lead-id>
+pnpm --env-file=.env.dev run draft-outreach 1
 ```
+
+**⚠️ Development vs Production:**
+- Use `:dev` scripts during development (`browse:dev`, `db:studio:dev`)
+- This uses `.env.dev` database (safe to reset)
+- Production commands use `.env` (never touch during development)
 
 ## Lead Browser
 
@@ -18,7 +23,12 @@ npm run draft-outreach <lead-id>
 
 ```bash
 cd apps/lead-scraper
-npm run browse
+
+# Development (recommended)
+pnpm run browse:dev
+
+# Production (view-only, be careful)
+pnpm run browse
 ```
 
 ### Features
@@ -188,43 +198,48 @@ The script automatically selects the appropriate template:
 ### 1. Run the Scraper
 
 ```bash
-# Test mode (10 posts per subreddit)
-npm run scrape:test
+# Development mode (10 posts, dev database)
+pnpm run scrape:dev
 
-# Or production mode (50 posts per subreddit)
-npm run scrape
+# Or production mode (50 posts, production database)
+pnpm run scrape
 ```
 
 ### 2. Browse Leads
 
 ```bash
-npm run browse
+# Development
+pnpm run browse:dev
 ```
 
 - Review hot leads first (`h` command)
 - Open interesting leads in browser (type the number)
 - Note which leads you want to reach out to
 
-### 3. Get Lead IDs
+### 3. Draft Outreach Messages
+
+**New simplified workflow:**
 
 ```bash
-# Open Prisma Studio
-npm run db:studio
+# In browser, note the lead number (e.g., #7)
+# Then draft message using that number:
+pnpm --env-file=.env.dev run draft-outreach 7
 ```
 
-- Navigate to the `Lead` table
-- Find the lead by title or URL
-- Copy the `id` field (starts with `clt...`)
+**Or use the quick helper in browser:**
+```
+> d 7
+To draft outreach message for lead #7, run:
+pnpm --env-file=.env.dev run draft-outreach 7
+```
 
-### 4. Draft Outreach Messages
+### 4. Mark as Contacted
 
 ```bash
-npm run draft-outreach cltxxxxxxxxxxxxxxx
+# In browser after sending message:
+> m 7
+Add notes: Sent intro about platform features
 ```
-
-- Review the generated message
-- Customize the message to add personal touch
-- Copy the message to send via Reddit
 
 ### 5. Send Reddit DM
 

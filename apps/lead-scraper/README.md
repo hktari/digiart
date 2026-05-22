@@ -41,11 +41,17 @@ pnpm install
 
 ### Environment Variables
 
-Create `.env` file with:
+**CRITICAL: Use `.env.dev` for development!**
+
+The lead-scraper has TWO environment files:
+- `.env` - **PRODUCTION database** (do not touch during development)
+- `.env.dev` - **DEVELOPMENT database** (safe to reset)
+
+Create `.env.dev` file with your development database:
 
 ```bash
-# IMPORTANT: Use a SEPARATE Neon database, not the MVP one!
-DATABASE_URL="postgresql://..."
+# DEVELOPMENT database (safe to reset)
+DATABASE_URL="postgresql://your-dev-database..."
 
 FIREWORKS_API_KEY="your-key"
 TELEGRAM_BOT_TOKEN="your-token"
@@ -57,32 +63,51 @@ DEBUG=false  # optional
 ### Database Setup
 
 ```bash
-# Push schema to database
-npx prisma db push
+# Push schema to development database
+pnpm --env-file=.env.dev prisma db push
 
-# View data in browser
-npx prisma studio
+# View data in browser (development)
+pnpm --env-file=.env.dev prisma studio
 ```
+
+**ALWAYS use `--env-file=.env.dev`** to avoid touching production data!
 
 ## Usage
 
-### Scraping Leads
+⚠️ **Development Commands** - Two ways to use dev database:
 
-**Test Mode (10 posts per subreddit):**
+**Option 1: Use `:dev` scripts (recommended):**
 ```bash
-pnpm run scrape:test
+pnpm run scrape:dev       # Scrape with dev database
+pnpm run browse:dev       # Browse with dev database
+pnpm run db:studio:dev    # Open Prisma Studio (dev)
+pnpm run db:push:dev      # Push schema to dev
 ```
 
-**Daily Mode (50 posts per subreddit):**
+**Option 2: Manual `--env-file` flag:**
 ```bash
+pnpm --env-file=.env.dev run scrape:test
+pnpm --env-file=.env.dev run browse
+```
+
+### Scraping Leads
+
+**Development (10 posts, uses dev database):**
+```bash
+pnpm run scrape:dev
+```
+
+**Production scrape (50 posts, uses production database):**
+```bash
+# Only run this when you want to update production data
 pnpm run scrape
 ```
 
 ### Browsing Leads
 
-**Interactive lead browser:**
+**Interactive lead browser (development):**
 ```bash
-pnpm run browse
+pnpm run browse:dev
 ```
 
 Features:
@@ -109,18 +134,20 @@ Commands in browser:
 
 ### Drafting Outreach Messages
 
-**Generate personalized outreach message:**
+**Generate personalized outreach message (development):**
 ```bash
-pnpm run draft-outreach <lead-number>
+# Note: draft-outreach always uses the same database as browse
+# So if you browsed with :dev, use the lead number directly:
+pnpm --env-file=.env.dev run draft-outreach <lead-number>
 ```
 
 Examples:
 ```bash
 # Use lead number from browser
-pnpm run draft-outreach 1
+pnpm --env-file=.env.dev run draft-outreach 1
 
 # Or use database ID (starts with 'clt...')
-pnpm run draft-outreach clt123abc...
+pnpm --env-file=.env.dev run draft-outreach clt123abc...
 ```
 
 This generates a customized Reddit DM based on:
@@ -135,13 +162,19 @@ This generates a customized Reddit DM based on:
 > d 1
 
 # It will show:
-# npm run draft-outreach 1
+# pnpm --env-file=.env.dev run draft-outreach 1
 ```
 
 ### Development
 
+**Remember: Use `:dev` scripts for development!**
+
 ```bash
-# Run tests
+# Database management
+pnpm run db:studio:dev   # View dev database
+pnpm run db:push:dev     # Push schema to dev
+
+# Run tests (uses test database, not dev/prod)
 pnpm test
 
 # Run e2e tests
