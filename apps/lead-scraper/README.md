@@ -97,6 +97,8 @@ Commands in browser:
 - `a` - Show all leads
 - `h` - Show hot leads only
 - `n` - Show new leads (last 24h)
+- `ss` - Sort by score (high to low)
+- `sd` - Sort by date (newest first)
 - `r` - Refresh current view
 - `s` - Show statistics
 - `q` - Quit

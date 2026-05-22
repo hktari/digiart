@@ -43,6 +43,8 @@ The interactive browser provides:
 | `a` | Show all leads |
 | `h` | Show hot leads only (score ≥ 80) |
 | `n` | Show new leads (last 24 hours) |
+| `ss` | Sort by score (high to low) |
+| `sd` | Sort by date (newest first) |
 | `r` | Refresh current view |
 | `s` | Show statistics |
 | `q` | Quit |

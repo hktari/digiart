@@ -97,6 +97,7 @@ ${painPointsList}
 
 async function fetchLeads(
   filter: "all" | "hot" | "new",
+  sortBy: "score" | "date" = "score",
   limit = 20,
 ): Promise<LeadWithDetails[]> {
   const where =
@@ -110,9 +111,18 @@ async function fetchLeads(
           }
         : {};
 
+  const orderBy =
+    sortBy === "score"
+      ? [
+          { isHotLead: "desc" as const },
+          { score: "desc" as const },
+          { scrapedAt: "desc" as const },
+        ]
+      : [{ scrapedAt: "desc" as const }, { score: "desc" as const }];
+
   const leads = await prisma.lead.findMany({
     where,
-    orderBy: [{ isHotLead: "desc" }, { score: "desc" }, { scrapedAt: "desc" }],
+    orderBy,
     take: limit,
     include: {
       painPoints: true,
@@ -163,13 +173,16 @@ ${colors.bright}${colors.cyan}╔═══════════════�
 
   let currentLeads: LeadWithDetails[] = [];
   let currentFilter: "all" | "hot" | "new" = "all";
+  let currentSort: "score" | "date" = "score";
 
   async function displayLeads(): Promise<void> {
     console.clear();
     await showStats();
 
+    const sortLabel =
+      currentSort === "score" ? "Score (High→Low)" : "Date (New→Old)";
     console.log(
-      `${colors.bright}Filter: ${currentFilter.toUpperCase()}${colors.reset} (showing ${currentLeads.length} leads)\n`,
+      `${colors.bright}Filter: ${currentFilter.toUpperCase()} | Sort: ${sortLabel}${colors.reset} (showing ${currentLeads.length} leads)\n`,
     );
 
     for (let i = 0; i < currentLeads.length; i++) {
@@ -187,6 +200,8 @@ ${colors.bright}Commands:${colors.reset}
   ${colors.green}a${colors.reset} - Show all leads
   ${colors.green}h${colors.reset} - Show hot leads only
   ${colors.green}n${colors.reset} - Show new leads (last 24h)
+  ${colors.green}ss${colors.reset} - Sort by score
+  ${colors.green}sd${colors.reset} - Sort by date
   ${colors.green}r${colors.reset} - Refresh current view
   ${colors.green}s${colors.reset} - Show statistics
   ${colors.green}q${colors.reset} - Quit
@@ -210,7 +225,7 @@ ${colors.cyan}>${colors.reset} `);
 
       if (input === "a") {
         currentFilter = "all";
-        currentLeads = await fetchLeads("all");
+        currentLeads = await fetchLeads("all", currentSort);
         await displayLeads();
         prompt();
         return;
@@ -218,7 +233,7 @@ ${colors.cyan}>${colors.reset} `);
 
       if (input === "h") {
         currentFilter = "hot";
-        currentLeads = await fetchLeads("hot");
+        currentLeads = await fetchLeads("hot", currentSort);
         await displayLeads();
         prompt();
         return;
@@ -226,14 +241,30 @@ ${colors.cyan}>${colors.reset} `);
 
       if (input === "n") {
         currentFilter = "new";
-        currentLeads = await fetchLeads("new");
+        currentLeads = await fetchLeads("new", currentSort);
+        await displayLeads();
+        prompt();
+        return;
+      }
+
+      if (input === "ss") {
+        currentSort = "score";
+        currentLeads = await fetchLeads(currentFilter, "score");
+        await displayLeads();
+        prompt();
+        return;
+      }
+
+      if (input === "sd") {
+        currentSort = "date";
+        currentLeads = await fetchLeads(currentFilter, "date");
         await displayLeads();
         prompt();
         return;
       }
 
       if (input === "r") {
-        currentLeads = await fetchLeads(currentFilter);
+        currentLeads = await fetchLeads(currentFilter, currentSort);
         await displayLeads();
         prompt();
         return;
@@ -271,7 +302,7 @@ ${colors.cyan}>${colors.reset} `);
   }
 
   // Initial load
-  currentLeads = await fetchLeads("all");
+  currentLeads = await fetchLeads("all", currentSort);
   await displayLeads();
   prompt();
 }

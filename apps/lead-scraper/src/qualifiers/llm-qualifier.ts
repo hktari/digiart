@@ -45,7 +45,7 @@ export class LLMQualifier {
 
   constructor(
     apiKey: string,
-    modelName = "accounts/fireworks/models/deepseek-v4-pro",
+    modelName = "accounts/fireworks/models/minimax-m2p5",
   ) {
     this.model = new ChatFireworks({
       model: modelName,
