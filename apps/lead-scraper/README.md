@@ -66,17 +66,60 @@ npx prisma studio
 
 ## Usage
 
-### Test Mode (10 posts per subreddit)
+### Scraping Leads
 
+**Test Mode (10 posts per subreddit):**
 ```bash
 pnpm run scrape:test
 ```
 
-### Daily Mode (50 posts per subreddit)
-
+**Daily Mode (50 posts per subreddit):**
 ```bash
 pnpm run scrape
 ```
+
+### Browsing Leads
+
+**Interactive lead browser:**
+```bash
+pnpm run browse
+```
+
+Features:
+- 📊 View statistics (total leads, hot leads, recent)
+- 🔍 Filter by: all leads, hot leads, or new leads (last 24h)
+- 🌐 Open lead URLs in browser with one keystroke
+- 🎨 Color-coded display (hot leads, score, pain points)
+- ⚡ Real-time navigation
+
+Commands in browser:
+- `[1-N]` - Open lead URL in browser
+- `a` - Show all leads
+- `h` - Show hot leads only
+- `n` - Show new leads (last 24h)
+- `r` - Refresh current view
+- `s` - Show statistics
+- `q` - Quit
+
+### Drafting Outreach Messages
+
+**Generate personalized outreach message:**
+```bash
+pnpm run draft-outreach <lead-id>
+```
+
+This generates a customized Reddit DM based on:
+- Primary pain point identified
+- Subreddit context
+- Post title
+- Suggested subject line and message body
+
+**Workflow:**
+1. Browse leads with `pnpm run browse`
+2. Note the lead ID from the database
+3. Run `pnpm run draft-outreach <lead-id>`
+4. Customize the message
+5. Send via Reddit DM
 
 ### Development
 
@@ -110,6 +153,8 @@ pnpm run format
 4. **spam_bots**: fake accounts, stolen art
 5. **payment_issues**: withdrawal problems, missing payments
 6. **disclosure_requirements**: AI labeling requirements
+7. **print_physical**: printing, physical art, posters, canvas, wall art
+8. **quality_curation**: platform oversaturation, quality control issues
 
 ## Scheduling (Linux Cron)
 

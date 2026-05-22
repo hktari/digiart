@@ -9,6 +9,8 @@
     "start": "node dist/index.js",
     "scrape": "tsx src/index.ts --daily",
     "scrape:test": "tsx src/index.ts --test",
+    "browse": "tsx scripts/browse-leads.ts",
+    "draft-outreach": "tsx scripts/draft-outreach.ts",
     "verify": "tsx scripts/verify-setup.ts",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
