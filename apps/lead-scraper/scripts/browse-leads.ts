@@ -20,7 +20,7 @@ interface LeadWithDetails {
   score: number;
   isHotLead: boolean;
   reasoning: string;
-  createdAt: Date;
+  scrapedAt: Date;
   painPoints: Array<{
     category: string;
     description: string;
@@ -76,7 +76,7 @@ function formatLead(lead: LeadWithDetails, index: number): string {
     })
     .join("\n");
 
-  const date = new Date(lead.createdAt).toLocaleDateString("en-US", {
+  const date = new Date(lead.scrapedAt).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     hour: "2-digit",
@@ -104,7 +104,7 @@ async function fetchLeads(
       ? { isHotLead: true }
       : filter === "new"
         ? {
-            createdAt: {
+            scrapedAt: {
               gte: new Date(Date.now() - 24 * 60 * 60 * 1000), // Last 24h
             },
           }
@@ -112,14 +112,19 @@ async function fetchLeads(
 
   const leads = await prisma.lead.findMany({
     where,
-    orderBy: [{ isHotLead: "desc" }, { score: "desc" }, { createdAt: "desc" }],
+    orderBy: [{ isHotLead: "desc" }, { score: "desc" }, { scrapedAt: "desc" }],
     take: limit,
     include: {
       painPoints: true,
     },
   });
 
-  return leads;
+  return leads.map((lead) => ({
+    ...lead,
+    url: lead.postUrl,
+    score: lead.score ?? 0,
+    reasoning: lead.reasoning ?? "",
+  }));
 }
 
 async function showStats(): Promise<void> {
@@ -127,7 +132,7 @@ async function showStats(): Promise<void> {
   const hotLeads = await prisma.lead.count({ where: { isHotLead: true } });
   const last24h = await prisma.lead.count({
     where: {
-      createdAt: {
+      scrapedAt: {
         gte: new Date(Date.now() - 24 * 60 * 60 * 1000),
       },
     },

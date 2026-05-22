@@ -135,7 +135,7 @@ async function main(): Promise<void> {
   const message = generateOutreachMessage({
     title: lead.title,
     subreddit: lead.subreddit,
-    url: lead.url,
+    url: lead.postUrl,
     painPoints: lead.painPoints.map((pp) => ({
       category: pp.category,
       description: pp.description,
@@ -147,7 +147,7 @@ async function main(): Promise<void> {
   console.log(message.body);
   console.log("\n=== END DRAFT ===\n");
   console.log("💡 Tip: Customize this message before sending!");
-  console.log(`🔗 Open lead: ${lead.url}\n`);
+  console.log(`🔗 Open lead: ${lead.postUrl}\n`);
 
   await prisma.$disconnect();
 }
