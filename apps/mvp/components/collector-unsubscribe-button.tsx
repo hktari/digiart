@@ -28,7 +28,7 @@ export function CollectorUnsubscribeButton({ subscriptionId }: Props) {
       type="button"
       onClick={onUnsubscribe}
       disabled={isPending}
-      className="text-xs font-medium text-red-600 hover:text-red-700 disabled:opacity-50"
+      className="text-xs font-medium text-destructive-foreground hover:opacity-80 disabled:opacity-50"
     >
       {isPending ? "Unsubscribing..." : "Unsubscribe"}
     </button>

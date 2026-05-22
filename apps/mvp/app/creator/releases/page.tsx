@@ -9,7 +9,7 @@ import { db } from "@/lib/db";
 
 const STATUS_BADGE: Record<string, string> = {
   DRAFT: "bg-muted text-muted-foreground",
-  PUBLISHED: "bg-jade-500/10 text-jade-600",
+  PUBLISHED: "bg-success-bg text-success-foreground",
   ARCHIVED: "bg-secondary text-secondary-foreground",
 };
 
@@ -126,8 +126,8 @@ export default async function CreatorReleasesPage({
           {/* Curate Card */}
           <div className="bg-card border border-border rounded-xl p-4">
             <div className="flex items-start gap-3">
-              <div className="shrink-0 w-10 h-10 rounded-lg bg-beige-100 dark:bg-beige-900/30 flex items-center justify-center">
-                <Target className="h-5 w-5 text-beige-600" />
+              <div className="shrink-0 w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                <Target className="h-5 w-5 text-muted-foreground" />
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-foreground">
@@ -144,8 +144,8 @@ export default async function CreatorReleasesPage({
           {/* Tips Card */}
           <div className="bg-warning-bg border border-warning-border rounded-xl p-4">
             <div className="flex items-start gap-3">
-              <div className="shrink-0 w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                <Lightbulb className="h-5 w-5 text-amber-600" />
+              <div className="shrink-0 w-10 h-10 rounded-lg bg-warning-bg flex items-center justify-center">
+                <Lightbulb className="h-5 w-5 text-warning-foreground" />
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-foreground">
@@ -239,7 +239,7 @@ export default async function CreatorReleasesPage({
       {draftReleases.length > 0 && (
         <section className="mb-8">
           <h2 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-amber-500" />
+            <span className="w-2 h-2 rounded-full bg-warning-foreground" />
             Draft Releases ({draftReleases.length})
           </h2>
           <div className="space-y-3">
@@ -254,7 +254,7 @@ export default async function CreatorReleasesPage({
       {publishedReleases.length > 0 && (
         <section>
           <h2 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-jade-500" />
+            <span className="w-2 h-2 rounded-full bg-success-foreground" />
             Published Releases ({publishedReleases.length})
           </h2>
           <div className="space-y-3">
@@ -283,7 +283,7 @@ function ReleaseCard({ release }: { release: any }) {
             {release.title}
           </p>
           {needsMoreArtworks && (
-            <span className="shrink-0 text-xs text-amber-600 bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 rounded-full">
+            <span className="shrink-0 text-xs text-warning-foreground bg-warning-bg px-2 py-0.5 rounded-full">
               Needs {5 - release._count.artworks} more artwork
               {5 - release._count.artworks === 1 ? "" : "s"}
             </span>

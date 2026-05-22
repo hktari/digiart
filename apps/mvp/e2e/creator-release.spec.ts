@@ -14,7 +14,14 @@
  *  - creator-onboarding project runs first (Playwright project dependency)
  *    so the CREATOR user already has a CreatorProfile
  */
+import path from "node:path";
 import { expect, test } from "../playwright/fixtures";
+
+// Minimal valid PNG that is 1696×2528 px (meets print dimension requirements)
+const TEST_ARTWORK_PATH = path.join(
+  __dirname,
+  "../playwright/test-artwork-1696x2528.png",
+);
 
 // ---------------------------------------------------------------------------
 // Releases list
@@ -25,7 +32,7 @@ test.describe("Creator releases list", () => {
     await page.goto("/creator/releases");
 
     await expect(
-      page.getByRole("heading", { name: /releases/i }),
+      page.getByRole("heading", { name: /your releases/i }),
     ).toBeVisible();
   });
 
@@ -41,7 +48,7 @@ test.describe("Creator releases list", () => {
   test("new release button is enabled when cycle is OPEN", async ({ page }) => {
     await page.goto("/creator/releases");
 
-    const newReleaseBtn = page.getByRole("link", { name: "+ New release" });
+    const newReleaseBtn = page.getByRole("link", { name: /new release/i });
     await expect(newReleaseBtn).toBeVisible();
 
     // The link should NOT be aria-disabled when cycle is OPEN
@@ -124,13 +131,11 @@ test.describe("New release form", () => {
     await page.getByRole("button", { name: /next: add artworks/i }).click();
 
     // Step 2 — add 5 artwork files (meets minimum)
+    // Use a real valid image (1696×2528 px) repeated 5 times to pass dimension validation
     const fileInput = page.locator('input[type="file"]');
-    const fakeFiles = Array.from({ length: 5 }, (_, i) => ({
-      name: `artwork-${i + 1}.jpg`,
-      mimeType: "image/jpeg",
-      buffer: Buffer.from(`fake-image-data-${i}`),
-    }));
-    await fileInput.setInputFiles(fakeFiles);
+    await fileInput.setInputFiles(
+      Array.from({ length: 5 }, () => TEST_ARTWORK_PATH),
+    );
 
     // Submit — uploads happen as part of the create flow
     await page
@@ -143,10 +148,10 @@ test.describe("New release form", () => {
       timeout: 30000,
     });
 
-    // Should land on the release detail page
-    await expect(
-      page.getByRole("heading", { name: /e2e test release/i }),
-    ).toBeVisible({ timeout: 10000 });
+    // Should land on the release detail page (title shown in breadcrumb)
+    await expect(page.getByText(/e2e test release/i).first()).toBeVisible({
+      timeout: 10000,
+    });
   });
 });
 
@@ -165,7 +170,7 @@ test.describe("Release detail", () => {
     // (we just check the page loaded; the actual release may or may not
     //  exist depending on test order)
     await expect(
-      page.getByRole("heading", { name: /releases/i }),
+      page.getByRole("heading", { name: /your releases/i }),
     ).toBeVisible();
   });
 });

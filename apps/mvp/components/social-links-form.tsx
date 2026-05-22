@@ -167,13 +167,13 @@ export function SocialLinksForm({ initialLinks = [] }: SocialLinksFormProps) {
 
       <form onSubmit={handleSubmit} noValidate className="space-y-6">
         {saveSuccess && (
-          <div className="rounded-lg border border-jade-200 bg-jade-50 px-4 py-3 text-sm text-jade-700">
+          <div className="rounded-lg border border-success-border bg-success-bg px-4 py-3 text-sm text-success-foreground">
             Your social links have been saved.
           </div>
         )}
 
         {saveError && (
-          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="rounded-lg border border-destructive-border bg-destructive-bg px-4 py-3 text-sm text-destructive-foreground">
             {saveError}
           </div>
         )}
@@ -201,7 +201,7 @@ export function SocialLinksForm({ initialLinks = [] }: SocialLinksFormProps) {
                       }
                       className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500 ${
                         link.errors?.label
-                          ? "border-red-300 focus:border-red-500"
+                          ? "border-destructive-border focus:border-destructive-border"
                           : "border"
                       }`}
                     >
@@ -213,7 +213,7 @@ export function SocialLinksForm({ initialLinks = [] }: SocialLinksFormProps) {
                       ))}
                     </select>
                     {link.errors?.label && (
-                      <p className="mt-1 text-sm text-red-600">
+                      <p className="mt-1 text-sm text-destructive-foreground">
                         {link.errors.label}
                       </p>
                     )}
@@ -234,12 +234,12 @@ export function SocialLinksForm({ initialLinks = [] }: SocialLinksFormProps) {
                       placeholder="https://..."
                       className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500 ${
                         link.errors?.url
-                          ? "border-red-300 focus:border-red-500"
+                          ? "border-destructive-border focus:border-destructive-border"
                           : "border"
                       }`}
                     />
                     {link.errors?.url && (
-                      <p className="mt-1 text-sm text-red-600">
+                      <p className="mt-1 text-sm text-destructive-foreground">
                         {link.errors.url}
                       </p>
                     )}
@@ -249,7 +249,7 @@ export function SocialLinksForm({ initialLinks = [] }: SocialLinksFormProps) {
                 <button
                   type="button"
                   onClick={() => removeLink(index)}
-                  className="rounded-lg border border-red-200 p-2 text-red-600 hover:bg-red-50 transition-colors"
+                  className="rounded-lg border border-destructive-border p-2 text-destructive-foreground hover:bg-destructive-bg transition-colors"
                   aria-label={`Remove ${link.label || "link"}`}
                 >
                   <Trash2 className="h-4 w-4" />

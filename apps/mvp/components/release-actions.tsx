@@ -119,7 +119,7 @@ export function ReleaseActions({
             <Button
               onClick={handlePublishConfirm}
               disabled={isPending}
-              className="bg-jade-600 hover:bg-jade-700"
+              className="bg-success-bg text-success-foreground border border-success-border hover:opacity-90"
             >
               <Rocket className="mr-2 h-4 w-4" />
               {isPending ? "Publishing…" : "Publish Release"}

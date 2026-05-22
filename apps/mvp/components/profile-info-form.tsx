@@ -107,7 +107,7 @@ export function ProfileInfoForm({ initialData }: ProfileInfoFormProps) {
   return (
     <form action={saveAction} className="space-y-6">
       {saveSuccess && (
-        <div className="rounded-lg border border-jade-200 bg-jade-50 px-4 py-3 text-sm text-jade-700">
+        <div className="rounded-lg border border-success-border bg-success-bg px-4 py-3 text-sm text-success-foreground">
           Profile information saved successfully.
         </div>
       )}
@@ -139,7 +139,7 @@ export function ProfileInfoForm({ initialData }: ProfileInfoFormProps) {
           placeholder="Your artist name"
           className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500 ${
             allErrors.displayName
-              ? "border-red-300 focus:border-red-500"
+              ? "border-destructive-border focus:border-destructive-border"
               : "border"
           }`}
         />
@@ -198,7 +198,7 @@ export function ProfileInfoForm({ initialData }: ProfileInfoFormProps) {
               placeholder="your-name"
               className={`flex-1 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500 ${
                 allErrors.slug
-                  ? "border-red-300 focus:border-red-500"
+                  ? "border-destructive-border focus:border-destructive-border"
                   : "border"
               }`}
             />
@@ -220,7 +220,7 @@ export function ProfileInfoForm({ initialData }: ProfileInfoFormProps) {
             type="button"
             onClick={() => setSlugEditing(true)}
             className={`w-full text-left rounded-lg border px-3 py-2 text-sm bg-muted/40 text-foreground/70 ${
-              allErrors.slug ? "border-red-300" : "border"
+              allErrors.slug ? "border-destructive-border" : "border"
             }`}
           >
             {formData.slug || (
@@ -236,7 +236,9 @@ export function ProfileInfoForm({ initialData }: ProfileInfoFormProps) {
           <p className="mt-1 text-sm text-destructive">{allErrors.slug}</p>
         )}
         {isSlugAvailable && (
-          <p className="mt-1 text-sm text-jade-600">This slug is available!</p>
+          <p className="mt-1 text-sm text-success-foreground">
+            This slug is available!
+          </p>
         )}
         {isSlugTaken && (
           <p className="mt-1 text-sm text-destructive">
@@ -259,7 +261,9 @@ export function ProfileInfoForm({ initialData }: ProfileInfoFormProps) {
           placeholder="Tell collectors about yourself and your art..."
           rows={4}
           className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500 ${
-            allErrors.bio ? "border-red-300 focus:border-red-500" : "border"
+            allErrors.bio
+              ? "border-destructive-border focus:border-destructive-border"
+              : "border"
           }`}
         />
         <p className="mt-1 text-xs text-muted-foreground">

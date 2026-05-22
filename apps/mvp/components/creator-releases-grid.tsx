@@ -89,7 +89,7 @@ function ReleaseCard({
   return (
     <Link
       href={`/creators/${slug}/releases/${release.id}`}
-      className={`group rounded-xl border bg-white overflow-hidden transition-all block ${
+      className={`group rounded-xl border bg-card overflow-hidden transition-all block ${
         isSelected && isHydrated
           ? "border-fuchsia-400 shadow-md"
           : "border-border hover:border-fuchsia-300 hover:shadow-lg"
@@ -127,7 +127,7 @@ function ReleaseCard({
             {release._count.artworks === 1 ? "artwork" : "artworks"}
           </p>
           {isSelected && isHydrated && (
-            <span className="rounded-full bg-fuchsia-100 px-2 py-0.5 text-xs text-fuchsia-700">
+            <span className="rounded-full bg-accent px-2 py-0.5 text-xs text-accent-foreground">
               In booklet
             </span>
           )}
@@ -143,7 +143,7 @@ function ReleaseCard({
           disabled={isPending || !isHydrated}
           className={`w-full px-3 py-2 text-sm font-medium rounded-md transition-colors disabled:opacity-50 ${
             isSelected && isHydrated
-              ? "bg-red-50 text-red-700 border border-red-200 hover:bg-red-100"
+              ? "bg-destructive-bg text-destructive-foreground border border-destructive-border hover:opacity-80"
               : "bg-fuchsia-600 text-white hover:bg-fuchsia-700"
           }`}
         >

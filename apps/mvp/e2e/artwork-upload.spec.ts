@@ -1,4 +1,11 @@
+import path from "node:path";
 import { expect, test } from "../playwright/fixtures";
+
+// Minimal valid PNG that is 1696×2528 px (meets print dimension requirements)
+const TEST_ARTWORK_PATH = path.join(
+  __dirname,
+  "../playwright/test-artwork-1696x2528.png",
+);
 
 test.describe("Artwork Upload", () => {
   test("creator can access artwork upload page", async ({ page }) => {
@@ -24,13 +31,9 @@ test.describe("Artwork Upload", () => {
       page.getByRole("button", { name: /upload.*file/i }),
     ).not.toBeVisible();
 
-    // Select a file
+    // Select a valid PNG file (must meet print dimension requirements)
     const fileInput = page.locator('input[type="file"]');
-    await fileInput.setInputFiles({
-      name: "test-artwork.jpg",
-      mimeType: "image/jpeg",
-      buffer: Buffer.from("fake-image-data"),
-    });
+    await fileInput.setInputFiles(TEST_ARTWORK_PATH);
 
     // Button should now be visible
     await expect(
@@ -68,11 +71,8 @@ test.describe("Artwork Upload", () => {
     await page.goto("/creator/artworks/new", { waitUntil: "load" });
 
     const fileInput = page.locator('input[type="file"]');
-    await fileInput.setInputFiles({
-      name: "test-artwork.jpg",
-      mimeType: "image/jpeg",
-      buffer: Buffer.from("fake-image-data"),
-    });
+    // Use a real valid image that meets print dimension requirements (1696×2528 px)
+    await fileInput.setInputFiles(TEST_ARTWORK_PATH);
 
     await page.getByRole("button", { name: /upload.*file/i }).click();
 

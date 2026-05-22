@@ -25,7 +25,7 @@ import { db } from "@/lib/db";
 
 const STATUS_BADGE: Record<string, string> = {
   DRAFT: "bg-muted text-muted-foreground",
-  PUBLISHED: "bg-jade-500/10 text-jade-600",
+  PUBLISHED: "bg-success-bg text-success-foreground",
   ARCHIVED: "bg-secondary text-secondary-foreground",
 };
 
@@ -154,15 +154,13 @@ export default async function CreatorReleaseDetailPage({
               <div className="flex items-start gap-3">
                 <div
                   className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${
-                    selectedIds.length >= 5
-                      ? "bg-jade-100 dark:bg-jade-900/30"
-                      : "bg-amber-100 dark:bg-amber-900/30"
+                    selectedIds.length >= 5 ? "bg-success-bg" : "bg-warning-bg"
                   }`}
                 >
                   {selectedIds.length >= 5 ? (
-                    <CheckCircle2 className="h-5 w-5 text-jade-600" />
+                    <CheckCircle2 className="h-5 w-5 text-success-foreground" />
                   ) : (
-                    <AlertCircle className="h-5 w-5 text-amber-600" />
+                    <AlertCircle className="h-5 w-5 text-warning-foreground" />
                   )}
                 </div>
                 <div className="flex-1">
@@ -174,8 +172,8 @@ export default async function CreatorReleaseDetailPage({
                       <div
                         className={`h-full rounded-full transition-all ${
                           selectedIds.length >= 5
-                            ? "bg-jade-500"
-                            : "bg-amber-500"
+                            ? "bg-success-foreground"
+                            : "bg-warning-foreground"
                         }`}
                         style={{
                           width: `${Math.min((selectedIds.length / 5) * 100, 100)}%`,

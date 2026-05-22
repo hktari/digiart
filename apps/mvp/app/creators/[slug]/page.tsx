@@ -100,13 +100,13 @@ export default async function CreatorProfilePage({
             {/* Info */}
             <div className="flex-1 space-y-4">
               {resolvedSearchParams?.subscriptionError && (
-                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <div className="rounded-lg border border-destructive-border bg-destructive-bg px-4 py-3 text-sm text-destructive-foreground">
                   {resolvedSearchParams.subscriptionError}
                 </div>
               )}
 
               {resolvedSearchParams?.subscribed === "1" && (
-                <div className="rounded-lg border border-jade-200 bg-jade-50 px-4 py-3 text-sm text-jade-800">
+                <div className="rounded-lg border border-success-border bg-success-bg px-4 py-3 text-sm text-success-foreground">
                   <p className="font-medium">Subscribed successfully.</p>
                   {resolvedSearchParams.autoAddedRelease ? (
                     <p>
@@ -180,7 +180,7 @@ export default async function CreatorProfilePage({
                 <div className="pt-2 space-y-2">
                   {isSubscribed && subscriptionId ? (
                     <div className="flex items-center gap-3">
-                      <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border-2 border-jade-600 text-jade-700 font-medium text-sm">
+                      <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border-2 border-success-border text-success-foreground font-medium text-sm">
                         ✓ Subscribed
                       </span>
                       <CollectorUnsubscribeButton

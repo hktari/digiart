@@ -10,7 +10,14 @@
  * Playwright project dependencies in playwright.config.ts). The CREATOR user
  * will already have a CreatorProfile created during the onboarding flow.
  */
+import path from "node:path";
 import { expect, test } from "../playwright/fixtures";
+
+// Small valid PNG for avatar tests (any valid PNG that can be decoded by canvas)
+const TEST_AVATAR_PATH = path.join(
+  __dirname,
+  "../playwright/test-artwork-1696x2528.png",
+);
 
 // ---------------------------------------------------------------------------
 // Profile edit page
@@ -21,12 +28,11 @@ test.describe("Creator profile edit", () => {
     await page.goto("/creator/profile");
 
     await expect(
-      page.getByRole("heading", { name: /edit profile/i }),
+      page.getByRole("heading", { name: "Profile and payouts", exact: true }),
     ).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Payout" })).toBeVisible();
-    await expect(
-      page.getByRole("heading", { name: "Social links", exact: true }),
-    ).toBeVisible();
+    // Verify key section labels are present on the page
+    await expect(page.getByText("Profile Information")).toBeVisible();
+    await expect(page.getByText("Save Social Links")).toBeVisible();
   });
 
   test("avatar section is visible", async ({ page }) => {
@@ -80,14 +86,17 @@ test.describe("Avatar upload", () => {
     await page.goto("/creator/profile");
 
     const fileInput = page.locator('input[type="file"]').first();
-    await fileInput.setInputFiles({
-      name: "avatar.jpg",
-      mimeType: "image/jpeg",
-      buffer: Buffer.from("fake-image-data"),
-    });
+    // Use a real valid PNG so the canvas crop operation can succeed
+    await fileInput.setInputFiles(TEST_AVATAR_PATH);
 
-    // A preview or uploading indicator should appear
-    await expect(page.getByText(/uploading|saving|saved/i)).toBeVisible({
+    // A crop dialog appears after file selection — confirm it
+    await expect(
+      page.getByRole("button", { name: /crop & upload/i }),
+    ).toBeVisible({ timeout: 5000 });
+    await page.getByRole("button", { name: /crop & upload/i }).click();
+
+    // After confirming crop, uploading/saved indicator should appear
+    await expect(page.getByText(/uploading|✓ saved/i)).toBeVisible({
       timeout: 10000,
     });
   });

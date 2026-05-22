@@ -1,30 +1,33 @@
+import path from "node:path";
 import { expect, test } from "../playwright/fixtures";
+
+// Minimal valid PNG that is 1696×2528 px (meets print dimension requirements)
+const TEST_ARTWORK_PATH = path.join(
+  __dirname,
+  "../playwright/test-artwork-1696x2528.png",
+);
 
 test.describe("Creator flow", () => {
   test("dashboard quick actions navigate to creator workflow pages", async ({
     page,
   }) => {
-    await page.goto("/creator");
+    // /creator redirects to the main dashboard
+    await page.goto("/");
 
     await expect(
-      page.getByRole("heading", { name: /e2e test creator/i }),
+      page.getByRole("heading", { name: /your workspace/i }),
     ).toBeVisible();
 
-    await page
-      .getByRole("link", { name: /upload artwork/i })
-      .first()
-      .click();
+    // Navigate to creator artworks upload page
+    await page.goto("/creator/artworks/new");
     await expect(
       page.getByRole("heading", { name: /upload artworks/i }),
     ).toBeVisible();
 
-    await page.goto("/creator");
-    await page
-      .getByRole("link", { name: /new release/i })
-      .first()
-      .click();
+    // Navigate to creator new release page
+    await page.goto("/creator/releases/new");
     await expect(
-      page.getByRole("heading", { name: /new release/i }),
+      page.getByRole("heading", { name: /create new release/i }),
     ).toBeVisible();
   });
 
@@ -59,11 +62,8 @@ test.describe("Creator flow", () => {
 
     await page.goto("/creator/artworks/new");
 
-    await page.locator('input[type="file"]').setInputFiles({
-      name: "flow-artwork.jpg",
-      mimeType: "image/jpeg",
-      buffer: Buffer.from("fake-image-data"),
-    });
+    // Use a real valid image (1696×2528 px) to pass client-side dimension validation
+    await page.locator('input[type="file"]').setInputFiles(TEST_ARTWORK_PATH);
 
     await page.getByRole("button", { name: /upload 1 file/i }).click();
     await expect(page.getByText(/1 uploaded/i)).toBeVisible({ timeout: 10000 });
@@ -82,29 +82,24 @@ test.describe("Creator flow", () => {
     await page.getByLabel(/title/i).fill("Creator Flow Release");
     await page.getByRole("button", { name: /next: add artworks/i }).click();
 
+    // With 0 artworks: minimum requirement shown and button disabled
     await expect(
-      page.getByText(/add at least 5 artworks to create a release/i),
+      page.getByText(/minimum 5 required to publish/i),
     ).toBeVisible();
     await expect(
       page.getByRole("button", { name: /create release with 0 artworks/i }),
     ).toBeDisabled();
 
-    await page.locator('input[type="file"]').setInputFiles([
-      {
-        name: "flow-1.jpg",
-        mimeType: "image/jpeg",
-        buffer: Buffer.from("flow-file-1"),
-      },
-      {
-        name: "flow-2.jpg",
-        mimeType: "image/jpeg",
-        buffer: Buffer.from("flow-file-2"),
-      },
-    ]);
+    // Use real valid images (1696×2528 px) for 2 files
+    await page
+      .locator('input[type="file"]')
+      .setInputFiles([TEST_ARTWORK_PATH, TEST_ARTWORK_PATH]);
 
+    // 2 artworks selected, still below minimum — button still disabled
     await expect(
       page.getByRole("button", { name: /create release with 2 artworks/i }),
     ).toBeDisabled();
-    await expect(page.getByText(/3 more artworks needed/i)).toBeVisible();
+    // "3 more needed" (5 - 2 = 3)
+    await expect(page.getByText(/3 more needed/i)).toBeVisible();
   });
 });
