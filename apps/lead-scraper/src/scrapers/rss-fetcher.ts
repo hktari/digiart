@@ -25,6 +25,9 @@ export class RedditRSSFetcher {
     this.parser = new XMLParser({
       ignoreAttributes: false,
       attributeNamePrefix: "@_",
+      // Increase entity expansion limit to handle Reddit RSS feeds
+      // Reddit feeds often exceed the default 1000 limit
+      processEntities: false,
     });
   }
 

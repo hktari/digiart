@@ -34,4 +34,7 @@ export const SUBREDDITS = [
   "DeviantArt",
   "civitai",
   "aiArt",
+  "dalle2",
+  // "DiscoDiffusion", // Removed: subreddit no longer exists (404)
+  "starryai",
 ];

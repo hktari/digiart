@@ -11,7 +11,7 @@ export const GraphState = Annotation.Root({
   // Data flow
   allPosts: Annotation<RedditPost[]>({
     // Replace instead of append - allows deduplicate node to filter the array
-    reducer: (current, update) => update,
+    reducer: (_current, update) => update,
     default: () => [],
   }),
   filteredPosts: Annotation<FilteredPost[]>({
