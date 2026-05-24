@@ -2,9 +2,6 @@
 - run linter and formatter to verify your code
 - when running tests make sure to run in non interactive mode (e.g. vitest --run)
 
-**IMPORTANT**
-There is currently no active development going on in the "apps/landing". It can however serve as reference for design / brand preferences.
-
 ## Lead Scraper Development
 
 **CRITICAL: Use Development Database**
@@ -32,5 +29,6 @@ pnpm --env-file=.env.dev prisma db push
 **Never run commands without `:dev` suffix or `--env-file=.env.dev`** - this will use `.env` (production) by default.
 
 Files:
+
 - `.env.dev` - Development database (safe to reset)
 - `.env` - Production database (DO NOT TOUCH during development)
