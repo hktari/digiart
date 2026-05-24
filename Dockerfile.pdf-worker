@@ -14,17 +14,17 @@ RUN mkdir -p /app/profiles
 # Install dependencies
 FROM base AS deps
 WORKDIR /app
-COPY pnpm-workspace.yaml package.json pnpm-approved-builds.json ./
+COPY pnpm-workspace.yaml package.json pnpm-approved-builds.json pnpm-lock.yaml ./
 COPY apps/pdf-worker/package.json ./apps/pdf-worker/
 COPY apps/mvp/package.json ./apps/mvp/
-RUN pnpm install --no-frozen-lockfile
+RUN pnpm install --frozen-lockfile
 
 # Build the application
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/pdf-worker/node_modules ./apps/pdf-worker/node_modules
-COPY pnpm-workspace.yaml package.json ./
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY apps/pdf-worker ./apps/pdf-worker
 COPY tsconfig.base.json ./
 RUN cd apps/pdf-worker && npx prisma generate
