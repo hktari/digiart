@@ -3,12 +3,17 @@
 
 set -e
 
+# Set PATH for cron environment (include common pnpm and node locations)
+export PATH="/home/bostjan/.local/share/pnpm:/home/bostjan/.nvm/versions/node/v24.13.1/bin:$PATH:/usr/local/bin:/usr/bin:/bin"
+
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$SCRIPT_DIR/.."
 
-# Load environment
+# Load environment (safely handle values with spaces and special characters)
 if [ -f .env ]; then
-  export $(cat .env | grep -v '^#' | xargs)
+  set -a
+  source .env
+  set +a
 fi
 
 # Run scraper and capture output
