@@ -1,4 +1,4 @@
-import TelegramBot from "node-telegram-bot-api";
+import { Bot } from "grammy";
 import type { QualifiedPost } from "../qualifiers/llm-qualifier.js";
 
 export interface NotificationStats {
@@ -10,11 +10,11 @@ export interface NotificationStats {
 }
 
 export class TelegramNotifier {
-  private bot: TelegramBot;
+  private bot: Bot;
   private chatId: string;
 
   constructor(botToken: string, chatId: string) {
-    this.bot = new TelegramBot(botToken, { polling: false });
+    this.bot = new Bot(botToken);
     this.chatId = chatId;
   }
 
@@ -25,9 +25,9 @@ export class TelegramNotifier {
 
     const message = this.formatHotLeadMessage(post);
 
-    await this.bot.sendMessage(this.chatId, message, {
+    await this.bot.api.sendMessage(this.chatId, message, {
       parse_mode: "Markdown",
-      disable_web_page_preview: false,
+      link_preview_options: { is_disabled: false },
     });
   }
 
@@ -37,9 +37,9 @@ export class TelegramNotifier {
   ): Promise<void> {
     const message = this.formatDailySummaryMessage(posts, stats);
 
-    await this.bot.sendMessage(this.chatId, message, {
+    await this.bot.api.sendMessage(this.chatId, message, {
       parse_mode: "Markdown",
-      disable_web_page_preview: true,
+      link_preview_options: { is_disabled: true },
     });
   }
 
@@ -55,7 +55,7 @@ ${error.stack?.substring(0, 500) || "No stack trace"}
 
 *Time:* ${this.formatDate(new Date())}`;
 
-    await this.bot.sendMessage(this.chatId, message, {
+    await this.bot.api.sendMessage(this.chatId, message, {
       parse_mode: "Markdown",
     });
   }
