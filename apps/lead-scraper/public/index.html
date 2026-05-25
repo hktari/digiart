@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lead Browser</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0f1419;
+            color: #e7e9ea;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: #16181c;
+            border-bottom: 1px solid #2f3336;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1d9bf0;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #16181c;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #2f3336;
+        }
+
+        .stat-card h3 {
+            font-size: 12px;
+            color: #71767b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #e7e9ea;
+        }
+
+        .filters {
+            background: #16181c;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #2f3336;
+            margin-bottom: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #71767b;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            background: #1e2126;
+            border: 1px solid #2f3336;
+            border-radius: 20px;
+            color: #e7e9ea;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover {
+            background: #2a2d32;
+        }
+
+        .filter-btn.active {
+            background: #1d9bf0;
+            border-color: #1d9bf0;
+            color: white;
+        }
+
+        .leads-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .lead-card {
+            background: #16181c;
+            border: 1px solid #2f3336;
+            border-radius: 12px;
+            padding: 20px;
+            transition: border-color 0.2s;
+        }
+
+        .lead-card:hover {
+            border-color: #1d9bf0;
+        }
+
+        .lead-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .lead-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #e7e9ea;
+            margin-bottom: 8px;
+        }
+
+        .lead-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 14px;
+            color: #71767b;
+            margin-bottom: 10px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge.hot {
+            background: rgba(249, 24, 128, 0.1);
+            color: #f91880;
+        }
+
+        .badge.contacted {
+            background: rgba(0, 186, 124, 0.1);
+            color: #00ba7c;
+        }
+
+        .badge.irrelevant {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .badge.score {
+            background: rgba(29, 155, 240, 0.1);
+            color: #1d9bf0;
+        }
+
+        .lead-content {
+            margin: 15px 0;
+        }
+
+        .lead-reasoning {
+            color: #71767b;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .pain-points {
+            margin-top: 15px;
+        }
+
+        .pain-points h4 {
+            font-size: 14px;
+            color: #71767b;
+            margin-bottom: 10px;
+        }
+
+        .pain-point {
+            background: #1e2126;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 3px solid #1d9bf0;
+        }
+
+        .pain-point.high {
+            border-left-color: #f91880;
+        }
+
+        .pain-point.medium {
+            border-left-color: #ffd400;
+        }
+
+        .pain-point.low {
+            border-left-color: #00ba7c;
+        }
+
+        .pain-point-category {
+            font-size: 12px;
+            font-weight: 600;
+            color: #1d9bf0;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .pain-point-description {
+            font-size: 14px;
+            color: #e7e9ea;
+        }
+
+        .lead-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #2f3336;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #1d9bf0;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1a8cd8;
+        }
+
+        .btn-secondary {
+            background: #1e2126;
+            color: #e7e9ea;
+            border: 1px solid #2f3336;
+        }
+
+        .btn-secondary:hover {
+            background: #2a2d32;
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .btn-success {
+            background: rgba(0, 186, 124, 0.1);
+            color: #00ba7c;
+            border: 1px solid #00ba7c;
+        }
+
+        .btn-success:hover {
+            background: rgba(0, 186, 124, 0.2);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #71767b;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #71767b;
+        }
+
+        .empty h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #16181c;
+            border: 1px solid #2f3336;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal-header {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-body label {
+            display: block;
+            font-size: 14px;
+            color: #71767b;
+            margin-bottom: 8px;
+        }
+
+        .modal-body textarea {
+            width: 100%;
+            padding: 12px;
+            background: #1e2126;
+            border: 1px solid #2f3336;
+            border-radius: 8px;
+            color: #e7e9ea;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .irrelevance-info {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid #ef4444;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+
+        .irrelevance-info-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #ef4444;
+            margin-bottom: 4px;
+        }
+
+        .irrelevance-info-text {
+            font-size: 14px;
+            color: #e7e9ea;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🎯 Lead Browser</h1>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Statistics -->
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <h3>Total Leads</h3>
+                <div class="value" id="stat-total">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Hot Leads</h3>
+                <div class="value" id="stat-hot">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Last 24h</h3>
+                <div class="value" id="stat-new">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Not Contacted</h3>
+                <div class="value" id="stat-not-contacted">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Contacted</h3>
+                <div class="value" id="stat-contacted">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Irrelevant</h3>
+                <div class="value" id="stat-irrelevant">-</div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+            <div class="filter-group" style="margin-bottom: 15px;">
+                <label>Filter:</label>
+                <button class="filter-btn" data-filter="all">All</button>
+                <button class="filter-btn active" data-filter="not-contacted">Not Contacted</button>
+                <button class="filter-btn" data-filter="hot">Hot Leads</button>
+                <button class="filter-btn" data-filter="new">New (24h)</button>
+                <button class="filter-btn" data-filter="contacted">Contacted</button>
+                <button class="filter-btn" data-filter="irrelevant">Irrelevant</button>
+                <button class="filter-btn" data-filter="relevant">Relevant</button>
+            </div>
+            <div class="filter-group">
+                <label>Sort:</label>
+                <button class="filter-btn active" data-sort="score">By Score</button>
+                <button class="filter-btn" data-sort="date">By Date</button>
+            </div>
+        </div>
+
+        <!-- Leads List -->
+        <div id="leads-container">
+            <div class="loading">Loading leads...</div>
+        </div>
+    </div>
+
+    <!-- Modal for irrelevant reason -->
+    <div class="modal" id="irrelevant-modal">
+        <div class="modal-content">
+            <div class="modal-header">Mark as Irrelevant</div>
+            <div class="modal-body">
+                <label for="irrelevant-reason">Reason (optional):</label>
+                <textarea id="irrelevant-reason" placeholder="Why is this lead irrelevant?"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeIrrelevantModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmIrrelevant()">Mark Irrelevant</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for contact notes -->
+    <div class="modal" id="contact-modal">
+        <div class="modal-content">
+            <div class="modal-header">Mark as Contacted</div>
+            <div class="modal-body">
+                <label for="contact-notes">Notes (optional):</label>
+                <textarea id="contact-notes" placeholder="Add any notes about the outreach..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeContactModal()">Cancel</button>
+                <button class="btn btn-success" onclick="confirmContact()">Mark Contacted</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let currentFilter = 'not-contacted';
+        let currentSort = 'score';
+        let currentLeadId = null;
+
+        // Fetch and display statistics
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/stats`);
+                const stats = await response.json();
+
+                document.getElementById('stat-total').textContent = stats.totalLeads;
+                document.getElementById('stat-hot').textContent = stats.hotLeads;
+                document.getElementById('stat-new').textContent = stats.last24h;
+                document.getElementById('stat-contacted').textContent = stats.contacted;
+                document.getElementById('stat-not-contacted').textContent = stats.notContacted;
+                document.getElementById('stat-irrelevant').textContent = stats.irrelevant;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Fetch and display leads
+        async function loadLeads() {
+            const container = document.getElementById('leads-container');
+            container.innerHTML = '<div class="loading">Loading leads...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/leads?filter=${currentFilter}&sort=${currentSort}&limit=50`);
+                const data = await response.json();
+
+                if (data.leads.length === 0) {
+                    container.innerHTML = '<div class="empty"><h3>No leads found</h3><p>Try changing your filters</p></div>';
+                    return;
+                }
+
+                container.innerHTML = '<div class="leads-grid"></div>';
+                const grid = container.querySelector('.leads-grid');
+
+                for (const lead of data.leads) {
+                    grid.appendChild(createLeadCard(lead));
+                }
+            } catch (error) {
+                console.error('Error loading leads:', error);
+                container.innerHTML = '<div class="empty"><h3>Error loading leads</h3><p>Please try again</p></div>';
+            }
+        }
+
+        // Create lead card HTML
+        function createLeadCard(lead) {
+            const card = document.createElement('div');
+            card.className = 'lead-card';
+
+            const badges = [];
+            if (lead.isHotLead) badges.push('<span class="badge hot">🔥 HOT</span>');
+            if (lead.reachedOut) badges.push('<span class="badge contacted">✓ Contacted</span>');
+            if (lead.isIrrelevant) badges.push('<span class="badge irrelevant">✗ Irrelevant</span>');
+            badges.push(`<span class="badge score">Score: ${lead.score || 0}</span>`);
+
+            const painPointsHtml = lead.painPoints && lead.painPoints.length > 0 ? `
+                <div class="pain-points">
+                    <h4>Pain Points:</h4>
+                    ${lead.painPoints.map(pp => `
+                        <div class="pain-point ${pp.severity}">
+                            <div class="pain-point-category">${pp.category}</div>
+                            <div class="pain-point-description">${pp.description}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : '';
+
+            const irrelevanceInfoHtml = lead.isIrrelevant && lead.irrelevanceReason ? `
+                <div class="irrelevance-info">
+                    <div class="irrelevance-info-title">Marked Irrelevant:</div>
+                    <div class="irrelevance-info-text">${lead.irrelevanceReason}</div>
+                </div>
+            ` : '';
+
+            const contactInfoHtml = lead.reachedOut && lead.outreachNotes ? `
+                <div class="irrelevance-info" style="background: rgba(0, 186, 124, 0.1); border-color: #00ba7c;">
+                    <div class="irrelevance-info-title" style="color: #00ba7c;">Contact Notes:</div>
+                    <div class="irrelevance-info-text">${lead.outreachNotes}</div>
+                </div>
+            ` : '';
+
+            const date = new Date(lead.scrapedAt).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            const actions = [];
+            actions.push(`<button class="btn btn-primary" onclick="window.open('${lead.postUrl}', '_blank')">Open Post</button>`);
+            
+            if (!lead.reachedOut) {
+                actions.push(`<button class="btn btn-success" onclick="openContactModal('${lead.id}')">Mark Contacted</button>`);
+            }
+            
+            if (!lead.isIrrelevant) {
+                actions.push(`<button class="btn btn-danger" onclick="openIrrelevantModal('${lead.id}')">Mark Irrelevant</button>`);
+            } else {
+                actions.push(`<button class="btn btn-secondary" onclick="unmarkIrrelevant('${lead.id}')">Unmark Irrelevant</button>`);
+            }
+
+            card.innerHTML = `
+                <div class="lead-header">
+                    <div>
+                        <div class="lead-title">${lead.title}</div>
+                        <div class="lead-meta">
+                            <span>r/${lead.subreddit}</span>
+                            <span>by u/${lead.author}</span>
+                            <span>${date}</span>
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;">
+                            ${badges.join('')}
+                        </div>
+                    </div>
+                </div>
+                <div class="lead-content">
+                    <div class="lead-reasoning">${lead.reasoning || 'No reasoning provided'}</div>
+                    ${painPointsHtml}
+                    ${irrelevanceInfoHtml}
+                    ${contactInfoHtml}
+                </div>
+                <div class="lead-actions">
+                    ${actions.join('')}
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Modal functions
+        function openIrrelevantModal(leadId) {
+            currentLeadId = leadId;
+            document.getElementById('irrelevant-reason').value = '';
+            document.getElementById('irrelevant-modal').classList.add('active');
+        }
+
+        function closeIrrelevantModal() {
+            document.getElementById('irrelevant-modal').classList.remove('active');
+            currentLeadId = null;
+        }
+
+        async function confirmIrrelevant() {
+            const reason = document.getElementById('irrelevant-reason').value.trim();
+            
+            try {
+                await fetch(`${API_BASE}/leads/${currentLeadId}/irrelevant`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reason })
+                });
+
+                closeIrrelevantModal();
+                await loadStats();
+                await loadLeads();
+            } catch (error) {
+                console.error('Error marking as irrelevant:', error);
+                alert('Failed to mark lead as irrelevant');
+            }
+        }
+
+        function openContactModal(leadId) {
+            currentLeadId = leadId;
+            document.getElementById('contact-notes').value = '';
+            document.getElementById('contact-modal').classList.add('active');
+        }
+
+        function closeContactModal() {
+            document.getElementById('contact-modal').classList.remove('active');
+            currentLeadId = null;
+        }
+
+        async function confirmContact() {
+            const notes = document.getElementById('contact-notes').value.trim();
+            
+            try {
+                await fetch(`${API_BASE}/leads/${currentLeadId}/contact`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ notes })
+                });
+
+                closeContactModal();
+                await loadStats();
+                await loadLeads();
+            } catch (error) {
+                console.error('Error marking as contacted:', error);
+                alert('Failed to mark lead as contacted');
+            }
+        }
+
+        async function unmarkIrrelevant(leadId) {
+            try {
+                await fetch(`${API_BASE}/leads/${leadId}/irrelevant`, {
+                    method: 'DELETE'
+                });
+
+                await loadStats();
+                await loadLeads();
+            } catch (error) {
+                console.error('Error unmarking as irrelevant:', error);
+                alert('Failed to unmark lead');
+            }
+        }
+
+        // Filter buttons
+        document.querySelectorAll('[data-filter]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                loadLeads();
+            });
+        });
+
+        // Sort buttons
+        document.querySelectorAll('[data-sort]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('[data-sort]').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentSort = btn.dataset.sort;
+                loadLeads();
+            });
+        });
+
+        // Close modal on background click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+
+        // Initial load
+        loadStats();
+        loadLeads();
+
+        // Auto-refresh stats every 30 seconds
+        setInterval(loadStats, 30000);
+    </script>
+</body>
+</html>

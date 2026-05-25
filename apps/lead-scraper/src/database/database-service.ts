@@ -162,6 +162,34 @@ export class DatabaseService {
     });
   }
 
+  async markLeadIrrelevant(
+    leadId: string,
+    reason?: string,
+    markedBy: string = "user",
+  ): Promise<void> {
+    await this.prisma.lead.update({
+      where: { id: leadId },
+      data: {
+        isIrrelevant: true,
+        irrelevanceReason: reason || null,
+        markedIrrelevantAt: new Date(),
+        markedIrrelevantBy: markedBy,
+      },
+    });
+  }
+
+  async unmarkLeadIrrelevant(leadId: string): Promise<void> {
+    await this.prisma.lead.update({
+      where: { id: leadId },
+      data: {
+        isIrrelevant: false,
+        irrelevanceReason: null,
+        markedIrrelevantAt: null,
+        markedIrrelevantBy: null,
+      },
+    });
+  }
+
   async disconnect(): Promise<void> {
     await this.prisma.$disconnect();
   }

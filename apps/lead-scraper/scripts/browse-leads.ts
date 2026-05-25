@@ -24,6 +24,10 @@ interface LeadWithDetails {
   reachedOut: boolean;
   reachedOutAt: Date | null;
   outreachNotes: string | null;
+  isIrrelevant: boolean;
+  irrelevanceReason: string | null;
+  markedIrrelevantAt: Date | null;
+  markedIrrelevantBy: string | null;
   painPoints: Array<{
     category: string;
     description: string;
@@ -68,6 +72,10 @@ function formatLead(lead: LeadWithDetails, index: number): string {
     ? `${colors.green}✓ Contacted${colors.reset}`
     : `${colors.dim}○ Not contacted${colors.reset}`;
 
+  const irrelevantBadge = lead.isIrrelevant
+    ? `${colors.red}✗ Irrelevant${colors.reset}`
+    : "";
+
   const scoreColor =
     lead.score >= 80
       ? colors.red
@@ -102,37 +110,65 @@ function formatLead(lead: LeadWithDetails, index: number): string {
         })}${colors.reset}${lead.outreachNotes ? `\n  ${colors.dim}Notes: ${lead.outreachNotes}${colors.reset}` : ""}`
       : "";
 
+  const irrelevanceInfo =
+    lead.isIrrelevant && lead.markedIrrelevantAt
+      ? `\n  ${colors.red}Marked irrelevant: ${new Date(
+          lead.markedIrrelevantAt,
+        ).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })} by ${lead.markedIrrelevantBy}${colors.reset}${lead.irrelevanceReason ? `\n  ${colors.dim}Reason: ${lead.irrelevanceReason}${colors.reset}` : ""}`
+      : "";
+
+  const badges = [hotLeadBadge, reachedOutBadge, irrelevantBadge]
+    .filter((b) => b)
+    .join(" ");
+
   return `
-${colors.bright}[${index}]${colors.reset} ${hotLeadBadge} ${reachedOutBadge} ${colors.bright}${lead.title}${colors.reset}
+${colors.bright}[${index}]${colors.reset} ${badges} ${colors.bright}${lead.title}${colors.reset}
   ${colors.dim}r/${lead.subreddit} • Score: ${scoreColor}${lead.score}${colors.reset}${colors.dim} • ${date}${colors.reset}
   ${colors.blue}${lead.url}${colors.reset}
   
   ${colors.yellow}Reasoning:${colors.reset} ${lead.reasoning}
   
   ${colors.yellow}Pain Points:${colors.reset}
-${painPointsList}${outreachInfo}
+${painPointsList}${outreachInfo}${irrelevanceInfo}
 `;
 }
 
 async function fetchLeads(
-  filter: "all" | "hot" | "new" | "contacted" | "not-contacted",
+  filter:
+    | "all"
+    | "hot"
+    | "new"
+    | "contacted"
+    | "not-contacted"
+    | "irrelevant"
+    | "relevant",
   sortBy: "score" | "date" = "score",
   limit = 20,
 ): Promise<LeadWithDetails[]> {
   const where =
     filter === "hot"
-      ? { isHotLead: true }
+      ? { isHotLead: true, isIrrelevant: false }
       : filter === "new"
         ? {
             scrapedAt: {
               gte: new Date(Date.now() - 24 * 60 * 60 * 1000), // Last 24h
             },
+            isIrrelevant: false,
           }
         : filter === "contacted"
-          ? { reachedOut: true }
+          ? { reachedOut: true, isIrrelevant: false }
           : filter === "not-contacted"
-            ? { reachedOut: false }
-            : {};
+            ? { reachedOut: false, isIrrelevant: false }
+            : filter === "irrelevant"
+              ? { isIrrelevant: true }
+              : filter === "relevant"
+                ? { isIrrelevant: false }
+                : {};
 
   const orderBy =
     sortBy === "score"
@@ -162,18 +198,22 @@ async function fetchLeads(
 
 async function showStats(): Promise<void> {
   const totalLeads = await prisma.lead.count();
-  const hotLeads = await prisma.lead.count({ where: { isHotLead: true } });
+  const hotLeads = await prisma.lead.count({
+    where: { isHotLead: true, isIrrelevant: false },
+  });
   const last24h = await prisma.lead.count({
     where: {
       scrapedAt: {
         gte: new Date(Date.now() - 24 * 60 * 60 * 1000),
       },
+      isIrrelevant: false,
     },
   });
   const contacted = await prisma.lead.count({ where: { reachedOut: true } });
   const notContacted = await prisma.lead.count({
-    where: { reachedOut: false },
+    where: { reachedOut: false, isIrrelevant: false },
   });
+  const irrelevant = await prisma.lead.count({ where: { isIrrelevant: true } });
 
   console.log(`
 ${colors.bright}📊 Lead Statistics${colors.reset}
@@ -183,6 +223,7 @@ ${colors.bright}📊 Lead Statistics${colors.reset}
   
   Contacted: ${colors.green}${contacted}${colors.reset}
   Not Contacted: ${colors.yellow}${notContacted}${colors.reset}
+  Marked Irrelevant: ${colors.red}${irrelevant}${colors.reset}
 `);
 }
 
@@ -202,8 +243,14 @@ ${colors.bright}${colors.cyan}╔═══════════════�
   });
 
   let currentLeads: LeadWithDetails[] = [];
-  let currentFilter: "all" | "hot" | "new" | "contacted" | "not-contacted" =
-    "not-contacted"; // Default to not-contacted to focus on fresh leads
+  let currentFilter:
+    | "all"
+    | "hot"
+    | "new"
+    | "contacted"
+    | "not-contacted"
+    | "irrelevant"
+    | "relevant" = "not-contacted"; // Default to not-contacted to focus on fresh leads
   let currentSort: "score" | "date" = "score";
 
   async function displayLeads(): Promise<void> {
@@ -229,12 +276,16 @@ ${colors.bright}${colors.cyan}╔═══════════════�
 ${colors.bright}Commands:${colors.reset}
   ${colors.green}[1-${currentLeads.length}]${colors.reset} - Open lead URL in browser
   ${colors.green}m [1-${currentLeads.length}]${colors.reset} - Mark lead as contacted (e.g., "m 1")
+  ${colors.green}i [1-${currentLeads.length}]${colors.reset} - Mark lead as irrelevant (e.g., "i 1")
+  ${colors.green}u [1-${currentLeads.length}]${colors.reset} - Unmark lead as irrelevant (e.g., "u 1")
   ${colors.green}d [1-${currentLeads.length}]${colors.reset} - Draft outreach message (e.g., "d 1")
   ${colors.green}a${colors.reset} - Show all leads
   ${colors.green}h${colors.reset} - Show hot leads only
   ${colors.green}n${colors.reset} - Show new leads (last 24h)
   ${colors.green}c${colors.reset} - Show contacted leads
   ${colors.green}nc${colors.reset} - Show not contacted leads ${colors.dim}(default)${colors.reset}
+  ${colors.green}ir${colors.reset} - Show irrelevant leads
+  ${colors.green}rv${colors.reset} - Show relevant leads
   ${colors.green}ss${colors.reset} - Sort by score
   ${colors.green}sd${colors.reset} - Sort by date
   ${colors.green}r${colors.reset} - Refresh current view
@@ -293,6 +344,22 @@ ${colors.cyan}>${colors.reset} `);
       if (input === "nc") {
         currentFilter = "not-contacted";
         currentLeads = await fetchLeads("not-contacted", currentSort);
+        await displayLeads();
+        prompt();
+        return;
+      }
+
+      if (input === "ir") {
+        currentFilter = "irrelevant";
+        currentLeads = await fetchLeads("irrelevant", currentSort);
+        await displayLeads();
+        prompt();
+        return;
+      }
+
+      if (input === "rv") {
+        currentFilter = "relevant";
+        currentLeads = await fetchLeads("relevant", currentSort);
         await displayLeads();
         prompt();
         return;
@@ -359,6 +426,90 @@ ${colors.cyan}>${colors.reset} `);
           );
 
           showMenu();
+          prompt();
+          return;
+        }
+        console.log(
+          `${colors.red}Invalid lead number. Please try again.${colors.reset}\n`,
+        );
+        showMenu();
+        prompt();
+        return;
+      }
+
+      // Check for "i N" command (mark as irrelevant)
+      if (input.startsWith("i ")) {
+        const leadIndex = Number.parseInt(input.substring(2), 10);
+        if (
+          !Number.isNaN(leadIndex) &&
+          leadIndex >= 1 &&
+          leadIndex <= currentLeads.length
+        ) {
+          const lead = currentLeads[leadIndex - 1];
+
+          // Prompt for optional reason
+          rl.question(
+            `${colors.yellow}Reason for marking as irrelevant (optional, press Enter to skip):${colors.reset} `,
+            async (reason) => {
+              const trimmedReason = reason.trim();
+
+              await prisma.lead.update({
+                where: { id: lead.id },
+                data: {
+                  isIrrelevant: true,
+                  irrelevanceReason: trimmedReason || null,
+                  markedIrrelevantAt: new Date(),
+                  markedIrrelevantBy: "user",
+                },
+              });
+
+              console.log(
+                `\n${colors.red}✗ Marked as irrelevant:${colors.reset} ${lead.title}\n`,
+              );
+
+              // Refresh the current view
+              currentLeads = await fetchLeads(currentFilter, currentSort);
+              await displayLeads();
+              prompt();
+            },
+          );
+          return;
+        }
+        console.log(
+          `${colors.red}Invalid lead number. Please try again.${colors.reset}\n`,
+        );
+        showMenu();
+        prompt();
+        return;
+      }
+
+      // Check for "u N" command (unmark as irrelevant)
+      if (input.startsWith("u ")) {
+        const leadIndex = Number.parseInt(input.substring(2), 10);
+        if (
+          !Number.isNaN(leadIndex) &&
+          leadIndex >= 1 &&
+          leadIndex <= currentLeads.length
+        ) {
+          const lead = currentLeads[leadIndex - 1];
+
+          await prisma.lead.update({
+            where: { id: lead.id },
+            data: {
+              isIrrelevant: false,
+              irrelevanceReason: null,
+              markedIrrelevantAt: null,
+              markedIrrelevantBy: null,
+            },
+          });
+
+          console.log(
+            `\n${colors.green}✓ Unmarked as irrelevant:${colors.reset} ${lead.title}\n`,
+          );
+
+          // Refresh the current view
+          currentLeads = await fetchLeads(currentFilter, currentSort);
+          await displayLeads();
           prompt();
           return;
         }

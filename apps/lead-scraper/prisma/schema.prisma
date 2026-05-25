@@ -52,6 +52,12 @@ model Lead {
   reachedOutAt    DateTime?
   outreachNotes   String?      @db.Text
   
+  // Irrelevance tracking (for LLM judge refinement)
+  isIrrelevant         Boolean   @default(false)
+  irrelevanceReason    String?   @db.Text
+  markedIrrelevantAt   DateTime?
+  markedIrrelevantBy   String?   // System identifier (e.g., "user", "system")
+  
   // Relations
   scrapingRunId   String
   scrapingRun     ScrapingRun  @relation(fields: [scrapingRunId], references: [id], onDelete: Cascade)
@@ -61,6 +67,7 @@ model Lead {
   @@index([score])
   @@index([isHotLead])
   @@index([reachedOut])
+  @@index([isIrrelevant])
 }
 
 model PainPoint {
