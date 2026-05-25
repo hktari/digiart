@@ -30,8 +30,10 @@ export function LeadCard({
 
   return (
     <motion.div
+      layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: -100, height: 0, marginBottom: 0 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
       className="bg-twitter-card border border-twitter-border rounded-xl p-5 hover:border-twitter-primary transition-all duration-200 hover:shadow-lg hover:shadow-twitter-primary/10"
     >

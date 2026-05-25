@@ -1,18 +1,35 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-body {
-  margin: 0;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
-    Cantarell, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@theme {
+  /* Twitter-inspired color palette */
+  --color-twitter-bg: #0f1419;
+  --color-twitter-card: #16181c;
+  --color-twitter-border: #2f3336;
+  --color-twitter-secondary: #1e2126;
+  --color-twitter-hover: #2a2d32;
+  --color-twitter-text: #e7e9ea;
+  --color-twitter-muted: #71767b;
+  --color-twitter-primary: #1d9bf0;
+  --color-twitter-primary-hover: #1a8cd8;
+  --color-twitter-hot: #f91880;
+  --color-twitter-success: #00ba7c;
+  --color-twitter-danger: #ef4444;
+  --color-twitter-warning: #ffd400;
 }
 
-* {
-  box-sizing: border-box;
+@layer base {
+  body {
+    margin: 0;
+    font-family:
+      -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+      Cantarell, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
 }
 
 /* Custom scrollbar */

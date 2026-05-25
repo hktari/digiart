@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useState } from "react";
 import { api } from "./api";
 import { FilterBar } from "./components/FilterBar";
@@ -82,11 +82,13 @@ function App() {
     if (!selectedLeadId) return;
     try {
       await api.markAsContacted(selectedLeadId, contactNotes);
+      // Remove lead from list immediately
+      setLeads((prevLeads) => prevLeads.filter((l) => l.id !== selectedLeadId));
       setContactModalOpen(false);
       setSelectedLeadId(null);
       setContactNotes("");
-      await loadStats();
-      await loadLeads();
+      // Update stats in background
+      loadStats();
     } catch (error) {
       console.error("Error marking as contacted:", error);
       alert("Failed to mark lead as contacted");
@@ -104,11 +106,13 @@ function App() {
     if (!selectedLeadId) return;
     try {
       await api.markAsIrrelevant(selectedLeadId, irrelevantReason);
+      // Remove lead from list immediately
+      setLeads((prevLeads) => prevLeads.filter((l) => l.id !== selectedLeadId));
       setIrrelevantModalOpen(false);
       setSelectedLeadId(null);
       setIrrelevantReason("");
-      await loadStats();
-      await loadLeads();
+      // Update stats in background
+      loadStats();
     } catch (error) {
       console.error("Error marking as irrelevant:", error);
       alert("Failed to mark lead as irrelevant");
@@ -119,8 +123,10 @@ function App() {
   const handleUnmarkIrrelevant = async (leadId: string) => {
     try {
       await api.unmarkAsIrrelevant(leadId);
-      await loadStats();
-      await loadLeads();
+      // Remove lead from list immediately (it will move to a different filter)
+      setLeads((prevLeads) => prevLeads.filter((l) => l.id !== leadId));
+      // Update stats in background
+      loadStats();
     } catch (error) {
       console.error("Error unmarking as irrelevant:", error);
       alert("Failed to unmark lead");
@@ -175,16 +181,18 @@ function App() {
             </motion.div>
           ) : (
             <div className="grid gap-5">
-              {leads.map((lead: Lead, index: number) => (
-                <LeadCard
-                  key={lead.id}
-                  lead={lead}
-                  index={index}
-                  onMarkContacted={handleMarkContacted}
-                  onMarkIrrelevant={handleMarkIrrelevant}
-                  onUnmarkIrrelevant={handleUnmarkIrrelevant}
-                />
-              ))}
+              <AnimatePresence mode="popLayout">
+                {leads.map((lead: Lead, index: number) => (
+                  <LeadCard
+                    key={lead.id}
+                    lead={lead}
+                    index={index}
+                    onMarkContacted={handleMarkContacted}
+                    onMarkIrrelevant={handleMarkIrrelevant}
+                    onUnmarkIrrelevant={handleUnmarkIrrelevant}
+                  />
+                ))}
+              </AnimatePresence>
             </div>
           )}
         </div>
