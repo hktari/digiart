@@ -14,8 +14,17 @@ const PORT = process.env.PORT || 3100;
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from the public directory
-app.use(express.static(path.join(__dirname, "../../public")));
+// Determine which directory to serve based on environment
+const USE_REACT = process.env.USE_REACT === "true";
+const staticDir = USE_REACT
+  ? path.join(__dirname, "../../public-react")
+  : path.join(__dirname, "../../public");
+
+console.log(`Serving static files from: ${staticDir}`);
+console.log(`React UI: ${USE_REACT ? "enabled" : "disabled"}`);
+
+// Serve static files
+app.use(express.static(staticDir));
 
 // API Routes
 
@@ -234,6 +243,13 @@ app.delete("/api/leads/:id/irrelevant", async (req, res) => {
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
+
+// Serve index.html for all other routes (SPA fallback for React Router)
+if (USE_REACT) {
+  app.use((req, res) => {
+    res.sendFile(path.join(staticDir, "index.html"));
+  });
+}
 
 // Graceful shutdown
 process.on("SIGTERM", async () => {

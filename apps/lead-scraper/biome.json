@@ -6,7 +6,8 @@
     "useIgnoreFile": false
   },
   "files": {
-    "ignoreUnknown": false
+    "ignoreUnknown": false,
+    "ignore": ["node_modules", "dist", "build", "public-react", "web-ui/node_modules", "web-ui/dist"]
   },
   "formatter": {
     "enabled": true,
