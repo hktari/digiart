@@ -199,19 +199,18 @@ function ReleaseCard({
           aria-label={
             isSelected && isHydrated ? "Remove from booklet" : "Add to booklet"
           }
-          className={`shrink-0 flex flex-col items-center gap-1 rounded-xl px-2 py-3 text-xs font-semibold transition-colors disabled:opacity-50 ${
+          className={`shrink-0 self-stretch w-9 flex items-center justify-center rounded-xl text-xs font-semibold transition-colors disabled:opacity-50 ${
             isSelected && isHydrated
               ? "bg-destructive-bg text-destructive-foreground border border-destructive-border hover:bg-destructive-bg/80"
               : "bg-fuchsia-600 text-white hover:bg-fuchsia-700"
           }`}
         >
-          {isSelected && isHydrated ? <RemoveIcon /> : <CollectIcon />}
-          <span className="[writing-mode:vertical-rl] rotate-180 leading-none">
-            {isPending
-              ? "Saving"
-              : isSelected && isHydrated
-                ? "Remove"
-                : "Collect"}
+          <span
+            className="flex flex-col items-center gap-1.5"
+            style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+          >
+            {isSelected && isHydrated ? <RemoveIcon /> : <CollectIcon />}
+            {isPending ? "…" : isSelected && isHydrated ? "Remove" : "Collect"}
           </span>
         </button>
       </div>
