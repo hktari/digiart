@@ -13,13 +13,13 @@ cd apps/lead-scraper
 
 # Use :dev scripts (easiest way)
 pnpm run scrape:dev        # Scrape with dev database
-pnpm run browse:dev        # Browse with dev database
+pnpm run web:dev           # Web UI with dev database (http://localhost:3100)
 pnpm run db:studio:dev     # Prisma Studio (dev)
 pnpm run db:push:dev       # Push schema to dev
 
 # Or manually specify --env-file for any command
 pnpm --env-file=.env.dev run scrape
-pnpm --env-file=.env.dev run browse
+pnpm --env-file=.env.dev run web
 pnpm --env-file=.env.dev run draft-outreach 1
 pnpm --env-file=.env.dev prisma migrate dev
 pnpm --env-file=.env.dev prisma studio

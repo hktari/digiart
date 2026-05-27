@@ -10,8 +10,6 @@
     "scrape": "tsx src/index.ts --daily",
     "scrape:test": "tsx src/index.ts --test",
     "scrape:dev": "tsx --env-file=.env.dev src/index.ts --test",
-    "browse": "tsx scripts/browse-leads.ts",
-    "browse:dev": "tsx --env-file=.env.dev scripts/browse-leads.ts",
     "web": "USE_REACT=true tsx src/web/server.ts",
     "web:dev": "USE_REACT=true tsx --env-file=.env.dev src/web/server.ts",
     "web:legacy": "tsx src/web/server.ts",

@@ -9,7 +9,8 @@ Automated lead generation system that monitors AI art subreddits, identifies pai
 - 🤖 **LLM Qualification**: Uses Fireworks AI to score and qualify leads
 - 💾 **Database Storage**: Separate Neon PostgreSQL database (isolated from MVP)
 - 📲 **Telegram Notifications**: Daily summaries + real-time hot lead alerts
-- 🎯 **LangGraph Orchestration**: Robust state machine with error handling
+- � **Web UI**: React-based lead browser at `localhost:3100`
+- �🎯 **LangGraph Orchestration**: Robust state machine with error handling
 
 ## Architecture
 
@@ -44,6 +45,7 @@ pnpm install
 **CRITICAL: Use `.env.dev` for development!**
 
 The lead-scraper has TWO environment files:
+
 - `.env` - **PRODUCTION database** (do not touch during development)
 - `.env.dev` - **DEVELOPMENT database** (safe to reset)
 
@@ -77,27 +79,31 @@ pnpm --env-file=.env.dev prisma studio
 ⚠️ **Development Commands** - Two ways to use dev database:
 
 **Option 1: Use `:dev` scripts (recommended):**
+
 ```bash
 pnpm run scrape:dev       # Scrape with dev database
-pnpm run browse:dev       # Browse with dev database
+pnpm run web:dev          # Web UI with dev database
 pnpm run db:studio:dev    # Open Prisma Studio (dev)
 pnpm run db:push:dev      # Push schema to dev
 ```
 
 **Option 2: Manual `--env-file` flag:**
+
 ```bash
 pnpm --env-file=.env.dev run scrape:test
-pnpm --env-file=.env.dev run browse
+pnpm --env-file=.env.dev run web
 ```
 
 ### Scraping Leads
 
 **Development (10 posts, uses dev database):**
+
 ```bash
 pnpm run scrape:dev
 ```
 
 **Production scrape (50 posts, uses production database):**
+
 ```bash
 # Only run this when you want to update production data
 pnpm run scrape
@@ -105,66 +111,36 @@ pnpm run scrape
 
 ### Browsing Leads
 
-**Interactive lead browser (development):**
+**Web UI (development):**
+
 ```bash
-pnpm run browse:dev
+pnpm run web:dev
+# Opens at http://localhost:3100
+```
+
+**Web UI (production):**
+
+```bash
+pnpm run web
+# Opens at http://localhost:3100
 ```
 
 Features:
-- 📊 View statistics (total leads, hot leads, recent)
-- 🔍 Filter by: all leads, hot leads, new leads (last 24h), contacted, not contacted
-- 🎯 **Default filter: Not contacted** (shows only leads you haven't reached out to yet)
-- 🌐 Open lead URLs in browser with one keystroke
-- 🎨 Color-coded display (hot leads, score, pain points)
-- ⚡ Real-time navigation
-- 📝 Mark leads as contacted with optional notes
 
-Commands in browser:
-- `[1-N]` - Open lead URL in browser
-- `m [1-N]` - Mark lead as contacted (e.g., `m 1`)
-- `d [1-N]` - Show command to draft outreach (e.g., `d 1`)
-- `a` - Show all leads
-- `h` - Show hot leads only
-- `n` - Show new leads (last 24h)
-- `c` - Show contacted leads
-- `nc` - Show not contacted leads
-- `ss` - Sort by score (high to low)
-- `sd` - Sort by date (newest first)
-- `r` - Refresh current view
-- `s` - Show statistics
-- `q` - Quit
+- 📊 Stats dashboard (total, hot, 24h, contacted, archived)
+- 🔍 Filter by: all, hot, new (24h), contacted, not contacted, irrelevant, relevant, archived, active
+- �️ Archive leads (soft delete) with optional reason
+- ✉ Draft and copy outreach messages in-browser
+- 📝 Mark leads as contacted with optional notes
 
 ### Drafting Outreach Messages
 
-**Generate personalized outreach message (development):**
+In the web UI, click **✉ Draft Outreach** on any lead card. The message is generated instantly and can be copied to clipboard.
+
+Alternatively, via CLI:
+
 ```bash
-# Note: draft-outreach always uses the same database as browse
-# So if you browsed with :dev, use the lead number directly:
-pnpm --env-file=.env.dev run draft-outreach <lead-number>
-```
-
-Examples:
-```bash
-# Use lead number from browser
-pnpm --env-file=.env.dev run draft-outreach 1
-
-# Or use database ID (starts with 'clt...')
-pnpm --env-file=.env.dev run draft-outreach clt123abc...
-```
-
-This generates a customized Reddit DM based on:
-- Primary pain point identified
-- Subreddit context
-- Post title
-- Suggested subject line and message body
-
-**Quick workflow from browser:**
-```bash
-# In the browser, type:
-> d 1
-
-# It will show:
-# pnpm --env-file=.env.dev run draft-outreach 1
+pnpm --env-file=.env.dev run draft-outreach <lead-id>
 ```
 
 ### Development
@@ -227,6 +203,7 @@ crontab -e
 ```
 
 The wrapper script:
+
 - ✅ Logs all output with timestamps
 - ✅ Sends Telegram alerts on fatal errors
 - ✅ Cleans up old logs automatically (keeps 30 days)
@@ -247,6 +224,7 @@ Errors are automatically sent to Telegram:
 - ⚠️ **Non-fatal errors**: Included in daily summary (RSS parsing failures, etc.)
 
 All errors include:
+
 - Error message
 - Stack trace
 - Context
