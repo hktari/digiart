@@ -20,6 +20,8 @@ type ReleaseArtworkLightboxProps = {
   isAuthenticated: boolean;
   hasCollectorRole: boolean;
   initiallySelected: boolean;
+  initialIndex?: number;
+  onClose?: () => void;
 };
 
 export function ReleaseArtworkLightbox({
@@ -30,8 +32,12 @@ export function ReleaseArtworkLightbox({
   isAuthenticated,
   hasCollectorRole,
   initiallySelected,
+  initialIndex,
+  onClose,
 }: ReleaseArtworkLightboxProps) {
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [activeIndex, setActiveIndex] = useState<number | null>(
+    initialIndex !== undefined ? initialIndex : null,
+  );
   const activeArtwork =
     activeIndex === null ? null : (artworks[activeIndex] ?? null);
   const hasMultipleArtworks = artworks.length > 1;
@@ -48,7 +54,10 @@ export function ReleaseArtworkLightbox({
   );
   const effectiveSelected = isHydrated ? isSelected : initiallySelected;
 
-  const close = useCallback(() => setActiveIndex(null), []);
+  const close = useCallback(() => {
+    setActiveIndex(null);
+    onClose?.();
+  }, [onClose]);
   const showPrevious = useCallback(() => {
     setActiveIndex((current) =>
       current === null
