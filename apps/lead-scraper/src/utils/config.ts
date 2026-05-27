@@ -32,9 +32,24 @@ export const SUBREDDITS = [
   "midjourney",
   "StableDiffusion",
   "DeviantArt",
+  "DigitalArt",
+  "artbusiness",
   "civitai",
+  "digitalminimalism",
+  "SeaArtAI",
+  "leonardoai",
+  "Art",
+  "ArtistLounge",
+  "artcommissions",
   "aiArt",
   "dalle2",
   // "DiscoDiffusion", // Removed: subreddit no longer exists (404)
   "starryai",
+];
+
+const comicBookSubReddits = [
+  "aicomicmakers",
+  "AiComicBookArt",
+  "AIcomics",
+  "ImageComics",
 ];
