@@ -14,6 +14,9 @@ export interface Lead {
   painPoints: PainPoint[];
   irrelevanceReason?: string;
   outreachNotes?: string;
+  archived: boolean;
+  archivedAt?: string;
+  archiveReason?: string;
 }
 
 export interface PainPoint {
@@ -29,6 +32,7 @@ export interface Stats {
   contacted: number;
   notContacted: number;
   irrelevant: number;
+  archived: number;
 }
 
 export type FilterType =
@@ -38,5 +42,7 @@ export type FilterType =
   | "contacted"
   | "not-contacted"
   | "irrelevant"
-  | "relevant";
+  | "relevant"
+  | "archived"
+  | "active";
 export type SortType = "score" | "date";

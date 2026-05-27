@@ -44,7 +44,7 @@ app.get("/api/leads", async (req, res) => {
 
     switch (filter) {
       case "hot":
-        where = { isHotLead: true, isIrrelevant: false };
+        where = { isHotLead: true, isIrrelevant: false, archived: false };
         break;
       case "new":
         where = {
@@ -52,19 +52,26 @@ app.get("/api/leads", async (req, res) => {
             gte: new Date(Date.now() - 24 * 60 * 60 * 1000),
           },
           isIrrelevant: false,
+          archived: false,
         };
         break;
       case "contacted":
-        where = { reachedOut: true };
+        where = { reachedOut: true, archived: false };
         break;
       case "not-contacted":
-        where = { reachedOut: false, isIrrelevant: false };
+        where = { reachedOut: false, isIrrelevant: false, archived: false };
         break;
       case "irrelevant":
-        where = { isIrrelevant: true };
+        where = { isIrrelevant: true, archived: false };
         break;
       case "relevant":
-        where = { isIrrelevant: false };
+        where = { isIrrelevant: false, archived: false };
+        break;
+      case "archived":
+        where = { archived: true };
+        break;
+      case "active":
+        where = { archived: false };
         break;
       case "all":
       default:
@@ -142,24 +149,35 @@ app.get("/api/leads/:id", async (req, res) => {
 // Get statistics
 app.get("/api/stats", async (req, res) => {
   try {
-    const [totalLeads, hotLeads, last24h, contacted, notContacted, irrelevant] =
-      await Promise.all([
-        prisma.lead.count(),
-        prisma.lead.count({ where: { isHotLead: true, isIrrelevant: false } }),
-        prisma.lead.count({
-          where: {
-            scrapedAt: {
-              gte: new Date(Date.now() - 24 * 60 * 60 * 1000),
-            },
-            isIrrelevant: false,
+    const [
+      totalLeads,
+      hotLeads,
+      last24h,
+      contacted,
+      notContacted,
+      irrelevant,
+      archived,
+    ] = await Promise.all([
+      prisma.lead.count(),
+      prisma.lead.count({
+        where: { isHotLead: true, isIrrelevant: false, archived: false },
+      }),
+      prisma.lead.count({
+        where: {
+          scrapedAt: {
+            gte: new Date(Date.now() - 24 * 60 * 60 * 1000),
           },
-        }),
-        prisma.lead.count({ where: { reachedOut: true } }),
-        prisma.lead.count({
-          where: { reachedOut: false, isIrrelevant: false },
-        }),
-        prisma.lead.count({ where: { isIrrelevant: true } }),
-      ]);
+          isIrrelevant: false,
+          archived: false,
+        },
+      }),
+      prisma.lead.count({ where: { reachedOut: true, archived: false } }),
+      prisma.lead.count({
+        where: { reachedOut: false, isIrrelevant: false, archived: false },
+      }),
+      prisma.lead.count({ where: { isIrrelevant: true } }),
+      prisma.lead.count({ where: { archived: true } }),
+    ]);
 
     res.json({
       totalLeads,
@@ -168,6 +186,7 @@ app.get("/api/stats", async (req, res) => {
       contacted,
       notContacted,
       irrelevant,
+      archived,
     });
   } catch (error) {
     console.error("Error fetching stats:", error);
@@ -239,6 +258,49 @@ app.delete("/api/leads/:id/irrelevant", async (req, res) => {
   } catch (error) {
     console.error("Error unmarking lead as irrelevant:", error);
     res.status(500).json({ error: "Failed to unmark lead as irrelevant" });
+  }
+});
+
+// Archive lead (soft delete)
+app.post("/api/leads/:id/archive", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    const lead = await prisma.lead.update({
+      where: { id },
+      data: {
+        archived: true,
+        archivedAt: new Date(),
+        archiveReason: reason || null,
+      },
+    });
+
+    res.json(lead);
+  } catch (error) {
+    console.error("Error archiving lead:", error);
+    res.status(500).json({ error: "Failed to archive lead" });
+  }
+});
+
+// Unarchive lead
+app.delete("/api/leads/:id/archive", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const lead = await prisma.lead.update({
+      where: { id },
+      data: {
+        archived: false,
+        archivedAt: null,
+        archiveReason: null,
+      },
+    });
+
+    res.json(lead);
+  } catch (error) {
+    console.error("Error unarchiving lead:", error);
+    res.status(500).json({ error: "Failed to unarchive lead" });
   }
 });
 

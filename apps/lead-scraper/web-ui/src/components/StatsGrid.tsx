@@ -14,10 +14,11 @@ export function StatsGrid({ stats, isLoading }: StatsGridProps) {
     { title: "Not Contacted", key: "notContacted" as keyof Stats },
     { title: "Contacted", key: "contacted" as keyof Stats },
     { title: "Irrelevant", key: "irrelevant" as keyof Stats },
+    { title: "Archived", key: "archived" as keyof Stats },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-8">
       {statsConfig.map((config, index) => (
         <StatCard
           key={config.key}

@@ -46,6 +46,22 @@ export const api = {
     if (!response.ok) throw new Error("Failed to unmark as irrelevant");
   },
 
+  async archiveLead(leadId: string, reason?: string): Promise<void> {
+    const response = await fetch(`${API_BASE}/leads/${leadId}/archive`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reason }),
+    });
+    if (!response.ok) throw new Error("Failed to archive lead");
+  },
+
+  async unarchiveLead(leadId: string): Promise<void> {
+    const response = await fetch(`${API_BASE}/leads/${leadId}/archive`, {
+      method: "DELETE",
+    });
+    if (!response.ok) throw new Error("Failed to unarchive lead");
+  },
+
   async draftOutreach(
     leadId: string,
   ): Promise<{ draft: string; leadId: string }> {

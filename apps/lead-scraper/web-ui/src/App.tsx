@@ -19,10 +19,12 @@ function App() {
   // Modal states
   const [contactModalOpen, setContactModalOpen] = useState(false);
   const [irrelevantModalOpen, setIrrelevantModalOpen] = useState(false);
+  const [archiveModalOpen, setArchiveModalOpen] = useState(false);
   const [outreachModalOpen, setOutreachModalOpen] = useState(false);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [contactNotes, setContactNotes] = useState("");
   const [irrelevantReason, setIrrelevantReason] = useState("");
+  const [archiveReason, setArchiveReason] = useState("");
   const [outreachDraft, setOutreachDraft] = useState("");
   const [isDraftingOutreach, setIsDraftingOutreach] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
@@ -120,6 +122,39 @@ function App() {
     } catch (error) {
       console.error("Error marking as irrelevant:", error);
       alert("Failed to mark lead as irrelevant");
+    }
+  };
+
+  // Handle archive
+  const handleArchiveLead = (leadId: string) => {
+    setSelectedLeadId(leadId);
+    setArchiveReason("");
+    setArchiveModalOpen(true);
+  };
+
+  const confirmArchiveLead = async () => {
+    if (!selectedLeadId) return;
+    try {
+      await api.archiveLead(selectedLeadId, archiveReason);
+      setLeads((prevLeads) => prevLeads.filter((l) => l.id !== selectedLeadId));
+      setArchiveModalOpen(false);
+      setSelectedLeadId(null);
+      setArchiveReason("");
+      loadStats();
+    } catch (error) {
+      console.error("Error archiving lead:", error);
+      alert("Failed to archive lead");
+    }
+  };
+
+  const handleUnarchiveLead = async (leadId: string) => {
+    try {
+      await api.unarchiveLead(leadId);
+      setLeads((prevLeads) => prevLeads.filter((l) => l.id !== leadId));
+      loadStats();
+    } catch (error) {
+      console.error("Error unarchiving lead:", error);
+      alert("Failed to unarchive lead");
     }
   };
 
@@ -222,6 +257,8 @@ function App() {
                     onMarkIrrelevant={handleMarkIrrelevant}
                     onUnmarkIrrelevant={handleUnmarkIrrelevant}
                     onDraftOutreach={handleDraftOutreach}
+                    onArchiveLead={handleArchiveLead}
+                    onUnarchiveLead={handleUnarchiveLead}
                   />
                 ))}
               </AnimatePresence>
@@ -300,6 +337,40 @@ function App() {
             rows={14}
           />
         )}
+      </Modal>
+
+      {/* Archive Modal */}
+      <Modal
+        isOpen={archiveModalOpen}
+        onClose={() => setArchiveModalOpen(false)}
+        title="Archive Lead"
+        footer={
+          <>
+            <button
+              onClick={() => setArchiveModalOpen(false)}
+              className="px-4 py-2 bg-twitter-secondary text-twitter-text border border-twitter-border rounded-full text-sm font-semibold hover:bg-twitter-hover transition-all"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmArchiveLead}
+              className="px-4 py-2 bg-twitter-muted/10 text-twitter-muted border border-twitter-border rounded-full text-sm font-semibold hover:bg-twitter-hover transition-all"
+            >
+              🗄 Archive
+            </button>
+          </>
+        }
+      >
+        <label className="block text-sm text-twitter-muted mb-2">
+          Reason (optional):
+        </label>
+        <textarea
+          value={archiveReason}
+          onChange={(e) => setArchiveReason(e.target.value)}
+          placeholder="Why are you archiving this lead?"
+          className="w-full px-4 py-3 bg-twitter-secondary border border-twitter-border rounded-lg text-twitter-text placeholder-twitter-muted focus:outline-none focus:border-twitter-primary resize-none"
+          rows={3}
+        />
       </Modal>
 
       {/* Irrelevant Modal */}

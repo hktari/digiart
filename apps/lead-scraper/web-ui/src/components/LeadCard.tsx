@@ -10,6 +10,8 @@ interface LeadCardProps {
   onMarkIrrelevant: (leadId: string) => void;
   onUnmarkIrrelevant: (leadId: string) => void;
   onDraftOutreach: (leadId: string) => void;
+  onArchiveLead: (leadId: string) => void;
+  onUnarchiveLead: (leadId: string) => void;
   index: number;
 }
 
@@ -19,6 +21,8 @@ export function LeadCard({
   onMarkIrrelevant,
   onUnmarkIrrelevant,
   onDraftOutreach,
+  onArchiveLead,
+  onUnarchiveLead,
   index,
 }: LeadCardProps) {
   const formatDate = (dateString: string) => {
@@ -55,6 +59,7 @@ export function LeadCard({
           {lead.isIrrelevant && (
             <Badge variant="irrelevant">✗ Irrelevant</Badge>
           )}
+          {lead.archived && <Badge variant="irrelevant">🗄 Archived</Badge>}
           <Badge variant="score">Score: {lead.score || 0}</Badge>
         </div>
       </div>
@@ -87,6 +92,16 @@ export function LeadCard({
           <div className="text-sm text-twitter-text">
             {lead.irrelevanceReason}
           </div>
+        </div>
+      )}
+
+      {/* Archive Info */}
+      {lead.archived && lead.archiveReason && (
+        <div className="bg-twitter-muted/10 border border-twitter-border rounded-lg p-3 mb-4">
+          <div className="text-xs font-semibold text-twitter-muted mb-1">
+            Archived:
+          </div>
+          <div className="text-sm text-twitter-text">{lead.archiveReason}</div>
         </div>
       )}
 
@@ -150,6 +165,28 @@ export function LeadCard({
             )}
           >
             Unmark Irrelevant
+          </button>
+        )}
+
+        {!lead.archived ? (
+          <button
+            onClick={() => onArchiveLead(lead.id)}
+            className={clsx(
+              "px-4 py-2 rounded-full text-sm font-semibold transition-all hover:scale-105 ml-auto",
+              "bg-twitter-muted/10 text-twitter-muted border border-twitter-border hover:bg-twitter-hover",
+            )}
+          >
+            🗄 Archive
+          </button>
+        ) : (
+          <button
+            onClick={() => onUnarchiveLead(lead.id)}
+            className={clsx(
+              "px-4 py-2 rounded-full text-sm font-semibold transition-all hover:scale-105 ml-auto",
+              "bg-twitter-secondary text-twitter-text border border-twitter-border hover:bg-twitter-hover",
+            )}
+          >
+            Unarchive
           </button>
         )}
       </div>

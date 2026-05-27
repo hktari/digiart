@@ -16,6 +16,8 @@ const filterButtons: { label: string; value: FilterType }[] = [
   { label: "Contacted", value: "contacted" },
   { label: "Irrelevant", value: "irrelevant" },
   { label: "Relevant", value: "relevant" },
+  { label: "Archived", value: "archived" },
+  { label: "Active", value: "active" },
 ];
 
 const sortButtons: { label: string; value: SortType }[] = [
