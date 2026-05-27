@@ -1,5 +1,6 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { ChatFireworks } from "@langchain/community/chat_models/fireworks";
 import { PrismaClient } from "@prisma/client";
 import cors from "cors";
 import express from "express";
@@ -304,7 +305,7 @@ app.delete("/api/leads/:id/archive", async (req, res) => {
   }
 });
 
-// Draft outreach message for a lead
+// Draft outreach message for a lead (LLM-generated)
 app.post("/api/leads/:id/draft-outreach", async (req, res) => {
   try {
     const { id } = req.params;
@@ -318,95 +319,90 @@ app.post("/api/leads/:id/draft-outreach", async (req, res) => {
       return res.status(404).json({ error: "Lead not found" });
     }
 
-    const CREATORS_URL = "https://digiart.btechhub.top/creators";
-    const username = lead.author || "there";
-
-    const highPainPoints = lead.painPoints.filter(
-      (pp) => pp.severity === "high",
-    );
-    const primaryPainPoint = highPainPoints[0] || lead.painPoints[0];
-
-    let message = "";
-
-    const category = primaryPainPoint?.category?.toLowerCase() || "";
-
-    if (
-      category.includes("monetiz") ||
-      category.includes("income") ||
-      category.includes("revenue")
-    ) {
-      message = `hey u/${username},
-
-we're onboarding early creators to DigiArt, a platform where your followers can subscribe and receive curated printed booklets of your art delivered to their home.
-
-the artist role is simple:
-- curate a release
-- share your creator page with your audience
-- get early feedback from collectors
-
-we handle printing, shipping, and checkout. revenue split is 90/10 in your favor.
-
-interested in learning more? ${CREATORS_URL}
-
-b | t`;
-    } else if (
-      category.includes("print") ||
-      category.includes("physical") ||
-      category.includes("merch")
-    ) {
-      message = `hey u/${username},
-
-your art style looks like it would translate really well into a collectible printed format.
-
-we're building DigiArt, a platform where digital artists offer subscription-based printed art booklets delivered to their followers on a regular cadence.
-
-no inventory, no logistics on your side — you just curate a release and share one link. we handle printing, shipping, and fulfillment.
-
-worth a look: ${CREATORS_URL}
-
-b | t`;
-    } else if (
-      category.includes("audience") ||
-      category.includes("discovery") ||
-      category.includes("visibility") ||
-      category.includes("reach")
-    ) {
-      message = `hey u/${username},
-
-we're onboarding pilot creators for DigiArt, a platform that gives your existing followers a new way to support you: monthly printed booklet drops of your work.
-
-it's a different kind of touchpoint — something physical and collectible that keeps your audience connected between posts.
-
-curious? ${CREATORS_URL}
-
-b | t`;
-    } else if (
-      category.includes("platform") ||
-      category.includes("fee") ||
-      category.includes("commission")
-    ) {
-      message = `hey u/${username},
-
-we're building DigiArt with a 90/10 split — 90% to creators. your followers subscribe to receive curated printed booklets of your art, and we handle the rest (printing, shipping, payouts).
-
-no storefront management, no inventory. just curate and share one link.
-
-check it out: ${CREATORS_URL}
-
-b | t`;
-    } else {
-      message = `hey u/${username},
-
-DigiArt is a platform where digital creators offer subscription-based printed art booklets to their followers. you curate a release, share your creator page, and your audience gets collectible printed art delivered to their home monthly.
-
-we handle printing, shipping, and checkout — 90/10 revenue split in your favor.
-
-give it a look: ${CREATORS_URL}
-
-b | t`;
+    const apiKey = process.env.FIREWORKS_API_KEY;
+    if (!apiKey) {
+      return res
+        .status(500)
+        .json({ error: "FIREWORKS_API_KEY not configured" });
     }
 
-    res.json({ draft: message, leadId: id });
+    const CREATORS_URL = "https://digiart.btechhub.top/creators";
+
+    const painPointsSummary = lead.painPoints
+      .map((pp) => `- ${pp.category} (${pp.severity}): ${pp.description}`)
+      .join("\n");
+
+    const prompt = `You are writing a short Reddit comment reply on behalf of DigiArt, a platform where digital artists offer subscription-based printed art booklets to their followers.
+
+Context about the platform:
+- Creators curate art releases; followers subscribe and receive printed booklets delivered home
+- We handle all printing, shipping, and checkout
+- 90/10 revenue split in the creator's favor
+- Creators just need to: curate a release, share their creator page link with their audience
+- Best for digital artists with an existing audience who want a new monetization channel
+- Creator signup page: ${CREATORS_URL}
+
+The Reddit post you are replying to:
+- Title: ${lead.title}
+- Author: u/${lead.author}
+- Subreddit: r/${lead.subreddit}
+- Identified pain points:
+${painPointsSummary || "(none identified)"}
+- Scoring reasoning: ${lead.reasoning || "(none)"}
+
+Examples of our outreach style (short, casual, no fluff):
+
+---
+hey, give DigiArt a shot
+we're currently onboarding early stage creators to:
+- curate art releases
+- promote their profile to their audience
+- validate whether people are interested in the "your digital art feed as printed magazine" idea
+
+features:
+- 90/10% revenue split creator/platform
+- transparent payouts
+- POD handled for you
+- a magazine / booklet personalization experience
+
+b | k
+---
+hey, interested in exploring an additional monetization channel for your art?
+
+we're building a platform that lets you turn digital art into printed A5 booklets delivered on a monthly cadence
+
+let me know if you're interested in learning more
+---
+i'm building a small pilot for digital artists: fans subscribe to receive artist-curated printed booklet drops of your work.
+
+no inventory, printing, shipping, or VAT handling on your side. you'd just curate a release and share one link.
+
+would you be open to trying it with a small group of your audience?
+---
+
+Write a short, casual Reddit comment reply (3-6 sentences max) that:
+1. Directly addresses the specific pain point or topic in this post — reference what they actually said
+2. Naturally introduces DigiArt as relevant to their situation
+3. Ends with the creator signup URL: ${CREATORS_URL}
+4. Signs off with: b | t
+5. Uses lowercase, relaxed tone — no corporate speak, no em-dashes overload
+6. Does NOT say "saw your post in r/..." — this is a direct reply in the comments
+
+Output only the message text, nothing else.`;
+
+    const model = new ChatFireworks({
+      model: "accounts/fireworks/models/minimax-m2p5",
+      temperature: 0.7,
+      apiKey,
+    });
+
+    const response = await model.invoke(prompt);
+    const draft =
+      typeof response.content === "string"
+        ? response.content.trim()
+        : String(response.content);
+
+    res.json({ draft, leadId: id });
   } catch (error) {
     console.error("Error drafting outreach:", error);
     res.status(500).json({ error: "Failed to draft outreach message" });
