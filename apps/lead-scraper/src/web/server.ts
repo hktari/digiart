@@ -77,13 +77,16 @@ app.get("/api/leads", async (req, res) => {
     let orderBy: any;
     switch (sort) {
       case "date":
-        orderBy = [{ scrapedAt: "desc" as const }, { score: "desc" as const }];
+        orderBy = [
+          { scrapedAt: "desc" as const },
+          { score: { sort: "desc" as const, nulls: "last" as const } },
+        ];
         break;
       case "score":
       default:
         orderBy = [
           { isHotLead: "desc" as const },
-          { score: "desc" as const },
+          { score: { sort: "desc" as const, nulls: "last" as const } },
           { scrapedAt: "desc" as const },
         ];
         break;

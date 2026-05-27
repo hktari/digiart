@@ -174,10 +174,13 @@ async function fetchLeads(
     sortBy === "score"
       ? [
           { isHotLead: "desc" as const },
-          { score: "desc" as const },
+          { score: { sort: "desc" as const, nulls: "last" as const } },
           { scrapedAt: "desc" as const },
         ]
-      : [{ scrapedAt: "desc" as const }, { score: "desc" as const }];
+      : [
+          { scrapedAt: "desc" as const },
+          { score: { sort: "desc" as const, nulls: "last" as const } },
+        ];
 
   const leads = await prisma.lead.findMany({
     where,
