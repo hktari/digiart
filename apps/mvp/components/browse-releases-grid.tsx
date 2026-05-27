@@ -153,8 +153,8 @@ function ReleaseCard({
         </div>
       </button>
 
-      <div className="flex flex-1 items-start gap-3 p-4">
-        <div className="flex-1 min-w-0 space-y-1.5">
+      <div className="flex flex-col flex-1 p-4 gap-3">
+        <div className="space-y-1.5">
           <div>
             <h3 className="font-semibold text-foreground line-clamp-1 leading-snug">
               {release.title}
@@ -196,22 +196,18 @@ function ReleaseCard({
             toggle();
           }}
           disabled={isPending || !isHydrated}
-          aria-label={
-            isSelected && isHydrated ? "Remove from booklet" : "Add to booklet"
-          }
-          className={`shrink-0 self-stretch w-9 flex items-center justify-center rounded-xl text-xs font-semibold transition-colors disabled:opacity-50 ${
+          className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 ${
             isSelected && isHydrated
               ? "bg-destructive-bg text-destructive-foreground border border-destructive-border hover:bg-destructive-bg/80"
               : "bg-fuchsia-600 text-white hover:bg-fuchsia-700"
           }`}
         >
-          <span
-            className="flex flex-col items-center gap-1.5"
-            style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
-          >
-            {isSelected && isHydrated ? <RemoveIcon /> : <CollectIcon />}
-            {isPending ? "…" : isSelected && isHydrated ? "Remove" : "Collect"}
-          </span>
+          {isSelected && isHydrated ? <RemoveIcon /> : <CollectIcon />}
+          {isPending
+            ? "Saving…"
+            : isSelected && isHydrated
+              ? "Remove from booklet"
+              : "Collect"}
         </button>
       </div>
     </div>
