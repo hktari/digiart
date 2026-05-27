@@ -7,7 +7,15 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "ignore": ["node_modules", "dist", "build", "public-react", "web-ui/node_modules", "web-ui/dist"]
+    "includes": [
+      "**",
+      "!node_modules",
+      "!dist",
+      "!build",
+      "!public-react",
+      "!web-ui/node_modules",
+      "!web-ui/dist"
+    ]
   },
   "formatter": {
     "enabled": true,
