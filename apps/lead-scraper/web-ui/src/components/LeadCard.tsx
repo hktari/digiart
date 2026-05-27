@@ -9,6 +9,7 @@ interface LeadCardProps {
   onMarkContacted: (leadId: string) => void;
   onMarkIrrelevant: (leadId: string) => void;
   onUnmarkIrrelevant: (leadId: string) => void;
+  onDraftOutreach: (leadId: string) => void;
   index: number;
 }
 
@@ -17,6 +18,7 @@ export function LeadCard({
   onMarkContacted,
   onMarkIrrelevant,
   onUnmarkIrrelevant,
+  onDraftOutreach,
   index,
 }: LeadCardProps) {
   const formatDate = (dateString: string) => {
@@ -105,6 +107,16 @@ export function LeadCard({
           className="px-4 py-2 bg-twitter-primary hover:bg-twitter-primary-hover text-white rounded-full text-sm font-semibold transition-all hover:scale-105 shadow-lg shadow-twitter-primary/20"
         >
           Open Post
+        </button>
+
+        <button
+          onClick={() => onDraftOutreach(lead.id)}
+          className={clsx(
+            "px-4 py-2 rounded-full text-sm font-semibold transition-all hover:scale-105",
+            "bg-twitter-primary/10 text-twitter-primary border border-twitter-primary hover:bg-twitter-primary/20",
+          )}
+        >
+          ✉ Draft Outreach
         </button>
 
         {!lead.reachedOut && (

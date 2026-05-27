@@ -242,6 +242,123 @@ app.delete("/api/leads/:id/irrelevant", async (req, res) => {
   }
 });
 
+// Draft outreach message for a lead
+app.post("/api/leads/:id/draft-outreach", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const lead = await prisma.lead.findUnique({
+      where: { id },
+      include: { painPoints: true },
+    });
+
+    if (!lead) {
+      return res.status(404).json({ error: "Lead not found" });
+    }
+
+    const CREATORS_URL = "https://digiart.btechhub.top/creators";
+    const username = lead.author || "there";
+
+    const highPainPoints = lead.painPoints.filter(
+      (pp) => pp.severity === "high",
+    );
+    const primaryPainPoint = highPainPoints[0] || lead.painPoints[0];
+
+    let message = "";
+
+    const category = primaryPainPoint?.category?.toLowerCase() || "";
+
+    if (
+      category.includes("monetiz") ||
+      category.includes("income") ||
+      category.includes("revenue")
+    ) {
+      message = `hey u/${username},
+
+saw your post in r/${lead.subreddit} — looks like you're exploring ways to monetize your art beyond the usual channels.
+
+we're onboarding early creators to DigiArt, a platform where your followers can subscribe and receive curated printed booklets of your art delivered to their home.
+
+the artist role is simple:
+- curate a release
+- share your creator page with your audience
+- get early feedback from collectors
+
+we handle printing, shipping, and checkout. revenue split is 90/10 in your favor.
+
+interested in learning more? ${CREATORS_URL}
+
+b | t`;
+    } else if (
+      category.includes("print") ||
+      category.includes("physical") ||
+      category.includes("merch")
+    ) {
+      message = `hey u/${username},
+
+noticed your post in r/${lead.subreddit} — your art style feels like it would translate really well into a collectible printed format.
+
+i'm building DigiArt, a platform where digital artists offer subscription-based printed art booklets delivered to their followers on a regular cadence.
+
+no inventory, no logistics on your side — you just curate a release and share one link. we handle printing, shipping, and fulfillment.
+
+worth a look: ${CREATORS_URL}
+
+b | t`;
+    } else if (
+      category.includes("audience") ||
+      category.includes("discovery") ||
+      category.includes("visibility") ||
+      category.includes("reach")
+    ) {
+      message = `hey u/${username},
+
+came across your post in r/${lead.subreddit} — building an engaged audience for digital art is genuinely hard.
+
+we're onboarding pilot creators for DigiArt, a platform that gives your existing followers a new way to support you: monthly printed booklet drops of your work.
+
+it's a different kind of touchpoint — something physical and collectible that keeps your audience connected between posts.
+
+curious? ${CREATORS_URL}
+
+b | t`;
+    } else if (
+      category.includes("platform") ||
+      category.includes("fee") ||
+      category.includes("commission")
+    ) {
+      message = `hey u/${username},
+
+saw your post in r/${lead.subreddit} about platform dynamics. the fee structures on most platforms are rough.
+
+we're building DigiArt with a 90/10 split — 90% to creators. the idea is: your followers subscribe to receive curated printed booklets of your art, and we handle the rest (printing, shipping, payouts).
+
+no storefront management, no inventory. just curate and share one link.
+
+check it out: ${CREATORS_URL}
+
+b | t`;
+    } else {
+      message = `hey u/${username},
+
+came across your post in r/${lead.subreddit} and thought you'd be a good fit for something we're building.
+
+DigiArt is a platform where digital creators offer subscription-based printed art booklets to their followers. you curate a release, share your creator page, and your audience gets collectible printed art delivered to their home monthly.
+
+we handle printing, shipping, and checkout — 90/10 revenue split in your favor.
+
+give it a look: ${CREATORS_URL}
+
+b | t`;
+    }
+
+    res.json({ draft: message, leadId: id });
+  } catch (error) {
+    console.error("Error drafting outreach:", error);
+    res.status(500).json({ error: "Failed to draft outreach message" });
+  }
+});
+
 // Health check
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });

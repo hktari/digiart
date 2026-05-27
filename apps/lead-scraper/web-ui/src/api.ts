@@ -45,4 +45,14 @@ export const api = {
     });
     if (!response.ok) throw new Error("Failed to unmark as irrelevant");
   },
+
+  async draftOutreach(
+    leadId: string,
+  ): Promise<{ draft: string; leadId: string }> {
+    const response = await fetch(`${API_BASE}/leads/${leadId}/draft-outreach`, {
+      method: "POST",
+    });
+    if (!response.ok) throw new Error("Failed to draft outreach");
+    return response.json();
+  },
 };

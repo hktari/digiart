@@ -19,9 +19,13 @@ function App() {
   // Modal states
   const [contactModalOpen, setContactModalOpen] = useState(false);
   const [irrelevantModalOpen, setIrrelevantModalOpen] = useState(false);
+  const [outreachModalOpen, setOutreachModalOpen] = useState(false);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [contactNotes, setContactNotes] = useState("");
   const [irrelevantReason, setIrrelevantReason] = useState("");
+  const [outreachDraft, setOutreachDraft] = useState("");
+  const [isDraftingOutreach, setIsDraftingOutreach] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   // Load stats
   const loadStats = useCallback(async () => {
@@ -119,6 +123,33 @@ function App() {
     }
   };
 
+  // Handle draft outreach
+  const handleDraftOutreach = async (leadId: string) => {
+    setIsDraftingOutreach(true);
+    setOutreachModalOpen(true);
+    setOutreachDraft("");
+    setCopySuccess(false);
+    try {
+      const result = await api.draftOutreach(leadId);
+      setOutreachDraft(result.draft);
+    } catch (error) {
+      console.error("Error drafting outreach:", error);
+      setOutreachDraft("Failed to generate draft. Please try again.");
+    } finally {
+      setIsDraftingOutreach(false);
+    }
+  };
+
+  const handleCopyDraft = async () => {
+    try {
+      await navigator.clipboard.writeText(outreachDraft);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch {
+      // fallback: select text
+    }
+  };
+
   // Handle unmark as irrelevant
   const handleUnmarkIrrelevant = async (leadId: string) => {
     try {
@@ -190,6 +221,7 @@ function App() {
                     onMarkContacted={handleMarkContacted}
                     onMarkIrrelevant={handleMarkIrrelevant}
                     onUnmarkIrrelevant={handleUnmarkIrrelevant}
+                    onDraftOutreach={handleDraftOutreach}
                   />
                 ))}
               </AnimatePresence>
@@ -230,6 +262,44 @@ function App() {
           className="w-full px-4 py-3 bg-twitter-secondary border border-twitter-border rounded-lg text-twitter-text placeholder-twitter-muted focus:outline-none focus:border-twitter-primary resize-none"
           rows={4}
         />
+      </Modal>
+
+      {/* Draft Outreach Modal */}
+      <Modal
+        isOpen={outreachModalOpen}
+        onClose={() => setOutreachModalOpen(false)}
+        title="Draft Outreach"
+        footer={
+          <>
+            <button
+              onClick={() => setOutreachModalOpen(false)}
+              className="px-4 py-2 bg-twitter-secondary text-twitter-text border border-twitter-border rounded-full text-sm font-semibold hover:bg-twitter-hover transition-all"
+            >
+              Close
+            </button>
+            <button
+              onClick={handleCopyDraft}
+              disabled={isDraftingOutreach || !outreachDraft}
+              className="px-4 py-2 bg-twitter-primary/10 text-twitter-primary border border-twitter-primary rounded-full text-sm font-semibold hover:bg-twitter-primary/20 transition-all disabled:opacity-50"
+            >
+              {copySuccess ? "✓ Copied!" : "Copy to Clipboard"}
+            </button>
+          </>
+        }
+      >
+        {isDraftingOutreach ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-twitter-primary border-t-transparent" />
+            <span className="ml-3 text-twitter-muted">Generating draft...</span>
+          </div>
+        ) : (
+          <textarea
+            value={outreachDraft}
+            onChange={(e) => setOutreachDraft(e.target.value)}
+            className="w-full px-4 py-3 bg-twitter-secondary border border-twitter-border rounded-lg text-twitter-text placeholder-twitter-muted focus:outline-none focus:border-twitter-primary resize-none font-mono text-sm"
+            rows={14}
+          />
+        )}
       </Modal>
 
       {/* Irrelevant Modal */}
