@@ -337,8 +337,6 @@ app.post("/api/leads/:id/draft-outreach", async (req, res) => {
     ) {
       message = `hey u/${username},
 
-saw your post in r/${lead.subreddit} — looks like you're exploring ways to monetize your art beyond the usual channels.
-
 we're onboarding early creators to DigiArt, a platform where your followers can subscribe and receive curated printed booklets of your art delivered to their home.
 
 the artist role is simple:
@@ -358,9 +356,9 @@ b | t`;
     ) {
       message = `hey u/${username},
 
-noticed your post in r/${lead.subreddit} — your art style feels like it would translate really well into a collectible printed format.
+your art style looks like it would translate really well into a collectible printed format.
 
-i'm building DigiArt, a platform where digital artists offer subscription-based printed art booklets delivered to their followers on a regular cadence.
+we're building DigiArt, a platform where digital artists offer subscription-based printed art booklets delivered to their followers on a regular cadence.
 
 no inventory, no logistics on your side — you just curate a release and share one link. we handle printing, shipping, and fulfillment.
 
@@ -374,8 +372,6 @@ b | t`;
       category.includes("reach")
     ) {
       message = `hey u/${username},
-
-came across your post in r/${lead.subreddit} — building an engaged audience for digital art is genuinely hard.
 
 we're onboarding pilot creators for DigiArt, a platform that gives your existing followers a new way to support you: monthly printed booklet drops of your work.
 
@@ -391,9 +387,7 @@ b | t`;
     ) {
       message = `hey u/${username},
 
-saw your post in r/${lead.subreddit} about platform dynamics. the fee structures on most platforms are rough.
-
-we're building DigiArt with a 90/10 split — 90% to creators. the idea is: your followers subscribe to receive curated printed booklets of your art, and we handle the rest (printing, shipping, payouts).
+we're building DigiArt with a 90/10 split — 90% to creators. your followers subscribe to receive curated printed booklets of your art, and we handle the rest (printing, shipping, payouts).
 
 no storefront management, no inventory. just curate and share one link.
 
@@ -402,8 +396,6 @@ check it out: ${CREATORS_URL}
 b | t`;
     } else {
       message = `hey u/${username},
-
-came across your post in r/${lead.subreddit} and thought you'd be a good fit for something we're building.
 
 DigiArt is a platform where digital creators offer subscription-based printed art booklets to their followers. you curate a release, share your creator page, and your audience gets collectible printed art delivered to their home monthly.
 
