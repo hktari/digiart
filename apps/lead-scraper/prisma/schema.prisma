@@ -58,6 +58,11 @@ model Lead {
   markedIrrelevantAt   DateTime?
   markedIrrelevantBy   String?   // System identifier (e.g., "user", "system")
   
+  // Archive / trash (soft delete)
+  archived             Boolean   @default(false)
+  archivedAt           DateTime?
+  archiveReason        String?   @db.Text
+  
   // Relations
   scrapingRunId   String
   scrapingRun     ScrapingRun  @relation(fields: [scrapingRunId], references: [id], onDelete: Cascade)
@@ -68,6 +73,7 @@ model Lead {
   @@index([isHotLead])
   @@index([reachedOut])
   @@index([isIrrelevant])
+  @@index([archived])
 }
 
 model PainPoint {
