@@ -45,6 +45,10 @@ if (process.env.AWS_ENDPOINT_URL) {
 }
 
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_COMMIT_SHA:
+      process.env.RAILWAY_GIT_COMMIT_SHA ?? process.env.GIT_COMMIT_SHA ?? "dev",
+  },
   async rewrites() {
     return [
       {

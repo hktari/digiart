@@ -66,6 +66,11 @@ export function Footer() {
             &copy; {new Date().getFullYear()} Booklet Drops. All rights
             reserved.
           </p>
+          {process.env.NEXT_PUBLIC_COMMIT_SHA && (
+            <p className="font-mono text-[10px] opacity-40">
+              {process.env.NEXT_PUBLIC_COMMIT_SHA.slice(0, 7)}
+            </p>
+          )}
           <p>
             Built by{" "}
             <a
