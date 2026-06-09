@@ -14,8 +14,52 @@ Choose ONE angle from the available list that has NOT been used recently.
 Respond with ONLY the angle key, nothing else. Example: algorithm-gatekeeping
 """
 
+EXAMPLE_POSTS = """\
+Example posts — match this exact tone and style:
+
+---
+Are you a creator looking to monetize your digital art ?
+
+Interested in how much you could earn by uploading and promoting on DigiArt ?
+Made a calculator so you can see if it's worth your time
+
+digiart.btechhub.top/creat…
+
+let me know what you think
+---
+
+---
+what's so charming about digital art feeds ? 🤔
+Is it the exploration ? Maybe, but it doesn't feel like exploring. There's not enough agency.
+when I see something interesting I zoom in, then pleasant feelings emerge.
+Also a desire to store it, save it. So that I can look at it again when I want to feel.
+
+It's special because it made you feel something
+Are you collecting art ?
+Why not ?
+---
+
+---
+We're exploring news ways to experience, share and support digital artists
+
+looking for creators willing to test this idea with their audience. Payouts are transparent and automated.
+
+you can get the gist here: https://digiart.btechhub.top/creators
+---
+
+---
+For creators who capture moments with words + visuals:
+What if your impressions did not disappear into the feed?
+What if they became a small printed magazine/booklet instead?
+One page for the text.
+One page for the image.
+A physical object built around a feeling people can keep.
+like this if you find this interesting
+---
+"""
+
 WRITER_PROMPT = """\
-You are a social media copywriter for DigiArt — a platform connecting digital artists \
+You are writing a Threads post for DigiArt — a platform connecting digital artists \
 with collectors who receive printed art booklets monthly.
 
 Brand voice:
@@ -27,16 +71,18 @@ Pain point or context: {pain_point}
 
 {reflections_section}
 
-Write a single Threads post (Meta's text-based social network).
-Requirements:
-- Maximum 500 characters total (including hashtags)
-- Start with a strong hook (first line must stop the scroll)
-- 2–3 short punchy sentences after the hook
-- End with a clear CTA pointing to DigiArt
-- 3–5 relevant hashtags on the last line
-- Do NOT use emojis excessively (0–2 max)
-- Do NOT mention competitor platforms by name
-- Do NOT use corporate jargon
+{example_posts}
+
+Tone and style rules (derived from the examples above):
+- Write in lowercase where it feels natural — do NOT capitalise every sentence start
+- Short, fragmented lines — like thoughts typed in real time, not polished copy
+- Use direct questions to the reader ("Are you ...?", "Why not ?", "What if ...?")
+- First-person voice when appropriate ("I", "we", "Made a ...", "looking for ...")
+- No hashtags unless they genuinely add value — if used, max 2, no # spam
+- 0–1 emojis max
+- No corporate structure: no "Introducing:", no bullet-point lists, no numbered steps
+- End with a quiet CTA or a question — never a hard sell
+- Maximum 500 characters total
 
 Respond with ONLY the post text, nothing else.
 """

@@ -78,10 +78,12 @@ COLLECTOR_FEATURE_COPY: dict[str, str] = {
 
 BRAND_VOICE = """
 DigiArt brand voice:
-- Warm but direct — speak to art lovers, not marketers
-- Honest about the problem, clear about the solution
-- Avoid corporate buzzwords ("synergy", "leverage", "disruptive")
-- Threads tone: conversational, slightly editorial, never salesy
-- Short paragraphs, punchy hooks
-- Hashtags: 3–5 max, relevant and non-spammy
+- Casual and human — like a builder typing thoughts, not a marketer writing copy
+- Lowercase-leaning: sentences don't always start with capitals
+- Fragmented lines — short, one thought per line, breathing room between ideas
+- Curious and honest: ask real questions, admit what you're still figuring out
+- Never salesy — no "Introducing:", no urgency pressure, no hype
+- Avoid corporate buzzwords ("synergy", "leverage", "disruptive", "game-changer")
+- No hashtag spam — skip them entirely or use at most 1–2 that feel natural
+- 0–1 emojis, only if they add warmth not decoration
 """

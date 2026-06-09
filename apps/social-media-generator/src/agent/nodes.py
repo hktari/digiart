@@ -25,6 +25,7 @@ from agent.history import (
     seed_store_from_disk,
 )
 from agent.prompts import (
+    EXAMPLE_POSTS,
     PLANNER_PROMPT,
     REFLECTION_EXTRACTOR_PROMPT,
     REFLECTIONS_SECTION_TEMPLATE,
@@ -33,12 +34,12 @@ from agent.prompts import (
 from agent.state import PostState
 
 _llm = ChatFireworks(
-    model="accounts/fireworks/models/llama-v3p1-70b-instruct",
+    model="accounts/fireworks/models/minimax-m2p7",
     temperature=0.7,
 )
 
 _llm_extract = ChatFireworks(
-    model="accounts/fireworks/models/llama-v3p1-70b-instruct",
+    model="accounts/fireworks/models/minimax-m2p7",
     temperature=0.2,
 )
 
@@ -90,6 +91,7 @@ def write_post_node(state: PostState, *, store: Any = None) -> dict[str, Any]:
         theme=state.theme,
         pain_point=pain_point,
         reflections_section=reflections_section,
+        example_posts=EXAMPLE_POSTS,
     )
     response = _llm.invoke(prompt)
     draft = response.content.strip()
