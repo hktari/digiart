@@ -13,11 +13,14 @@ dependencies = [
     "langgraph-checkpoint-sqlite>=2.0.0",
     "langchain-fireworks>=0.2.0",
     "python-dotenv>=1.0.1",
+    "langgraph-sdk>=0.3.9",
+    "python-telegram-bot>=21.0",
 ]
 
 
 [project.scripts]
 agent = "agent.cli:main"
+telegram-bot = "agent.telegram_bot:main"
 
 [project.optional-dependencies]
 dev = ["mypy>=1.11.1", "ruff>=0.6.1"]
