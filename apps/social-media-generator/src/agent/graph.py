@@ -56,14 +56,7 @@ def build_graph() -> StateGraph:
     return builder
 
 
-# Default compiled graph exposed for LangGraph API / langgraph dev
-# Uses InMemorySaver — for persistent HITL use cli.py which sets SqliteSaver.
-from langgraph.checkpoint.memory import InMemorySaver  # noqa: E402
-from langgraph.store.memory import InMemoryStore  # noqa: E402
-
-_store = InMemoryStore()
-graph = build_graph().compile(
-    checkpointer=InMemorySaver(),
-    store=_store,
-    name="DigiArt Post Generator",
-)
+# Compiled graph for LangGraph API / langgraph dev.
+# No checkpointer or store passed — the platform injects its own persistence.
+# For CLI use (SqliteSaver), see cli.py.
+graph = build_graph().compile(name="DigiArt Post Generator")
