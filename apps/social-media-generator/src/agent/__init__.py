@@ -1,7 +1,4 @@
-"""New LangGraph Agent.
-
-This module defines a custom graph.
-"""
+"""DigiArt social media post generation agent."""
 
 from agent.graph import graph
 

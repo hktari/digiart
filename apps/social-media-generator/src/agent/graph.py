@@ -1,54 +1,69 @@
-"""LangGraph single-node graph template.
+"""DigiArt social media post generation graph.
 
-Returns a predefined response. Replace logic and configuration as needed.
+Flow:
+  load_history → plan_post → write_post → human_review
+    → (regenerate → write_post | reflect_on_feedback → save_output)
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Literal
 
-from langgraph.graph import StateGraph
-from langgraph.runtime import Runtime
-from typing_extensions import TypedDict
+from langgraph.graph import END, StateGraph
+
+from agent.nodes import (
+    human_review_node,
+    load_history_node,
+    plan_post_node,
+    reflect_on_feedback_node,
+    save_output_node,
+    write_post_node,
+)
+from agent.state import PostState
 
 
-class Context(TypedDict):
-    """Context parameters for the agent.
+def _route_after_review(
+    state: PostState,
+) -> Literal["reflect_on_feedback", "write_post"]:
+    """Route based on human review action."""
+    if state.review_action == "regenerate":
+        return "write_post"
+    return "reflect_on_feedback"
 
-    Set these when creating assistants OR when invoking the graph.
-    See: https://langchain-ai.github.io/langgraph/cloud/how-tos/configuration_cloud/
+
+def build_graph() -> StateGraph:
+    """Build and return the compiled post generation graph.
+
+    Caller is responsible for compiling with checkpointer + store.
     """
+    builder = StateGraph(PostState)
 
-    my_configurable_param: str
+    builder.add_node("load_history", load_history_node)
+    builder.add_node("plan_post", plan_post_node)
+    builder.add_node("write_post", write_post_node)
+    builder.add_node("human_review", human_review_node)
+    builder.add_node("reflect_on_feedback", reflect_on_feedback_node)
+    builder.add_node("save_output", save_output_node)
 
+    builder.add_edge("__start__", "load_history")
+    builder.add_edge("load_history", "plan_post")
+    builder.add_edge("plan_post", "write_post")
+    builder.add_edge("write_post", "human_review")
+    builder.add_conditional_edges("human_review", _route_after_review)
+    builder.add_edge("reflect_on_feedback", "save_output")
+    builder.add_edge("save_output", END)
 
-@dataclass
-class State:
-    """Input state for the agent.
-
-    Defines the initial structure of incoming data.
-    See: https://langchain-ai.github.io/langgraph/concepts/low_level/#state
-    """
-
-    changeme: str = "example"
-
-
-async def call_model(state: State, runtime: Runtime[Context]) -> Dict[str, Any]:
-    """Process input and returns output.
-
-    Can use runtime context to alter behavior.
-    """
-    return {
-        "changeme": "output from call_model. "
-        f"Configured with {(runtime.context or {}).get('my_configurable_param')}"
-    }
+    return builder
 
 
-# Define the graph
-graph = (
-    StateGraph(State, context_schema=Context)
-    .add_node(call_model)
-    .add_edge("__start__", "call_model")
-    .compile(name="New Graph")
+# Default compiled graph exposed for LangGraph API / langgraph dev
+# Uses InMemorySaver — for persistent HITL use cli.py which sets SqliteSaver.
+from langgraph.checkpoint.memory import InMemorySaver  # noqa: E402
+from langgraph.store.memory import InMemoryStore  # noqa: E402
+
+_store = InMemoryStore()
+graph = build_graph().compile(
+    checkpointer=InMemorySaver(),
+    store=_store,
+    name="DigiArt Post Generator",
 )
