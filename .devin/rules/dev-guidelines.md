@@ -9,3 +9,5 @@ trigger: always_on
 - our color palette is configured in Tailwind : beige, fuchsia, ocean, jade
 
 - DO NOT RUN builds for trivial changes such as style changes
+
+- use gh_grep when you need to search Github repositories
