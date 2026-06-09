@@ -20,6 +20,7 @@ import asyncio
 import logging
 import os
 from pathlib import Path
+import sqlite3
 
 from dotenv import load_dotenv
 from langgraph.checkpoint.sqlite import SqliteSaver
@@ -54,11 +55,19 @@ _MAX_MSG_LEN = 4000
 _pending_edits: dict[int, str] = {}
 
 
-def _make_thread_id(segment: str) -> str:
-    """Stable thread ID per segment per day — must match cli.py."""
-    from datetime import date
+def _list_all_thread_ids() -> list[str]:
+    """Query SQLite database for all distinct thread IDs."""
+    if not DB_PATH.exists():
+        return []
 
-    return f"{segment}-{date.today().isoformat()}"
+    conn = sqlite3.connect(str(DB_PATH))
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT DISTINCT thread_id FROM checkpoints")
+        rows = cursor.fetchall()
+        return [row[0] for row in rows]
+    finally:
+        conn.close()
 
 
 def _build_graph(checkpointer: SqliteSaver, store: InMemoryStore):
@@ -75,24 +84,26 @@ def _seed_store(store: InMemoryStore) -> None:
 
 
 def _keyboard(thread_id: str) -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup([
+    return InlineKeyboardMarkup(
         [
-            InlineKeyboardButton("✅ Approve", callback_data=f"approve:{thread_id}"),
-            InlineKeyboardButton("🔁 Regenerate", callback_data=f"regen:{thread_id}"),
-            InlineKeyboardButton("✏️ Edit", callback_data=f"edit:{thread_id}"),
+            [
+                InlineKeyboardButton(
+                    "✅ Approve", callback_data=f"approve:{thread_id}"
+                ),
+                InlineKeyboardButton(
+                    "🔁 Regenerate", callback_data=f"regen:{thread_id}"
+                ),
+                InlineKeyboardButton("✏️ Edit", callback_data=f"edit:{thread_id}"),
+            ]
         ]
-    ])
+    )
 
 
 def _format_draft(payload: dict) -> str:
     segment = payload.get("segment", "?")
     theme = payload.get("theme", "?")
     draft = payload.get("draft", "")
-    text = (
-        f"<b>Segment:</b> {segment}\n"
-        f"<b>Theme:</b> {theme}\n\n"
-        f"{draft}"
-    )
+    text = f"<b>Segment:</b> {segment}\n<b>Theme:</b> {theme}\n\n{draft}"
     return text[:_MAX_MSG_LEN]
 
 
@@ -112,8 +123,8 @@ async def notify_pending(app: Application) -> None:
         graph = _build_graph(checkpointer, store)
 
         sent = 0
-        for segment in SEGMENTS:
-            thread_id = _make_thread_id(segment)
+        all_thread_ids = _list_all_thread_ids()
+        for thread_id in all_thread_ids:
             config = {"configurable": {"thread_id": thread_id}}
             state = graph.get_state(config)
             if not (state and state.tasks):
@@ -160,6 +171,66 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     data: str = query.data
     action, thread_id = data.split(":", 1)
 
+    # Handle image review actions
+    if action == "approve_image":
+        await query.edit_message_caption(
+            caption=f"⏳ Approving image for <code>{thread_id}</code>…",
+            parse_mode=ParseMode.HTML,
+        )
+        try:
+            new_payload = await asyncio.to_thread(
+                lambda: _resume_thread_sync(thread_id, {"action": "approve"})
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("Error resuming thread %s for approve_image", thread_id)
+            await context.bot.send_message(
+                _CHAT_ID,
+                f"❌ Error approving image for <code>{thread_id}</code>:\n<pre>{exc}</pre>",
+                parse_mode=ParseMode.HTML,
+            )
+            return
+        logger.info("approve_image resume result for %s: %r", thread_id, new_payload)
+        # For image approval, new_payload should be None (workflow ends)
+        if new_payload is None:
+            await query.edit_message_caption(
+                caption=f"✅ Image approved and saved — <code>{thread_id}</code>",
+                parse_mode=ParseMode.HTML,
+            )
+        else:
+            # Unexpected: another interrupt was hit — surface payload for debugging
+            logger.warning(
+                "Unexpected interrupt payload after approve_image for %s: %r",
+                thread_id,
+                new_payload,
+            )
+            await context.bot.send_message(
+                _CHAT_ID,
+                f"⚠️ Unexpected state after approval for <code>{thread_id}</code>\n<pre>{new_payload}</pre>",
+                parse_mode=ParseMode.HTML,
+            )
+        return
+
+    if action == "regen_image":
+        await query.edit_message_caption(
+            caption=f"⏳ Regenerating image for <code>{thread_id}</code>…",
+            parse_mode=ParseMode.HTML,
+        )
+        new_payload = await asyncio.to_thread(
+            lambda: _resume_thread_sync(thread_id, {"action": "regenerate"})
+        )
+        if new_payload and any(new_payload.values()):
+            await context.bot.send_message(
+                _CHAT_ID,
+                f"♻️ New image generated for <code>{thread_id}</code>. Check the chat.",
+                parse_mode=ParseMode.HTML,
+            )
+        else:
+            await query.edit_message_caption(
+                caption=f"✅ Done — <code>{thread_id}</code>",
+                parse_mode=ParseMode.HTML,
+            )
+        return
+
     if action == "approve":
         await query.edit_message_text(
             f"⏳ Approving <code>{thread_id}</code>…",
@@ -168,7 +239,8 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         new_payload = await asyncio.to_thread(
             lambda: _resume_thread_sync(thread_id, {"action": "approve"})
         )
-        if new_payload:
+        # Check if new_payload has actual content (not empty dict)
+        if new_payload and any(new_payload.values()):
             await context.bot.send_message(
                 _CHAT_ID,
                 "♻️ Regenerated draft:\n\n" + _format_draft(new_payload),
@@ -189,7 +261,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         new_payload = await asyncio.to_thread(
             lambda: _resume_thread_sync(thread_id, {"action": "regenerate"})
         )
-        if new_payload:
+        if new_payload and any(new_payload.values()):
             await context.bot.send_message(
                 _CHAT_ID,
                 "♻️ New draft:\n\n" + _format_draft(new_payload),
@@ -241,6 +313,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 def _resume_thread_sync(thread_id: str, resume_value: dict) -> dict | None:
     """Run _resume_thread synchronously (called via asyncio.to_thread)."""
+    logger.debug("Resuming thread %s with value: %r", thread_id, resume_value)
     with SqliteSaver.from_conn_string(str(DB_PATH)) as checkpointer:
         store = InMemoryStore()
         _seed_store(store)
@@ -248,16 +321,24 @@ def _resume_thread_sync(thread_id: str, resume_value: dict) -> dict | None:
         config = {"configurable": {"thread_id": thread_id}}
         result = graph.invoke(Command(resume=resume_value), config)
 
-    if "__interrupt__" in result:
-        return result["__interrupt__"][0].value
+    logger.debug(
+        "Thread %s invoke result keys: %s",
+        thread_id,
+        list(result.keys()) if isinstance(result, dict) else type(result),
+    )
+    if isinstance(result, dict) and "__interrupt__" in result:
+        payload = result["__interrupt__"][0].value
+        logger.debug("Thread %s has new interrupt: %r", thread_id, payload)
+        return payload
     return None
 
 
 def main() -> None:
     """Start the Telegram bot."""
+    log_level = logging.DEBUG if os.getenv("DEBUG") else logging.INFO
     logging.basicConfig(
         format="%(asctime)s %(levelname)s %(name)s — %(message)s",
-        level=logging.INFO,
+        level=log_level,
     )
 
     app = Application.builder().token(_BOT_TOKEN).build()
