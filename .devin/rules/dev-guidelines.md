@@ -11,3 +11,5 @@ trigger: always_on
 - DO NOT RUN builds for trivial changes such as style changes
 
 - use gh_grep when you need to search Github repositories
+
+- use 'uv' for python projects and 'pnpm' for node projects

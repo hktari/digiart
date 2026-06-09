@@ -16,3 +16,6 @@ class PostState:
     final_post: str = ""
     review_action: str = ""
     output_folder: str = ""
+    image_path: str = ""
+    image_draft_path: str = ""
+    image_review_action: str = ""

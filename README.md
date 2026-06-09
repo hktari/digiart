@@ -1,18 +1,22 @@
 # Art Subscription Platform
 
-pnpm monorepo with two apps and shared infrastructure.
+pnpm monorepo with multiple apps and shared infrastructure.
 
 ## Apps
 
-| App          | Path              | Stack                           | Dev port |
-| ------------ | ----------------- | ------------------------------- | -------- |
-| `mvp`        | `apps/mvp`        | Next.js 16, Prisma, NextAuth v5 | 3000     |
-| `pdf-worker` | `apps/pdf-worker` | NestJS, BullMQ, Prisma          | 3001     |
+| App                      | Path                          | Stack                                     | Dev port |
+| ------------------------ | ----------------------------- | ----------------------------------------- | -------- |
+| `mvp`                    | `apps/mvp`                    | Next.js 16, Prisma, NextAuth v5           | 3000     |
+| `pdf-worker`             | `apps/pdf-worker`             | NestJS, BullMQ, Prisma                    | 3001     |
+| `landing`                | `apps/landing`                | Next.js 14, Tailwind CSS, Resend          | 3002     |
+| `lead-scraper`           | `apps/lead-scraper`           | Node.js, Prisma, Hono (web UI)            | 3100     |
+| `social-media-generator` | `apps/social-media-generator` | Python, LangGraph, Fireworks AI, Telegram | —        |
 
 ## Prerequisites
 
 - Node.js ≥ 20
 - pnpm ≥ 9
+- Python ≥ 3.10 + [uv](https://github.com/astral-sh/uv) (for `social-media-generator`)
 - Docker (for local infrastructure)
 
 ## Local Dev Setup
@@ -143,5 +147,52 @@ MVP_DEPLOYMENT_URL=https://your-mvp.railway.app pnpm test:smoke
 | ------- | ------------------------- | ---------------------------------------------------------- |
 | `local` | Dev only                  | `STORAGE_LOCAL_PATH` (default: `/tmp/booklets`)            |
 | `s3`    | Production or local MinIO | `AWS_*` env vars + optionally `AWS_ENDPOINT_URL` for MinIO |
+
+## Social Media Generator
+
+A standalone Python agent (`apps/social-media-generator`) that generates Threads posts for creator and collector audience segments using LangGraph + Fireworks AI, with a human-in-the-loop review step.
+
+### Setup
+
+```bash
+cd apps/social-media-generator
+cp .env.example .env          # add FIREWORKS_API_KEY and optionally Telegram vars
+uv sync                       # install dependencies into .venv
+```
+
+### Usage
+
+```bash
+# Generate drafts for both segments (pauses at human review)
+uv run agent generate
+
+# Review pending drafts interactively (approve / edit / regenerate)
+uv run agent review
+
+# Optional: Telegram HITL bot (set TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID in .env)
+uv run telegram-bot
+```
+
+### Architecture
+
+```
+load_history → plan_post → write_post → human_review
+  → regenerate (loops back to write_post)
+  → approve/edit → reflect_on_feedback → save_output
+```
+
+- **LLM**: `minimax-m2p7` via Fireworks AI
+- **Persistence**: SQLite checkpointer + in-memory store (reflections seeded from disk)
+- **Output**: `output/posts/{segment}-{theme}-{date}/post.md`
+- **Reflections**: Style learnings extracted after each approved/edited post and reinjected on next run
+
+### Environment Variables
+
+| Variable             | Required | Description                       |
+| -------------------- | -------- | --------------------------------- |
+| `FIREWORKS_API_KEY`  | Yes      | Fireworks AI API key              |
+| `LANGSMITH_PROJECT`  | No       | LangSmith tracing project name    |
+| `TELEGRAM_BOT_TOKEN` | No       | Telegram bot token (for HITL bot) |
+| `TELEGRAM_CHAT_ID`   | No       | Telegram chat ID (for HITL bot)   |
 
 # Railway deploy trigger

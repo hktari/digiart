@@ -1,61 +1,184 @@
-# New LangGraph Project
+# DigiArt Social Media Generator
 
-[![CI](https://github.com/langchain-ai/new-langgraph-project/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/langchain-ai/new-langgraph-project/actions/workflows/unit-tests.yml)
-[![Integration Tests](https://github.com/langchain-ai/new-langgraph-project/actions/workflows/integration-tests.yml/badge.svg)](https://github.com/langchain-ai/new-langgraph-project/actions/workflows/integration-tests.yml)
+LangGraph agent that generates Threads-optimised posts for DigiArt's two segments (Creators & Collectors), with optional AI-generated brand-consistent images.
 
-This template demonstrates a simple application implemented using [LangGraph](https://github.com/langchain-ai/langgraph), designed for showing how to get started with [LangGraph Server](https://langchain-ai.github.io/langgraph/concepts/langgraph_server/#langgraph-server) and using [LangGraph Studio](https://langchain-ai.github.io/langgraph/concepts/langgraph_studio/), a visual debugging IDE.
+## Features
 
-<div align="center">
-  <img src="./static/studio_ui.png" alt="Graph view in LangGraph studio UI" width="75%" />
-</div>
+- **Two segments**: Creator and Collector focused content
+- **Rolling history**: Tracks last 5 posts per segment to avoid repetition
+- **Human-in-the-loop**: Review, edit, or regenerate posts before publishing
+- **AI Image Generation**: Automatically generates brand-consistent images using Replicate FLUX.2
+- **Feedback learning**: Stores reflections from edits to improve future posts
 
-The core logic defined in `src/agent/graph.py`, showcases an single-step application that responds with a fixed string and the configuration provided.
+## Project Structure
 
-You can extend this graph to orchestrate more complex agentic workflows that can be visualized and debugged in LangGraph Studio.
+```
+src/agent/
+├── graph.py          # StateGraph definition
+├── nodes.py          # Node functions (including image generation)
+├── prompts.py        # LLM prompt templates
+├── config.py         # Segment data, pain points, features
+├── history.py        # Post history and persistence
+├── state.py          # PostState dataclass
+└── cli.py            # CLI entry point
 
-## Getting Started
+image-generation-references/  # Brand assets for image generation
+├── logo.png                   # Used as reference for brand consistency
+├── booklet-front.png
+├── booklet-open-2.png
+├── booklet-open-3.png
+└── booklet-showcase.png
 
-1. Install dependencies, along with the [LangGraph CLI](https://langchain-ai.github.io/langgraph/concepts/langgraph_cli/), which will be used to run the server.
+output/
+└── posts/
+    └── YYYY-MM-DD_HHMM_{segment}_{theme}/
+        ├── post.md            # Generated post text
+        └── images/
+            └── post-image.webp # Generated AI image
+```
+
+## Usage
+
+### Generate drafts
 
 ```bash
-cd path/to/your/app
-pip install -e . "langgraph-cli[inmem]"
+uv run agent generate
 ```
 
-2. (Optional) Customize the code and project as needed. Create a `.env` file if you need to use secrets.
+Generates draft posts for both segments and pauses for human review.
+
+### Review and approve
 
 ```bash
-cp .env.example .env
+uv run agent review
 ```
 
-If you want to enable LangSmith tracing, add your LangSmith API key to the `.env` file.
+Lists pending drafts with options to:
 
-```text
-# .env
-LANGSMITH_API_KEY=lsv2...
+- `[a]` Approve as-is (saves post + generates image)
+- `[e]` Edit the text manually
+- `[r]` Regenerate a new draft
+
+## Image Generation
+
+When a post is approved, the graph automatically generates a brand-consistent image using:
+
+- **Model**: FLUX.2 Pro via Replicate API
+- **Reference**: Uses `image-generation-references/logo.png` for brand consistency
+- **Prompts**: Professional booklet mockup prompts from `docs/outreach/booklet-mockup-image-prompts.md`
+- **Style**: Premium editorial product mockup, quiet luxury, gloss-laminated softcover, silk-coated pages
+- **Format**: 1:1 square (1080×1080), 1MP resolution, WebP format
+- **Cost**: ~$0.04 per image (pay-per-use, no subscription)
+
+### Prompt Variants
+
+The system rotates through 3 professionally-written scene types:
+
+1. **Hero Cover** - Closed booklet on warm studio surface
+2. **Open Artwork Spread** - Two-page interior spread showing curated art
+3. **Physical Product Context** - Partially open booklet as desirable art object
+
+## Environment Variables
+
+Copy `.env.example` to `.env` and configure:
+
+```bash
+# Required for LLM text generation
+FIREWORKS_API_KEY=your_key_here
+
+# Required for image generation
+REPLICATE_API_TOKEN=your_key_here
+
+# Optional: Telegram notifications for image review
+TELEGRAM_BOT_TOKEN=your_bot_token
+TELEGRAM_CHAT_ID=your_chat_id
 ```
 
-3. Start the LangGraph Server.
+Get your Replicate API key at: https://replicate.com/account/api-tokens
 
-```shell
-langgraph dev
+### Telegram Setup (Optional)
+
+When configured, generated images are automatically sent to your Telegram for review:
+
+1. Create a bot with [@BotFather](https://t.me/botfather) and get the token
+2. Start a chat with your bot and get your chat ID (use @userinfobot)
+3. Add both to `.env`
+4. Images are sent with approve/regenerate options
+
+## Two-Stage Review Process
+
+The workflow has two separate human review checkpoints:
+
+### 1. Text Review (`uv run agent review`)
+
+After running `generate`, you'll review the post text:
+
+- `[a]` Approve → continues to image generation
+- `[e]` Edit → modify text, then continues
+- `[r]` Regenerate → creates new text draft
+
+### 2. Image Review (`uv run agent review`)
+
+After text approval, an image is generated and you'll review it:
+
+- `[a]` Approve → image is finalized as `post-image.webp`
+- `[r]` Regenerate → creates new image with same prompt
+
+**Note**: If Telegram is configured, the image is also sent there with review instructions.
+
+### Review Command Behavior
+
+Running `uv run agent review` checks for **both** pending text reviews and image reviews:
+
+```
+# Example session
+$ uv run agent review
+
+Reviewing TEXT: CREATOR — theme: recurring-revenue
+
+Draft text here...
+
+Options:
+  [a] Approve as-is
+  [e] Edit the post text
+  [r] Regenerate a new draft
+Choice [a/e/r]: a
+
+Generating image...
+
+Reviewing IMAGE: CREATOR — theme: recurring-revenue
+
+Image: output/posts/.../images/post-image-draft.webp
+(Also sent to Telegram for review)
+
+Image Review Options:
+  [a] Approve image
+  [r] Regenerate image
+Choice [a/r]: a
+
+✓ Post saved to: output/posts/...
+✓ Image saved to: output/posts/.../images/post-image.webp
 ```
 
-For more information on getting started with LangGraph Server, [see here](https://langchain-ai.github.io/langgraph/tutorials/langgraph-platform/local-server/).
+## Pricing
 
-## How to customize
+- **Text generation**: Via Fireworks AI (cost depends on model)
+- **Image generation**: ~$0.04/image via Replicate FLUX.2 Pro
+- **Typical cost per post**: ~$0.05-0.10 (text + image)
 
-1. **Define runtime context**: Modify the `Context` class in the `graph.py` file to expose the arguments you want to configure per assistant. For example, in a chatbot application you may want to define a dynamic system prompt or LLM to use. For more information on runtime context in LangGraph, [see here](https://langchain-ai.github.io/langgraph/agents/context/?h=context#static-runtime-context).
+## Brand Assets
 
-2. **Extend the graph**: The core logic of the application is defined in [graph.py](./src/agent/graph.py). You can modify this file to add new nodes, edges, or change the flow of information.
+Place reference images in `image-generation-references/`:
 
-## Development
+- `logo.png` - Required, used as brand reference for all generated images
+- Additional booklet images can be used for future fine-tuning
 
-While iterating on your graph in LangGraph Studio, you can edit past state and rerun your app from previous states to debug specific nodes. Local changes will be automatically applied via hot reload.
+## Graph Flow
 
-Follow-up requests extend the same thread. You can create an entirely new thread, clearing previous history, using the `+` button in the top right.
-
-For more advanced features and examples, refer to the [LangGraph documentation](https://langchain-ai.github.io/langgraph/). These resources can help you adapt this template for your specific use case and build more sophisticated conversational agents.
-
-LangGraph Studio also integrates with [LangSmith](https://smith.langchain.com/) for more in-depth tracing and collaboration with teammates, allowing you to analyze and optimize your chatbot's performance.
-
+```
+load_history → plan_post → write_post → human_review (text)
+  → [regenerate] → write_post
+  → [approve/edit] → reflect_on_feedback → save_output → generate_image → human_review_image
+      → [regenerate] → generate_image
+      → [approve] → END
+```
