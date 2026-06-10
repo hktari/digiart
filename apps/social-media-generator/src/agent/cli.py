@@ -111,51 +111,22 @@ def cmd_review() -> None:
             return
 
         for segment, thread_id, config, payload in pending:
-            # Check if this is an image review interrupt
-            if "image_draft_path" in payload:
-                # Image review
-                print("\n" + "=" * 60)  # noqa: T201
-                print(
-                    f"Reviewing IMAGE: {segment.upper()} — theme: {payload.get('theme', '?')}"
-                )  # noqa: T201
-                print("=" * 60)  # noqa: T201
-                image_path = payload.get("image_draft_path", "")
-                print(f"\nImage: {image_path}")  # noqa: T201
-                if payload.get("telegram_sent"):
-                    print("(Also sent to Telegram for review)")  # noqa: T201
+            print("\n" + "=" * 60)  # noqa: T201
+            print(f"Reviewing: {segment.upper()} — theme: {payload.get('theme', '?')}")  # noqa: T201
+            print("=" * 60)  # noqa: T201
+            print(f"\n{payload.get('draft', '')}\n")  # noqa: T201
 
-                resume = _prompt_image_review(payload)
-                result = graph.invoke(Command(resume=resume), config)
+            resume = _prompt_review(payload)
+            result = graph.invoke(Command(resume=resume), config)
 
-                if "__interrupt__" in result:
-                    # Image was regenerated, review again
-                    print("Image regenerated — review the new one.")  # noqa: T201
-                    new_payload = result["__interrupt__"][0].value
-                    reresume = _prompt_image_review(new_payload)
-                    final_result = graph.invoke(Command(resume=reresume), config)
-                    _print_completion(final_result)
-                else:
-                    _print_completion(result)
+            if "__interrupt__" in result:
+                print("Post regenerated — draft ready for another review.")  # noqa: T201
+                new_payload = result["__interrupt__"][0].value
+                print(f"\n--- NEW DRAFT ---\n{new_payload['draft']}\n--- END ---")  # noqa: T201
+                reresume = _prompt_review(new_payload)
+                graph.invoke(Command(resume=reresume), config)
             else:
-                # Text review
-                print("\n" + "=" * 60)  # noqa: T201
-                print(
-                    f"Reviewing TEXT: {segment.upper()} — theme: {payload.get('theme', '?')}"
-                )  # noqa: T201
-                print("=" * 60)  # noqa: T201
-                print(f"\n{payload.get('draft', '')}\n")  # noqa: T201
-
-                resume = _prompt_review(payload)
-                result = graph.invoke(Command(resume=resume), config)
-
-                if "__interrupt__" in result:
-                    print("Post regenerated — draft ready for another review.")  # noqa: T201
-                    new_payload = result["__interrupt__"][0].value
-                    print(f"\n--- NEW DRAFT ---\n{new_payload['draft']}\n--- END ---")  # noqa: T201
-                    reresume = _prompt_review(new_payload)
-                    graph.invoke(Command(resume=reresume), config)
-                else:
-                    _print_completion(result)
+                _print_completion(result)
 
 
 def _prompt_review(payload: dict) -> dict:
@@ -184,28 +155,10 @@ def _prompt_review(payload: dict) -> dict:
         print("Invalid choice. Enter a, e, or r.")  # noqa: T201
 
 
-def _prompt_image_review(payload: dict) -> dict:
-    """Prompt user for image approve / regenerate and return resume dict."""
-    print("\nImage Review Options:")  # noqa: T201
-    print("  [a] Approve image")  # noqa: T201
-    print("  [r] Regenerate image")  # noqa: T201
-
-    while True:
-        choice = input("Choice [a/r]: ").strip().lower()
-        if choice in ("a", ""):
-            return {"action": "approve"}
-        if choice == "r":
-            return {"action": "regenerate"}
-        print("Invalid choice. Enter a or r.")  # noqa: T201
-
-
 def _print_completion(result: dict) -> None:
     """Print completion summary."""
     folder = result.get("output_folder", "")
-    image_path = result.get("image_path", "")
     print(f"\n✓ Post saved to: {folder}")  # noqa: T201
-    if image_path:
-        print(f"✓ Image saved to: {image_path}")  # noqa: T201
 
 
 def main() -> None:
