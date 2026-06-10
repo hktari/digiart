@@ -87,37 +87,49 @@ Tone and style rules (derived from the examples above):
 Respond with ONLY the post text, nothing else.
 """
 
-REFLECTIONS_SECTION_TEMPLATE = """\
-Style learnings from past human feedback (apply these):
-{insights}
+GUIDELINES_SECTION_TEMPLATE = """\
+Style guidelines based on past feedback (follow these):
+{guidelines}
 """
 
-REFLECTION_EXTRACTOR_PROMPT = """\
-You are analysing human feedback on a social media post draft to extract style learnings.
+# Legacy template (kept for compatibility)
+REFLECTIONS_SECTION_TEMPLATE = GUIDELINES_SECTION_TEMPLATE
 
-Segment: {segment}
-Theme: {theme}
-Original draft:
+GUIDELINES_UPDATE_PROMPT = """\
+You are updating a style guidelines document for social media posts based on user feedback.
+
+Current guidelines (if any):
+---
+{current_guidelines}
+---
+
+Original draft that was reviewed:
 ---
 {draft}
 ---
-Human-approved final post:
+
+User action: {action}
+
+User feedback context:
 ---
-{final_post}
+{feedback_context}
 ---
-Action taken: {action}
 
-Compare the draft and the final. Extract 1–3 concise, actionable style insights that \
-should influence future posts for the {segment} segment.
+Your task:
+1. Analyze the feedback context to identify what the user wants changed or what worked well
+2. Update the guidelines document to reflect these learnings
+3. Preserve all existing guidelines that are still relevant
+4. Add new guidelines based on the feedback
+5. Consolidate or refine existing guidelines if they overlap with new learnings
 
-Focus on: tone shifts, structural changes, what was kept vs removed, length preferences, \
-hook style, CTA style.
+Guidelines should be:
+- Specific enough to guide future post generation
+- General enough to apply across different themes/topics
+- Written as bullet points
+- Actionable and clear
 
-If the post was approved without edits, extract what made it work well.
-
-Respond as a JSON array of insight strings. Example:
-["Shorter hooks perform better — cut to the point in 8 words or fewer",
- "End CTA should name the platform explicitly: 'on DigiArt'"]
-
-Respond with ONLY the JSON array, no other text.
+Output ONLY the updated guidelines as markdown bullet points. Do not include any other text.
 """
+
+# Legacy prompt (kept for compatibility)
+REFLECTION_EXTRACTOR_PROMPT = GUIDELINES_UPDATE_PROMPT

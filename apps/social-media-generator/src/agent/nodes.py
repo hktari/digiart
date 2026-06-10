@@ -3,14 +3,11 @@
 from __future__ import annotations
 
 import random
-from pathlib import Path
 from typing import Any
 
 from dotenv import load_dotenv
 from langchain_fireworks import ChatFireworks
 from langgraph.types import interrupt
-
-load_dotenv()
 
 from agent.config import (
     BRAND_VOICE,
@@ -22,19 +19,21 @@ from agent.config import (
     SEGMENTS,
 )
 from agent.history import (
-    append_and_save_reflection,
     load_history,
+    save_guidelines,
     save_post,
-    seed_store_from_disk,
+    seed_guidelines_to_store,
 )
 from agent.prompts import (
     EXAMPLE_POSTS,
+    GUIDELINES_SECTION_TEMPLATE,
+    GUIDELINES_UPDATE_PROMPT,
     PLANNER_PROMPT,
-    REFLECTION_EXTRACTOR_PROMPT,
-    REFLECTIONS_SECTION_TEMPLATE,
     WRITER_PROMPT,
 )
 from agent.state import PostState
+
+load_dotenv()
 
 _llm = ChatFireworks(
     model="accounts/fireworks/models/minimax-m2p7",
@@ -77,25 +76,28 @@ def plan_post_node(state: PostState) -> dict[str, Any]:
 
 
 def write_post_node(state: PostState, *, store: Any = None) -> dict[str, Any]:
-    """Generate a Threads post, injecting store reflections if available."""
+    """Generate a Threads post, injecting guidelines if available."""
     pain_points = (
         CREATOR_PAIN_POINTS if state.segment == "creator" else COLLECTOR_PAIN_POINTS
     )
     pain_point = pain_points.get(state.theme, PRODUCT_FEATURES[0])
 
-    reflections_section = ""
+    guidelines_section = ""
     if store is not None:
-        items = store.search(("reflections", state.segment), limit=10)
-        if items:
-            insights = "\n".join(f"- {item.value['insight']}" for item in items)
-            reflections_section = REFLECTIONS_SECTION_TEMPLATE.format(insights=insights)
+        guidelines_item = store.get(("guidelines", state.segment), "content")
+        if guidelines_item and guidelines_item.value:
+            guidelines = guidelines_item.value.get("text", "")
+            if guidelines:
+                guidelines_section = GUIDELINES_SECTION_TEMPLATE.format(
+                    guidelines=guidelines
+                )
 
     prompt = WRITER_PROMPT.format(
         brand_voice=BRAND_VOICE,
         segment=state.segment,
         theme=state.theme,
         pain_point=pain_point,
-        reflections_section=reflections_section,
+        reflections_section=guidelines_section,
         example_posts=EXAMPLE_POSTS,
     )
     response = _llm.invoke(prompt)
@@ -124,44 +126,61 @@ def human_review_node(state: PostState) -> dict[str, Any]:
         return {"review_action": "edit", "final_post": final_post}
 
     if action == "regenerate":
-        return {"review_action": "regenerate"}
+        feedback = decision.get("feedback", "")
+        return {"review_action": "regenerate", "feedback": feedback}
 
     return {"review_action": "approve", "final_post": state.draft}
 
 
-def reflect_on_feedback_node(state: PostState, *, store: Any = None) -> dict[str, Any]:
-    """Extract style learnings from draft vs final and persist to store + disk."""
-    if state.review_action == "regenerate":
+def update_guidelines_node(state: PostState, *, store: Any = None) -> dict[str, Any]:
+    """Update style guidelines based on user feedback (edit or regenerate only).
+
+    Skip update on 'approve' - no feedback to learn from.
+    """
+    # Skip if no actionable feedback (approve without changes)
+    if state.review_action == "approve":
         return {}
 
-    prompt = REFLECTION_EXTRACTOR_PROMPT.format(
-        segment=state.segment,
-        theme=state.theme,
+    # Build feedback context based on action type
+    if state.review_action == "edit":
+        # For edit: compare draft vs final_post
+        feedback_context = f"The user edited the draft. Changes made:\n\nOriginal:\n{state.draft}\n\nEdited version:\n{state.final_post}"
+    elif state.review_action == "regenerate":
+        # For regenerate: use the feedback text stored in state
+        feedback_text = getattr(state, "feedback", "")
+        if not feedback_text:
+            return {}
+        feedback_context = (
+            f"The user requested regeneration with feedback:\n{feedback_text}"
+        )
+    else:
+        return {}
+
+    # Get current guidelines
+    current_guidelines = ""
+    if store is not None:
+        guidelines_item = store.get(("guidelines", state.segment), "content")
+        if guidelines_item and guidelines_item.value:
+            current_guidelines = guidelines_item.value.get("text", "")
+
+    # Generate updated guidelines
+    prompt = GUIDELINES_UPDATE_PROMPT.format(
+        current_guidelines=current_guidelines
+        if current_guidelines
+        else "No guidelines yet.",
         draft=state.draft,
-        final_post=state.final_post,
         action=state.review_action,
+        feedback_context=feedback_context,
     )
     response = _llm_extract.invoke(prompt)
-    raw = response.content.strip()
+    updated_guidelines = response.content.strip()
 
-    try:
-        insights: list[str] = json.loads(raw)
-        if not isinstance(insights, list):
-            insights = [raw]
-    except json.JSONDecodeError:
-        insights = [raw] if raw else []
-
-    for insight in insights:
-        if not insight:
-            continue
-        item = append_and_save_reflection(
-            segment=state.segment,
-            insight=insight,
-            theme=state.theme,
-            source=state.review_action,
+    # Save to disk and store
+    save_guidelines(state.segment, updated_guidelines)
+    if store is not None:
+        store.put(
+            ("guidelines", state.segment), "content", {"text": updated_guidelines}
         )
-        if store is not None:
-            store.put(("reflections", state.segment), item["id"], item)
 
     return {}
 
@@ -177,8 +196,8 @@ def save_output_node(state: PostState) -> dict[str, Any]:
 
 
 def seed_store_node(state: PostState, *, store: Any = None) -> dict[str, Any]:
-    """Seed the in-memory store with persisted reflections at graph start."""
+    """Seed the in-memory store with persisted guidelines at graph start."""
     if store is not None:
         for segment in SEGMENTS:
-            seed_store_from_disk(store, segment)
+            seed_guidelines_to_store(store, segment)
     return {}

@@ -53,6 +53,7 @@ _CHAT_ID = int(os.environ["TELEGRAM_CHAT_ID"])
 _MAX_MSG_LEN = 4000
 
 _pending_edits: dict[int, str] = {}
+_pending_regenerates: dict[int, str] = {}
 
 
 def _list_all_thread_ids() -> list[str]:
@@ -254,25 +255,12 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             )
 
     elif action == "regen":
+        _pending_regenerates[_CHAT_ID] = thread_id
         await query.edit_message_text(
-            f"⏳ Regenerating <code>{thread_id}</code>…",
+            f"💬 Reply with feedback for regenerating <code>{thread_id}</code>.\n\nWhat should change?",
             parse_mode=ParseMode.HTML,
         )
-        new_payload = await asyncio.to_thread(
-            lambda: _resume_thread_sync(thread_id, {"action": "regenerate"})
-        )
-        if new_payload and any(new_payload.values()):
-            await context.bot.send_message(
-                _CHAT_ID,
-                "♻️ New draft:\n\n" + _format_draft(new_payload),
-                parse_mode=ParseMode.HTML,
-                reply_markup=_keyboard(thread_id),
-            )
-        else:
-            await query.edit_message_text(
-                f"✅ Done — <code>{thread_id}</code>",
-                parse_mode=ParseMode.HTML,
-            )
+        return
 
     elif action == "edit":
         _pending_edits[_CHAT_ID] = thread_id
@@ -283,8 +271,37 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle free-text replies used for the edit flow."""
+    """Handle free-text replies used for edit and regenerate flows."""
     chat_id = update.effective_chat.id
+
+    # Check for pending regenerate first
+    thread_id = _pending_regenerates.pop(chat_id, None)
+    if thread_id:
+        feedback = update.message.text or ""
+        await update.message.reply_text(
+            f"⏳ Regenerating with feedback for <code>{thread_id}</code>…",
+            parse_mode=ParseMode.HTML,
+        )
+        new_payload = await asyncio.to_thread(
+            lambda: _resume_thread_sync(
+                thread_id, {"action": "regenerate", "feedback": feedback}
+            )
+        )
+        if new_payload and any(new_payload.values()):
+            await context.bot.send_message(
+                _CHAT_ID,
+                "♻️ New draft:\n\n" + _format_draft(new_payload),
+                parse_mode=ParseMode.HTML,
+                reply_markup=_keyboard(thread_id),
+            )
+        else:
+            await update.message.reply_text(
+                f"✅ Regenerated and saved — <code>{thread_id}</code>",
+                parse_mode=ParseMode.HTML,
+            )
+        return
+
+    # Check for pending edit
     thread_id = _pending_edits.pop(chat_id, None)
     if thread_id is None:
         return

@@ -15,6 +15,34 @@ def _ensure_dirs() -> None:
     POSTS_DIR.mkdir(parents=True, exist_ok=True)
 
 
+def load_guidelines(segment: str) -> str:
+    """Load the style guidelines markdown for a segment.
+
+    Returns empty string if no guidelines exist yet.
+    """
+    path = OUTPUT_DIR / f"guidelines-{segment}.md"
+    if not path.exists():
+        return ""
+    try:
+        return path.read_text(encoding="utf-8")
+    except OSError:
+        return ""
+
+
+def save_guidelines(segment: str, guidelines: str) -> None:
+    """Persist the style guidelines markdown for a segment."""
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    path = OUTPUT_DIR / f"guidelines-{segment}.md"
+    path.write_text(guidelines, encoding="utf-8")
+
+
+def seed_guidelines_to_store(store: object, segment: str) -> None:
+    """Load persisted guidelines into the in-memory store."""
+    guidelines = load_guidelines(segment)
+    if guidelines:
+        store.put(("guidelines", segment), "content", {"text": guidelines})
+
+
 def load_history(segment: str, limit: int = 5) -> list[dict]:
     """Load last `limit` completed posts for a segment by scanning output/posts/.
 
@@ -89,7 +117,9 @@ def save_reflections(segment: str, reflections: list[dict]) -> None:
     """Persist reflections list to JSON for a segment."""
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     path = OUTPUT_DIR / f"reflections-{segment}.json"
-    path.write_text(json.dumps(reflections, indent=2, ensure_ascii=False), encoding="utf-8")
+    path.write_text(
+        json.dumps(reflections, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
 
 
 def seed_store_from_disk(store: object, segment: str) -> None:
@@ -103,7 +133,9 @@ def seed_store_from_disk(store: object, segment: str) -> None:
         store.put(("reflections", segment), key, item)
 
 
-def append_and_save_reflection(segment: str, insight: str, theme: str, source: str) -> dict:
+def append_and_save_reflection(
+    segment: str, insight: str, theme: str, source: str
+) -> dict:
     """Append a new reflection insight and persist to disk. Returns the new item."""
     reflections = load_reflections(segment)
     new_item = {

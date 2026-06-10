@@ -15,8 +15,8 @@ from agent.nodes import (
     human_review_node,
     load_history_node,
     plan_post_node,
-    reflect_on_feedback_node,
     save_output_node,
+    update_guidelines_node,
     write_post_node,
 )
 from agent.state import PostState
@@ -24,11 +24,18 @@ from agent.state import PostState
 
 def _route_after_review(
     state: PostState,
-) -> Literal["reflect_on_feedback", "write_post"]:
-    """Route based on human review action."""
+) -> Literal["update_guidelines"]:
+    """Always route to update_guidelines to process feedback (or skip if approve)."""
+    return "update_guidelines"
+
+
+def _route_after_guidelines_update(
+    state: PostState,
+) -> Literal["write_post", "save_output"]:
+    """Route after guidelines update based on original action."""
     if state.review_action == "regenerate":
         return "write_post"
-    return "reflect_on_feedback"
+    return "save_output"
 
 
 def build_graph() -> StateGraph:
@@ -42,7 +49,7 @@ def build_graph() -> StateGraph:
     builder.add_node("plan_post", plan_post_node)
     builder.add_node("write_post", write_post_node)
     builder.add_node("human_review", human_review_node)
-    builder.add_node("reflect_on_feedback", reflect_on_feedback_node)
+    builder.add_node("update_guidelines", update_guidelines_node)
     builder.add_node("save_output", save_output_node)
 
     builder.add_edge("__start__", "load_history")
@@ -50,7 +57,7 @@ def build_graph() -> StateGraph:
     builder.add_edge("plan_post", "write_post")
     builder.add_edge("write_post", "human_review")
     builder.add_conditional_edges("human_review", _route_after_review)
-    builder.add_edge("reflect_on_feedback", "save_output")
+    builder.add_conditional_edges("update_guidelines", _route_after_guidelines_update)
     builder.add_edge("save_output", END)
 
     return builder

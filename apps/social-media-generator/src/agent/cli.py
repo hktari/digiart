@@ -141,7 +141,16 @@ def _prompt_review(payload: dict) -> dict:
         if choice in ("a", ""):
             return {"action": "approve"}
         if choice == "r":
-            return {"action": "regenerate"}
+            print("Enter feedback for regeneration (what's wrong / what to change):")  # noqa: T201
+            print("(press Enter twice when done)")  # noqa: T201
+            lines = []
+            while True:
+                line = input()
+                if line == "" and lines and lines[-1] == "":
+                    break
+                lines.append(line)
+            feedback = "\n".join(lines).strip()
+            return {"action": "regenerate", "feedback": feedback}
         if choice == "e":
             print("Enter your edited post (press Enter twice when done):")  # noqa: T201
             lines = []

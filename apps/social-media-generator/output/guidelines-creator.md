@@ -1,0 +1,10 @@
+- Use a problem-agitation-solution structure to engage readers emotionally before presenting the solution
+- Write short, punchy opening lines that create contrast (e.g., "rollercoaster") followed by longer explanatory lines
+- Frame offerings as questions to invite the reader into the concept ("what if your income wasn't a gamble but a rhythm?")
+- Mix line lengths strategically—short lines for impact, longer lines for explanation
+- Maintain a conversational, relatable tone without corporate jargon
+- End posts with openness and curiosity rather than hard sales language
+- Avoid emojis and excessive formatting; let the content stand on its own
+- Include a soft call-to-action that acknowledges the idea is still developing to build trust and authenticity
+- Focus on the benefit to the reader (predictable income, monthly booklets) rather than just describing features
+- Use parallel structure for emphasis (e.g., "good month, bad month, never quite knowing")

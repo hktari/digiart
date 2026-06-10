@@ -16,3 +16,4 @@ class PostState:
     final_post: str = ""
     review_action: str = ""
     output_folder: str = ""
+    feedback: str = ""  # User feedback for regenerate action
