@@ -19,8 +19,8 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
-from pathlib import Path
 import sqlite3
+from pathlib import Path
 
 from dotenv import load_dotenv
 from langgraph.checkpoint.sqlite import SqliteSaver
@@ -54,6 +54,7 @@ _MAX_MSG_LEN = 4000
 
 _pending_edits: dict[int, str] = {}
 _pending_regenerates: dict[int, str] = {}
+_notified_threads: set[str] = set()
 
 
 def _list_all_thread_ids() -> list[str]:
@@ -108,14 +109,15 @@ def _format_draft(payload: dict) -> str:
     return text[:_MAX_MSG_LEN]
 
 
-async def notify_pending(app: Application) -> None:
-    """Send all pending interrupted drafts to Telegram."""
+async def notify_pending(app: Application, silent: bool = False) -> None:
+    """Send any new pending interrupted drafts to Telegram (skips already-notified threads)."""
     if not DB_PATH.exists():
-        await app.bot.send_message(
-            _CHAT_ID,
-            "No checkpoints found. Run <code>uv run agent generate</code> first.",
-            parse_mode=ParseMode.HTML,
-        )
+        if not silent:
+            await app.bot.send_message(
+                _CHAT_ID,
+                "No checkpoints found. Run <code>uv run agent generate</code> first.",
+                parse_mode=ParseMode.HTML,
+            )
         return
 
     with SqliteSaver.from_conn_string(str(DB_PATH)) as checkpointer:
@@ -134,6 +136,8 @@ async def notify_pending(app: Application) -> None:
                 if not (hasattr(task, "interrupts") and task.interrupts):
                     continue
                 for intr in task.interrupts:
+                    if thread_id in _notified_threads:
+                        continue
                     payload = intr.value
                     await app.bot.send_message(
                         _CHAT_ID,
@@ -141,10 +145,11 @@ async def notify_pending(app: Application) -> None:
                         parse_mode=ParseMode.HTML,
                         reply_markup=_keyboard(thread_id),
                     )
+                    _notified_threads.add(thread_id)
                     sent += 1
 
     if sent == 0:
-        await app.bot.send_message(_CHAT_ID, "No pending drafts to review.")
+        logger.debug("No pending drafts found.")
 
 
 async def _resume_thread(

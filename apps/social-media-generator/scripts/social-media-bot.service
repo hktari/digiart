@@ -1,0 +1,17 @@
+[Unit]
+Description=DigiArt Social Media Telegram HITL Bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/bostjan/source/projects/art-subscription-platform/apps/social-media-generator
+EnvironmentFile=/home/bostjan/source/projects/art-subscription-platform/apps/social-media-generator/.env
+ExecStart=/home/bostjan/.local/bin/uv run telegram-bot
+Restart=on-failure
+RestartSec=10
+StandardOutput=append:/home/bostjan/source/projects/art-subscription-platform/apps/social-media-generator/logs/telegram-bot.log
+StandardError=append:/home/bostjan/source/projects/art-subscription-platform/apps/social-media-generator/logs/telegram-bot.log
+
+[Install]
+WantedBy=default.target
