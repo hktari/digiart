@@ -1,0 +1,11 @@
+{
+  "platform": "threads",
+  "scheduledAt": "2026-07-07T09:01:00+02:00",
+  "week": "2026-W27",
+  "status": "scheduled",
+  "scheduler": "zernio",
+  "csv": "scheduled/2026-W27/zernio-week.csv",
+  "zernio_post_id": "6a44c6cf413c7403118c7cab",
+  "zernio_account": "digiart.bookletdrop",
+  "image": "images/post-image.webp"
+}

@@ -1,0 +1,8 @@
+- Lead with a clear transformation statement that converts digital experience to physical/real-world benefit (e.g., "moving the digital feed browsing experience into physical magazine format")
+- Use short, scannable lines with line breaks for better readability on social platforms
+- Include explicit value propositions that highlight key benefits (e.g., curated, personalized, archived)
+- Keep the call-to-action simple and direct (e.g., "interested ?")
+- End with a direct, clean link
+- Avoid run-on sentences; break complex concepts into separate, digestible lines
+- Use the hook-benefit-value structure: transformation statement → what you're building → key features → call-to-action → link
+- Maintain conversational tone while conveying clear, specific value
