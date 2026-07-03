@@ -44,7 +44,7 @@ export interface BookletJobResult {
 
 export interface ArtworkRecord {
   id: string;
-  title: string;
+  title: string | null;
   storageKey: string;
   mimeType: string | null;
   width: number | null;
