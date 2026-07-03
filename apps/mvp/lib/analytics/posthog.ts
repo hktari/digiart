@@ -17,12 +17,20 @@ function getPostHogClient(): PostHog | null {
     return null;
   }
 
-  const posthogToken = process.env.NEXT_PUBLIC_POSTHOG_TOKEN;
-  const host = process.env.POSTHOG_HOST || "https://eu.i.posthog.com";
+  // The write token is the public project token (phc_…). Prefer the canonical
+  // NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN used by the client init; keep the legacy
+  // name as a fallback so older deploys don't regress.
+  const posthogToken =
+    process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN ||
+    process.env.NEXT_PUBLIC_POSTHOG_TOKEN;
+  const host =
+    process.env.POSTHOG_HOST ||
+    process.env.NEXT_PUBLIC_POSTHOG_HOST ||
+    "https://eu.i.posthog.com";
 
   if (!posthogToken) {
     logger.warn(
-      "[analytics] PostHog not configured. Set NEXT_PUBLIC_POSTHOG_TOKEN env variable.",
+      "[analytics] PostHog not configured. Set NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN env variable.",
     );
     return null;
   }
