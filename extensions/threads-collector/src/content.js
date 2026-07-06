@@ -170,13 +170,18 @@
     if (!fab) {
       fab = document.createElement("button");
       fab.id = "tc-fab";
-      const mark = document.createElement("span");
+      // Full-color brand mark on a beige chip so its own colors read regardless
+      // of the pill color (which signals the feature).
+      const chip = document.createElement("span");
+      chip.className = "tc-chip";
+      const mark = document.createElement("img");
       mark.className = "tc-mark";
-      mark.style.webkitMaskImage = `url(${ICON_URL})`;
-      mark.style.maskImage = `url(${ICON_URL})`;
+      mark.src = ICON_URL;
+      mark.alt = "";
+      chip.appendChild(mark);
       const label = document.createElement("span");
       label.className = "tc-fab-label";
-      fab.append(mark, label);
+      fab.append(chip, label);
       document.body.appendChild(fab);
     }
     fab.className = `tc-fab tc-fab--${mode}`;

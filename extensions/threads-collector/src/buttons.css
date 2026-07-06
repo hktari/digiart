@@ -33,17 +33,21 @@
   background: #00a6e9;
 }
 
-#tc-fab .tc-mark {
-  width: 20px;
-  height: 20px;
+/* Beige chip keeps the full-color mark legible on either pill color. */
+#tc-fab .tc-chip {
   flex: 0 0 auto;
-  background-color: #fbf3e2;
-  -webkit-mask-size: contain;
-  mask-size: contain;
-  -webkit-mask-position: center;
-  mask-position: center;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fbf3e2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#tc-fab .tc-mark {
+  width: 19px;
+  height: 19px;
+  display: block;
 }
 
 #tc-toast {
