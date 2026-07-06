@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "ELSEWHERE Collector (Threads POC)",
+  "version": "0.0.1",
+  "description": "Collect artwork + post metadata from Threads for creator outreach.",
+  "permissions": ["downloads"],
+  "background": { "service_worker": "src/background.js" },
+  "content_scripts": [
+    {
+      "matches": ["*://www.threads.com/*"],
+      "js": ["src/extract.js", "src/content.js"],
+      "css": ["src/buttons.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}
