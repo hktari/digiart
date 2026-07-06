@@ -1,0 +1,9 @@
+{
+  "name": "threads-collector",
+  "private": true,
+  "version": "0.0.1",
+  "description": "ELSEWHERE Threads collector POC (MV3 extension)",
+  "scripts": {
+    "test": "node --test"
+  }
+}
