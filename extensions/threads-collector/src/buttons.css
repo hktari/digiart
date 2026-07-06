@@ -69,3 +69,8 @@
   opacity: 1;
   transform: translateY(0);
 }
+#tc-toast .tc-toast-link {
+  color: #00a6e9;
+  font-weight: 600;
+  text-decoration: underline;
+}

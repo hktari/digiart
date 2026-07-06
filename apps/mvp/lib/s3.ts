@@ -1,4 +1,8 @@
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 function getS3Client(): S3Client {
@@ -30,6 +34,25 @@ export function getS3Bucket(): string {
     throw new Error("Missing required S3 environment variable: AWS_S3_BUCKET");
   }
   return bucket;
+}
+
+/**
+ * Uploads bytes to storage under `key`. Used server-side (e.g. the Collect
+ * ingest endpoint, which fetches a signed CDN image and persists it durably).
+ */
+export async function putStorageObject(
+  key: string,
+  body: Buffer,
+  contentType: string,
+): Promise<void> {
+  await getS3Client().send(
+    new PutObjectCommand({
+      Bucket: getS3Bucket(),
+      Key: key,
+      Body: body,
+      ContentType: contentType,
+    }),
+  );
 }
 
 export function getPublicStorageUrl(key: string): string {

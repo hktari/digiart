@@ -3,7 +3,11 @@
   "name": "ELSEWHERE Collector (Threads POC)",
   "version": "0.0.1",
   "description": "Collect artwork + post metadata from Threads for creator outreach.",
-  "permissions": ["downloads"],
+  "permissions": ["downloads", "storage"],
+  "host_permissions": [
+    "http://localhost:3003/*",
+    "https://app.printfeed.btechhub.top/*"
+  ],
   "background": { "service_worker": "src/background.js" },
   "content_scripts": [
     {

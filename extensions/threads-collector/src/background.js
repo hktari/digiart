@@ -4,8 +4,9 @@
 
 chrome.runtime.onMessage.addListener((msg) => {
   if (!msg || msg.type !== "collect" || !msg.payload) return;
-  const { files, metadata, metaFile } = msg.payload;
+  const { files, metadata, metaFile, ingest, token, endpoint } = msg.payload;
 
+  // Local download bundle (fallback / offline inspection).
   for (const f of files || []) {
     chrome.downloads
       .download({ url: f.url, filename: f.filename, saveAs: false, conflictAction: "overwrite" })
@@ -20,5 +21,18 @@ chrome.runtime.onMessage.addListener((msg) => {
       .catch((e) => console.warn("[tc] metadata download failed", e));
   } catch (e) {
     console.warn("[tc] metadata build failed", e);
+  }
+
+  // Server ingest: push into the PrintFeed collect funnel (hosted collection +
+  // two prospects). host_permissions grants cross-origin fetch from the worker.
+  if (endpoint && token && ingest) {
+    fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token, ...ingest }),
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+      .then((res) => console.log("[tc] ingested", res))
+      .catch((e) => console.warn("[tc] ingest failed", e));
   }
 });

@@ -11,6 +11,39 @@
   const ICON_URL = chrome.runtime.getURL("icons/mark.svg");
   const CAPTION_MAX = 600;
 
+  // PrintFeed target. Switch to the deployed origin when pitching real users;
+  // localhost is handy while testing the funnel end-to-end.
+  const MVP_URL = "http://localhost:3003";
+  const INGEST_ENDPOINT = `${MVP_URL}/api/collect/ingest`;
+
+  // Stable guest token → the hosted collection. Minted once, persisted so every
+  // collect from this browser lands in the same collection.
+  function getToken() {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(["tc_token"], (res) => {
+        if (res && res.tc_token) return resolve(res.tc_token);
+        const t =
+          (crypto.randomUUID && crypto.randomUUID()) ||
+          `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        chrome.storage.local.set({ tc_token: t }, () => resolve(t));
+      });
+    });
+  }
+
+  function buildIngest(page, caption, images) {
+    return {
+      handle: page.handle,
+      postUrl: page.postUrl,
+      caption,
+      images: images.map((img) => ({
+        url: img.url,
+        imageId: TC.imageId(img.url),
+        width: img.width,
+        height: img.height,
+      })),
+    };
+  }
+
   function isContentImg(img) {
     const url = img.currentSrc || img.src || "";
     return (
@@ -116,19 +149,25 @@
     };
   }
 
-  function send(payload, note) {
+  async function send(payload, note, ingest) {
+    const token = await getToken();
+    payload.token = token;
+    payload.ingest = ingest;
+    payload.endpoint = INGEST_ENDPOINT;
     chrome.runtime.sendMessage({ type: "collect", payload });
-    flash(note);
+    flashCollected(note, token);
   }
 
   function collectPost(page) {
     const root = mainPostRoot(page.shortcode) || document.body;
     const images = collectImagesFromRoot(root);
     if (!images.length) return flash("No images found in this post");
+    const caption = captionFor(root);
     const filenames = images.map((img, i) => TC.buildFilename(i + 1, img.url));
     send(
-      buildPayload("post", page, captionFor(root), images, filenames),
-      `Collected ${images.length} image(s) from @${page.handle}`
+      buildPayload("post", page, caption, images, filenames),
+      `Collected ${images.length} image(s) from @${page.handle}`,
+      buildIngest(page, caption, images)
     );
   }
 
@@ -140,23 +179,51 @@
     const filename = `single_${idNum}.${TC.extFromUrl(url)}`;
     const item = { url, width: img.naturalWidth, height: img.naturalHeight };
     const root = mainPostRoot(page.shortcode) || document.body;
+    const caption = captionFor(root);
     send(
-      buildPayload("single", page, captionFor(root), [item], [filename]),
-      `Collected 1 image from @${page.handle}`
+      buildPayload("single", page, caption, [item], [filename]),
+      `Collected 1 image from @${page.handle}`,
+      buildIngest(page, caption, [item])
     );
   }
 
-  function flash(text) {
+  function ensureToast() {
     let el = document.getElementById("tc-toast");
     if (!el) {
       el = document.createElement("div");
       el.id = "tc-toast";
       document.body.appendChild(el);
     }
-    el.textContent = text;
+    return el;
+  }
+
+  function showToast(el, ms) {
     el.classList.add("tc-toast-show");
     clearTimeout(el._t);
-    el._t = setTimeout(() => el.classList.remove("tc-toast-show"), 2500);
+    el._t = setTimeout(() => el.classList.remove("tc-toast-show"), ms || 2500);
+  }
+
+  function flash(text) {
+    const el = ensureToast();
+    el.style.pointerEvents = "none";
+    el.textContent = text;
+    showToast(el);
+  }
+
+  // Success toast with a live link into the hosted collection.
+  function flashCollected(text, token) {
+    const el = ensureToast();
+    el.textContent = "";
+    el.style.pointerEvents = "auto";
+    el.append(`${text} · `);
+    const a = document.createElement("a");
+    a.href = `${MVP_URL}/c/${token}`;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = "View collection ↗";
+    a.className = "tc-toast-link";
+    el.appendChild(a);
+    showToast(el, 6000);
   }
 
   // Ensure exactly one floating button matching the current page type.
