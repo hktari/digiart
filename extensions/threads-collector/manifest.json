@@ -12,5 +12,11 @@
       "css": ["src/buttons.css"],
       "run_at": "document_idle"
     }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/mark.svg"],
+      "matches": ["*://www.threads.com/*"]
+    }
   ]
 }

@@ -13,6 +13,17 @@ function parsePermalink(pathname) {
   };
 }
 
+// Classify the current page from its path:
+//   /@handle/post/shortcode        -> { type: "post", ... }   (collect all images)
+//   /@handle/post/shortcode/media  -> { type: "media", ... }  (collect the shown image)
+//   anything else                  -> { type: null }
+function parsePage(pathname) {
+  const p = parsePermalink(pathname);
+  if (!p) return { type: null };
+  const isMedia = /\/post\/[^/?#]+\/media(\/|$|\?|#)/.test(pathname || "");
+  return { type: isMedia ? "media" : "post", ...p };
+}
+
 function pickLargestSrcset(srcset, srcFallback) {
   let best = null;
   if (srcset) {
@@ -79,6 +90,7 @@ function buildMetadata({ mode, handle, shortcode, postUrl, caption, images, coll
 
 const TC = {
   parsePermalink,
+  parsePage,
   pickLargestSrcset,
   looksLikeVideoCover,
   extFromUrl,

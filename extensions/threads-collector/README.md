@@ -8,9 +8,15 @@ creator outreach.
 
 1. Open `chrome://extensions`, enable **Developer mode** (top-right).
 2. **Load unpacked** → select this folder (`extensions/threads-collector`).
-3. Browse Threads (logged in). On any post you'll see:
-   - **⬇ Collect post** — saves every image in the post (a carousel = one set).
-   - **⬇** on each image — saves just that image.
+3. Browse Threads (logged in). A single floating button appears bottom-right,
+   depending on the page:
+   - On a **post page** (`/@handle/post/<id>`) → **Collect post** (magenta) —
+     saves every image in the post (a carousel = one set).
+   - On an **image page** (`/@handle/post/<id>/media`, the fullscreen viewer) →
+     **Collect image** (cyan) — saves just the image shown.
+
+   There is never more than one button on the page. The icon is the PrintFeed
+   mark; the color tells you which action it is.
 
 > Note: branded **Google Chrome** blocks loading extensions via the
 > `--load-extension` command-line flag (`"--load-extension is not allowed in
@@ -40,7 +46,10 @@ npm test        # node --test — pure extraction functions in src/extract.js
 
 - `src/extract.js` — pure, unit-tested logic (permalink parsing, largest-`srcset`
   selection, video-cover detection, metadata shaping). No DOM, no chrome APIs.
-- `src/content.js` — walks the page, injects buttons, builds the collect payload.
+- `src/content.js` — classifies the page (post vs `/media`), shows the single
+  floating button, and builds the collect payload. On a thread page it scopes to
+  the *main* post (the one matching the URL), not the replies.
+- `icons/mark.svg` — PrintFeed brand mark, rendered as a tinted CSS-mask icon.
 - `src/background.js` — service worker; writes files via `chrome.downloads`
   (hits the signed CDN URL directly, so no CORS and the signature is still valid).
 

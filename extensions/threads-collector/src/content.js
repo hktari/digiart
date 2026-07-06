@@ -1,13 +1,15 @@
-// Injects Collect buttons on Threads posts and builds collect payloads.
+// Shows a single floating Collect button whose action depends on the page:
+//   post detail  (/@h/post/sc)        -> "Collect post"  (all images in the main post)
+//   image detail (/@h/post/sc/media)  -> "Collect image" (the image shown fullscreen)
 // Relies on globalThis.TC (extract.js, loaded first by the manifest).
 
 (() => {
   const TC = globalThis.TC;
   if (!TC) return;
 
-  const POST_MARK = "data-tc-post";
-  const IMG_MARK = "data-tc-img";
   const CONTENT_HOST = /cdninstagram|fbcdn/;
+  const ICON_URL = chrome.runtime.getURL("icons/mark.svg");
+  const CAPTION_MAX = 600;
 
   function isContentImg(img) {
     const url = img.currentSrc || img.src || "";
@@ -22,16 +24,34 @@
     return TC.pickLargestSrcset(img.getAttribute("srcset"), img.currentSrc || img.src);
   }
 
-  function postRootFor(anchor) {
-    let el = anchor;
-    for (let i = 0; i < 8 && el; i++) {
-      if (el.querySelector && [...el.querySelectorAll("img")].some(isContentImg)) return el;
-      el = el.parentElement;
+  // The main post = the one whose permalink matches the current shortcode. Several
+  // anchors can link to it; each climbs to a different image-bearing ancestor, and
+  // the loosest ones spill into replies. Pick the TIGHTEST root (fewest content
+  // images) so we scope to the main post's own media, not the thread.
+  function mainPostRoot(shortcode) {
+    const anchors = document.querySelectorAll(`a[href*="/post/${shortcode}"]`);
+    let bestRoot = null;
+    let bestCount = Infinity;
+    for (const a of anchors) {
+      let el = a;
+      for (let i = 0; i < 10 && el; i++) {
+        if (el.querySelector) {
+          const n = [...el.querySelectorAll("img")].filter(isContentImg).length;
+          if (n) {
+            if (n < bestCount) {
+              bestCount = n;
+              bestRoot = el;
+            }
+            break;
+          }
+        }
+        el = el.parentElement;
+      }
     }
-    return null;
+    return bestRoot;
   }
 
-  function collectImages(root) {
+  function collectImagesFromRoot(root) {
     const seen = new Set();
     const out = [];
     for (const img of root.querySelectorAll("img")) {
@@ -46,45 +66,39 @@
     return out;
   }
 
-  // The caption is best-effort: Threads obfuscates structure, so we pick the
-  // longest text block within a bound that keeps us from swallowing the whole
-  // comment thread on a permalink page. handle + postUrl are the reliable keys.
-  const CAPTION_MAX = 600;
+  // On the fullscreen media page the shown image is the largest one on screen.
+  function largestVisibleImage() {
+    let best = null;
+    let bestArea = 0;
+    for (const img of document.querySelectorAll("img")) {
+      if (!isContentImg(img)) continue;
+      const r = img.getBoundingClientRect();
+      const area = r.width * r.height;
+      if (area > bestArea) {
+        bestArea = area;
+        best = img;
+      }
+    }
+    return best;
+  }
 
+  // Best-effort caption, length-bounded so it can't swallow the comment thread.
   function captionFor(root) {
     let best = "";
     for (const el of root.querySelectorAll("span, div")) {
       const t = (el.innerText || "").trim();
       if (t.length > best.length && t.length <= CAPTION_MAX) best = t;
     }
-    // Drop lines contributed by our own injected buttons (read from live innerText).
-    return best
-      .split("\n")
-      .filter((line) => {
-        const l = line.trim();
-        return l !== "⬇" && l !== "⬇ Collect post";
-      })
-      .join("\n")
-      .trim();
+    return best.trim();
   }
 
-  function permaForRoot(root) {
-    const a = root.querySelector('a[href*="/post/"]');
-    if (!a) return null;
-    try {
-      return TC.parsePermalink(new URL(a.href).pathname);
-    } catch {
-      return null;
-    }
-  }
-
-  function buildPayload(mode, perma, caption, images, filenames) {
-    const dir = `art-collect/${perma.handle}__${perma.shortcode}`;
+  function buildPayload(mode, page, caption, images, filenames) {
+    const dir = `art-collect/${page.handle}__${page.shortcode}`;
     const metadata = TC.buildMetadata({
       mode,
-      handle: perma.handle,
-      shortcode: perma.shortcode,
-      postUrl: perma.postUrl,
+      handle: page.handle,
+      shortcode: page.shortcode,
+      postUrl: page.postUrl,
       caption,
       collectedAt: new Date().toISOString(),
       images: images.map((img, i) => ({
@@ -107,24 +121,28 @@
     flash(note);
   }
 
-  function collectPost(root, perma) {
-    const images = collectImages(root);
-    if (!images.length) return flash("No collectable images found");
+  function collectPost(page) {
+    const root = mainPostRoot(page.shortcode) || document.body;
+    const images = collectImagesFromRoot(root);
+    if (!images.length) return flash("No images found in this post");
     const filenames = images.map((img, i) => TC.buildFilename(i + 1, img.url));
     send(
-      buildPayload("post", perma, captionFor(root), images, filenames),
-      `Collected ${images.length} image(s) from @${perma.handle}`
+      buildPayload("post", page, captionFor(root), images, filenames),
+      `Collected ${images.length} image(s) from @${page.handle}`
     );
   }
 
-  function collectSingle(img, root, perma, index) {
-    const url = bestUrl(img);
-    if (!url) return;
+  function collectImage(page) {
+    const img = largestVisibleImage();
+    const url = img && bestUrl(img);
+    if (!url) return flash("No image found on this page");
+    const idNum = (TC.imageId(url).match(/\d+/) || ["img"])[0];
+    const filename = `single_${idNum}.${TC.extFromUrl(url)}`;
     const item = { url, width: img.naturalWidth, height: img.naturalHeight };
-    const filenames = [`single_${index}.${TC.extFromUrl(url)}`];
+    const root = mainPostRoot(page.shortcode) || document.body;
     send(
-      buildPayload("single", perma, captionFor(root), [item], filenames),
-      `Collected 1 image from @${perma.handle}`
+      buildPayload("single", page, captionFor(root), [item], [filename]),
+      `Collected 1 image from @${page.handle}`
     );
   }
 
@@ -141,58 +159,48 @@
     el._t = setTimeout(() => el.classList.remove("tc-toast-show"), 2500);
   }
 
-  function decorate() {
-    const roots = new Set();
-    for (const a of document.querySelectorAll('a[href*="/post/"]')) {
-      const root = postRootFor(a);
-      if (root) roots.add(root);
+  // Ensure exactly one floating button matching the current page type.
+  function ensureFab(page) {
+    const mode = page.type === "media" ? "image" : page.type === "post" ? "post" : null;
+    let fab = document.getElementById("tc-fab");
+    if (!mode) {
+      if (fab) fab.remove();
+      return;
     }
-    for (const root of roots) {
-      const perma = permaForRoot(root);
-      if (!perma) continue;
-
-      if (!root.hasAttribute(POST_MARK)) {
-        root.setAttribute(POST_MARK, "1");
-        if (getComputedStyle(root).position === "static") root.style.position = "relative";
-        const btn = document.createElement("button");
-        btn.className = "tc-collect-post";
-        btn.textContent = "⬇ Collect post";
-        btn.addEventListener("click", (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          collectPost(root, perma);
-        });
-        root.appendChild(btn);
-      }
-
-      let idx = 0;
-      for (const img of root.querySelectorAll("img")) {
-        if (!isContentImg(img)) continue;
-        idx++;
-        if (img.hasAttribute(IMG_MARK)) continue;
-        img.setAttribute(IMG_MARK, "1");
-        const wrap = img.parentElement;
-        if (!wrap) continue;
-        if (getComputedStyle(wrap).position === "static") wrap.style.position = "relative";
-        const myIdx = idx;
-        const b = document.createElement("button");
-        b.className = "tc-collect-img";
-        b.textContent = "⬇";
-        b.addEventListener("click", (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          collectSingle(img, root, perma, myIdx);
-        });
-        wrap.appendChild(b);
-      }
+    if (!fab) {
+      fab = document.createElement("button");
+      fab.id = "tc-fab";
+      const mark = document.createElement("span");
+      mark.className = "tc-mark";
+      mark.style.webkitMaskImage = `url(${ICON_URL})`;
+      mark.style.maskImage = `url(${ICON_URL})`;
+      const label = document.createElement("span");
+      label.className = "tc-fab-label";
+      fab.append(mark, label);
+      document.body.appendChild(fab);
     }
+    fab.className = `tc-fab tc-fab--${mode}`;
+    fab.querySelector(".tc-fab-label").textContent =
+      mode === "image" ? "Collect image" : "Collect post";
+    fab.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (mode === "image") collectImage(page);
+      else collectPost(page);
+    };
+  }
+
+  function refresh() {
+    ensureFab(TC.parsePage(location.pathname));
   }
 
   let t;
   const debounced = () => {
     clearTimeout(t);
-    t = setTimeout(decorate, 400);
+    t = setTimeout(refresh, 300);
   };
   new MutationObserver(debounced).observe(document.documentElement, { childList: true, subtree: true });
-  debounced();
+  window.addEventListener("popstate", debounced);
+  setInterval(refresh, 1000); // backstop for SPA pushState navigations
+  refresh();
 })();

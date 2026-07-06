@@ -1,52 +1,67 @@
-.tc-collect-post {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 9999;
-  background: #d6009a;
-  color: #fff;
+/* Single floating Collect button. Fixed bottom-right so it never overlaps
+   Threads' post chrome (the "..." menu). Color communicates the feature:
+   magenta = Collect post, cyan = Collect image (PrintFeed brand palette). */
+#tc-fab {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 2147483000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 18px;
   border: none;
-  border-radius: 6px;
-  padding: 6px 10px;
-  font: 600 12px/1 system-ui, sans-serif;
+  border-radius: 999px;
+  color: #fbf3e2;
+  font: 600 14px/1 "Poppins", system-ui, sans-serif;
   cursor: pointer;
-  opacity: 0.92;
+  box-shadow: 0 6px 20px rgba(0, 24, 43, 0.35);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
-.tc-collect-post:hover { opacity: 1; }
+#tc-fab:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(0, 24, 43, 0.45);
+}
+#tc-fab:active {
+  transform: translateY(0);
+}
 
-.tc-collect-img {
-  position: absolute;
-  top: 6px;
-  left: 6px;
-  z-index: 9999;
-  width: 26px;
-  height: 26px;
-  border: none;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.6);
-  color: #fff;
-  font-size: 13px;
-  line-height: 1;
-  cursor: pointer;
+.tc-fab--post {
+  background: #e2006a;
 }
-.tc-collect-img:hover { background: #d6009a; }
+.tc-fab--image {
+  background: #00a6e9;
+}
+
+#tc-fab .tc-mark {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  background-color: #fbf3e2;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
 
 #tc-toast {
   position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%) translateY(20px);
-  background: #111;
-  color: #fff;
+  bottom: 76px;
+  right: 20px;
+  background: #00182b;
+  color: #fbf3e2;
   padding: 10px 16px;
   border-radius: 8px;
-  font: 500 13px/1.2 system-ui, sans-serif;
-  z-index: 100000;
+  font: 500 13px/1.2 "Poppins", system-ui, sans-serif;
+  z-index: 2147483001;
   opacity: 0;
+  transform: translateY(8px);
   transition: opacity 0.2s, transform 0.2s;
   pointer-events: none;
 }
 #tc-toast.tc-toast-show {
   opacity: 1;
-  transform: translateX(-50%) translateY(0);
+  transform: translateY(0);
 }

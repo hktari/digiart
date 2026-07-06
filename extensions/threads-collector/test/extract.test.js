@@ -29,6 +29,20 @@ test("parsePermalink returns null for non-post paths", () => {
   assert.equal(TC.parsePermalink("/@ryleelarae"), null);
 });
 
+test("parsePage classifies post vs media vs other", () => {
+  const post = TC.parsePage("/@ryleelarae/post/DabUWTAkv7M");
+  assert.equal(post.type, "post");
+  assert.equal(post.shortcode, "DabUWTAkv7M");
+
+  const media = TC.parsePage("/@ryleelarae/post/DabUWTAkv7M/media");
+  assert.equal(media.type, "media");
+  assert.equal(media.shortcode, "DabUWTAkv7M");
+  assert.equal(media.handle, "ryleelarae");
+
+  assert.equal(TC.parsePage("/").type, null);
+  assert.equal(TC.parsePage("/@ryleelarae").type, null);
+});
+
 test("pickLargestSrcset returns the highest-width candidate", () => {
   const srcset = "https://cdn/a.jpg 245w, https://cdn/b.jpg 640w, https://cdn/c.jpg 3280w";
   assert.equal(TC.pickLargestSrcset(srcset, "https://cdn/fallback.jpg"), "https://cdn/c.jpg");
