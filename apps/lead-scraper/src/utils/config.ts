@@ -40,6 +40,7 @@ export const SUBREDDITS = [
   "leonardoai",
   "Art",
   "ArtistLounge",
+  "printondemand",
   "aiArt",
   "dalle2",
   // "DiscoDiffusion", // Removed: subreddit no longer exists (404)

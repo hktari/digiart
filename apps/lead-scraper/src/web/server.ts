@@ -391,7 +391,7 @@ Write a short, casual Reddit comment reply (3-6 sentences max) that:
 Output only the message text, nothing else.`;
 
     const model = new ChatFireworks({
-      model: "accounts/fireworks/models/minimax-m2p5",
+      model: "accounts/fireworks/models/minimax-m2p7",
       temperature: 0.7,
       apiKey,
     });
