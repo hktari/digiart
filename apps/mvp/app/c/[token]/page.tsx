@@ -30,7 +30,7 @@ export default async function CollectionPage({ params }: Props) {
             <p className="text-sm font-medium text-ocean-600">
               Your collection
             </p>
-            <h1 className="mt-1 text-3xl font-semibold tracking-tight">
+            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-beige-900">
               {itemCount} {itemCount === 1 ? "piece" : "pieces"} from{" "}
               {artistCount} {artistCount === 1 ? "artist" : "artists"}
             </h1>
@@ -72,7 +72,9 @@ export default async function CollectionPage({ params }: Props) {
           {groups.map((group) => (
             <section key={group.handle}>
               <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-lg font-medium">@{group.handle}</h2>
+                <h2 className="text-lg font-medium text-beige-900">
+                  @{group.handle}
+                </h2>
                 <Link
                   href={`/claim/${group.handle}`}
                   className="text-sm text-ocean-600 hover:underline"

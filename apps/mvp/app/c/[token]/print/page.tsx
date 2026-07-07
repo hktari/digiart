@@ -58,7 +58,7 @@ export default async function PrintPage({ params }: Props) {
           <p className="text-sm font-medium text-fuchsia-600">
             Print as magazine
           </p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight text-beige-900">
             Get your collection shipped
           </h1>
           <p className="mt-3 text-beige-700">
@@ -70,7 +70,9 @@ export default async function PrintPage({ params }: Props) {
           </p>
 
           <div className="mt-6 flex items-baseline gap-2">
-            <span className="text-3xl font-semibold">{price}</span>
+            <span className="text-3xl font-semibold text-beige-900">
+              {price}
+            </span>
             <span className="text-sm text-beige-600">
               incl. printing &amp; shipping
             </span>

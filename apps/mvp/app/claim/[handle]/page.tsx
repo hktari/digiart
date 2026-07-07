@@ -37,7 +37,7 @@ export default async function ClaimPage({ params }: Props) {
         <p className="text-sm font-medium text-ocean-600">
           PrintFeed for artists
         </p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight">
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight text-beige-900">
           @{claim.handle}, your work is being collected
         </h1>
 
@@ -70,7 +70,7 @@ export default async function ClaimPage({ params }: Props) {
             </>
           ) : (
             <>
-              <p className="text-lg font-medium">
+              <p className="text-lg font-medium text-beige-900">
                 You&apos;ve earned {earnings} — and you didn&apos;t even know
                 it.
               </p>
@@ -93,7 +93,9 @@ export default async function ClaimPage({ params }: Props) {
           )}
         </div>
 
-        <h2 className="mt-10 mb-3 text-lg font-medium">Your collected work</h2>
+        <h2 className="mt-10 mb-3 text-lg font-medium text-beige-900">
+          Your collected work
+        </h2>
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
           {claim.items.map((item) => (
             <div
@@ -127,7 +129,7 @@ function Stat({
   return (
     <div className="rounded-xl border border-beige-200 bg-white p-4 text-center">
       <p
-        className={`text-2xl font-semibold ${accent ? "text-fuchsia-600" : ""}`}
+        className={`text-2xl font-semibold ${accent ? "text-fuchsia-600" : "text-beige-900"}`}
       >
         {value}
       </p>
