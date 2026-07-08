@@ -28,7 +28,7 @@ export default async function PrintPage({ params }: Props) {
   const signInUrl = `/auth/sign-in?callbackUrl=${encodeURIComponent(`/c/${token}/print`)}`;
 
   return (
-    <main className="min-h-screen bg-beige-50 px-4 py-10">
+    <main className="min-h-screen bg-background px-4 py-10">
       <div className="mx-auto grid max-w-4xl gap-10 md:grid-cols-2">
         {/* Magazine mockup */}
         <div className="flex items-center justify-center">
@@ -55,13 +55,13 @@ export default async function PrintPage({ params }: Props) {
 
         {/* Order panel */}
         <div className="flex flex-col justify-center">
-          <p className="text-sm font-medium text-fuchsia-600">
+          <p className="text-sm font-medium text-fuchsia-600 dark:text-fuchsia-400">
             Print as magazine
           </p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight text-beige-900">
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight text-foreground">
             Get your collection shipped
           </h1>
-          <p className="mt-3 text-beige-700">
+          <p className="mt-3 text-muted-foreground">
             {collection.itemCount}{" "}
             {collection.itemCount === 1 ? "piece" : "pieces"} from{" "}
             {collection.artistCount}{" "}
@@ -70,10 +70,10 @@ export default async function PrintPage({ params }: Props) {
           </p>
 
           <div className="mt-6 flex items-baseline gap-2">
-            <span className="text-3xl font-semibold text-beige-900">
+            <span className="text-3xl font-semibold text-foreground">
               {price}
             </span>
-            <span className="text-sm text-beige-600">
+            <span className="text-sm text-muted-foreground">
               incl. printing &amp; shipping
             </span>
           </div>
@@ -105,7 +105,7 @@ export default async function PrintPage({ params }: Props) {
               >
                 <Link href={signInUrl}>Activate to ship →</Link>
               </Button>
-              <p className="text-center text-xs text-beige-600">
+              <p className="text-center text-xs text-muted-foreground">
                 Free to start. Activate a PrintFeed account to order and ship.
               </p>
             </div>
@@ -115,7 +115,7 @@ export default async function PrintPage({ params }: Props) {
             {covers.map((c) => (
               <div
                 key={c.id}
-                className="relative aspect-[3/4] w-16 shrink-0 overflow-hidden rounded bg-beige-100"
+                className="relative aspect-[3/4] w-16 shrink-0 overflow-hidden rounded bg-muted"
               >
                 <Image
                   src={c.url}
@@ -130,7 +130,7 @@ export default async function PrintPage({ params }: Props) {
 
           <Link
             href={`/c/${token}`}
-            className="mt-6 text-sm text-ocean-600 hover:underline"
+            className="mt-6 text-sm text-ocean-600 hover:underline dark:text-ocean-400"
           >
             ← Back to your collection
           </Link>

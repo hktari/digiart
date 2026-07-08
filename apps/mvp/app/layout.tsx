@@ -1,18 +1,10 @@
 import type { Metadata } from "next";
 import { Crimson_Pro, Manrope, Outfit, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
-import { AppSidebar } from "@/components/app-sidebar";
-import { BreadcrumbNav } from "@/components/breadcrumb-nav";
-import { Footer } from "@/components/layout/Footer";
+import { AppShell } from "@/components/layout/app-shell";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { PostHogIdentifier } from "@/components/providers/posthog-identifier";
 import { ThemeProvider } from "@/components/providers/theme-provider";
-import { Separator } from "@/components/ui/separator";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -40,7 +32,7 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://app.digiart.btechhub.top"),
+  metadataBase: new URL("https://app.printfeed.btechhub.top"),
   title: {
     default: "DigiArt — Digital Art Booklet Subscription Platform",
     template: "%s | DigiArt",
@@ -61,7 +53,7 @@ export const metadata: Metadata = {
     description:
       "DigiArt turns digital art into printed booklet experiences. Subscribe to artists you already follow and receive curated A5 booklet drops delivered to your home.",
     type: "website",
-    url: "https://app.digiart.btechhub.top",
+    url: "https://app.printfeed.btechhub.top",
     siteName: "DigiArt",
     images: [
       {
@@ -104,20 +96,7 @@ export default function RootLayout({
           <AuthProvider>
             <TooltipProvider>
               <PostHogIdentifier />
-              <SidebarProvider>
-                <AppSidebar />
-                <SidebarInset>
-                  <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-                    <SidebarTrigger className="-ml-1" />
-                    <Separator orientation="vertical" className="mr-2 h-4" />
-                    <BreadcrumbNav />
-                  </header>
-                  <div className="flex flex-1 flex-col">
-                    {children}
-                    <Footer />
-                  </div>
-                </SidebarInset>
-              </SidebarProvider>
+              <AppShell>{children}</AppShell>
               <Toaster />
               {/* {process.env.AUTH_BYPASS_TEST_USER_ID && <DevRoleSwitcher />} */}
             </TooltipProvider>

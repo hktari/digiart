@@ -23,14 +23,14 @@ export default async function CollectionPage({ params }: Props) {
   const saveEmail = saveCollectionEmail.bind(null, token);
 
   return (
-    <main className="min-h-screen bg-beige-50 px-4 py-10">
+    <main className="min-h-screen bg-background px-4 py-10">
       <div className="mx-auto max-w-4xl">
         <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-medium text-ocean-600">
+            <p className="text-sm font-medium text-ocean-600 dark:text-ocean-400">
               Your collection
             </p>
-            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-beige-900">
+            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-foreground">
               {itemCount} {itemCount === 1 ? "piece" : "pieces"} from{" "}
               {artistCount} {artistCount === 1 ? "artist" : "artists"}
             </h1>
@@ -47,9 +47,12 @@ export default async function CollectionPage({ params }: Props) {
         {!collection.ownerUserId && (
           <form
             action={saveEmail}
-            className="mb-10 flex flex-col gap-2 rounded-xl border border-beige-200 bg-white p-4 sm:flex-row sm:items-center"
+            className="mb-10 flex flex-col gap-2 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center"
           >
-            <label htmlFor="email" className="text-sm text-beige-700 sm:mr-2">
+            <label
+              htmlFor="email"
+              className="text-sm text-muted-foreground sm:mr-2"
+            >
               Save your collection — we&apos;ll email you the link:
             </label>
             <div className="flex flex-1 gap-2">
@@ -72,12 +75,12 @@ export default async function CollectionPage({ params }: Props) {
           {groups.map((group) => (
             <section key={group.handle}>
               <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-lg font-medium text-beige-900">
+                <h2 className="text-lg font-medium text-foreground">
                   @{group.handle}
                 </h2>
                 <Link
                   href={`/claim/${group.handle}`}
-                  className="text-sm text-ocean-600 hover:underline"
+                  className="text-sm text-ocean-600 hover:underline dark:text-ocean-400"
                 >
                   Are you this artist? →
                 </Link>
@@ -86,7 +89,7 @@ export default async function CollectionPage({ params }: Props) {
                 {group.items.map((item) => (
                   <div
                     key={item.id}
-                    className="relative aspect-[3/4] overflow-hidden rounded-lg bg-beige-100"
+                    className="relative aspect-[3/4] overflow-hidden rounded-lg bg-muted"
                   >
                     <Image
                       src={item.url}

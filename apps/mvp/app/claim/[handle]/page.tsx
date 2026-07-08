@@ -32,12 +32,12 @@ export default async function ClaimPage({ params }: Props) {
   const signInUrl = `/auth/sign-in?callbackUrl=${encodeURIComponent(`/claim/${claim.handle}`)}`;
 
   return (
-    <main className="min-h-screen bg-beige-50 px-4 py-10">
+    <main className="min-h-screen bg-background px-4 py-10">
       <div className="mx-auto max-w-3xl">
-        <p className="text-sm font-medium text-ocean-600">
+        <p className="text-sm font-medium text-ocean-600 dark:text-ocean-400">
           PrintFeed for artists
         </p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight text-beige-900">
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight text-foreground">
           @{claim.handle}, your work is being collected
         </h1>
 
@@ -47,13 +47,13 @@ export default async function ClaimPage({ params }: Props) {
           <Stat value={earnings} label="pending earnings" accent />
         </div>
 
-        <div className="mt-8 rounded-2xl border border-fuchsia-200 bg-white p-6">
+        <div className="mt-8 rounded-2xl border border-fuchsia-200 bg-card p-6 dark:border-fuchsia-900">
           {isAuthed ? (
             <>
-              <p className="text-lg font-medium text-jade-800">
+              <p className="text-lg font-medium text-jade-700 dark:text-jade-300">
                 Nice to meet you 👋
               </p>
-              <p className="mt-1 text-beige-700">
+              <p className="mt-1 text-muted-foreground">
                 We&apos;ve reserved your earnings. Finish setting up your
                 creator profile and connect PayPal to get paid whenever a
                 collector prints your work.
@@ -70,11 +70,11 @@ export default async function ClaimPage({ params }: Props) {
             </>
           ) : (
             <>
-              <p className="text-lg font-medium text-beige-900">
+              <p className="text-lg font-medium text-foreground">
                 You&apos;ve earned {earnings} — and you didn&apos;t even know
                 it.
               </p>
-              <p className="mt-1 text-beige-700">
+              <p className="mt-1 text-muted-foreground">
                 {claim.collectorCount}{" "}
                 {claim.collectorCount === 1
                   ? "collector has"
@@ -93,14 +93,14 @@ export default async function ClaimPage({ params }: Props) {
           )}
         </div>
 
-        <h2 className="mt-10 mb-3 text-lg font-medium text-beige-900">
+        <h2 className="mt-10 mb-3 text-lg font-medium text-foreground">
           Your collected work
         </h2>
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
           {claim.items.map((item) => (
             <div
               key={item.id}
-              className="relative aspect-[3/4] overflow-hidden rounded-lg bg-beige-100"
+              className="relative aspect-[3/4] overflow-hidden rounded-lg bg-muted"
             >
               <Image
                 src={item.url}
@@ -127,13 +127,13 @@ function Stat({
   accent?: boolean;
 }) {
   return (
-    <div className="rounded-xl border border-beige-200 bg-white p-4 text-center">
+    <div className="rounded-xl border border-border bg-card p-4 text-center">
       <p
-        className={`text-2xl font-semibold ${accent ? "text-fuchsia-600" : "text-beige-900"}`}
+        className={`text-2xl font-semibold ${accent ? "text-fuchsia-600 dark:text-fuchsia-400" : "text-foreground"}`}
       >
         {value}
       </p>
-      <p className="mt-1 text-xs text-beige-600">{label}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{label}</p>
     </div>
   );
 }
