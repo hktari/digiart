@@ -11,9 +11,9 @@
   const ICON_URL = chrome.runtime.getURL("icons/mark.svg");
   const CAPTION_MAX = 600;
 
-  // PrintFeed target. Switch to the deployed origin when pitching real users;
-  // localhost is handy while testing the funnel end-to-end.
-  const MVP_URL = "http://localhost:3003";
+  // PrintFeed target. Deployed origin for pitching real users; swap back to
+  // http://localhost:3003 while testing the funnel end-to-end.
+  const MVP_URL = "https://app.printfeed.btechhub.top";
   const INGEST_ENDPOINT = `${MVP_URL}/api/collect/ingest`;
 
   // Stable guest token → the hosted collection. Minted once, persisted so every
