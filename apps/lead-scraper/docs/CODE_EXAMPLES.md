@@ -381,7 +381,7 @@ const draft = `
 hey, we're building a platform specifically for AI artists to monetize their work
 with a 90/10 revenue split. sounds like exactly what you're looking for
 
-check out the creator signup page: https://digiart.btechhub.top/creators
+check out the creator signup page: https://printfeed.btechhub.top/creators
 
 b | t
 `;

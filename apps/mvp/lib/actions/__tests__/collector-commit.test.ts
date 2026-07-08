@@ -47,6 +47,22 @@ describe("commitBookletForCycle", () => {
       .createQuoteSnapshot;
   });
 
+  it("returns paused error when ordering is disabled", async () => {
+    const KEY = "NEXT_PUBLIC_ORDERING_ENABLED";
+    const original = process.env[KEY];
+    process.env[KEY] = "false";
+    try {
+      auth.mockResolvedValue({ user: { id: "u1" } });
+
+      const r = await commit();
+      expect(r.success).toBe(false);
+      expect(r.error).toBe("Ordering is currently paused.");
+    } finally {
+      if (original === undefined) delete process.env[KEY];
+      else process.env[KEY] = original;
+    }
+  });
+
   it("returns error when no active cycle", async () => {
     auth.mockResolvedValue({ user: { id: "u1" } });
     vi.mocked(db.collectorProfile.findUnique).mockResolvedValue({

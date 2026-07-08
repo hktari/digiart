@@ -4,10 +4,15 @@ import { auth } from "@/lib/auth";
 import { freezeSingleCollectorCycle } from "@/lib/billing/freeze-service";
 import { triggerPdfGenerationForCycle } from "@/lib/billing/pdf-trigger-service";
 import { stripe } from "@/lib/billing/stripe-client";
+import { isOrderingEnabled } from "@/lib/config/ordering";
 import { db } from "@/lib/db";
 
 export async function POST() {
   try {
+    if (!isOrderingEnabled()) {
+      return NextResponse.json({ error: "ordering_paused" }, { status: 403 });
+    }
+
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

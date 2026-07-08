@@ -326,7 +326,7 @@ app.post("/api/leads/:id/draft-outreach", async (req, res) => {
         .json({ error: "FIREWORKS_API_KEY not configured" });
     }
 
-    const CREATORS_URL = "https://digiart.btechhub.top/creators";
+    const CREATORS_URL = "https://printfeed.btechhub.top/creators";
 
     const painPointsSummary = lead.painPoints
       .map((pp) => `- ${pp.category} (${pp.severity}): ${pp.description}`)

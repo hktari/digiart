@@ -39,6 +39,10 @@ export const AnalyticsEvents = {
   CHECKOUT_READY: "checkout_ready",
   CHECKOUT_COMPLETED: "checkout_completed",
 
+  // Ordering-paused demand capture (while paid checkout is temporarily off)
+  ORDERING_PAUSED_VIEWED: "ordering_paused_viewed",
+  ORDERING_NOTIFY_REQUESTED: "ordering_notify_requested",
+
   // Creator activation events
   CREATOR_SETUP_STARTED: "creator_setup_started",
   CREATOR_SETUP_COMPLETED: "creator_setup_completed",

@@ -6,7 +6,7 @@ Defines segment data, content angles, product features, and brand voice.
 from __future__ import annotations
 
 BRAND_NAME = "DigiArt"
-PLATFORM_URL = "https://app.digiart.btechhub.top"
+PLATFORM_URL = "https://app.printfeed.btechhub.top"
 
 SEGMENTS = ["creator", "collector"]
 

@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const BASE_URL = "https://app.digiart.btechhub.top";
+const BASE_URL = "https://app.printfeed.btechhub.top";
 
 export default function robots(): MetadataRoute.Robots {
   return {

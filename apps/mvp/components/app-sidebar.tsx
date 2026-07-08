@@ -67,7 +67,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <Link href="/" onClick={handleLinkClick}>
                 <Image
                   src="/logo.png"
-                  alt="Booklet Drops"
+                  alt="PrintFeed"
                   width={128}
                   height={128}
                   className="size-32 object-contain"

@@ -28,7 +28,7 @@ export function Footer() {
             >
               <Image
                 src="/logo.png"
-                alt="Booklet Drops"
+                alt="PrintFeed"
                 width={256}
                 height={256}
                 className="h-16 w-auto"
@@ -63,8 +63,7 @@ export function Footer() {
 
         <div className="mt-12 pt-6 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-muted-foreground/50">
           <p>
-            &copy; {new Date().getFullYear()} Booklet Drops. All rights
-            reserved.
+            &copy; {new Date().getFullYear()} PrintFeed. All rights reserved.
           </p>
           {process.env.NEXT_PUBLIC_COMMIT_SHA && (
             <p className="font-mono text-[10px] opacity-40">

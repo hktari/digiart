@@ -34,14 +34,14 @@ const manrope = Manrope({
 export const metadata: Metadata = {
   metadataBase: new URL("https://app.printfeed.btechhub.top"),
   title: {
-    default: "DigiArt — Digital Art Booklet Subscription Platform",
-    template: "%s | DigiArt",
+    default: "PrintFeed — Digital Art Booklet Subscription Platform",
+    template: "%s | PrintFeed",
   },
   description:
-    "DigiArt turns digital art into printed booklet experiences. Subscribe to artists you already follow and receive curated A5 booklet drops delivered to your home every month.",
+    "PrintFeed turns your feed into print. Subscribe to artists you already follow and receive curated A5 booklet drops delivered to your home every month.",
   keywords: [
-    "digiart",
-    "digiart app",
+    "printfeed",
+    "printfeed app",
     "digital art subscription",
     "art booklet subscription",
     "printed art drops",
@@ -49,26 +49,26 @@ export const metadata: Metadata = {
     "art booklet drop",
   ],
   openGraph: {
-    title: "DigiArt — Digital Art Booklet Subscription Platform",
+    title: "PrintFeed — Digital Art Booklet Subscription Platform",
     description:
-      "DigiArt turns digital art into printed booklet experiences. Subscribe to artists you already follow and receive curated A5 booklet drops delivered to your home.",
+      "PrintFeed turns your feed into print. Subscribe to artists you already follow and receive curated A5 booklet drops delivered to your home.",
     type: "website",
     url: "https://app.printfeed.btechhub.top",
-    siteName: "DigiArt",
+    siteName: "PrintFeed",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "DigiArt — Digital Art Booklet Subscription Platform",
+        alt: "PrintFeed — turn your feed into print",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "DigiArt — Digital Art Booklet Subscription Platform",
+    title: "PrintFeed — Digital Art Booklet Subscription Platform",
     description:
-      "DigiArt turns digital art into printed booklet experiences. Subscribe to artists you already follow and receive curated A5 booklet drops delivered to your home.",
+      "PrintFeed turns your feed into print. Subscribe to artists you already follow and receive curated A5 booklet drops delivered to your home.",
     images: ["/twitter-image.png"],
   },
 };

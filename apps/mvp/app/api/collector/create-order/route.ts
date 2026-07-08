@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentCycle } from "@/lib/actions/cycles";
 import { auth } from "@/lib/auth";
 import { computeBookletPageCount } from "@/lib/booklet/page-count";
+import { isOrderingEnabled } from "@/lib/config/ordering";
 import { db } from "@/lib/db";
 import { getQuote } from "@/lib/peecho/quote-service";
 
@@ -19,6 +20,10 @@ interface CreateOrderBody {
 
 export async function POST(request: Request) {
   try {
+    if (!isOrderingEnabled()) {
+      return NextResponse.json({ error: "ordering_paused" }, { status: 403 });
+    }
+
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

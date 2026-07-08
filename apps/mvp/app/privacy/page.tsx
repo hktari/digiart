@@ -72,7 +72,7 @@ export default function PrivacyPage() {
         </h2>
         <p className="text-muted-foreground mb-4">
           You have the right to access, correct, or delete your personal
-          information. Contact us at privacy@digiart.example to exercise these
+          information. Contact us at privacy@printfeed.example to exercise these
           rights.
         </p>
 
@@ -81,7 +81,7 @@ export default function PrivacyPage() {
         </h2>
         <p className="text-muted-foreground">
           If you have questions about this Privacy Policy, please contact us at
-          privacy@digiart.example.
+          privacy@printfeed.example.
         </p>
       </div>
     </div>

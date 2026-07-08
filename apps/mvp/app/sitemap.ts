@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getAllPublishedCreators } from "@/lib/actions/browse";
 
-const BASE_URL = "https://app.digiart.btechhub.top";
+const BASE_URL = "https://app.printfeed.btechhub.top";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const creators = await getAllPublishedCreators();

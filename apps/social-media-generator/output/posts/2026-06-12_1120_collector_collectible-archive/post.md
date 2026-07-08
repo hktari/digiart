@@ -15,4 +15,4 @@ small printed pieces from artists you follow
 curated and personalized
 
 interested ?
-digiart.btechhub.top/collectors
+printfeed.btechhub.top/collectors

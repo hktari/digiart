@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { freezeCollectorCycleQuotes } from "@/lib/billing/freeze-service";
 import { triggerPdfGenerationForCycle } from "@/lib/billing/pdf-trigger-service";
+import { isOrderingEnabled } from "@/lib/config/ordering";
 import { db } from "@/lib/db";
 import { sendPreLockReminders } from "@/lib/notifications/cycle-reminder-service";
 import { requireAdmin } from "@/lib/roles";
@@ -21,6 +22,21 @@ export async function POST(
 ) {
   try {
     await requireAdmin();
+
+    // Cycle lock freezes quotes and charges collectors (creates Peecho orders),
+    // so it is gated by the same ordering kill-switch. This prevents an
+    // accidental lock from moving money while ordering is paused.
+    if (!isOrderingEnabled()) {
+      return NextResponse.json(
+        {
+          error: "ordering_paused",
+          message:
+            "Ordering is paused — cycle lock (which charges collectors) is disabled.",
+        },
+        { status: 403 },
+      );
+    }
+
     const { id } = await params;
 
     const cycle = await db.subscriptionCycle.findUnique({

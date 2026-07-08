@@ -16,5 +16,5 @@ I've built the whole thing; I need someone to bring it to the world.
 **Interested?** Tell me a bit about your background and one creator community you'd go after first. I'm happy to share the live product, the full numbers, and the economics.
 
 **Contact:** https://forms.gle/zNbmM1LY4A6sG72y7
-**Landing**: https://digiart.btechhub.top/
+**Landing**: https://printfeed.btechhub.top/
 **Video of demo**: https://streamable.com/mh3whk

@@ -1,10 +1,13 @@
 import { redirect } from "next/navigation";
 import { BackLink } from "@/components/back-link";
 import { CheckoutPaymentForm } from "@/components/checkout-payment-form";
+import { OrderingPausedPanel } from "@/components/ordering-paused-panel";
 import { getCollectorCartSummary } from "@/lib/actions/collector";
 import { getCurrentCycle } from "@/lib/actions/cycles";
+import { AnalyticsEvents, trackUserEvent } from "@/lib/analytics/events";
 import { auth } from "@/lib/auth";
 import { computeBookletPageCount } from "@/lib/booklet/page-count";
+import { isOrderingEnabled } from "@/lib/config/ordering";
 import { db } from "@/lib/db";
 import { getQuote } from "@/lib/peecho/quote-service";
 
@@ -99,6 +102,31 @@ export default async function CollectorCheckoutPage() {
       }
     : null;
 
+  const orderingEnabled = isOrderingEnabled();
+
+  // When ordering is paused, record that the collector reached checkout (a
+  // demand signal) before showing them the "notify me" panel. Best-effort.
+  if (!orderingEnabled) {
+    try {
+      const viewedMeta: Record<string, string | number | boolean> = {
+        total_releases: summary.totalReleases,
+        total_artworks: summary.totalArtworks,
+      };
+      if (summary.cycleId) viewedMeta.cycle_id = summary.cycleId;
+      if (estimateSummary) {
+        viewedMeta.quoted_price = estimateSummary.totalEstimate;
+        viewedMeta.currency = estimateSummary.currency;
+      }
+      await trackUserEvent(
+        session.user.id,
+        AnalyticsEvents.ORDERING_PAUSED_VIEWED,
+        viewedMeta,
+      );
+    } catch {
+      // analytics is best-effort — never block the page render
+    }
+  }
+
   return (
     <div className="max-w-xl mx-auto px-4 py-10 space-y-6 text-foreground">
       <div>
@@ -108,15 +136,25 @@ export default async function CollectorCheckoutPage() {
         >
           Back to releases
         </BackLink>
-        <h1 className="text-2xl font-bold">Order your booklet</h1>
-        <p className="text-sm text-muted-foreground/60 mt-1">
-          Enter your delivery address to get a price estimate, then save your
-          card.{" "}
-          {currentCycle?.lockDate
-            ? `You will be charged on ${new Date(currentCycle.lockDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}.`
-            : "You will be charged when the cycle closes."}{" "}
-          You can change your selections freely until then.
-        </p>
+        <h1 className="text-2xl font-bold">
+          {orderingEnabled ? "Order your booklet" : "Your booklet"}
+        </h1>
+        {orderingEnabled ? (
+          <p className="text-sm text-muted-foreground/60 mt-1">
+            Enter your delivery address to get a price estimate, then save your
+            card.{" "}
+            {currentCycle?.lockDate
+              ? `You will be charged on ${new Date(currentCycle.lockDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}.`
+              : "You will be charged when the cycle closes."}{" "}
+            You can change your selections freely until then.
+          </p>
+        ) : (
+          <p className="text-sm text-muted-foreground/60 mt-1">
+            Here&apos;s the booklet you&apos;ve put together. Ordering is
+            opening soon — leave your details below and we&apos;ll let you know
+            the moment it does.
+          </p>
+        )}
       </div>
 
       <div className="rounded-lg border border-border bg-card p-4">
@@ -132,12 +170,19 @@ export default async function CollectorCheckoutPage() {
         </p>
       </div>
 
-      <CheckoutPaymentForm
-        cycleLockDate={currentCycle?.lockDate?.toISOString() ?? null}
-        estimateSummary={estimateSummary}
-        defaultAddress={defaultAddress}
-        allowedCountries={allowedCountries}
-      />
+      {orderingEnabled ? (
+        <CheckoutPaymentForm
+          cycleLockDate={currentCycle?.lockDate?.toISOString() ?? null}
+          estimateSummary={estimateSummary}
+          defaultAddress={defaultAddress}
+          allowedCountries={allowedCountries}
+        />
+      ) : (
+        <OrderingPausedPanel
+          quotedPrice={estimateSummary?.totalEstimate ?? null}
+          currency={estimateSummary?.currency ?? null}
+        />
+      )}
     </div>
   );
 }
