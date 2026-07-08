@@ -111,3 +111,13 @@ LangGraph agent in `src/agent/` (`graph.py`, `nodes.py`, `state.py`, `prompts.py
 ## Deployment
 
 All apps deploy to **Railway** (see `DEPLOYMENT.md`). `pdf-worker` builds from the monorepo root via `Dockerfile.pdf-worker` to preserve pnpm workspace linking. `DATABASE_URL` targets Postgres (Neon in production).
+
+
+# GENERAL DEV GUIDELINES
+- ensure quality of your code by running "npm run format" and "npm run build"
+- make a commit after you've finished a task. Write concise, informative commit messages: Start with a summary in imperative mood, explain the 'why' behind changes, keep the summary under 50 characters, use bullet points for multiple changes, avoid using the word refactor, instead explain what was done, and reference related issues or tickets.
+- our color palette is configured in Tailwind
+- always use semantic colors to ensure dark mode support
+- DO NOT RUN builds for trivial changes such as style changes
+- use 'uv' for python projects and 'pnpm' for node projects
+

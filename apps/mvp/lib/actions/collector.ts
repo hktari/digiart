@@ -4,7 +4,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { ensureRole } from "@/lib/actions/roles";
+import { AnalyticsEvents, trackUserEvent } from "@/lib/analytics/events";
 import { auth } from "@/lib/auth";
+import { isOrderingEnabled } from "@/lib/config/ordering";
 import {
   MAX_BOOKLET_ARTWORKS,
   MAX_SUBSCRIBED_CREATORS,
@@ -818,6 +820,12 @@ export async function commitBookletForCycle(): Promise<CommitBookletResult> {
     redirect("/auth/sign-in");
   }
 
+  // Guard the commit path directly so no checkout flow can move money while
+  // ordering is paused, even if a caller bypasses the API route guards.
+  if (!isOrderingEnabled()) {
+    return { success: false, error: "Ordering is currently paused." };
+  }
+
   const collectorProfile = await getCollectorProfileOrThrow(session.user.id);
 
   const currentCycle = await getCurrentCycle();
@@ -1098,4 +1106,52 @@ export async function getCollectorCartSummary(
     isValidSubscribedCreatorRange,
     isValidForCheckout: isValidArtworkRange,
   };
+}
+
+export type OrderingNotifyResult =
+  | { success: true }
+  | { success: false; error: string };
+
+/**
+ * Records a collector's interest in ordering while paid checkout is paused.
+ *
+ * Fires ORDERING_NOTIFY_REQUESTED via trackUserEvent, which both sends the
+ * event to PostHog (identified, with `ordering_intent: true` set as a person
+ * property → a warm-demand cohort) and writes a durable LeadEvent on the
+ * collector's Lead. No new storage needed.
+ */
+export async function requestOrderingNotify(input?: {
+  quotedPrice?: number;
+  currency?: string;
+}): Promise<OrderingNotifyResult> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: "Please sign in first." };
+  }
+
+  try {
+    const summary = await getCollectorCartSummary(session.user.id);
+
+    const metadata: Record<string, string | number | boolean> = {
+      ordering_intent: true,
+      total_releases: summary.totalReleases,
+      total_artworks: summary.totalArtworks,
+    };
+    if (summary.cycleId) metadata.cycle_id = summary.cycleId;
+    if (typeof input?.quotedPrice === "number") {
+      metadata.quoted_price = input.quotedPrice;
+    }
+    if (input?.currency) metadata.currency = input.currency;
+
+    await trackUserEvent(
+      session.user.id,
+      AnalyticsEvents.ORDERING_NOTIFY_REQUESTED,
+      metadata,
+    );
+
+    return { success: true };
+  } catch (error) {
+    logger.error("[collector] requestOrderingNotify failed:", error);
+    return { success: false, error: "Could not register your interest." };
+  }
 }

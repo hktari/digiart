@@ -2,9 +2,14 @@ import { NextResponse } from "next/server";
 import { commitBookletForCycle } from "@/lib/actions/collector";
 import { auth } from "@/lib/auth";
 import { stripe } from "@/lib/billing/stripe-client";
+import { isOrderingEnabled } from "@/lib/config/ordering";
 import { db } from "@/lib/db";
 
 export async function POST(request: Request) {
+  if (!isOrderingEnabled()) {
+    return NextResponse.json({ error: "ordering_paused" }, { status: 403 });
+  }
+
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

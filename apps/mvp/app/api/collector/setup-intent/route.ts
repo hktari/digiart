@@ -2,9 +2,14 @@ import { NextResponse } from "next/server";
 import { Errors, withErrorHandler } from "@/lib/api/errors";
 import { auth } from "@/lib/auth";
 import { stripe } from "@/lib/billing/stripe-client";
+import { isOrderingEnabled } from "@/lib/config/ordering";
 import { db } from "@/lib/db";
 
 export const POST = withErrorHandler(async () => {
+  if (!isOrderingEnabled()) {
+    throw Errors.FORBIDDEN("ordering_paused");
+  }
+
   const session = await auth();
   if (!session?.user?.id) {
     throw Errors.UNAUTHORIZED();

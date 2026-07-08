@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = `${profile.displayName} — Digital Art Booklets`;
   const description = profile.bio
     ? `${profile.bio.slice(0, 155)}…`
-    : `Subscribe to ${profile.displayName} on DigiArt and receive curated digital art printed as A5 booklets delivered to your door every month.`;
+    : `Subscribe to ${profile.displayName} on PrintFeed and receive curated digital art printed as A5 booklets delivered to your door every month.`;
 
   return {
     title,
@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      url: `https://app.digiart.btechhub.top/creators/${slug}`,
+      url: `https://app.printfeed.btechhub.top/creators/${slug}`,
       images: profile.avatar
         ? [
             {

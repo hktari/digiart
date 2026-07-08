@@ -111,7 +111,7 @@ export default function TermsPage() {
         </h2>
         <p className="text-muted-foreground">
           For questions about these Terms of Service, please contact us at
-          support@digiart.example.
+          support@printfeed.example.
         </p>
       </div>
     </div>

@@ -265,7 +265,7 @@ export function CreatorSharePanel({ referral }: CreatorSharePanelProps) {
             Post a story inviting people to view your art in printed format
           </li>
           <li>Share in your Discord server or community</li>
-          <li>Publish an exclusive art release via DigiArt</li>
+          <li>Publish an exclusive art release via PrintFeed</li>
           <li>Add to your ArtStation / portfolio description</li>
         </ul>
       </div>

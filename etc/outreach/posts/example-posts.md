@@ -5,7 +5,7 @@ Are you a creator looking to monetize your digital art ?
 Interested in how much you could earn by uploading and promoting on DigiArt ?
 Made a calculator so you can see if it's worth your time
 
-digiart.btechhub.top/creat…
+printfeed.btechhub.top/creat…
 
 let me know what you think
 
@@ -26,7 +26,7 @@ We're exploring news ways to experience, share and support digital artists
 
 looking for creators willing to test this idea with their audience. Payouts are transparent and automated.
 
-you can get the gist here: https://digiart.btechhub.top/creators
+you can get the gist here: https://printfeed.btechhub.top/creators
 
 # 4
 
@@ -50,7 +50,7 @@ let me know if any1 interested in testing this with their audience
 
 I’m exploring what a creator-first printed art subscription could feel like. This is a visual prototype using public artwork from creators I admire.
 Artwork belongs to the respective creators.
-see more here: app.digiart.btechhub.top
+see more here: app.printfeed.btechhub.top
 
 # 7
 
@@ -60,4 +60,4 @@ who is it for:
 - people who'd like to experience digital art in physical printed format
 - creators who'd like to explore an additional monetization channel
 - explorers and builders who'd like to be involved in the early stage development of the platform and contribute, shape the product
-  you can get the gist here digiart.btechhub.top
+  you can get the gist here printfeed.btechhub.top

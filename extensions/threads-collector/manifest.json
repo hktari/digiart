@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "ELSEWHERE Collector (Threads POC)",
+  "version": "0.0.1",
+  "description": "Collect artwork + post metadata from Threads for creator outreach.",
+  "permissions": ["downloads", "storage"],
+  "host_permissions": [
+    "http://localhost:3003/*",
+    "https://app.printfeed.btechhub.top/*"
+  ],
+  "background": { "service_worker": "src/background.js" },
+  "content_scripts": [
+    {
+      "matches": ["*://www.threads.com/*"],
+      "js": ["src/extract.js", "src/content.js"],
+      "css": ["src/buttons.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/mark.svg"],
+      "matches": ["*://www.threads.com/*"]
+    }
+  ]
+}

@@ -16,6 +16,6 @@ a printed format. monthly. no boost budget needed.
 your art shows up as something people can keep
 
 we're looking for creators to test this
-digiart.btechhub.top/creators
+printfeed.btechhub.top/creators
 
 want to try it?

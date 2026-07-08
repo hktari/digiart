@@ -106,7 +106,7 @@ export async function sendCreatorPayoutsForCycle(
         currency: payout.currency,
       },
       receiver: payout.creatorProfile.payoutProfile?.paypalEmail!,
-      note: `DigiArt creator payout — ${payout.cycleId}`,
+      note: `PrintFeed creator payout — ${payout.cycleId}`,
       sender_item_id: payout.id,
     }));
 
@@ -119,7 +119,7 @@ export async function sendCreatorPayoutsForCycle(
       body: JSON.stringify({
         sender_batch_header: {
           sender_batch_id: senderBatchId,
-          email_subject: "Your DigiArt creator payout",
+          email_subject: "Your PrintFeed creator payout",
         },
         items,
       }),

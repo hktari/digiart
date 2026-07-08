@@ -1,0 +1,76 @@
+/* Single floating Collect button. Fixed bottom-right so it never overlaps
+   Threads' post chrome (the "..." menu). Color communicates the feature:
+   magenta = Collect post, cyan = Collect image (PrintFeed brand palette). */
+#tc-fab {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 2147483000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 18px;
+  border: none;
+  border-radius: 999px;
+  color: #fbf3e2;
+  font: 600 14px/1 "Poppins", system-ui, sans-serif;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0, 24, 43, 0.35);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+#tc-fab:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(0, 24, 43, 0.45);
+}
+#tc-fab:active {
+  transform: translateY(0);
+}
+
+.tc-fab--post {
+  background: #e2006a;
+}
+.tc-fab--image {
+  background: #00a6e9;
+}
+
+/* Beige chip keeps the full-color mark legible on either pill color. */
+#tc-fab .tc-chip {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fbf3e2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#tc-fab .tc-mark {
+  width: 19px;
+  height: 19px;
+  display: block;
+}
+
+#tc-toast {
+  position: fixed;
+  bottom: 76px;
+  right: 20px;
+  background: #00182b;
+  color: #fbf3e2;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font: 500 13px/1.2 "Poppins", system-ui, sans-serif;
+  z-index: 2147483001;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+}
+#tc-toast.tc-toast-show {
+  opacity: 1;
+  transform: translateY(0);
+}
+#tc-toast .tc-toast-link {
+  color: #00a6e9;
+  font-weight: 600;
+  text-decoration: underline;
+}
