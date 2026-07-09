@@ -27,7 +27,7 @@ export function Footer() {
               className="inline-flex items-center transition-opacity hover:opacity-80"
             >
               <Image
-                src="/logo.png"
+                src="/logo-transparent.png"
                 alt="PrintFeed"
                 width={256}
                 height={256}

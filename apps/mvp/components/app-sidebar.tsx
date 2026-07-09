@@ -66,7 +66,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuButton size="lg" asChild>
               <Link href="/" onClick={handleLinkClick}>
                 <Image
-                  src="/logo.png"
+                  src="/logo-transparent.png"
                   alt="PrintFeed"
                   width={128}
                   height={128}
