@@ -110,3 +110,43 @@ Keep one row per featured piece — ethics *and* legal cover:
   positioning publicly.
 - ❌ Implying payment for the demo — be honest; the honesty is the brand.
 - ❌ Claiming exclusivity or broad rights — you want a light, specific, revocable license.
+
+---
+
+## Fixed details — fill once, then per send only change `[name]` / `[piece]` / `[detail]`
+
+Paste these into the templates so the only per-artist work is the specific-piece line.
+
+| Slot | Value |
+| --- | --- |
+| **Sender** | Boštjan (sign DMs `— Boštjan`; email `Boštjan Kamnik`) |
+| **One-liner** | *a monthly print magazine of imagined worlds — placed on the tables of design-led cafés, hotels and studios, where every world is by a named artist who chose to be there.* |
+| **Link** | `[ELSEWHERE /creators or waitlist URL]?utm_source=dm&utm_medium=social&utm_campaign=cartographer` (reuse the UTM'd link; one-pager if/when it exists) |
+| **Credit convention** | Name + link to their profile, listed in "The Cartographers" back matter |
+| **Regions we curate** | I. Worldbuilding · II. Dreamscapes · III. Imagined Architecture (livable, never dystopian) · IV. Cosmic · V. Algorithmic Abstractions |
+| **Honesty line (verbatim)** | *Free now, credited, rev-share once venues subscribe, you keep your rights, no exclusivity.* |
+
+## Run sheet — how to actually work the list
+
+This is the current unblock: with ~0 audience, artists come from **outbound**, not the feed
+(see [[elsewhere-social-audience]]). Work the tracker top to bottom.
+
+1. **Cap ~10 personalised sends/day** on a fresh account — more looks like spam and risks
+   DM limits (Instagram/Threads especially). Space them out; never send two identical DMs.
+2. **Every send: name the specific piece** and one genuine detail (Template 1/2). Then log
+   it in the tracker immediately → stage `outreach_sent`, stamp the date.
+3. **Follow up once**, 5–7 days later (Template 3). If silence after that, stop — mark
+   `no_reply`. Don't chase.
+4. **On "yes" → Template 4.** Capture the consent row: credit-as, their link, rev-share
+   opt-in, hi-res file, and one line for the field note. Stage → `consented`.
+5. **Every "yes" is a creator lead** — flag it for Resend + the mvp CRM `Lead`, tagged for
+   the B2C pitch later. Curation *is* the creator pipeline.
+6. **Weekly**, count sourced → sent → replied → consented → featured. That's the funnel —
+   mirror it in PostHog (`artist_outreach_sent → artist_consented → artist_featured`).
+
+## Tracker
+
+Live tracking should live in the Prospects Airtable (`app1QOtINLEvz5kxP`), tagged
+`artist-outreach`, so a "yes" can flow to Resend + CRM. That MCP is currently disconnected —
+until it's back, use **`elsewhere-outreach-tracker.csv`** (same folder). Its columns map 1:1
+to the consent record above and import cleanly into the Airtable table.
