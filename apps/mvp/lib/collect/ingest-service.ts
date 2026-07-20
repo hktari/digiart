@@ -184,7 +184,9 @@ export async function getCollectionView(
 ): Promise<CollectionView | null> {
   const collection = await db.collection.findUnique({
     where: { token },
-    include: { items: { orderBy: { createdAt: "asc" } } },
+    // Newest first. Grouping below preserves first-seen order, so artists come
+    // out ordered by their most recent collect, items within each newest-first.
+    include: { items: { orderBy: { createdAt: "desc" } } },
   });
   if (!collection) return null;
 

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
+import { deleteStorageObject } from "@/lib/s3";
 
 const emailSchema = z.string().email();
 
@@ -31,6 +32,42 @@ export async function saveCollectionEmail(
     });
   }
   revalidatePath(`/c/${token}`);
+}
+
+/**
+ * Removes one collected item from a collection. The guest token is the
+ * capability — anyone holding the link can curate the collection — so we scope
+ * the delete to the item's own collection rather than requiring auth. Durable
+ * storage is cleaned up best-effort.
+ */
+export async function removeCollectionItem(
+  token: string,
+  itemId: string,
+): Promise<void> {
+  const collection = await db.collection.findUnique({
+    where: { token },
+    select: { id: true },
+  });
+  if (!collection) return;
+
+  const item = await db.collectedItem.findFirst({
+    where: { id: itemId, collectionId: collection.id },
+    select: { id: true, storageKey: true },
+  });
+  if (!item) return;
+
+  await db.collectedItem.delete({ where: { id: item.id } });
+  try {
+    await deleteStorageObject(item.storageKey);
+  } catch (error) {
+    // Orphaned S3 objects are harmless; don't fail the removal on cleanup.
+    logger.error("[collect] deleteStorageObject failed", {
+      key: item.storageKey,
+      error,
+    });
+  }
+  revalidatePath(`/c/${token}`);
+  revalidatePath(`/c/${token}/print`);
 }
 
 /**

@@ -99,14 +99,22 @@
     return out;
   }
 
-  // On the fullscreen media page the shown image is the largest one on screen.
+  // On the fullscreen media page the shown image is the one filling the viewport.
+  // Carousel slides all stay mounted at the same rendered size (off-screen ones
+  // are just translated away), so raw bounding-box area ties across every slide
+  // and always picks slide 1. Score by ON-SCREEN area (rect clipped to the
+  // viewport) instead, so the slide currently in view wins.
   function largestVisibleImage() {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
     let best = null;
     let bestArea = 0;
     for (const img of document.querySelectorAll("img")) {
       if (!isContentImg(img)) continue;
       const r = img.getBoundingClientRect();
-      const area = r.width * r.height;
+      const visW = Math.max(0, Math.min(r.right, vw) - Math.max(r.left, 0));
+      const visH = Math.max(0, Math.min(r.bottom, vh) - Math.max(r.top, 0));
+      const area = visW * visH;
       if (area > bestArea) {
         bestArea = area;
         best = img;

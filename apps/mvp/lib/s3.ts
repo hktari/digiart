@@ -1,4 +1,5 @@
 import {
+  DeleteObjectCommand,
   GetObjectCommand,
   PutObjectCommand,
   S3Client,
@@ -51,6 +52,16 @@ export async function putStorageObject(
       Key: key,
       Body: body,
       ContentType: contentType,
+    }),
+  );
+}
+
+/** Deletes a stored object. Best-effort cleanup (e.g. removing a collected item). */
+export async function deleteStorageObject(key: string): Promise<void> {
+  await getS3Client().send(
+    new DeleteObjectCommand({
+      Bucket: getS3Bucket(),
+      Key: key,
     }),
   );
 }

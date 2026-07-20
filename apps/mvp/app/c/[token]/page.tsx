@@ -4,7 +4,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { saveCollectionEmail } from "@/lib/collect/actions";
+import {
+  removeCollectionItem,
+  saveCollectionEmail,
+} from "@/lib/collect/actions";
 import { getCollectionView } from "@/lib/collect/ingest-service";
 
 type Props = { params: Promise<{ token: string }> };
@@ -89,7 +92,7 @@ export default async function CollectionPage({ params }: Props) {
                 {group.items.map((item) => (
                   <div
                     key={item.id}
-                    className="relative aspect-[3/4] overflow-hidden rounded-lg bg-muted"
+                    className="group relative aspect-[3/4] overflow-hidden rounded-lg bg-muted"
                   >
                     <Image
                       src={item.url}
@@ -98,6 +101,27 @@ export default async function CollectionPage({ params }: Props) {
                       sizes="(max-width: 768px) 50vw, 25vw"
                       className="object-cover"
                     />
+                    <form
+                      action={removeCollectionItem.bind(null, token, item.id)}
+                      className="absolute right-1.5 top-1.5"
+                    >
+                      <button
+                        type="submit"
+                        aria-label="Remove from collection"
+                        title="Remove"
+                        className="flex h-7 w-7 items-center justify-center rounded-full bg-background/80 text-foreground opacity-0 shadow-sm backdrop-blur-sm transition hover:bg-background focus-visible:opacity-100 group-hover:opacity-100"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                          className="h-4 w-4"
+                          aria-hidden="true"
+                        >
+                          <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+                        </svg>
+                      </button>
+                    </form>
                   </div>
                 ))}
               </div>
