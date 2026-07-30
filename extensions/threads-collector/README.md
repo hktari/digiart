@@ -1,8 +1,9 @@
 # ELSEWHERE Collector (Threads POC)
 
-Unpacked MV3 Chrome extension that adds "Collect" buttons to Threads posts and
-saves full-res images + post metadata to `~/Downloads/art-collect/`, ready for
-creator outreach.
+Unpacked MV3 Chrome extension that adds "Collect" buttons to Threads posts. Each
+collect does two things: saves full-res images + post metadata to
+`~/Downloads/art-collect/` for creator outreach, **and** pushes the collect into
+the PrintFeed collect funnel so a hosted collection builds at `/c/<token>`.
 
 ## Load it (real use)
 
@@ -23,6 +24,20 @@ creator outreach.
 > Google Chrome, ignoring."`). The **Load unpacked** button above works fine.
 > For automated/headless runs, use **Chromium** or **Chrome for Testing**, which
 > still honor `--load-extension`.
+
+## Where a collect goes
+
+Two destinations, both on every collect:
+
+1. **Local files** — `~/Downloads/art-collect/...` (below), for creator outreach.
+2. **Server ingest** — `POST https://app.printfeed.btechhub.top/api/collect/ingest`
+   (`src/content.js:16-17`, sent from `src/background.js`). The server fetches the
+   signed CDN bytes while they are still valid, stores them in S3, and builds the
+   hosted collection at `/c/<token>` plus two `Lead` prospects. Point `MVP_URL` at
+   `http://localhost:3003` to test the funnel end to end.
+
+Marketing copy claiming "one click adds it to your magazine" describes (2) — see
+`docs/collect-funnel.md`.
 
 ## Output
 
@@ -61,6 +76,7 @@ npm test        # node --test — pure extraction functions in src/extract.js
   structure); `handle` + `postUrl` are the reliable outreach keys.
 - On a permalink thread page each image-bearing reply also gets its own
   **Collect post** button.
-- No backend push yet — see
-  `docs/superpowers/specs/2026-07-06-threads-collector-poc-design.md` for the
-  intended path into the ELSEWHERE prospects/outreach pipeline.
+- Not on the Chrome Web Store — developer-mode **Load unpacked** only. The
+  `/collect` landing page therefore offers a waitlist, not an install button.
+- Ingest is fire-and-forget: a failed push is logged to the service-worker
+  console and does not block the local download.
