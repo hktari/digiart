@@ -136,10 +136,13 @@ use **semantic color tokens** (`bg-background`, `bg-card`, `text-foreground`,
 
 - **`/c/[token]`** — collection grid grouped by artist; "N pieces from M
   artists"; **Print as magazine →**; optional email capture
-  (`saveCollectionEmail`).
-- **`/c/[token]/print`** — magazine mock-up, illustrative price, ship teaser,
-  **Activate to ship** → sign-in with `callbackUrl` back to the page.
-  `claimCollection` on return.
+  (`saveCollectionEmail`), which emails the collector their link.
+- **`/c/[token]/print`** — magazine mock-up, estimated price,
+  **Activate to reserve** → sign-in with `callbackUrl` back to the page, then
+  **Reserve my magazine** (`claimCollection`), which emails a confirmation.
+  The page *reserves*; it does not order. There is no order path from a
+  Collection — no live quote, no payment, no print job — and the copy says so.
+  See [collect-print-open-questions.md](./collect-print-open-questions.md).
 - **`/claim/[handle]`** — per-artist aggregate (collectors, pieces, pending
   earnings), collected-work grid, **Claim your page & get paid**.
   `claimCreatorLead` on return. This is the Threads-facing asset.
@@ -178,8 +181,15 @@ pipeline; these constants are demo stand-ins.
 | Admin funnel + PostHog measurement | Any change to cycle/booklet machinery |
 
 The demo converts on **signup**. Fulfillment and payout are the existing
-production pipelines (`lib/billing/*`, `lib/peecho/*`, `pdf-worker`) that a
-signed-up user flows into.
+production pipelines (`lib/billing/*`, `lib/peecho/*`, `pdf-worker`).
+
+A caveat on "flows into": as of 2026-07-30 **nothing outside `lib/collect/`
+reads a `Collection` or `CollectedItem`.** The funnel ends at
+`Collection.ownerUserId`. Turning a collection into a booklet is unbuilt and
+blocked on open questions — minimum print resolution, whether to upscale,
+how to get print-res files from artists, and whether a collection is a
+one-off print or a first issue. See
+[collect-print-open-questions.md](./collect-print-open-questions.md).
 
 ## Run it
 
