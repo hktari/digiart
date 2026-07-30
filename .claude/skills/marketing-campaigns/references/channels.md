@@ -44,8 +44,18 @@ click, on a 2026-07-18 Facebook post.
 
 - **`posts_retry` and `posts_retry_all_failed` do not work** — a `Status10.FAILED`
   status mismatch. Recreate the post instead.
-- **Media upload is browser-only.** `media_generate_upload_link` cannot be driven
-  from MCP; attach images or video in the Zernio web UI before publishing.
+- **Media attaches by public URL, not by upload.** Uploading a *file*
+  (`media_generate_upload_link`) is browser-only, but `posts_create` takes
+  `media_urls` — a comma-separated list of public URLs — and that works fine from
+  MCP. Host the asset somewhere public first (the landing app serves
+  `printfeed.btechhub.top/collect/*`), then run `validate_media` on the URL to
+  confirm `valid: True` before creating the post. Verified 2026-07-30 with a
+  658 KB mp4.
+- **The landing deploy takes ~1 minute.** A newly pushed asset 404s until Railway
+  finishes; poll the URL before calling `validate_media`.
+- **The OAuth token expires mid-session.** Writes then fail with "requires
+  re-authorization". Re-auth via `/mcp` and re-check `posts_list` before retrying,
+  so a partially-created batch isn't duplicated.
 - **Meta cannot fetch `.webp`.** Any image referenced in a Facebook or Threads post
   needs a `.jpg` sibling. Verify it returns `200 image/jpeg` before scheduling.
 - **Never omit `account_id`** on write calls. Both platforms here have more than
