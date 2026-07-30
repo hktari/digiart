@@ -11,6 +11,12 @@ tmp/
 !.env.*.example
 logs
 assets
+# ...except the pdf-worker's, which is a build input, not a scratch folder:
+# nest-cli.json copies src/assets/** into dist, and Railway builds from the
+# repo. Ignored, the logo simply is not there and every booklet prints with
+# blank covers.
+!apps/pdf-worker/src/assets/
+!apps/pdf-worker/src/assets/**
 .opencode.backup
 
 .chrome-profile

@@ -57,6 +57,29 @@
     return TC.pickLargestSrcset(img.getAttribute("srcset"), img.currentSrc || img.src);
   }
 
+  // naturalWidth/naturalHeight describe the variant the browser chose to render
+  // in the feed, which is usually NOT the largest srcset candidate we collect —
+  // in one sample 58 of 84 records understated the file that was downloaded,
+  // one of them by a factor of ten. Since those numbers decide whether a piece
+  // is printable, measure the URL we actually hand over.
+  function measure(url, fallbackImg) {
+    return new Promise((resolve) => {
+      const probe = new Image();
+      const done = () =>
+        resolve(
+          probe.naturalWidth
+            ? { width: probe.naturalWidth, height: probe.naturalHeight }
+            : {
+                width: fallbackImg.naturalWidth,
+                height: fallbackImg.naturalHeight,
+              },
+        );
+      probe.onload = done;
+      probe.onerror = done;
+      probe.src = url;
+    });
+  }
+
   // The main post = the one whose permalink matches the current shortcode. Several
   // anchors can link to it; each climbs to a different image-bearing ancestor, and
   // the loosest ones spill into replies. Pick the TIGHTEST root (fewest content
@@ -84,9 +107,9 @@
     return bestRoot;
   }
 
-  function collectImagesFromRoot(root) {
+  async function collectImagesFromRoot(root) {
     const seen = new Set();
-    const out = [];
+    const found = [];
     for (const img of root.querySelectorAll("img")) {
       if (!isContentImg(img)) continue;
       const url = bestUrl(img);
@@ -94,9 +117,11 @@
       const id = TC.imageId(url);
       if (seen.has(id)) continue;
       seen.add(id);
-      out.push({ url, width: img.naturalWidth, height: img.naturalHeight });
+      found.push({ url, img });
     }
-    return out;
+    return Promise.all(
+      found.map(async ({ url, img }) => ({ url, ...(await measure(url, img)) })),
+    );
   }
 
   // On the fullscreen media page the shown image is the one filling the viewport.
@@ -166,9 +191,9 @@
     flashCollected(note, token);
   }
 
-  function collectPost(page) {
+  async function collectPost(page) {
     const root = mainPostRoot(page.shortcode) || document.body;
-    const images = collectImagesFromRoot(root);
+    const images = await collectImagesFromRoot(root);
     if (!images.length) return flash("No images found in this post");
     const caption = captionFor(root);
     const filenames = images.map((img, i) => TC.buildFilename(i + 1, img.url));
@@ -179,13 +204,13 @@
     );
   }
 
-  function collectImage(page) {
+  async function collectImage(page) {
     const img = largestVisibleImage();
     const url = img && bestUrl(img);
     if (!url) return flash("No image found on this page");
     const idNum = (TC.imageId(url).match(/\d+/) || ["img"])[0];
     const filename = `single_${idNum}.${TC.extFromUrl(url)}`;
-    const item = { url, width: img.naturalWidth, height: img.naturalHeight };
+    const item = { url, ...(await measure(url, img)) };
     const root = mainPostRoot(page.shortcode) || document.body;
     const caption = captionFor(root);
     send(
@@ -265,8 +290,11 @@
     fab.onclick = (e) => {
       e.preventDefault();
       e.stopPropagation();
-      if (mode === "image") collectImage(page);
-      else collectPost(page);
+      // Both are async now — they probe the chosen URL for its true size — so
+      // without this a failure is only an unhandled rejection in the console.
+      (mode === "image" ? collectImage : collectPost)(page).catch((err) =>
+        flash(`Collect failed: ${(err && err.message) || err}`),
+      );
     };
   }
 

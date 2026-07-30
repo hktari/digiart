@@ -44,10 +44,13 @@ coverage/
 tmp/
 temp/
 
-# Image files (project-specific)
+# Image files (project-specific) — sample renders and scratch output.
+# src/assets is the exception: nest-cli.json copies it into dist, so the cover
+# logo has to be in the repo or the deployed worker has no brand mark to draw.
 *.png
 *.jpg
 *.jpeg
+!src/assets/**
 
 # PDF files (generated)
 *.pdf
