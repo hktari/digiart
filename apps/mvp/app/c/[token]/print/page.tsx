@@ -24,7 +24,11 @@ export default async function PrintPage({ params }: Props) {
   const covers = collection.groups.flatMap((g) => g.items).slice(0, 4);
   const price = formatEur(magazinePriceCents(collection.itemCount));
   const ship = claimCollection.bind(null, token);
-  const activated = collection.ownerUserId && isAuthed;
+  // Gated on the claim itself, not on the claim *and* being signed in:
+  // claimCollection is a no-op once a collection has an owner, so the old
+  // condition showed a signed-in visitor to an already-claimed collection a
+  // button that could not do anything.
+  const activated = Boolean(collection.ownerUserId);
   const signInUrl = `/auth/sign-in?callbackUrl=${encodeURIComponent(`/c/${token}/print`)}`;
 
   return (

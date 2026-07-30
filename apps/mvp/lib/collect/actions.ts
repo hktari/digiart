@@ -146,27 +146,46 @@ export async function claimCollection(token: string): Promise<void> {
   const collection = await db.collection.findUnique({ where: { token } });
   if (!collection || collection.ownerUserId) return;
 
-  try {
-    await db.collection.update({
-      where: { token },
-      data: { ownerUserId: userId },
+  await db.collection.update({
+    where: { token },
+    data: { ownerUserId: userId },
+  });
+
+  if (collection.collectorLeadId) {
+    // Lead.ownerUserId is unique across ALL leads, so a user who already owns
+    // one — typically a creator lead claimed at /claim/<handle> — cannot own
+    // their collector lead as well. Linking unconditionally threw, and the
+    // catch around the whole block swallowed it, leaving the collection
+    // claimed while its lead stayed NEW. The status advance is the part the
+    // funnel actually measures, so it must not ride on the link succeeding.
+    const alreadyOwns = await db.lead.findUnique({
+      where: { ownerUserId: userId },
     });
-    if (collection.collectorLeadId) {
+    const canLink =
+      !alreadyOwns || alreadyOwns.id === collection.collectorLeadId;
+
+    try {
       await db.lead.update({
         where: { id: collection.collectorLeadId },
         data: {
           status: "SIGNED_UP",
-          ownerUserId: userId,
+          ownerUserId: canLink ? userId : undefined,
           lastSeenAt: new Date(),
         },
       });
+    } catch (error) {
+      // The collection is claimed either way; losing the lead bookkeeping is
+      // a reporting problem, not a reason to fail the user's action.
+      logger.error("[collect] could not advance collector lead", {
+        token,
+        leadId: collection.collectorLeadId,
+        error,
+      });
     }
-    revalidatePath(`/c/${token}`);
-    revalidatePath(`/c/${token}/print`);
-  } catch (error) {
-    // ownerUserId is unique per user/collection — a second link is a no-op.
-    logger.error("[collect] claimCollection failed", { token, error });
   }
+
+  revalidatePath(`/c/${token}`);
+  revalidatePath(`/c/${token}/print`);
 }
 
 /**
