@@ -100,17 +100,25 @@ export class BookletProcessor extends WorkerHost {
         }
       }
 
+      // Downloaded through the storage service, which signs the request. The
+      // previous code fetched a hand-built
+      // `<bucket>.s3.<region>.amazonaws.com` URL, which in production resolved
+      // to nothing at all — storage is Tigris via AWS_ENDPOINT_URL, and the
+      // bucket is private besides. Every job died here.
       const imageBuffers = new Map<string, Buffer>();
       for (const artwork of artworks) {
-        const storageUrl = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION ?? "eu-west-1"}.amazonaws.com/${artwork.storageKey}`;
-        const res = await fetch(storageUrl);
-        if (!res.ok) {
+        try {
+          imageBuffers.set(
+            artwork.id,
+            await this.storage.downloadObject(artwork.storageKey),
+          );
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : "Unknown error";
           throw new Error(
-            `Failed to download artwork ${artwork.id} from ${storageUrl}: ${res.status}`,
+            `Failed to download artwork ${artwork.id} (${artwork.storageKey}): ${message}`,
           );
         }
-        const arrayBuf = await res.arrayBuffer();
-        imageBuffers.set(artwork.id, Buffer.from(arrayBuf));
       }
 
       const creatorNames: string[] = [

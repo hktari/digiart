@@ -5,7 +5,7 @@
  * picks it up → builds PDF → uploads to storage.
  *
  * Infrastructure: real Redis via testcontainers (Docker required).
- * External deps mocked: Prisma (DB), fetch (S3 artwork download), StorageService (local write).
+ * External deps mocked: Prisma (DB) and StorageService (artwork download + PDF write).
  */
 
 import { BullModule } from "@nestjs/bullmq";
@@ -85,11 +85,8 @@ jest.mock("@prisma/client", () => ({
   })),
 }));
 
-// ---------------------------------------------------------------------------
-// Mock fetch — serves artwork bytes from disk (simulating S3)
-// ---------------------------------------------------------------------------
-const mockFetch = jest.fn();
-global.fetch = mockFetch;
+// Artwork is fetched via StorageService.downloadObject (a signed S3 GET), so
+// that method is stubbed below to serve the synthesised fixtures.
 
 // ---------------------------------------------------------------------------
 // Test constants
@@ -118,7 +115,7 @@ describe("Queue Integration: MVP enqueue → BookletProcessor → Storage", () =
     redisContainer = await new RedisContainer("redis:7-alpine").start();
     redisUrl = redisContainer.getConnectionUrl();
 
-    // 2. Synthesise the artwork images for the mock HTTP responses
+    // 2. Synthesise the artwork images the storage stub will serve
     artworkBuffers = await Promise.all(
       ARTWORK_FILES.map((_, i) => makeArtworkJpeg(i)),
     );
@@ -147,24 +144,7 @@ describe("Queue Integration: MVP enqueue → BookletProcessor → Storage", () =
     }));
     mockFindMany.mockResolvedValue(selections);
 
-    // 4. Serve each artwork's bytes by matching the storage key in the S3 URL,
-    //    so every page gets a visibly different image. A URL that matches
-    //    nothing is a bug in the test setup, not something to paper over with
-    //    a fallback — it would silently put artwork 1 on all three pages.
-    mockFetch.mockImplementation(async (url: string) => {
-      const index = ARTWORK_FILES.findIndex((file) => url.includes(file));
-      if (index < 0) throw new Error(`Unexpected artwork URL in test: ${url}`);
-
-      const buf = artworkBuffers[index];
-      return {
-        ok: true,
-        arrayBuffer: jest
-          .fn()
-          .mockResolvedValue(
-            buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength),
-          ),
-      };
-    });
+    // 4. (see step 5 — artwork bytes are served by stubbing StorageService)
 
     // 5. Build NestJS module with real BookletModule services, wired to the test Redis
     process.env.DATABASE_URL = "postgresql://test:test@localhost:5432/test";
@@ -192,6 +172,19 @@ describe("Queue Integration: MVP enqueue → BookletProcessor → Storage", () =
     // Spy on StorageService.uploadPdf to capture the bytes written
     const storageService = module.get<StorageService>(StorageService);
     storageUploadSpy = jest.spyOn(storageService, "uploadPdf");
+
+    // Serve each artwork's bytes by matching the storage key, so every page
+    // gets a visibly different image. An unmatched key is a bug in the test
+    // setup, not something to paper over with a fallback — it would silently
+    // put artwork 1 on all three pages.
+    jest
+      .spyOn(storageService, "downloadObject")
+      .mockImplementation(async (key: string) => {
+        const index = ARTWORK_FILES.findIndex((file) => key.includes(file));
+        if (index < 0)
+          throw new Error(`Unexpected artwork key in test: ${key}`);
+        return artworkBuffers[index];
+      });
 
     await module.init();
 

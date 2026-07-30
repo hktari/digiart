@@ -20,8 +20,8 @@ jest.mock("@prisma/client", () => ({
   })),
 }));
 
-const mockFetch = jest.fn();
-global.fetch = mockFetch;
+// Artwork now comes through StorageService.downloadObject (signed S3 GET),
+// not an unauthenticated fetch of a hand-built URL, so that is the seam.
 
 const mockPdfBuilder = {
   build: jest.fn(),
@@ -29,6 +29,7 @@ const mockPdfBuilder = {
 
 const mockStorage = {
   uploadPdf: jest.fn(),
+  downloadObject: jest.fn(),
 };
 
 function makeJob(data: BookletJobData): Job<BookletJobData> {
@@ -83,10 +84,7 @@ describe("BookletProcessor", () => {
 
   it("should process a booklet job successfully", async () => {
     mockFindMany.mockResolvedValue([baseSelection]);
-    mockFetch.mockResolvedValue({
-      ok: true,
-      arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(8)),
-    });
+    mockStorage.downloadObject.mockResolvedValue(Buffer.alloc(8));
     mockPdfBuilder.build.mockResolvedValue({
       bytes: new Uint8Array([1, 2, 3]),
       pageCount: 4,
@@ -167,7 +165,7 @@ describe("BookletProcessor", () => {
 
   it("should throw when artwork download fails", async () => {
     mockFindMany.mockResolvedValue([baseSelection]);
-    mockFetch.mockResolvedValue({ ok: false, status: 404 });
+    mockStorage.downloadObject.mockRejectedValue(new Error("NoSuchKey"));
 
     await expect(processor.process(makeJob(jobData))).rejects.toThrow(
       "Failed to download artwork",
@@ -198,10 +196,7 @@ describe("BookletProcessor", () => {
         },
       },
     ]);
-    mockFetch.mockResolvedValue({
-      ok: true,
-      arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(8)),
-    });
+    mockStorage.downloadObject.mockResolvedValue(Buffer.alloc(8));
     mockPdfBuilder.build.mockResolvedValue({
       bytes: new Uint8Array([1]),
       pageCount: 4,
