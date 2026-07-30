@@ -17,6 +17,14 @@ Campaign knowledge is scattered across five locations and none of it reaches an 
 
 Result: every session re-derives campaign history from Zernio, and there is no record of which of the 20 angles already ran or how they did. Worse, campaign copy makes claims about product behavior (the collect extension's "one click") with nothing tying it to the code that implements it.
 
+## Scope
+
+**In scope:** the PrintFeed and ELSEWHERE brands — Zernio profile `6a4765d0568c787a4ccd94c5` and its two accounts (Facebook PrintFeed, Threads `_bk_art29`).
+
+DigiArt stays in the log despite being retired. It is the same product under an earlier name, published on the same two accounts, and 11 of the 20 angles are DigiArt-era — excluding them would remove most of the log's anti-repeat value.
+
+**Out of scope:** the LinkedIn founder-voice account (`6a32960e5f7d1751abef1c46`) and T.I.KA Design's Facebook page (`6a4765939d9472faae61b024`, a separate wooden-goods business). Neither is a PrintFeed/ELSEWHERE channel. They appear in `channels.md` only as an exclusion list, because `analytics_get_analytics` returns all four accounts mixed together and their numbers are 10–30× larger — without naming them, campaign reporting will silently inherit their traffic.
+
 ## Non-goals
 
 - Prescribing strategy. The log presents evidence; the user decides the next motion. A separate brainstorm covers "what should we actually do next."
@@ -74,16 +82,21 @@ Each entry links to where its copy and program terms live rather than duplicatin
 
 ## `references/channels.md`
 
-Accounts as of 2026-07-30:
+Campaign accounts, as of 2026-07-30 — profile `6a4765d0568c787a4ccd94c5`:
 
-| Platform | Username | Account ID | Profile ID | Followers |
-| --- | --- | --- | --- | --- |
-| facebook | PrintFeed | `6a4673619d9472faae553503` | `6a4765d0568c787a4ccd94c5` | 0 |
-| threads | `_bk_art29` | `6a4411809d9472faae33a942` | `6a4765d0568c787a4ccd94c5` | 13 |
-| facebook | T.I.KA Design | `6a4765939d9472faae61b024` | `6a476559a2a2daf6b4cff808` | 352 |
-| linkedin | Bostjan Kamnik | `6a32960e5f7d1751abef1c46` | `6a47661a4f6abe599a332c2d` | 206 |
+| Platform | Username | Account ID | Followers |
+| --- | --- | --- | --- |
+| facebook | PrintFeed | `6a4673619d9472faae553503` | 0 |
+| threads | `_bk_art29` | `6a4411809d9472faae33a942` | 13 |
 
-T.I.KA Design is a separate business (Slovenian wooden goods) sharing the Zernio workspace — its posts must never be conflated with PrintFeed campaign results.
+**Exclude from all campaign reporting** — same Zernio workspace, not our channels:
+
+| Platform | Username | Account ID | Why excluded |
+| --- | --- | --- | --- |
+| facebook | T.I.KA Design | `6a4765939d9472faae61b024` | Separate business (Slovenian wooden goods) |
+| linkedin | Bostjan Kamnik | `6a32960e5f7d1751abef1c46` | Personal founder-voice account |
+
+Always pass `profile_id: 6a4765d0568c787a4ccd94c5` when pulling analytics. An unfiltered call returns all four accounts, and the excluded two dominate every engagement ranking — the July top-20 by engagement was almost entirely T.I.KA Design product posts.
 
 **Baseline bands (2026-07-30 snapshot):** Threads 5–33 impressions/post; Facebook PrintFeed 0–7 impressions, 0–2 reach; clicks ~0 across the corpus.
 
