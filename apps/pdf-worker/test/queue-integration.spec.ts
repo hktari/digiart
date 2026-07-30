@@ -8,13 +8,13 @@
  * External deps mocked: Prisma (DB), fetch (S3 artwork download), StorageService (local write).
  */
 
-import { BullModule, getQueueToken } from "@nestjs/bullmq";
+import { BullModule } from "@nestjs/bullmq";
 import { Test, type TestingModule } from "@nestjs/testing";
 import {
   RedisContainer,
   type StartedRedisContainer,
 } from "@testcontainers/redis";
-import { Queue, Worker } from "bullmq";
+import { Queue } from "bullmq";
 import { PDFDocument } from "pdf-lib";
 import sharp from "sharp";
 import { BookletProcessor } from "../src/booklet/booklet.processor";
@@ -147,28 +147,21 @@ describe("Queue Integration: MVP enqueue → BookletProcessor → Storage", () =
     }));
     mockFindMany.mockResolvedValue(selections);
 
-    // 4. Configure mock fetch to return artwork bytes from disk
+    // 4. Serve each artwork's bytes by matching the storage key in the S3 URL,
+    //    so every page gets a visibly different image. A URL that matches
+    //    nothing is a bug in the test setup, not something to paper over with
+    //    a fallback — it would silently put artwork 1 on all three pages.
     mockFetch.mockImplementation(async (url: string) => {
-      const idx = ARTWORK_FILES.findIndex(
-        (f) =>
-          url.includes(f) ||
-          url.includes(`artwork-${ARTWORK_FILES.indexOf(f)}`),
-      );
-      // Fall back: match by artwork index in URL order
-      const matched = ARTWORK_FILES.findIndex((_, i) =>
-        url.includes(`artwork-${i}`),
-      );
-      const bufIdx = matched >= 0 ? matched : 0;
+      const index = ARTWORK_FILES.findIndex((file) => url.includes(file));
+      if (index < 0) throw new Error(`Unexpected artwork URL in test: ${url}`);
+
+      const buf = artworkBuffers[index];
       return {
         ok: true,
         arrayBuffer: jest
           .fn()
           .mockResolvedValue(
-            artworkBuffers[bufIdx].buffer.slice(
-              artworkBuffers[bufIdx].byteOffset,
-              artworkBuffers[bufIdx].byteOffset +
-                artworkBuffers[bufIdx].byteLength,
-            ),
+            buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength),
           ),
       };
     });

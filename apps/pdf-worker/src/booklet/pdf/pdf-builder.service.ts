@@ -27,6 +27,18 @@ export class PdfBuilderService {
     private readonly pdfxProcessor: PdfXProcessorService,
   ) {}
 
+  /**
+   * The per-plate credit line. The cover byline can only carry one name, so
+   * for anything with more than one contributor this is the only place an
+   * artist is actually named in the printed object.
+   */
+  private captionFor(artwork: ArtworkRecord): string {
+    const title = artwork.title?.trim();
+    const creator = artwork.creatorName?.trim();
+    if (title && creator) return `${title} — ${creator}`;
+    return creator ?? title ?? "";
+  }
+
   async build(
     artworks: ArtworkRecord[],
     imageBuffers: Map<string, Buffer>,
@@ -65,12 +77,14 @@ export class PdfBuilderService {
       }
 
       const mimeType = artwork.mimeType ?? "image/jpeg";
+      const captionText = this.captionFor(artwork);
       await this.artworkPageService.addPageAsync(
         pdfDoc,
         buf,
         mimeType,
         artwork.orientation,
         pageDimensions,
+        captionText ? { text: captionText, font } : undefined,
       );
     }
 

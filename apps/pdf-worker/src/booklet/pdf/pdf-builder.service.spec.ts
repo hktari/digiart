@@ -1,12 +1,12 @@
-import sharp from "sharp";
 import { Test, TestingModule } from "@nestjs/testing";
 import { PDFDocument } from "pdf-lib";
-import { PdfBuilderService } from "./pdf-builder.service";
+import sharp from "sharp";
+import type { ArtworkRecord } from "../booklet.types";
+import { PAGE_DIMENSIONS } from "../booklet.types";
 import { ArtworkPageService } from "./artwork-page.service";
 import { CoverPageService } from "./cover-page.service";
+import { PdfBuilderService } from "./pdf-builder.service";
 import { PdfXProcessorService } from "./pdfx-processor.service";
-import { PAGE_DIMENSIONS } from "../booklet.types";
-import type { ArtworkRecord } from "../booklet.types";
 
 let JPEG_1x1: Buffer;
 
@@ -26,6 +26,7 @@ beforeAll(async () => {
 function makeArtwork(
   id: string,
   orientation: "PORTRAIT" | "LANDSCAPE" = "PORTRAIT",
+  creatorName?: string,
 ): ArtworkRecord {
   return {
     id,
@@ -35,14 +36,16 @@ function makeArtwork(
     width: orientation === "LANDSCAPE" ? 2800 : 2000,
     height: orientation === "LANDSCAPE" ? 2000 : 2800,
     orientation,
+    creatorName,
   };
 }
 
 describe("PdfBuilderService", () => {
   let service: PdfBuilderService;
+  let module: TestingModule;
 
   beforeAll(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       providers: [
         PdfBuilderService,
         ArtworkPageService,
@@ -156,6 +159,48 @@ describe("PdfBuilderService", () => {
       expect(width).toBeGreaterThan(0);
       expect(height).toBeGreaterThan(0);
     }
+  });
+
+  describe("per-plate credits", () => {
+    // The cover byline collapses to "Selected Works" once there is more than
+    // one contributor, so the plate caption is the only place a multi-artist
+    // booklet actually names anyone.
+    async function captionsFor(artworks: ArtworkRecord[]) {
+      const pageService = module.get<ArtworkPageService>(ArtworkPageService);
+      const spy = jest.spyOn(pageService, "addPageAsync");
+      const buffers = new Map(artworks.map((a) => [a.id, JPEG_1x1]));
+
+      await service.build(artworks, buffers, "Issue #1", []);
+
+      const captions = spy.mock.calls.map((call) => call[5]?.text);
+      spy.mockRestore();
+      return captions;
+    }
+
+    it("should credit every contributor to a multi-creator booklet", async () => {
+      const captions = await captionsFor([
+        makeArtwork("a1", "PORTRAIT", "Creator Alpha"),
+        makeArtwork("a2", "PORTRAIT", "Creator Beta"),
+      ]);
+
+      expect(captions).toEqual([
+        "Artwork a1 — Creator Alpha",
+        "Artwork a2 — Creator Beta",
+      ]);
+    });
+
+    it("should fall back to the creator alone when a piece is untitled", async () => {
+      const untitled = { ...makeArtwork("a1"), title: null };
+      untitled.creatorName = "Creator Alpha";
+
+      expect(await captionsFor([untitled])).toEqual(["Creator Alpha"]);
+    });
+
+    it("should omit the caption when there is nothing to credit", async () => {
+      const anonymous = { ...makeArtwork("a1"), title: null };
+
+      expect(await captionsFor([anonymous])).toEqual([undefined]);
+    });
   });
 
   it("should build an A4 portrait PDF with correct page dimensions", async () => {

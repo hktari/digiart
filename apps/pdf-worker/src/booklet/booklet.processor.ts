@@ -66,9 +66,15 @@ export class BookletProcessor extends WorkerHost {
         },
       });
 
+      // The creator lives on the release, not the artwork, so it has to be
+      // stamped onto each piece here — otherwise flattening loses which artist
+      // made what, and every plate in a multi-creator booklet goes uncredited.
       const artworks = selections.flatMap((sel: (typeof selections)[number]) =>
         sel.release.artworks.map(
-          (ra: (typeof sel.release.artworks)[number]) => ra.artwork,
+          (ra: (typeof sel.release.artworks)[number]) => ({
+            ...ra.artwork,
+            creatorName: sel.release.creatorProfile.displayName,
+          }),
         ),
       );
 

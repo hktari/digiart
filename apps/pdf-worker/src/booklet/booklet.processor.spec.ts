@@ -1,11 +1,11 @@
-import { Test, TestingModule } from "@nestjs/testing";
 import { getQueueToken } from "@nestjs/bullmq";
+import { Test, TestingModule } from "@nestjs/testing";
 import type { Job } from "bullmq";
 import { BookletProcessor } from "./booklet.processor";
+import type { BookletJobData } from "./booklet.types";
+import { DEFAULT_PAGE_FORMAT } from "./booklet.types";
 import { PdfBuilderService } from "./pdf/pdf-builder.service";
 import { StorageService } from "./storage/storage.service";
-import { DEFAULT_PAGE_FORMAT } from "./booklet.types";
-import type { BookletJobData } from "./booklet.types";
 
 jest.mock("@prisma/adapter-pg", () => ({
   PrismaPg: jest.fn().mockImplementation(() => ({})),
@@ -100,7 +100,9 @@ describe("BookletProcessor", () => {
     expect(result.pdfUrl).toBe("https://s3.example.com/booklets/x.pdf");
     expect(result.pageCount).toBe(4);
     expect(mockPdfBuilder.build).toHaveBeenCalledWith(
-      [validArtwork],
+      // The release's creator is stamped onto each piece so the builder can
+      // credit individual plates, not just the cover.
+      [{ ...validArtwork, creatorName: "Artist Name" }],
       expect.any(Map),
       "March 2025",
       ["Artist Name"],

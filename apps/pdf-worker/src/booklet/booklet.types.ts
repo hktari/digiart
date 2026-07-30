@@ -50,4 +50,10 @@ export interface ArtworkRecord {
   width: number | null;
   height: number | null;
   orientation: string;
+  /**
+   * Display name of the creator this piece belongs to, carried per-artwork so
+   * multi-creator booklets can credit each plate. The cover byline can only
+   * name one artist; this is what makes the rest of them visible in print.
+   */
+  creatorName?: string | null;
 }
