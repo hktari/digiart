@@ -38,7 +38,7 @@ DigiArt stays in the log despite being retired. It is the same product under an 
 .claude/skills/marketing-campaigns/
 ├── SKILL.md                    # triggers, orientation, positioning, workflows
 └── references/
-    ├── campaign-log.md         # append-only history: 3 eras, 17 angles, results
+    ├── campaign-log.md         # append-only history: 3 eras, 20 angles, results
     └── channels.md             # account IDs, baselines, platform gotchas
 ```
 
