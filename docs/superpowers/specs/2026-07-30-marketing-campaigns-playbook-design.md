@@ -15,7 +15,7 @@ Campaign knowledge is scattered across five locations and none of it reaches an 
 | `apps/social-media-generator/output/scheduled/2026-W27/lineup.md` | One week's Threads lineup | Only if pointed at |
 | `var/skills/{social-content,social-media-strategist}` | Generic community strategist advice | **Never** — `var/skills/` is an unloaded stash |
 
-Result: every session re-derives campaign history from Zernio, and there is no record of which of the 17 angles already ran or how they did.
+Result: every session re-derives campaign history from Zernio, and there is no record of which of the 20 angles already ran or how they did. Worse, campaign copy makes claims about product behavior (the collect extension's "one click") with nothing tying it to the code that implements it.
 
 ## Non-goals
 
@@ -58,7 +58,7 @@ The skill holds **no live state**. Rules, IDs, positioning, and history are dura
 | ELSEWHERE | Active | artists ("Cartographers") + venues | elsewhere.btechhub.top |
 | PrintFeed | Active | collectors (collect funnel) | printfeed.btechhub.top |
 
-Each entry links to where its copy and program terms live rather than duplicating them.
+Each entry links to where its copy and program terms live rather than duplicating them. The PrintFeed entry additionally links to `extensions/threads-collector/` and `docs/collect-funnel.md` — the collect extension is the product this brand's copy demos, so its behavior is a copy dependency.
 
 **Part 3 — Creating a post.** Pre-publish checklist, every item derived from an observed failure:
 
@@ -68,6 +68,7 @@ Each entry links to where its copy and program terms live rather than duplicatin
 - **Verify copy is non-empty.** Four posts shipped blank (2026-05-21, 07-06 FB, 07-20 15:37, 07-28 FB).
 - Do not write "link in bio" unless the bio link is actually set.
 - Check `campaign-log.md` for whether the angle is a repeat.
+- If the copy claims product behavior ("tap once", "one click adds it"), verify it against `extensions/threads-collector/src/content.js` and `docs/collect-funnel.md` before publishing. Demo copy outlives the build it was written against.
 
 **Part 4 — Reporting results.** Account and profile IDs (see `channels.md`), plus the practical note that `analytics_get_analytics` exceeds the tool token limit on any realistic range — dump to a file and parse with Python. Includes baseline bands so a number can be judged normal or not.
 
@@ -92,11 +93,20 @@ T.I.KA Design is a separate business (Slovenian wooden goods) sharing the Zernio
 
 One table per era with: date, angle slug, channel, format, copy hook, and impressions/likes/comments. Source data is the 48 published posts on profile `6a4765d0568c787a4ccd94c5`, 2026-04-25 → 2026-07-28.
 
-The 17 angles to record:
+The 20 angles to record:
 
+- **Pre-campaign (organic):** hashtag-only — `#artdaily` on an image, no pitch (2026-04-25)
 - **Creator-side (DigiArt):** platform-explainer, visual-prototype, monetization-channel, ephemerality, earnings-calculator, recurring-revenue, fan-support, co-creation, algorithm-gatekeeping, twenty-true-collectors
-- **Collector-side:** ownership-shelf, product-demo
-- **ELSEWHERE:** wonder-cafe, provenance-antiscrape, direct-recruit, craft-object, venue-b2b
+- **Collector-side:** ownership-shelf, **extension-collect-demo**
+- **ELSEWHERE:** wonder-cafe, provenance-antiscrape, direct-recruit, tagged-submission-call, program-terms, craft-object, venue-b2b
+
+### `extension-collect-demo` — the tool-led angle
+
+Distinct from every other angle and recorded as its own class: it demos a **working tool** rather than describing a planned product. Three video posts (2026-07-19 "How I'm collecting art on Threads", 07-20 and 07-21 "one click adds it to your magazine") showing the ELSEWHERE Collector browser extension (`extensions/threads-collector`, manifest name "ELSEWHERE Collector (Threads POC)") running on live Threads and posting to `app.printfeed.btechhub.top`.
+
+It produced the best July Threads number of any campaign post — 33 impressions on 07-21.
+
+Because this angle makes concrete claims about what the extension *does* ("tap once", "one click adds it to your magazine"), `SKILL.md` must cross-link it to `extensions/threads-collector/` and `docs/collect-funnel.md` so copy stays true to shipped behavior. This is live, not hypothetical: commit `34328a4` changed per-image collect so that swiping a carousel collects the visible slide rather than always slide 1 — copy claiming "one click" needs to match whatever the extension currently does.
 
 Followed by a dated observations block, stated as findings rather than instructions:
 
