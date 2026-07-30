@@ -55,3 +55,4 @@ temp/
 # Prisma
 prisma/migrations/dev.db
 prisma/migrations/dev.db-journal
+*.tsbuildinfo
