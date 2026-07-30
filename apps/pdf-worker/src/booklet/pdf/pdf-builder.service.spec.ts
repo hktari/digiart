@@ -196,6 +196,13 @@ describe("PdfBuilderService", () => {
       expect(await captionsFor([untitled])).toEqual(["Creator Alpha"]);
     });
 
+    it("should not strand the separator when a title sanitises away", async () => {
+      const emojiTitle = { ...makeArtwork("a1"), title: "🎨🎨" };
+      emojiTitle.creatorName = "@artist";
+
+      expect(await captionsFor([emojiTitle])).toEqual(["@artist"]);
+    });
+
     it("should omit the caption when there is nothing to credit", async () => {
       const anonymous = { ...makeArtwork("a1"), title: null };
 

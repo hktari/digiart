@@ -30,6 +30,14 @@ export const PAGE_DIMENSIONS: Record<PageFormat, PageDimensions> = {
   LETTER: { widthPt: mm(216), heightPt: mm(279) },
 };
 
+/**
+ * Print floor for a full-bleed A5 plate at 300dpi. Anything smaller visibly
+ * softens on paper, so the processor rejects the whole job rather than print
+ * it. Exported so tooling can apply the same rule before enqueueing.
+ */
+export const MIN_WIDTH_PX = 1696;
+export const MIN_HEIGHT_PX = 2528;
+
 export interface BookletJobData {
   collectorProfileId: string;
   cycleId: string;

@@ -4,6 +4,15 @@ import { Injectable, Logger } from "@nestjs/common";
 import { type PDFDocument, type PDFFont, type PDFPage, rgb } from "pdf-lib";
 import type { PageDimensions } from "../booklet.types";
 
+/**
+ * Two levels up, not three: this file sits at `<root>/booklet/pdf/` in both the
+ * compiled tree (`dist/booklet/pdf` → `dist/assets`) and the source tree
+ * (`src/booklet/pdf` → `src/assets`). The old `../../../assets` resolved to
+ * `<app>/assets`, which exists in neither, so every booklet since has printed
+ * with blank covers — the read is wrapped in a try/catch that only warns.
+ */
+const LOGO_PATH = join(__dirname, "../../assets/logo.png");
+
 const BEIGE_50 = rgb(0.98, 0.973, 0.957);
 const _FUCHSIA_600 = rgb(0.753, 0.149, 0.827);
 const FUCHSIA_700 = rgb(0.635, 0.11, 0.686);
@@ -32,8 +41,7 @@ export class CoverPageService {
     });
 
     try {
-      const logoPath = join(__dirname, "../../../assets/logo.png");
-      const logoBytes = await readFile(logoPath);
+      const logoBytes = await readFile(LOGO_PATH);
       const logoImage = await pdfDoc.embedPng(logoBytes);
 
       const logoMaxW = PAGE_WIDTH_PT * 0.4;
@@ -99,8 +107,7 @@ export class CoverPageService {
     });
 
     try {
-      const logoPath = join(__dirname, "../../../assets/logo.png");
-      const logoBytes = await readFile(logoPath);
+      const logoBytes = await readFile(LOGO_PATH);
       const logoImage = await pdfDoc.embedPng(logoBytes);
 
       const logoMaxW = PAGE_WIDTH_PT * 0.28;

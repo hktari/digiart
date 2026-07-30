@@ -1,5 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { PDFDocument, StandardFonts } from "pdf-lib";
+import { PDFDocument, PDFPage, StandardFonts } from "pdf-lib";
 import { PAGE_DIMENSIONS } from "../booklet.types";
 import { CoverPageService } from "./cover-page.service";
 
@@ -104,6 +104,29 @@ describe("CoverPageService", () => {
       const { width, height } = page.getSize();
       expect(width).toBeCloseTo(A4_PORTRAIT.widthPt, 1);
       expect(height).toBeCloseTo(A4_PORTRAIT.heightPt, 1);
+    });
+  });
+
+  // The only logo assertions used to be "does not throw when it is missing",
+  // which a permanently unresolvable path satisfies. These check it is there.
+  describe("brand mark", () => {
+    let drawImage: jest.SpyInstance;
+
+    beforeEach(() => {
+      drawImage = jest.spyOn(PDFPage.prototype, "drawImage");
+    });
+    afterEach(() => jest.restoreAllMocks());
+
+    it("should place the logo on the front cover", async () => {
+      const { pdfDoc, font } = await setup();
+      await service.addFrontCover(pdfDoc, font, "Issue #1", [], A5_PORTRAIT);
+      expect(drawImage).toHaveBeenCalledTimes(1);
+    });
+
+    it("should place the logo on the back cover", async () => {
+      const { pdfDoc } = await setup();
+      await service.addBackCover(pdfDoc, A5_PORTRAIT);
+      expect(drawImage).toHaveBeenCalledTimes(1);
     });
   });
 

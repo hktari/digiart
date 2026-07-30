@@ -8,7 +8,7 @@ import {
   type PageDimensions,
   type PageFormat,
 } from "../booklet.types";
-import { ArtworkPageService } from "./artwork-page.service";
+import { ArtworkPageService, toWinAnsi } from "./artwork-page.service";
 import { CoverPageService } from "./cover-page.service";
 import { PdfXProcessorService } from "./pdfx-processor.service";
 
@@ -33,10 +33,13 @@ export class PdfBuilderService {
    * artist is actually named in the printed object.
    */
   private captionFor(artwork: ArtworkRecord): string {
-    const title = artwork.title?.trim();
-    const creator = artwork.creatorName?.trim();
+    // Sanitised per part, not after joining: an emoji-only title survives the
+    // `title && creator` test but sanitises to nothing later, leaving the
+    // separator stranded as "— @handle".
+    const title = toWinAnsi(artwork.title ?? "");
+    const creator = toWinAnsi(artwork.creatorName ?? "");
     if (title && creator) return `${title} — ${creator}`;
-    return creator ?? title ?? "";
+    return creator || title;
   }
 
   async build(

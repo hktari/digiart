@@ -241,13 +241,38 @@ describe("ArtworkPageService", () => {
       expect(captioned?.[1].y).toBeGreaterThan(bare?.[1].y);
     });
 
-    it("should align the credit to a rotated plate's left edge", async () => {
-      // A 90° rotation is CCW about the anchor, so the image sits to the LEFT
-      // of the reported x. Aligning to the anchor would put the caption at the
-      // image's right edge instead.
+    it("should turn the credit with a rotated plate", async () => {
+      // Reading the credit should not require turning the book back the other
+      // way, so it runs up the side alongside the rotated image.
+      const { text } = await render("Creator Beta", "LANDSCAPE");
+      expect(text?.[1].rotate?.angle).toBe(90);
+      expect(text?.[1].x).toBeCloseTo(
+        A5_PORTRAIT.widthPt - MARGIN_PT - 4, // baseline inset from the page edge
+        5,
+      );
+    });
+
+    it("should start a rotated credit at the plate's own bottom-left", async () => {
       const { text, image } = await render("Creator Beta", "LANDSCAPE");
-      const [, imageOpts] = image ?? [];
-      expect(text?.[1].x).toBeCloseTo(imageOpts.x - imageOpts.height, 5);
+      // The image's u=0 edge maps to the page's y=drawY line after a CCW
+      // rotation, so caption and plate share an origin.
+      expect(text?.[1].y).toBeCloseTo(image?.[1].y, 5);
+    });
+
+    it("should take the caption band out of the width on a rotated plate", async () => {
+      // Reserving it at the page foot instead would leave a width-constrained
+      // rotated image with no room for the text.
+      const { image: bare } = await render(undefined, "LANDSCAPE");
+      const { image: captioned } = await render("Creator Beta", "LANDSCAPE");
+
+      // `height` is the source height, which after a 90° rotation is the
+      // image's horizontal extent on the page — so the 16pt band comes
+      // straight off it.
+      expect(bare?.[1].height - captioned?.[1].height).toBeCloseTo(16, 5);
+      // ...leaving the image clear of the strip the caption occupies.
+      expect(captioned?.[1].x).toBeLessThanOrEqual(
+        A5_PORTRAIT.widthPt - MARGIN_PT - 16 + 1e-6,
+      );
     });
 
     it("should not reserve space for a caption that sanitises to nothing", async () => {
@@ -279,6 +304,12 @@ describe("ArtworkPageService", () => {
 
     it("drops emoji and CJK", () => {
       expect(toWinAnsi("春 art 🎨")).toBe("art");
+    });
+
+    it("folds styled Unicode back to plain letters", () => {
+      // Social platforms are full of these; without NFKC the whole title is
+      // dropped as unencodable and the plate loses its name.
+      expect(toWinAnsi("🦚 ℝ𝕚𝕧𝕖𝕣𝕤 𝕠𝕗 𝔹𝕒𝕓𝕪𝕝𝕠𝕟 ⛲️")).toBe("Rivers of Babylon");
     });
 
     it("collapses whitespace and control characters", () => {

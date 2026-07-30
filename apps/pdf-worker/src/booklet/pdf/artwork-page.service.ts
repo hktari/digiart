@@ -11,9 +11,10 @@ import type { PageDimensions } from "../booklet.types";
 const MARGIN_PT = 28.35; // 10mm. According to Peecho Guidelines
 
 /**
- * Strip at the foot of the print area reserved for the plate caption. It is
- * taken out of the image's height, never out of the 10mm safe margin, so the
- * credit still lands inside Peecho's printable area.
+ * Strip of the print area reserved for the plate caption, along whichever edge
+ * is the image's own bottom. It is taken out of the space available to the
+ * image, never out of the 10mm safe margin, so the credit still lands inside
+ * Peecho's printable area.
  */
 const CAPTION_BAND_PT = 16;
 const CAPTION_FONT_SIZE = 7;
@@ -36,9 +37,14 @@ const WINANSI_ABOVE_LATIN1 = new Set([
  * cannot map — CJK, emoji, and a good deal of what turns up in social handles.
  * A caption is not worth failing a booklet over, so unencodable characters are
  * dropped rather than allowed to kill the job.
+ *
+ * Normalising with NFKC rather than NFC first: styled Unicode is everywhere on
+ * social platforms, and NFKC folds "𝕽𝖎𝖛𝖊𝖗𝖘" and friends back to plain letters.
+ * Under NFC those code points survive normalisation only to be dropped here,
+ * silently erasing a legible title.
  */
 export function toWinAnsi(value: string): string {
-  return [...value.normalize("NFC")]
+  return [...value.normalize("NFKC")]
     .filter((char) => {
       const cp = char.codePointAt(0) ?? 0;
       if (cp < 0x20 || (cp >= 0x7f && cp <= 0x9f)) return false; // controls
@@ -107,9 +113,22 @@ export class ArtworkPageService {
 
     const isImageLandscape = orientation === "LANDSCAPE";
     const isPageLandscape = PAGE_WIDTH_PT > PAGE_HEIGHT_PT;
+    // Rotation needed when image orientation doesn't match page orientation
+    const needsRotation = isImageLandscape !== isPageLandscape;
+
     const printW = PAGE_WIDTH_PT - MARGIN_PT * 2;
-    const printH = PAGE_HEIGHT_PT - MARGIN_PT * 2 - captionBandPt;
-    const printBottom = MARGIN_PT + captionBandPt;
+    const printH = PAGE_HEIGHT_PT - MARGIN_PT * 2;
+
+    // The caption always runs along the plate's own bottom edge, so that the
+    // reader who turns the book to view a rotated plate finds the credit the
+    // right way up beside it. On a rotated plate that edge is vertical, which
+    // is why the band comes out of the width instead of the height — reserving
+    // it at the page foot would leave a full-width rotated image with nowhere
+    // to put the text.
+    const bandW = needsRotation ? captionBandPt : 0;
+    const bandH = needsRotation ? 0 : captionBandPt;
+    const availW = printW - bandW;
+    const availH = printH - bandH;
 
     let drawW: number;
     let drawH: number;
@@ -117,26 +136,23 @@ export class ArtworkPageService {
     let drawY: number;
     let rotate = degrees(0);
 
-    // Rotation needed when image orientation doesn't match page orientation
-    const needsRotation = isImageLandscape !== isPageLandscape;
-
     if (needsRotation) {
       // pdf-lib rotates 90° CCW around bottom-left anchor (x, y).
       // After 90° rotation: visible width = original height, visible height = original width.
       // We scale based on the POST-rotation dimensions (swapped).
-      const scale = Math.min(printW / image.height, printH / image.width);
+      const scale = Math.min(availW / image.height, availH / image.width);
       drawW = image.width * scale;
       drawH = image.height * scale;
       // Position: center the rotated image, accounting for rotation anchor at bottom-left
-      drawX = MARGIN_PT + (printW - drawH) / 2 + drawH;
-      drawY = printBottom + (printH - drawW) / 2;
+      drawX = MARGIN_PT + (availW - drawH) / 2 + drawH;
+      drawY = MARGIN_PT + (availH - drawW) / 2;
       rotate = degrees(90);
     } else {
-      const scale = Math.min(printW / image.width, printH / image.height);
+      const scale = Math.min(availW / image.width, availH / image.height);
       drawW = image.width * scale;
       drawH = image.height * scale;
-      drawX = MARGIN_PT + (printW - drawW) / 2;
-      drawY = printBottom + (printH - drawH) / 2;
+      drawX = MARGIN_PT + (availW - drawW) / 2;
+      drawY = MARGIN_PT + bandH + (availH - drawH) / 2;
     }
 
     page.drawImage(image, {
@@ -148,22 +164,38 @@ export class ArtworkPageService {
     });
 
     if (caption && captionText) {
-      // A 90° rotation is counter-clockwise about (drawX, drawY), so the
-      // rotated image occupies [drawX - drawH, drawX] horizontally. Aligning
-      // the caption to the image's own left edge — rather than the page's —
-      // keeps it reading as a plate caption at any aspect ratio.
-      const imageLeft = needsRotation ? drawX - drawH : drawX;
-      const imageWidth = needsRotation ? drawH : drawW;
+      // Either way the caption starts at the plate's bottom-left corner *in
+      // the plate's own frame* and runs the length of its bottom edge, which
+      // after rotation is drawW in both cases.
+      const text = fitToWidth(
+        captionText,
+        caption.font,
+        CAPTION_FONT_SIZE,
+        drawW,
+      );
+      const shared = {
+        size: CAPTION_FONT_SIZE,
+        font: caption.font,
+        color: CAPTION_COLOR,
+      };
 
       page.drawText(
-        fitToWidth(captionText, caption.font, CAPTION_FONT_SIZE, imageWidth),
-        {
-          x: imageLeft,
-          y: MARGIN_PT + CAPTION_BASELINE_OFFSET_PT,
-          size: CAPTION_FONT_SIZE,
-          font: caption.font,
-          color: CAPTION_COLOR,
-        },
+        text,
+        needsRotation
+          ? {
+              // Baseline inset from the page's right edge, mirroring how the
+              // unrotated caption is inset from the foot; glyphs ascend back
+              // toward the image.
+              x: MARGIN_PT + printW - CAPTION_BASELINE_OFFSET_PT,
+              y: drawY,
+              rotate: degrees(90),
+              ...shared,
+            }
+          : {
+              x: drawX,
+              y: MARGIN_PT + CAPTION_BASELINE_OFFSET_PT,
+              ...shared,
+            },
       );
     }
 

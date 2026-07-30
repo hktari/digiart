@@ -5,7 +5,12 @@ import { PrismaClient } from "@prisma/client";
 import * as Sentry from "@sentry/nestjs";
 import type { Job } from "bullmq";
 import type { BookletJobData, BookletJobResult } from "./booklet.types";
-import { DEFAULT_PAGE_FORMAT, PAGE_DIMENSIONS } from "./booklet.types";
+import {
+  DEFAULT_PAGE_FORMAT,
+  MIN_HEIGHT_PX,
+  MIN_WIDTH_PX,
+  PAGE_DIMENSIONS,
+} from "./booklet.types";
 // Both of these are injected, so they must stay VALUE imports. `import type`
 // is erased at compile time, leaving emitDecoratorMetadata with no class
 // reference, and Nest then crashes at bootstrap with
@@ -16,9 +21,6 @@ import { DEFAULT_PAGE_FORMAT, PAGE_DIMENSIONS } from "./booklet.types";
 // disables that rule for src/** — do not narrow that override.
 import { PdfBuilderService } from "./pdf/pdf-builder.service";
 import { StorageService } from "./storage/storage.service";
-
-const MIN_WIDTH_PX = 1696;
-const MIN_HEIGHT_PX = 2528;
 
 @Processor("booklet-generation")
 export class BookletProcessor extends WorkerHost {
