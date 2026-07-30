@@ -105,3 +105,46 @@ the collect funnel via the browser extension.
 | 2026-07-21 09:06 | `extension-collect-demo` | facebook | video | "see a piece you love? one click adds it to your magazine" | 1/0/0 |
 | 2026-07-21 09:06 | `extension-collect-demo` | threads | video | same copy | 33/0/0 |
 | 2026-07-28 12:51 | — *(blank)* | facebook | video | **shipped with empty copy** | 0/0/0 |
+
+## `extension-collect-demo` — the tool-led angle
+
+Recorded as its own class because it is structurally different from the other 19:
+it demos a **working tool** rather than describing a planned product.
+
+Five posts (2026-07-19 through 07-21) showing the ELSEWHERE Collector browser
+extension — `extensions/threads-collector`, manifest name "ELSEWHERE Collector
+(Threads POC)" — running on live Threads and posting to
+`app.printfeed.btechhub.top`. It produced the best Threads number of July: 33
+impressions on 2026-07-21.
+
+**This angle has a code dependency no other angle has.** Its copy makes concrete
+claims about behavior — "tap once", "one click adds it to your magazine". Before
+reusing or adapting it, check the claims against
+`extensions/threads-collector/src/content.js` and `docs/collect-funnel.md`.
+Commit `34328a4` changed per-image collect so that swiping a carousel collects
+the visible slide rather than always the first one; demo copy outlives the build
+it was written against.
+
+## Observations (2026-07-30)
+
+What the 48-post corpus shows. These are findings, not instructions — the choice
+of what to do next is a separate decision.
+
+- The top post of all 48 is `hashtag-only` (2026-04-25, 232 impressions): an
+  image with `#artdaily` and no pitch. Nothing in the three months since has come
+  within 3× of it.
+- The only two posts that drew replies both tagged artists by name — 2026-05-22
+  (73 impressions, 2 comments, tagged `@108iroha23`) and 2026-07-06 (20
+  impressions, 3 likes, 2 comments, tagged 8 artists). No untagged post in the
+  corpus produced a comment thread.
+- Format is uncorrelated with reach. Image, video, carousel, and text all land in
+  the same 5–33 band on Threads.
+- Facebook PrintFeed reached 0–2 people on every post, regardless of format,
+  image, or copy. The account has 0 followers.
+- Adding images did not change outcomes. Round 1 (2026-07-10/13/15) was text-only
+  and round 2 (07-20/22/24) shipped `.jpg` mockups; both landed in the same band.
+- Three brand renames in three months (DigiArt → ELSEWHERE → PrintFeed) with no
+  audience carried across. `_bk_art29` went 10 → 13 followers across all of July;
+  PrintFeed stayed at 0.
+- Across all 48 posts there was one recorded click and zero attributed follows.
+- Four posts shipped with empty copy, one of them as recently as 2026-07-28.
