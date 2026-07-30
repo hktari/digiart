@@ -29,10 +29,15 @@ describe("claimCollection", () => {
       token: TOKEN,
       collectorLeadId: LEAD_ID,
       ownerUserId: null,
+      email: "saved@example.com",
+      _count: { items: 4 },
     } as never);
     vi.mocked(db.collection.update).mockResolvedValue({} as never);
     vi.mocked(db.lead.findUnique).mockResolvedValue(null as never);
     vi.mocked(db.lead.update).mockResolvedValue({} as never);
+
+    const { sendEmail } = await import("@/lib/email");
+    vi.mocked(sendEmail).mockResolvedValue({ sent: true });
   });
 
   it("links the collection and advances the collector lead", async () => {
@@ -88,6 +93,65 @@ describe("claimCollection", () => {
 
     await expect(claimCollection(TOKEN)).resolves.toBeUndefined();
     expect(db.collection.update).toHaveBeenCalled();
+  });
+
+  describe("reservation confirmation", () => {
+    beforeEach(() => {
+      process.env.NEXT_PUBLIC_APP_URL = "https://app.printfeed.example";
+    });
+
+    it("confirms the reservation and is explicit that nothing was charged", async () => {
+      // The page can only reserve — no quote, no payment, no print job. An
+      // unqualified confirmation would repeat the promise this funnel could
+      // not keep.
+      const { claimCollection } = await import("../actions");
+      const { sendEmail } = await import("@/lib/email");
+
+      await claimCollection(TOKEN);
+
+      expect(sendEmail).toHaveBeenCalledTimes(1);
+      const [args] = vi.mocked(sendEmail).mock.calls[0];
+      expect(args.to).toBe("saved@example.com");
+      expect(args.text).toContain("Nothing has been charged");
+      expect(args.text).toContain(`https://app.printfeed.example/c/${TOKEN}`);
+      // 1200 + 4 * 150 = 1800
+      expect(args.text).toContain("€18.00");
+    });
+
+    it("falls back to the signed-in account when no email was saved", async () => {
+      const { claimCollection } = await import("../actions");
+      const { auth } = await import("@/lib/auth");
+      const { db } = await import("@/lib/db");
+      const { sendEmail } = await import("@/lib/email");
+
+      vi.mocked(auth).mockResolvedValue({
+        user: { id: USER_ID, email: "account@example.com" },
+      } as never);
+      vi.mocked(db.collection.findUnique).mockResolvedValue({
+        id: "col-1",
+        token: TOKEN,
+        collectorLeadId: LEAD_ID,
+        ownerUserId: null,
+        email: null,
+        _count: { items: 1 },
+      } as never);
+
+      await claimCollection(TOKEN);
+
+      expect(vi.mocked(sendEmail).mock.calls[0][0].to).toBe(
+        "account@example.com",
+      );
+    });
+
+    it("keeps the reservation when the confirmation cannot be sent", async () => {
+      const { claimCollection } = await import("../actions");
+      const { db } = await import("@/lib/db");
+      const { sendEmail } = await import("@/lib/email");
+      vi.mocked(sendEmail).mockResolvedValue({ sent: false, error: "down" });
+
+      await expect(claimCollection(TOKEN)).resolves.toBeUndefined();
+      expect(db.collection.update).toHaveBeenCalled();
+    });
   });
 
   it("does nothing without a session", async () => {

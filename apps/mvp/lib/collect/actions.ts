@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
+import { formatEur, magazinePriceCents } from "@/lib/collect/pricing";
 import { db } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
 import { logger } from "@/lib/logger";
@@ -133,17 +134,45 @@ export async function removeCollectionItem(
   revalidatePath(`/c/${token}/print`);
 }
 
+function reservationEmailBody(url: string, itemCount: number, price: string) {
+  const pieces = `${itemCount} ${itemCount === 1 ? "piece" : "pieces"}`;
+  return {
+    subject: "Your magazine is reserved",
+    text: [
+      `We've held a place for your collection — ${pieces}, around ${price} to print and ship.`,
+      "",
+      "Nothing has been charged. We'll email you as soon as printing opens,",
+      "and you'll confirm before anything is paid for or produced.",
+      "",
+      `Your collection: ${url}`,
+    ].join("\n"),
+    html: [
+      `<p>We've held a place for your collection — ${pieces}, around ${price} to print and ship.</p>`,
+      "<p><strong>Nothing has been charged.</strong> We'll email you as soon as printing opens, and you'll confirm before anything is paid for or produced.</p>",
+      `<p>Your collection: <a href="${url}">${url}</a></p>`,
+    ].join(""),
+  };
+}
+
 /**
- * Conversion event (collector side): links the collection to the signed-in user
- * and advances the collector lead to SIGNED_UP. Called when an authenticated
- * user returns to a collection/print page after activating.
+ * Conversion event (collector side): links the collection to the signed-in user,
+ * advances the collector lead to SIGNED_UP, and confirms the reservation by
+ * email.
+ *
+ * This reserves a magazine; it does not order one. There is no order path from
+ * a Collection yet — no quote, no payment, no print job — so the confirmation
+ * deliberately says nothing has been charged. Do not let this or the print
+ * page's copy imply otherwise until that pipeline exists.
  */
 export async function claimCollection(token: string): Promise<void> {
   const session = await auth();
   const userId = session?.user?.id;
   if (!userId) return;
 
-  const collection = await db.collection.findUnique({ where: { token } });
+  const collection = await db.collection.findUnique({
+    where: { token },
+    include: { _count: { select: { items: true } } },
+  });
   if (!collection || collection.ownerUserId) return;
 
   await db.collection.update({
@@ -186,6 +215,31 @@ export async function claimCollection(token: string): Promise<void> {
 
   revalidatePath(`/c/${token}`);
   revalidatePath(`/c/${token}/print`);
+
+  // Reserving is otherwise invisible — the panel changes and nothing else
+  // happens for weeks — so confirm it in writing. Prefer the address the
+  // collector saved on the collection, falling back to the account they
+  // signed in with.
+  const to = collection.email ?? session?.user?.email;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (!to || !baseUrl) {
+    logger.error("[collect] cannot confirm reservation", {
+      token,
+      hasRecipient: Boolean(to),
+      hasBaseUrl: Boolean(baseUrl),
+    });
+    return;
+  }
+
+  const { subject, text, html } = reservationEmailBody(
+    `${baseUrl.replace(/\/$/, "")}/c/${token}`,
+    collection._count.items,
+    formatEur(magazinePriceCents(collection._count.items)),
+  );
+  const { sent, error } = await sendEmail({ to, subject, html, text });
+  if (!sent) {
+    logger.error("[collect] reservation email failed", { token, error });
+  }
 }
 
 /**

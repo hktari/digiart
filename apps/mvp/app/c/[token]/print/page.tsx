@@ -69,8 +69,9 @@ export default async function PrintPage({ params }: Props) {
             {collection.itemCount}{" "}
             {collection.itemCount === 1 ? "piece" : "pieces"} from{" "}
             {collection.artistCount}{" "}
-            {collection.artistCount === 1 ? "artist" : "artists"}, printed as a
-            perfect-bound A5 magazine and mailed to your door.
+            {collection.artistCount === 1 ? "artist" : "artists"}, to be printed
+            as a perfect-bound A5 magazine and mailed to your door. Every artist
+            inside is named on their own page.
           </p>
 
           <div className="mt-6 flex items-baseline gap-2">
@@ -78,27 +79,38 @@ export default async function PrintPage({ params }: Props) {
               {price}
             </span>
             <span className="text-sm text-muted-foreground">
-              incl. printing &amp; shipping
+              estimated, incl. printing &amp; shipping
             </span>
           </div>
 
+          {/*
+            Reserving is all this page can do: there is no order path from a
+            Collection — no live quote, no payment, no print job. The copy says
+            so. If that pipeline gets built, this is the place to change.
+          */}
           {activated ? (
             <div className="mt-6 rounded-xl border border-jade-300 bg-jade-50 p-4">
-              <p className="font-medium text-jade-800">You&apos;re in! 🎉</p>
+              <p className="font-medium text-jade-800">
+                You&apos;re on the list.
+              </p>
               <p className="mt-1 text-sm text-jade-700">
-                Your magazine is queued for printing. We&apos;ll email shipping
-                updates. Every artist inside earns a share of the print margin.
+                We&apos;ll email you as soon as printing opens — nothing has
+                been charged, and you&apos;ll confirm before anything is
+                produced.
               </p>
             </div>
           ) : isAuthed ? (
-            <form action={ship} className="mt-6">
+            <form action={ship} className="mt-6 space-y-3">
               <Button
                 type="submit"
                 size="lg"
                 className="w-full bg-fuchsia-600 hover:bg-fuchsia-700"
               >
-                Confirm &amp; ship my magazine
+                Reserve my magazine
               </Button>
+              <p className="text-center text-xs text-muted-foreground">
+                No payment yet — we&apos;ll email you when printing opens.
+              </p>
             </form>
           ) : (
             <div className="mt-6 space-y-3">
@@ -107,10 +119,11 @@ export default async function PrintPage({ params }: Props) {
                 size="lg"
                 className="w-full bg-fuchsia-600 hover:bg-fuchsia-700"
               >
-                <Link href={signInUrl}>Activate to ship →</Link>
+                <Link href={signInUrl}>Activate to reserve →</Link>
               </Button>
               <p className="text-center text-xs text-muted-foreground">
-                Free to start. Activate a PrintFeed account to order and ship.
+                Free to start. Activate a PrintFeed account to reserve your copy
+                — no payment yet.
               </p>
             </div>
           )}
