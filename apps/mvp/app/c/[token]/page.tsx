@@ -3,12 +3,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   removeCollectionItem,
   saveCollectionEmail,
 } from "@/lib/collect/actions";
 import { getCollectionView } from "@/lib/collect/ingest-service";
+import { SaveCollectionForm } from "./save-collection-form";
 
 type Props = { params: Promise<{ token: string }> };
 
@@ -47,32 +47,7 @@ export default async function CollectionPage({ params }: Props) {
           </Button>
         </header>
 
-        {!collection.ownerUserId && (
-          <form
-            action={saveEmail}
-            className="mb-10 flex flex-col gap-2 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center"
-          >
-            <label
-              htmlFor="email"
-              className="text-sm text-muted-foreground sm:mr-2"
-            >
-              Save your collection — we&apos;ll email you the link:
-            </label>
-            <div className="flex flex-1 gap-2">
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                required
-                placeholder="you@example.com"
-                className="flex-1"
-              />
-              <Button type="submit" variant="outline">
-                Save
-              </Button>
-            </div>
-          </form>
-        )}
+        {!collection.ownerUserId && <SaveCollectionForm action={saveEmail} />}
 
         <div className="space-y-10">
           {groups.map((group) => (

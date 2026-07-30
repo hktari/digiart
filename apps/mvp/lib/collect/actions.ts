@@ -4,25 +4,62 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { sendEmail } from "@/lib/email";
 import { logger } from "@/lib/logger";
 import { deleteStorageObject } from "@/lib/s3";
 
 const emailSchema = z.string().email();
 
+export type SaveCollectionEmailState = {
+  status: "sent" | "invalid" | "error";
+  message: string;
+} | null;
+
+function collectionEmailBody(url: string, itemCount: number) {
+  const pieces = `${itemCount} ${itemCount === 1 ? "piece" : "pieces"}`;
+  return {
+    subject: "Your collection on PrintFeed",
+    text: [
+      `Here is the link to your collection — ${pieces}, yours to keep:`,
+      "",
+      url,
+      "",
+      "Open it any time to add to it, remove pieces, or print it as a magazine.",
+    ].join("\n"),
+    html: [
+      `<p>Here is the link to your collection — ${pieces}, yours to keep:</p>`,
+      `<p><a href="${url}">${url}</a></p>`,
+      "<p>Open it any time to add to it, remove pieces, or print it as a magazine.</p>",
+    ].join(""),
+  };
+}
+
 /**
  * Value-moment email capture: enriches the anonymous collector lead + collection
- * with an email so the collection is portable and the collector is reachable.
+ * with an email so the collection is portable and the collector is reachable,
+ * then sends the link the form promises.
+ *
+ * The save happens first and the result is reported separately, so a Resend
+ * outage still captures the lead rather than losing it along with the send.
  */
 export async function saveCollectionEmail(
   token: string,
+  _prevState: SaveCollectionEmailState,
   formData: FormData,
-): Promise<void> {
+): Promise<NonNullable<SaveCollectionEmailState>> {
   const parsed = emailSchema.safeParse(formData.get("email"));
-  if (!parsed.success) return;
+  if (!parsed.success) {
+    return { status: "invalid", message: "That email doesn't look right." };
+  }
   const email = parsed.data.toLowerCase();
 
-  const collection = await db.collection.findUnique({ where: { token } });
-  if (!collection) return;
+  const collection = await db.collection.findUnique({
+    where: { token },
+    include: { _count: { select: { items: true } } },
+  });
+  if (!collection) {
+    return { status: "error", message: "We couldn't find that collection." };
+  }
 
   await db.collection.update({ where: { token }, data: { email } });
   if (collection.collectorLeadId) {
@@ -32,6 +69,32 @@ export async function saveCollectionEmail(
     });
   }
   revalidatePath(`/c/${token}`);
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (!baseUrl) {
+    logger.error("[collect] NEXT_PUBLIC_APP_URL unset; cannot email a link", {
+      token,
+    });
+    return {
+      status: "error",
+      message: "Saved, but we couldn't send the email. Bookmark this page.",
+    };
+  }
+
+  const { subject, text, html } = collectionEmailBody(
+    `${baseUrl.replace(/\/$/, "")}/c/${token}`,
+    collection._count.items,
+  );
+  const { sent, error } = await sendEmail({ to: email, subject, html, text });
+  if (!sent) {
+    logger.error("[collect] collection link email failed", { token, error });
+    return {
+      status: "error",
+      message: "Saved, but we couldn't send the email. Bookmark this page.",
+    };
+  }
+
+  return { status: "sent", message: `Sent — check ${email}.` };
 }
 
 /**
