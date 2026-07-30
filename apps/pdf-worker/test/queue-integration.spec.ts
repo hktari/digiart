@@ -7,40 +7,81 @@
  * Infrastructure: real Redis via testcontainers (Docker required).
  * External deps mocked: Prisma (DB), fetch (S3 artwork download), StorageService (local write).
  */
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
-import { Test, TestingModule } from "@nestjs/testing";
+
 import { BullModule, getQueueToken } from "@nestjs/bullmq";
+import { Test, type TestingModule } from "@nestjs/testing";
+import {
+  RedisContainer,
+  type StartedRedisContainer,
+} from "@testcontainers/redis";
 import { Queue, Worker } from "bullmq";
-import { RedisContainer, type StartedRedisContainer } from "@testcontainers/redis";
 import { PDFDocument } from "pdf-lib";
+import sharp from "sharp";
 import { BookletProcessor } from "../src/booklet/booklet.processor";
-import { PdfBuilderService } from "../src/booklet/pdf/pdf-builder.service";
+import type {
+  BookletJobData,
+  BookletJobResult,
+} from "../src/booklet/booklet.types";
 import { ArtworkPageService } from "../src/booklet/pdf/artwork-page.service";
 import { CoverPageService } from "../src/booklet/pdf/cover-page.service";
+import { PdfBuilderService } from "../src/booklet/pdf/pdf-builder.service";
+import { PdfXProcessorService } from "../src/booklet/pdf/pdfx-processor.service";
 import { StorageService } from "../src/booklet/storage/storage.service";
-import type { BookletJobData, BookletJobResult } from "../src/booklet/booklet.types";
 
 // ---------------------------------------------------------------------------
-// Fixtures — real JPEG files from test/artworks/
+// Fixtures — JPEGs synthesised at run time.
+//
+// These were previously read from test/artworks/, which was never committed, so
+// the suite only ever ran on the machine that had those files. Generating them
+// keeps the bytes genuinely JPEG-encoded (sharp decodes them exactly as it would
+// an S3 download) while making the suite runnable anywhere, with no binaries in
+// the repo and no artwork of unclear provenance.
+//
+// Dimensions must clear BookletProcessor's MIN_WIDTH_PX/MIN_HEIGHT_PX and match
+// the width/height on the mocked artwork rows below.
 // ---------------------------------------------------------------------------
-const ARTWORKS_DIR = join(__dirname, "artworks");
+const ARTWORK_WIDTH = 1800;
+const ARTWORK_HEIGHT = 2600;
 const ARTWORK_FILES = [
-  "00027-flux_dev.jpeg",
-  "00059-234188524.jpg",
-  "DW2C74B5Q1P1MPYGS27DDYZES0.jpeg",
+  "artwork-portrait-01.jpg",
+  "artwork-portrait-02.jpg",
+  "artwork-portrait-03.jpg",
 ];
+
+/** A distinct, deterministic JPEG per index, so pages are visually distinguishable. */
+async function makeArtworkJpeg(index: number): Promise<Buffer> {
+  const hues = [
+    { r: 190, g: 90, b: 60 },
+    { r: 60, g: 130, b: 170 },
+    { r: 90, g: 160, b: 110 },
+  ];
+  return sharp({
+    create: {
+      width: ARTWORK_WIDTH,
+      height: ARTWORK_HEIGHT,
+      channels: 3,
+      background: hues[index % hues.length],
+    },
+  })
+    .jpeg({ quality: 80 })
+    .toBuffer();
+}
 
 // ---------------------------------------------------------------------------
 // Mock Prisma — injected via jest.mock so BookletProcessor.prisma is replaced
 // ---------------------------------------------------------------------------
 const mockFindMany = jest.fn();
+const mockUpdateMany = jest.fn().mockResolvedValue({ count: 1 });
 jest.mock("@prisma/adapter-pg", () => ({
   PrismaPg: jest.fn().mockImplementation(() => ({})),
 }));
 jest.mock("@prisma/client", () => ({
   PrismaClient: jest.fn().mockImplementation(() => ({
     collectorReleaseSelection: { findMany: mockFindMany },
+    // The processor moves the print file through GENERATING → READY/FAILED on
+    // every job, including the failure path, so this must be stubbed or the
+    // real error is masked by a TypeError on undefined.
+    generatedPrintFile: { updateMany: mockUpdateMany },
   })),
 }));
 
@@ -77,9 +118,9 @@ describe("Queue Integration: MVP enqueue → BookletProcessor → Storage", () =
     redisContainer = await new RedisContainer("redis:7-alpine").start();
     redisUrl = redisContainer.getConnectionUrl();
 
-    // 2. Load real artwork images for the mock HTTP responses
+    // 2. Synthesise the artwork images for the mock HTTP responses
     artworkBuffers = await Promise.all(
-      ARTWORK_FILES.map((f) => readFile(join(ARTWORKS_DIR, f))),
+      ARTWORK_FILES.map((_, i) => makeArtworkJpeg(i)),
     );
 
     // 3. Configure mock Prisma to return 3 artwork selections
@@ -99,25 +140,36 @@ describe("Queue Integration: MVP enqueue → BookletProcessor → Storage", () =
             sortOrder: i,
           },
         ],
-        creatorProfile: { displayName: i === 0 ? "Creator Alpha" : "Creator Beta" },
+        creatorProfile: {
+          displayName: i === 0 ? "Creator Alpha" : "Creator Beta",
+        },
       },
     }));
     mockFindMany.mockResolvedValue(selections);
 
     // 4. Configure mock fetch to return artwork bytes from disk
     mockFetch.mockImplementation(async (url: string) => {
-      const idx = ARTWORK_FILES.findIndex((f) => url.includes(f) || url.includes(`artwork-${ARTWORK_FILES.indexOf(f)}`));
+      const idx = ARTWORK_FILES.findIndex(
+        (f) =>
+          url.includes(f) ||
+          url.includes(`artwork-${ARTWORK_FILES.indexOf(f)}`),
+      );
       // Fall back: match by artwork index in URL order
-      const matched = ARTWORK_FILES.findIndex((_, i) => url.includes(`artwork-${i}`));
+      const matched = ARTWORK_FILES.findIndex((_, i) =>
+        url.includes(`artwork-${i}`),
+      );
       const bufIdx = matched >= 0 ? matched : 0;
       return {
         ok: true,
-        arrayBuffer: jest.fn().mockResolvedValue(
-          artworkBuffers[bufIdx].buffer.slice(
-            artworkBuffers[bufIdx].byteOffset,
-            artworkBuffers[bufIdx].byteOffset + artworkBuffers[bufIdx].byteLength,
+        arrayBuffer: jest
+          .fn()
+          .mockResolvedValue(
+            artworkBuffers[bufIdx].buffer.slice(
+              artworkBuffers[bufIdx].byteOffset,
+              artworkBuffers[bufIdx].byteOffset +
+                artworkBuffers[bufIdx].byteLength,
+            ),
           ),
-        ),
       };
     });
 
@@ -139,6 +191,7 @@ describe("Queue Integration: MVP enqueue → BookletProcessor → Storage", () =
         PdfBuilderService,
         ArtworkPageService,
         CoverPageService,
+        PdfXProcessorService,
         StorageService,
       ],
     }).compile();
@@ -270,14 +323,19 @@ async function waitForJobFailure(
 
     const state = await job.getState();
     if (state === "failed") {
-      return job.failedReason ?? "unknown error";
+      // getState() can report "failed" a beat before failedReason is readable,
+      // so keep polling rather than returning a placeholder that would mask the
+      // real message.
+      if (job.failedReason) return job.failedReason;
     }
     if (state === "completed") {
       throw new Error("Expected job to fail but it completed");
     }
     await sleep(200);
   }
-  throw new Error(`Job ${jobId} did not fail within ${timeoutMs}ms`);
+  throw new Error(
+    `Job ${jobId} did not fail with a readable reason within ${timeoutMs}ms`,
+  );
 }
 
 function sleep(ms: number): Promise<void> {
