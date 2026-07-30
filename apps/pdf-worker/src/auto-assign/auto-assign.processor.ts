@@ -1,8 +1,8 @@
 import { Processor, WorkerHost } from "@nestjs/bullmq";
 import { Logger } from "@nestjs/common";
-import type { Job } from "bullmq";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
+import type { Job } from "bullmq";
 import type {
   AutoAssignJobData,
   AutoAssignJobResult,

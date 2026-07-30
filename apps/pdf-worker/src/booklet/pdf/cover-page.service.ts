@@ -5,7 +5,7 @@ import { type PDFDocument, type PDFFont, type PDFPage, rgb } from "pdf-lib";
 import type { PageDimensions } from "../booklet.types";
 
 const BEIGE_50 = rgb(0.98, 0.973, 0.957);
-const FUCHSIA_600 = rgb(0.753, 0.149, 0.827);
+const _FUCHSIA_600 = rgb(0.753, 0.149, 0.827);
 const FUCHSIA_700 = rgb(0.635, 0.11, 0.686);
 const WHITE = rgb(1, 1, 1);
 

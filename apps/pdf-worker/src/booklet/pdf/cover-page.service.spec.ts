@@ -1,7 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { PDFDocument, StandardFonts } from "pdf-lib";
-import { CoverPageService } from "./cover-page.service";
 import { PAGE_DIMENSIONS } from "../booklet.types";
+import { CoverPageService } from "./cover-page.service";
 
 const A5_PORTRAIT = PAGE_DIMENSIONS.A5_PORTRAIT;
 const A4_PORTRAIT = PAGE_DIMENSIONS.A4_PORTRAIT;

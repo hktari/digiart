@@ -90,7 +90,7 @@ describe("PdfXProcessorService", () => {
       const page = pdfDoc.addPage([595, 842]);
 
       // Create a simple test image (red square)
-      const imageData = new Uint8Array([
+      const _imageData = new Uint8Array([
         0x89,
         0x50,
         0x4e,

@@ -1,15 +1,16 @@
-import { readFile, readdir } from 'node:fs/promises';
-import { join } from 'node:path';
-import { Test, TestingModule } from '@nestjs/testing';
-import { PDFDocument } from 'pdf-lib';
-import { PdfBuilderService } from '../src/booklet/pdf/pdf-builder.service';
-import { ArtworkPageService } from '../src/booklet/pdf/artwork-page.service';
-import { CoverPageService } from '../src/booklet/pdf/cover-page.service';
-import type { ArtworkRecord } from '../src/booklet/booklet.types';
+import { readdir, readFile } from "node:fs/promises";
+import { join } from "node:path";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { PDFDocument } from "pdf-lib";
+import type { ArtworkRecord } from "../src/booklet/booklet.types";
+import { ArtworkPageService } from "../src/booklet/pdf/artwork-page.service";
+import { CoverPageService } from "../src/booklet/pdf/cover-page.service";
+import { PdfBuilderService } from "../src/booklet/pdf/pdf-builder.service";
 
-describe('Booklet Generation E2E', () => {
+describe("Booklet Generation E2E", () => {
   let pdfBuilderService: PdfBuilderService;
-  const assetsPath = '/home/bostjan/source/projects/art-subscription-platform/assets/booklet-showcase/01';
+  const assetsPath =
+    "/home/bostjan/source/projects/art-subscription-platform/assets/booklet-showcase/01";
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -19,16 +20,16 @@ describe('Booklet Generation E2E', () => {
     pdfBuilderService = module.get<PdfBuilderService>(PdfBuilderService);
   });
 
-  it('should generate a valid PDF booklet from showcase images', async () => {
+  it("should generate a valid PDF booklet from showcase images", async () => {
     const files = await readdir(assetsPath);
     const imageFiles = files.filter(
       (f) =>
-        f.endsWith('.jpg') ||
-        f.endsWith('.jpeg') ||
-        f.endsWith('.png') ||
-        f.endsWith('.JPG') ||
-        f.endsWith('.JPEG') ||
-        f.endsWith('.PNG'),
+        f.endsWith(".jpg") ||
+        f.endsWith(".jpeg") ||
+        f.endsWith(".png") ||
+        f.endsWith(".JPG") ||
+        f.endsWith(".JPEG") ||
+        f.endsWith(".PNG"),
     );
 
     expect(imageFiles.length).toBeGreaterThan(0);
@@ -42,9 +43,9 @@ describe('Booklet Generation E2E', () => {
       const buffer = await readFile(filePath);
 
       const artworkId = `artwork-${i}`;
-      const mimeType = file.toLowerCase().endsWith('.png')
-        ? 'image/png'
-        : 'image/jpeg';
+      const mimeType = file.toLowerCase().endsWith(".png")
+        ? "image/png"
+        : "image/jpeg";
 
       artworks.push({
         id: artworkId,
@@ -53,14 +54,14 @@ describe('Booklet Generation E2E', () => {
         mimeType,
         width: 2000,
         height: 2800,
-        orientation: 'PORTRAIT',
+        orientation: "PORTRAIT",
       });
 
       imageBuffers.set(artworkId, buffer);
     }
 
-    const issueLabel = 'Test Issue #1';
-    const creatorNames = ['Test Creator A', 'Test Creator B'];
+    const issueLabel = "Test Issue #1";
+    const creatorNames = ["Test Creator A", "Test Creator B"];
 
     const result = await pdfBuilderService.build(
       artworks,
@@ -87,13 +88,15 @@ describe('Booklet Generation E2E', () => {
       expect(height).toBeGreaterThan(0);
     }
 
-    console.log(`✓ Generated PDF with ${result.pageCount} pages from ${artworks.length} artworks`);
+    console.log(
+      `✓ Generated PDF with ${result.pageCount} pages from ${artworks.length} artworks`,
+    );
   });
 
-  it('should handle landscape and portrait orientations', async () => {
+  it("should handle landscape and portrait orientations", async () => {
     const files = await readdir(assetsPath);
     const imageFiles = files.filter(
-      (f) => f.endsWith('.jpg') || f.endsWith('.jpeg') || f.endsWith('.png'),
+      (f) => f.endsWith(".jpg") || f.endsWith(".jpeg") || f.endsWith(".png"),
     );
 
     const artworks: ArtworkRecord[] = [];
@@ -107,33 +110,33 @@ describe('Booklet Generation E2E', () => {
 
     artworks.push(
       {
-        id: 'portrait-1',
-        title: 'Portrait Artwork',
-        storageKey: 'test/portrait.jpg',
-        mimeType: 'image/jpeg',
+        id: "portrait-1",
+        title: "Portrait Artwork",
+        storageKey: "test/portrait.jpg",
+        mimeType: "image/jpeg",
         width: 2000,
         height: 2800,
-        orientation: 'PORTRAIT',
+        orientation: "PORTRAIT",
       },
       {
-        id: 'landscape-1',
-        title: 'Landscape Artwork',
-        storageKey: 'test/landscape.jpg',
-        mimeType: 'image/jpeg',
+        id: "landscape-1",
+        title: "Landscape Artwork",
+        storageKey: "test/landscape.jpg",
+        mimeType: "image/jpeg",
         width: 2800,
         height: 2000,
-        orientation: 'LANDSCAPE',
+        orientation: "LANDSCAPE",
       },
     );
 
-    imageBuffers.set('portrait-1', portraitBuffer);
-    imageBuffers.set('landscape-1', landscapeBuffer);
+    imageBuffers.set("portrait-1", portraitBuffer);
+    imageBuffers.set("landscape-1", landscapeBuffer);
 
     const result = await pdfBuilderService.build(
       artworks,
       imageBuffers,
-      'Mixed Orientation Test',
-      ['Test Creator'],
+      "Mixed Orientation Test",
+      ["Test Creator"],
     );
 
     expect(result.pageCount).toBeGreaterThanOrEqual(4);
@@ -141,45 +144,49 @@ describe('Booklet Generation E2E', () => {
     const pdfDoc = await PDFDocument.load(result.bytes);
     expect(pdfDoc.getPageCount()).toBe(result.pageCount);
 
-    console.log(`✓ Generated mixed orientation PDF with ${result.pageCount} pages`);
+    console.log(
+      `✓ Generated mixed orientation PDF with ${result.pageCount} pages`,
+    );
   });
 
-  it('should add blank page if total pages are odd', async () => {
+  it("should add blank page if total pages are odd", async () => {
     const files = await readdir(assetsPath);
     const imageFile = files.find(
-      (f) => f.endsWith('.jpg') || f.endsWith('.jpeg') || f.endsWith('.png'),
+      (f) => f.endsWith(".jpg") || f.endsWith(".jpeg") || f.endsWith(".png"),
     );
 
     if (!imageFile) {
-      throw new Error('No image files found in assets directory');
+      throw new Error("No image files found in assets directory");
     }
 
     const buffer = await readFile(join(assetsPath, imageFile));
 
     const artworks: ArtworkRecord[] = [
       {
-        id: 'single-artwork',
-        title: 'Single Artwork',
-        storageKey: 'test/single.jpg',
-        mimeType: 'image/jpeg',
+        id: "single-artwork",
+        title: "Single Artwork",
+        storageKey: "test/single.jpg",
+        mimeType: "image/jpeg",
         width: 2000,
         height: 2800,
-        orientation: 'PORTRAIT',
+        orientation: "PORTRAIT",
       },
     ];
 
     const imageBuffers = new Map<string, Buffer>();
-    imageBuffers.set('single-artwork', buffer);
+    imageBuffers.set("single-artwork", buffer);
 
     const result = await pdfBuilderService.build(
       artworks,
       imageBuffers,
-      'Odd Page Test',
-      ['Test Creator'],
+      "Odd Page Test",
+      ["Test Creator"],
     );
 
     expect(result.pageCount % 2).toBe(0);
 
-    console.log(`✓ Generated PDF with even page count: ${result.pageCount} pages`);
+    console.log(
+      `✓ Generated PDF with even page count: ${result.pageCount} pages`,
+    );
   });
 });
