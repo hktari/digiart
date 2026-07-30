@@ -3,7 +3,7 @@
   "extends": ["../../biome.json"],
   "overrides": [
     {
-      "includes": ["src/booklet/pdf/pdf-builder.service.ts"],
+      "includes": ["src/**"],
       "linter": {
         "rules": {
           "style": {

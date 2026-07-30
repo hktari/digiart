@@ -6,8 +6,16 @@ import * as Sentry from "@sentry/nestjs";
 import type { Job } from "bullmq";
 import type { BookletJobData, BookletJobResult } from "./booklet.types";
 import { DEFAULT_PAGE_FORMAT, PAGE_DIMENSIONS } from "./booklet.types";
-import type { PdfBuilderService } from "./pdf/pdf-builder.service";
-import type { StorageService } from "./storage/storage.service";
+// Both of these are injected, so they must stay VALUE imports. `import type`
+// is erased at compile time, leaving emitDecoratorMetadata with no class
+// reference, and Nest then crashes at bootstrap with
+// UnknownDependenciesException before the queue is ever consumed.
+//
+// Biome's style/useImportType reports them as "only used as types" and offers
+// it as a *safe* fix, so `lint:format` will silently undo this. biome.json
+// disables that rule for src/** — do not narrow that override.
+import { PdfBuilderService } from "./pdf/pdf-builder.service";
+import { StorageService } from "./storage/storage.service";
 
 const MIN_WIDTH_PX = 1696;
 const MIN_HEIGHT_PX = 2528;
