@@ -155,7 +155,7 @@ export class DatabaseService {
       select: { postId: true },
     });
 
-    return new Set(leads.map((l) => l.postId));
+    return new Set(leads.map((l: { postId: string }) => l.postId));
   }
 
   async markLeadNotified(leadId: string): Promise<void> {

@@ -290,3 +290,51 @@ Cloudflare R2 is S3-compatible and more cost-effective:
 - [ ] Implement error tracking (Sentry, LogRocket, etc.)
 - [ ] Set up CI/CD for automated testing before deployment
 - [ ] Configure CDN for static assets (Vercel handles this automatically)
+
+---
+
+## 10. Deploy Lead Scraper to Railway
+
+Replaces the local crontab entry (`0 8 * * *` running
+`apps/lead-scraper/scripts/run-scraper.sh`), which only ran when this laptop
+was awake.
+
+Built from the monorepo root via `Dockerfile.lead-scraper`, the same pattern as
+`pdf-worker`. **One image, two services:**
+
+| Service | Start command | Purpose |
+| --- | --- | --- |
+| `lead-scraper-web` | image default | persistent lead browser UI on `PORT` |
+| `lead-scraper-cron` | `pnpm --filter lead-scraper exec tsx src/index.ts --daily` | one scrape, then exit — set a Railway cron schedule |
+
+### Setup
+
+1. Create both services in the `digiart-mvp` project, source = this repo.
+2. Set **Dockerfile Path** to `Dockerfile.lead-scraper` on both, root directory `/`.
+3. Give `lead-scraper-cron` a cron schedule (e.g. `0 6 * * *`). Railway restarts
+   a cron service on schedule and expects it to exit, which the scrape does.
+4. `lead-scraper-web`: generate a domain. The server reads `PORT` from the env.
+5. **Remove the local crontab entry** once the Railway cron is confirmed —
+   otherwise both write to the same database and double-scrape.
+
+### Environment variables (both services)
+
+| Variable | Notes |
+| --- | --- |
+| `DATABASE_URL` | Postgres (Neon). **Production** is the DB the local cron has been writing to. |
+| `FIREWORKS_API_KEY` | LLM qualifier |
+| `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` | run summaries + hot-lead alerts |
+| `USE_REACT` | already `true` in the image |
+
+### Notes
+
+- The image runs through **tsx**, not a `tsc` build. `pnpm --filter lead-scraper
+  build` does not currently pass, and every real entry point already runs via
+  tsx, so the image matches the path that is actually exercised.
+- Base image is **Debian slim, not Alpine**: Prisma 5.22's musl engine links
+  against `libssl.so.1.1`, which current Alpine no longer ships.
+- `web-ui` is not a workspace member, so it installs with `--ignore-workspace`
+  and `NODE_ENV=development` (vite and tsc are devDependencies).
+- Reddit rate-limits: expect some subreddits to fail per run. A run that loses
+  sources is recorded as `partial`, not `completed`. Watch `errors` on
+  `ScrapingRun` — if it grows, raise `REQUEST_GAP_MS` in `rss-fetcher.ts`.
