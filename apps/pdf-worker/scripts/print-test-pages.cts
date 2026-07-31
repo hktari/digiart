@@ -329,39 +329,49 @@ export function drawCreditsPage(
 }
 
 /**
- * Page 4: the resolution ladder — the page that decides the floor.
+ * The resolution ladder — the pages that decide the floor.
  *
  * One image, four cells of identical printed size, each fed from a different
- * pixel count so it lands at 300 / 250 / 200 / 150 dpi. Whichever cell is the
- * first that looks wrong on paper is where PRINT_DPI_FLOOR belongs. The tier
- * spread in a normal proof cannot answer this, because every plate is a
- * different picture.
+ * pixel count. Everywhere else in the book a soft plate and a sharp plate are
+ * also different pictures, so comparing them judges composition as much as
+ * resolution. Here resolution is the only variable.
+ *
+ * Cells are labelled A-D in a shuffled order, NOT by dpi. Knowing which cell is
+ * 150 before you look at it is the fastest way to see what you expect to see;
+ * the key is at the back. Record a verdict per cell first, then check it.
+ *
+ * One image is not enough: fine-textured work falls apart early, flat graphic
+ * work survives almost anything. Run one page per archetype and set the floor
+ * from the worst case you actually publish.
  */
 export function drawResolutionLadder(
   pdfDoc: PDFDocument,
   font: PDFFont,
   page: PageDimensions,
-  cells: { dpi: number; jpeg: Buffer }[],
+  cells: { letter: string; jpeg: Buffer }[],
   cellW: number,
   cellH: number,
+  index: number,
+  archetype: string,
 ): Promise<void> {
   return (async () => {
     const { widthPt: W, heightPt: H } = page;
     const p = pdfDoc.addPage([W, H]);
     p.drawRectangle({ x: 0, y: 0, width: W, height: H, color: rgb(1, 1, 1) });
 
-    label(p, font, "PRINT TEST 4 — RESOLUTION", mm(10), H - mm(14), 10);
+    label(p, font, `PRINT TEST 4.${index} — RESOLUTION`, mm(10), H - mm(14), 10);
+    label(p, font, archetype, mm(10), H - mm(19), 7);
     label(
       p,
       font,
-      "Same image, same printed size, different pixel counts. The first cell that looks wrong is the floor.",
+      "Same image, same printed size, four pixel counts. Which are acceptable? Key is at the back.",
       mm(10),
-      H - mm(20),
+      H - mm(24),
     );
 
     const gap = mm(5);
     const startX = mm(10);
-    const startY = H - mm(30) - cellH;
+    const startY = H - mm(34) - cellH;
 
     for (const [i, cell] of cells.entries()) {
       const col = i % 2;
@@ -379,16 +389,57 @@ export function drawResolutionLadder(
         borderColor: FAINT,
         borderWidth: 0.4,
       });
-      label(p, font, `${cell.dpi} dpi`, x, y - mm(4), 8);
+      label(p, font, cell.letter, x, y - mm(4.5), 9);
     }
 
     label(
       p,
       font,
-      "250 dpi is the current floor; 200-250 prints but is flagged to the collector.",
+      "Judge twice: rank them side by side, then cover the rest and ask of each -- would I accept this page?",
       mm(10),
       mm(6),
       6,
     );
   })();
+}
+
+/** The answer key, at the back so it cannot be read before judging. */
+export function drawKeyPage(
+  pdfDoc: PDFDocument,
+  font: PDFFont,
+  page: PageDimensions,
+  ladders: { archetype: string; mapping: { letter: string; dpi: number }[] }[],
+): void {
+  const { widthPt: W, heightPt: H } = page;
+  const p = pdfDoc.addPage([W, H]);
+  p.drawRectangle({ x: 0, y: 0, width: W, height: H, color: rgb(1, 1, 1) });
+
+  label(p, font, "ANSWER KEY — RESOLUTION LADDERS", mm(10), H - mm(14), 10);
+  label(
+    p,
+    font,
+    "Do not read this until a verdict is written down for every cell.",
+    mm(10),
+    H - mm(20),
+  );
+
+  let y = H - mm(34);
+  for (const [i, ladder] of ladders.entries()) {
+    label(p, font, `Test 4.${i + 1} — ${ladder.archetype}`, mm(10), y, 8);
+    y -= mm(6);
+    for (const m of ladder.mapping) {
+      label(p, font, `${m.letter}  =  ${m.dpi} dpi`, mm(14), y, 8);
+      y -= mm(5.5);
+    }
+    y -= mm(5);
+  }
+
+  label(
+    p,
+    font,
+    "Current floor: 250 dpi prints, 200-250 prints but is flagged, below 200 is dropped.",
+    mm(10),
+    mm(16),
+    6,
+  );
 }

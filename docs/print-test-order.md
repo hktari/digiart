@@ -31,9 +31,9 @@ same content down opposite colour paths.
 
 | # | File | Pages | Colour | Answers |
 | --- | --- | --- | --- | --- |
-| **A** | `~/Downloads/printfeed-test-A-rgb.pdf` | 26 | RGB, as authored | 1:1, colour baseline, credits, curation, material |
-| **B** | `~/Downloads/printfeed-test-B-cmyk.pdf` | 26 | CMYK/FOGRA39 (current pipeline) | colour, against A |
-| **C** | `~/Downloads/printfeed-test-C-rgb-long.pdf` | 56 | RGB | size / page count, against A |
+| **A** | `~/Downloads/printfeed-test-A-rgb.pdf` | 30 | RGB, as authored | 1:1, colour baseline, resolution, credits, curation, material |
+| **B** | `~/Downloads/printfeed-test-B-cmyk.pdf` | 30 | CMYK/FOGRA39 (current pipeline) | colour, against A |
+| **C** | `~/Downloads/printfeed-test-C-rgb-long.pdf` | 60 | RGB | size / page count, against A |
 
 Each has a sibling `.manifest.json` mapping every page to its artist, pixel
 size, measured dpi and tier.
@@ -74,7 +74,7 @@ gamut clipping shows. On the greyscale ramp, look for banding and for where
 black stops separating.
 
 ### 3. Curation
-**Pages 6 onward.** Plates are grouped by artist and contiguous, two per artist
+**Pages 8 onward.** Plates are grouped by artist and contiguous, two per artist
 in A, three in C. Read it as a magazine and ask: does an artist's run hold
 together? Does the boundary between two artists land, or does it read as a
 shuffle? There is currently **no divider, no section title, nothing** between
@@ -96,11 +96,11 @@ a collected artist is the handle, so if a handle is not enough, that is a
 constraint on the whole collect funnel, not a typography fix.
 
 ### 5. Size
-**A (26 pp) against C (56 pp).** Same content family, same binding. Which one
-feels like a product? 26 pages may read as thin and unsatisfying; 56 with three
+**A (30 pp) against C (60 pp).** Same content family, same binding. Which one
+feels like a product? 30 pages may read as thin and unsatisfying; 60 with three
 plates per artist may read as unfocused. The per-artist cap is the lever —
 currently 2 by default in `print-service.ts` — and the answer here sets it.
-Also check the spine: at 26 pages perfect binding can be marginal, and how the
+Also check the spine: at 30 pages perfect binding can be marginal, and how the
 book *opens* matters as much as how many pages it has.
 
 ### 6. Material
@@ -114,14 +114,70 @@ The proof copy will show a **duplicated credit** wherever the caption's first
 line is just the handle — "shumov_painter — @shumov_painter". Cosmetic, already
 known, worth confirming how bad it looks in print.
 
+## The resolution ladders — pages 5, 6, 7
+
+These set the floor, so they get their own protocol.
+
+**What they are.** One image, four cells, identical printed size, fed at
+300 / 250 / 200 / 150 dpi. Everywhere else in the book a soft plate and a sharp
+plate are also *different pictures*, so comparing them judges composition and
+palette as much as sharpness. Here resolution is the only thing that varies.
+
+**Why three pages, not one.** Artwork hides low resolution at very different
+rates, so a floor set on one picture is a floor for that kind of picture only:
+
+| Page | Artist | Archetype | Expected behaviour |
+| --- | --- | --- | --- |
+| 5 | `@anastasiatrusovaart` | Dense palette-knife texture, high-contrast detail, saturated | **Fails earliest.** Fine strokes mush together. |
+| 6 | `@georgiahartstudios` | Soft tonal, near-neutral landscape | Hides softness well; watch for **banding** in the sky. |
+| 7 | `@postwook` | Flat graphic silhouette on a large saturated field | Survives almost anything; watch the **silhouette edge** and flat-field banding. |
+
+**The cells are blind.** Labelled A-D in a shuffled order, different on each
+page, key on **page 28**. Knowing a cell is 150 dpi before you look at it is the
+fastest way to see what you expect to see.
+
+### How to evaluate
+
+1. **Fix the viewing distance: 35-40 cm, normal reading.** Hold it. A loupe
+   condemns everything, arm's length passes everything — the distance *is* the
+   test.
+2. **Write a verdict per cell before turning to the key.** Two passes, and the
+   second is the one that counts:
+   - **Rank** the four side by side, best to worst.
+   - **Then cover the other three** and ask of each alone: *would I accept this
+     as a page I paid for?* Side-by-side inflates sensitivity — you can reliably
+     see a difference you would never notice on its own page, and a collector
+     only ever sees one page at a time.
+3. **The question is not "can I tell them apart."** On page 5 you probably can.
+   The question is where "fine" becomes "annoying". Mark that boundary.
+4. **Get a second opinion from someone who does not know what varies.** If they
+   cannot pick the 200 dpi cell out of a lineup, that is data.
+5. **Only then read page 28**, and record the lowest acceptable dpi *per
+   archetype*.
+6. **Cross-check against the real plates.** The manifest gives every plate's
+   measured dpi. Find a ~250 dpi and a ~400 dpi plate in the same book and see
+   whether the verdict survives contact with full-page artwork — including the
+   thing the ladder cannot show, a soft plate facing a sharp one across a spread.
+
+### Reading the outcome
+
+- **The three agree** — set `PRINT_DPI_FLOOR` to the worst acceptable value.
+  One line.
+- **They disagree** — the likely result: the textured piece fails at 250 while
+  the flat graphic is fine at 150. Then a single global floor is the wrong
+  model, and grading should measure each plate's actual detail. Do not build
+  that until the print says so.
+- **Nothing below 300 is acceptable** — the tiered floor was too optimistic and
+  coverage drops back to ~13 of 31 artists. That reopens asking artists for
+  high-res files, and only then upscaling.
+- **Even 150 is fine** — the floor was never the real constraint, and almost
+  every collected artist comes into range.
+
 ## Recording the result
 
 The two dpi constants live in one place —
 `packages/print-geometry/src/grade.ts` (`PRINT_DPI_FLOOR`, `PRINT_DPI_WARN`) —
 so whatever page 5 says translates to a one-line change.
 
-**Page 5 is the most valuable page in the book.** One image, four cells, same
-printed size, fed at 300 / 250 / 200 / 150 dpi. The first cell that looks wrong
-is where the floor belongs. A normal proof cannot answer this, because every
-plate is a different picture and you end up judging the art instead of the
-resolution.
+Whatever the ladders say is a one-line change — unless the three archetypes
+disagree, in which case the finding is bigger than a constant.

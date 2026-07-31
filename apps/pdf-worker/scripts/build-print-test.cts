@@ -44,6 +44,7 @@ import { PdfXProcessorService } from "../src/booklet/pdf/pdfx-processor.service"
 import {
   drawColourPage,
   drawCreditsPage,
+  drawKeyPage,
   drawResolutionLadder,
   drawRulerPage,
 } from "./print-test-pages.cts";
@@ -173,8 +174,64 @@ function select(candidates: Candidate[], perArtist: number, limit: number) {
   return limit > 0 ? grouped.slice(0, limit) : grouped;
 }
 
+/**
+ * Artwork falls apart at low resolution at very different rates, so the floor
+ * has to be judged against more than one kind of picture. These three span the
+ * range we actually publish; each falls back to the next-highest-resolution
+ * plate from a distinct artist if the named one is not in the folder.
+ */
+const LADDER_ARCHETYPES = [
+  {
+    handle: "anastasiatrusovaart",
+    archetype: "Dense texture, high-contrast detail, saturated - fails earliest",
+  },
+  {
+    handle: "georgiahartstudios",
+    archetype: "Soft tonal, near-neutral - hides softness, shows banding",
+  },
+  {
+    handle: "postwook",
+    archetype: "Flat graphic, hard edge, large flat field - survives almost anything",
+  },
+];
+
+/** Deterministic shuffles, so a printed key always matches its book. */
+const LADDER_ORDERS = [
+  [250, 150, 300, 200],
+  [200, 300, 150, 250],
+  [150, 250, 200, 300],
+];
+
+function pickLadderSources(candidates: Candidate[]): {
+  source: Candidate;
+  archetype: string;
+}[] {
+  const best = new Map<string, Candidate>();
+  for (const c of [...candidates].sort((a, b) => b.dpi - a.dpi)) {
+    if (!best.has(c.handle)) best.set(c.handle, c);
+  }
+  const used = new Set<string>();
+  const fallback = [...best.values()].sort((a, b) => b.dpi - a.dpi);
+
+  return LADDER_ARCHETYPES.map(({ handle, archetype }) => {
+    const named = best.get(handle);
+    const source =
+      named && !used.has(handle)
+        ? named
+        : fallback.find((c) => !used.has(c.handle));
+    if (!source) throw new Error("Not enough distinct artists for the ladders");
+    used.add(source.handle);
+    return { source, archetype };
+  });
+}
+
 /** Four crops of one image at identical printed size, different pixel counts. */
-async function buildLadder(source: Candidate, cellW: number, cellH: number) {
+async function buildLadder(
+  source: Candidate,
+  cellW: number,
+  cellH: number,
+  order: number[],
+) {
   const aspect = cellW / cellH;
   const srcAspect = source.width / source.height;
   const cropW = srcAspect > aspect ? Math.round(source.height * aspect) : source.width;
@@ -188,19 +245,24 @@ async function buildLadder(source: Candidate, cellW: number, cellH: number) {
   });
   const cropped = await base.toBuffer();
 
+  const letters = ["A", "B", "C", "D"];
   const cells = [];
-  for (const dpi of [300, 250, 200, 150]) {
+  const mapping = [];
+  for (const [i, dpi] of order.entries()) {
     const pxW = Math.round((cellW / 72) * dpi);
     const pxH = Math.round((cellH / 72) * dpi);
     // Down to the target pixel count, then back up to a constant embed size —
-    // this is what a low-res plate actually goes through on press.
+    // this is what a low-res plate actually goes through on press. Every cell
+    // is re-encoded at the same JPEG quality, including 300, so compression is
+    // not silently a second variable.
     const jpeg = await sharp(cropped)
       .resize(pxW, pxH, { fit: "fill" })
       .jpeg({ quality: 95 })
       .toBuffer();
-    cells.push({ dpi, jpeg });
+    cells.push({ letter: letters[i], jpeg });
+    mapping.push({ letter: letters[i], dpi });
   }
-  return cells;
+  return { cells, mapping };
 }
 
 async function main() {
@@ -211,13 +273,11 @@ async function main() {
   const selected = select(candidates, opts.perArtist, opts.plates);
   const artists = [...new Set(selected.map((c) => c.handle))];
 
-  const ladderSource = [...candidates].sort((a, b) => b.dpi - a.dpi)[0];
-  if (!ladderSource) throw new Error("No usable images found.");
-
-  console.log(
-    `  ${selected.length} plates from ${artists.length} artists` +
-      ` | ladder source @${ladderSource.handle} ${ladderSource.width}×${ladderSource.height} (${ladderSource.dpi}dpi)`,
-  );
+  const ladderSources = pickLadderSources(candidates);
+  console.log(`  ${selected.length} plates from ${artists.length} artists`);
+  for (const { source, archetype } of ladderSources) {
+    console.log(`  ladder @${source.handle} ${source.dpi}dpi — ${archetype}`);
+  }
 
   const pdfDoc = await PDFDocument.create();
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -240,14 +300,26 @@ async function main() {
   const cellW = (PAGE.widthPt - mm(20) - mm(5)) / 2;
   // 1.22 keeps two rows plus their labels above the 10mm margin on A5.
   const cellH = cellW * 1.22;
-  await drawResolutionLadder(
-    pdfDoc,
-    font,
-    PAGE,
-    await buildLadder(ladderSource, cellW, cellH),
-    cellW,
-    cellH,
-  );
+  const ladderKeys = [];
+  for (const [i, { source, archetype }] of ladderSources.entries()) {
+    const { cells, mapping } = await buildLadder(
+      source,
+      cellW,
+      cellH,
+      LADDER_ORDERS[i],
+    );
+    await drawResolutionLadder(
+      pdfDoc,
+      font,
+      PAGE,
+      cells,
+      cellW,
+      cellH,
+      i + 1,
+      `${archetype}  (@${source.handle})`,
+    );
+    ladderKeys.push({ archetype: `@${source.handle}`, mapping });
+  }
 
   // Real plates, through the real renderer.
   for (const c of selected) {
@@ -271,6 +343,8 @@ async function main() {
       text ? { text, font } : undefined,
     );
   }
+
+  drawKeyPage(pdfDoc, font, PAGE, ladderKeys);
 
   if (pdfDoc.getPageCount() % 2 === 0) {
     pdfDoc.addPage([PAGE.widthPt, PAGE.heightPt]);
@@ -296,12 +370,9 @@ async function main() {
         colour: opts.colour,
         pageCount,
         artists,
-        ladderSource: {
-          handle: ladderSource.handle,
-          pixels: `${ladderSource.width}×${ladderSource.height}`,
-        },
+        ladders: ladderKeys,
         plates: selected.map((c, i) => ({
-          page: i + 6, // cover + 4 calibration pages
+          page: i + 8, // cover + ruler + colour + credits + 3 ladders
           handle: c.handle,
           file: c.file,
           pixels: `${c.width}×${c.height}`,
