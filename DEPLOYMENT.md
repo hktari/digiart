@@ -290,3 +290,107 @@ Cloudflare R2 is S3-compatible and more cost-effective:
 - [ ] Implement error tracking (Sentry, LogRocket, etc.)
 - [ ] Set up CI/CD for automated testing before deployment
 - [ ] Configure CDN for static assets (Vercel handles this automatically)
+
+---
+
+## 10. Deploy Lead Scraper to Railway
+
+Replaces the local crontab entry (`0 8 * * *` running
+`apps/lead-scraper/scripts/run-scraper.sh`), which only ran when this laptop
+was awake.
+
+Built from the monorepo root via `Dockerfile.lead-scraper`, the same pattern as
+`pdf-worker`. **One image, two services:**
+
+| Service | Start command | Purpose |
+| --- | --- | --- |
+| `lead-scraper-web` | image default | persistent lead browser UI on `PORT` |
+| `lead-scraper-cron` | `pnpm --filter lead-scraper exec tsx src/index.ts --daily` | one scrape, then exit — set a Railway cron schedule |
+
+### Setup
+
+1. Create both services in the `digiart-mvp` project, source = this repo.
+2. Set **Dockerfile Path** to `Dockerfile.lead-scraper` on both, root directory `/`.
+3. Give `lead-scraper-cron` a cron schedule (e.g. `0 6 * * *`). Railway restarts
+   a cron service on schedule and expects it to exit, which the scrape does.
+4. `lead-scraper-web`: generate a domain. The server reads `PORT` from the env.
+5. **Remove the local crontab entry** once the Railway cron is confirmed —
+   otherwise both write to the same database and double-scrape.
+
+### Environment variables (both services)
+
+| Variable | Notes |
+| --- | --- |
+| `DATABASE_URL` | Postgres (Neon). **Production** is the DB the local cron has been writing to. |
+| `FIREWORKS_API_KEY` | LLM qualifier |
+| `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` | run summaries + hot-lead alerts |
+| `USE_REACT` | already `true` in the image |
+
+### Notes
+
+- The image runs through **tsx**, not a `tsc` build. `pnpm --filter lead-scraper
+  build` does not currently pass, and every real entry point already runs via
+  tsx, so the image matches the path that is actually exercised.
+- Base image is **Debian slim, not Alpine**: Prisma 5.22's musl engine links
+  against `libssl.so.1.1`, which current Alpine no longer ships.
+- `web-ui` is not a workspace member, so it installs with `--ignore-workspace`
+  and `NODE_ENV=development` (vite and tsc are devDependencies).
+- Reddit rate-limits: expect some subreddits to fail per run. A run that loses
+  sources is recorded as `partial`, not `completed`. Watch `errors` on
+  `ScrapingRun` — if it grows, raise `REQUEST_GAP_MS` in `rss-fetcher.ts`.
+
+---
+
+## 10. Deploy Lead Scraper to Railway
+
+**Deployed 2026-07-31.** Web UI: <https://lead-scraper-web-production.up.railway.app>
+Services `lead-scraper-web` and `lead-scraper-cron` in project `digiart-mvp`;
+cron runs `0 6 * * *`. Replaces the local crontab entry, which only ran when the
+laptop was awake.
+
+> **Both services deploy from the branch `worktree-bk-content-funnel`, not
+> `main`** — `Dockerfile.lead-scraper` does not exist on main yet. Repoint them
+> once the PR merges, or Railway will keep building an old branch.
+
+Built from the monorepo root via `Dockerfile.lead-scraper`, same pattern as
+`pdf-worker`. **One image, two services:**
+
+| Service | Start command | Purpose |
+| --- | --- | --- |
+| `lead-scraper-web` | image default | persistent lead browser UI |
+| `lead-scraper-cron` | `pnpm --filter lead-scraper exec tsx src/index.ts --daily` | one scrape, then exit |
+
+### Environment variables (both services)
+
+`DATABASE_URL` (production Neon — the DB the local cron wrote to),
+`FIREWORKS_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, and
+`RAILWAY_DOCKERFILE_PATH=Dockerfile.lead-scraper`.
+
+### Remaining manual step
+
+**Remove the local crontab entry** (`0 8 * * *` running
+`apps/lead-scraper/scripts/run-scraper.sh`) once the Railway cron is confirmed —
+otherwise both write to the same database and double-scrape.
+
+### Gotchas hit during the first deploy
+
+Each of these failed in a way that pointed somewhere other than the cause:
+
+- **`railway add --branch` does not stick.** The service still built `main`, where
+  the Dockerfile does not exist. Set it afterwards with
+  `railway service source connect --branch <branch> --service <name>`.
+- **`railway add --variables` mangles values containing `&`** (a Neon URL has
+  two). The shell quotes end up *inside* the variable name, producing a variable
+  literally called `'DATABASE_URL` — which surfaces at runtime as
+  "Environment variable not found: DATABASE_URL". Use
+  `railway variables --set-from-stdin DATABASE_URL` for such values.
+- **Railway injects its own `PORT` (8080).** Generating a domain with
+  `--port 3100` returns 502 while the app logs a perfectly healthy start.
+- Image notes: runs via **tsx**, not `tsc` (`pnpm --filter lead-scraper build`
+  does not pass, and every real entry point already uses tsx); base is
+  **Debian slim, not Alpine**, because Prisma 5.22's musl engine needs
+  `libssl.so.1.1`; `web-ui` installs with `--ignore-workspace` and
+  `NODE_ENV=development`.
+- Reddit rate-limits: expect some subreddits to fail per run. A run that loses
+  sources records as `partial`, not `completed`. If `errors` on `ScrapingRun`
+  grows, raise `REQUEST_GAP_MS` in `rss-fetcher.ts`.

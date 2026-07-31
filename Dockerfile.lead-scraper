@@ -1,0 +1,64 @@
+# Built from the monorepo root, like Dockerfile.pdf-worker, so pnpm workspace
+# linking survives. Serves BOTH Railway services:
+#   - lead-scraper-web  : default CMD, the persistent Express UI
+#   - lead-scraper-cron : same image, start command overridden to run one scrape
+#
+# Runs through tsx rather than a tsc build. That is deliberate: every real entry
+# point in package.json (`scrape`, `web`, and the daily cron wrapper) already
+# runs via tsx, while `build`/`start` are vestigial and `tsc` does not currently
+# pass. Matching the image to the execution path that is actually exercised
+# daily beats shipping a second, unproven one.
+# Debian, not Alpine. Prisma 5.22's musl engine links against libssl.so.1.1,
+# which current Alpine no longer ships, so the client loads on Debian and dies
+# on Alpine at first query.
+FROM node:20-slim AS base
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends openssl ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+RUN npm config set fetch-retries 5 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000
+RUN npm i -g pnpm@9 --no-progress
+
+FROM base AS deps
+WORKDIR /app
+COPY pnpm-workspace.yaml package.json pnpm-approved-builds.json pnpm-lock.yaml ./
+COPY apps/lead-scraper/package.json ./apps/lead-scraper/
+# Full workspace install — tsx and the Prisma CLI are devDependencies and are
+# both needed at runtime, so this must not be a --prod install.
+RUN pnpm install --frozen-lockfile
+
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=3100
+ENV USE_REACT=true
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/lead-scraper/node_modules ./apps/lead-scraper/node_modules
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY apps/lead-scraper ./apps/lead-scraper
+
+RUN cd apps/lead-scraper && npx prisma generate
+
+# web-ui sits under apps/lead-scraper, so the `apps/*` workspace glob does not
+# match it — it installs and builds on its own. Vite writes to
+# apps/lead-scraper/public-react, which is what the server serves when
+# USE_REACT=true.
+# --ignore-workspace is required: run from inside web-ui, pnpm otherwise finds
+# the root pnpm-workspace.yaml, decides web-ui is not a member, and installs
+# nothing at all — leaving `tsc: not found` at build time.
+# NODE_ENV=development on the install: this stage sets NODE_ENV=production for
+# the runtime, which makes pnpm skip devDependencies — and vite and tsc are both
+# devDependencies here, so the build would fail with `tsc: not found`.
+RUN cd apps/lead-scraper/web-ui && \
+    NODE_ENV=development pnpm install --ignore-workspace --no-frozen-lockfile && \
+    pnpm run build && \
+    rm -rf node_modules
+
+EXPOSE 3100
+
+# The persistent server. The cron service overrides this with:
+#   pnpm --filter lead-scraper exec tsx src/index.ts --daily
+CMD ["pnpm", "--filter", "lead-scraper", "exec", "tsx", "src/web/server.ts"]

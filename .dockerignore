@@ -1,6 +1,11 @@
 # Dependencies
-node_modules
-.pnpm-store
+# Must be **/node_modules, not node_modules: a bare pattern matches only the
+# context root, so apps/*/node_modules was being copied from the host straight
+# over the image's own install. The host's pnpm writes different peer-hash
+# directory names, so every symlink in apps/<app>/node_modules pointed at a
+# .pnpm path that did not exist in the image, and imports failed at runtime.
+**/node_modules
+**/.pnpm-store
 
 # Build outputs
 dist

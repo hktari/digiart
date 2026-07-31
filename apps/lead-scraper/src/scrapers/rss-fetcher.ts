@@ -21,6 +21,11 @@ export class RedditRSSFetcher {
   private readonly userAgent =
     "Mozilla/5.0 (compatible; LeadScraper/1.0; +https://digiart.gallery)";
 
+  /** Gap between subreddit requests. Reddit 429s an unauthenticated burst. */
+  private static readonly REQUEST_GAP_MS = 2000;
+  private static readonly MAX_RETRIES = 3;
+  private static readonly RETRY_BASE_MS = 5000;
+
   constructor() {
     this.parser = new XMLParser({
       ignoreAttributes: false,
@@ -31,13 +36,34 @@ export class RedditRSSFetcher {
     });
   }
 
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
   async fetchSubreddit(subreddit: string, limit = 50): Promise<RSSFetchResult> {
     try {
       const url = `https://www.reddit.com/r/${subreddit}/new/.rss?limit=${limit}`;
 
-      const response = await fetch(url, {
-        headers: { "User-Agent": this.userAgent },
-      });
+      // Reddit answers a burst by serving the first caller and 429-ing the
+      // rest, so a 429 says "too fast", not "no". Back off and re-ask rather
+      // than recording an error for a subreddit that would have answered.
+      let response!: Response;
+      for (let attempt = 0; attempt <= RedditRSSFetcher.MAX_RETRIES; attempt++) {
+        response = await fetch(url, {
+          headers: { "User-Agent": this.userAgent },
+        });
+
+        if (response.status !== 429) break;
+        if (attempt === RedditRSSFetcher.MAX_RETRIES) break;
+
+        // Honour Retry-After when Reddit sends it; otherwise exponential.
+        const retryAfter = Number(response.headers.get("retry-after"));
+        const waitMs =
+          Number.isFinite(retryAfter) && retryAfter > 0
+            ? retryAfter * 1000
+            : RedditRSSFetcher.RETRY_BASE_MS * 2 ** attempt;
+        await this.sleep(waitMs);
+      }
 
       if (!response.ok) {
         return {
@@ -88,12 +114,24 @@ export class RedditRSSFetcher {
     }
   }
 
+  /**
+   * Sequential on purpose. `Promise.all` over the full subreddit list fired
+   * every request at once; Reddit served the first and 429'd the other 14,
+   * which the run still recorded as "completed". The scraper looked healthy
+   * while watching one subreddit out of seventeen.
+   */
   async fetchMultipleSubreddits(
     subreddits: string[],
     limit = 50,
   ): Promise<RSSFetchResult[]> {
-    const promises = subreddits.map((sub) => this.fetchSubreddit(sub, limit));
-    return Promise.all(promises);
+    const results: RSSFetchResult[] = [];
+
+    for (const [index, sub] of subreddits.entries()) {
+      if (index > 0) await this.sleep(RedditRSSFetcher.REQUEST_GAP_MS);
+      results.push(await this.fetchSubreddit(sub, limit));
+    }
+
+    return results;
   }
 
   private parseEntry(entry: any, subreddit: string): RedditPost | null {

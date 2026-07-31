@@ -11,7 +11,7 @@ model ScrapingRun {
   id            String    @id @default(cuid())
   startedAt     DateTime  @default(now())
   completedAt   DateTime?
-  status        String    // "running" | "completed" | "failed"
+  status        String    // "running" | "completed" | "partial" | "failed"
   totalPosts    Int       @default(0)
   filteredPosts Int       @default(0)
   qualifiedLeads Int      @default(0)

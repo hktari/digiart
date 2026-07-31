@@ -1,6 +1,6 @@
 ---
 name: marketing-campaigns
-description: Use when working on social marketing for the PrintFeed or ELSEWHERE brands — drafting, scheduling, or publishing a post; reporting how a campaign or post performed; answering what is scheduled or what has already been tried; or picking an angle. Also use when the user mentions PrintFeed, ELSEWHERE, DigiArt, Cartographers, Zernio, Threads posting, or the collect extension in a marketing context.
+description: Use when working on social marketing for the PrintFeed or ELSEWHERE brands — drafting, scheduling, or publishing a post; reporting how a campaign or post performed; answering what is scheduled or what has already been tried; or picking an angle. Also use when the user mentions PrintFeed, ELSEWHERE, DigiArt, Cartographers, Zernio, Threads posting, or the collect extension in a marketing context. Also covers the `b|k` essay funnel — creator-monetisation essays on Substack distributed via Reddit — so use it when the user mentions b|k, the newsletter, Substack, Reddit posts, or Zora.
 ---
 
 # Marketing campaigns (PrintFeed / ELSEWHERE)
@@ -20,6 +20,14 @@ be wrong. Before making a claim about campaign state, call:
 
 Never answer "what's scheduled" or "did it go out" from
 [references/campaign-log.md](references/campaign-log.md). The log is history, not state.
+
+There is also a **third funnel that does not run on these accounts at all** —
+the `b|k` essay funnel (Reddit → Substack → product). It has its own channels,
+its own success measures, and deliberately does not use the Threads baselines
+below. If the question is about essays, Reddit, Substack, Zora, or creator
+monetisation content, read
+[docs/content/bk/README.md](../../../docs/content/bk/README.md) instead of this
+file.
 
 ## 2. The brands
 

@@ -329,7 +329,10 @@ app.post("/api/leads/:id/draft-outreach", async (req, res) => {
     const CREATORS_URL = "https://printfeed.btechhub.top/creators";
 
     const painPointsSummary = lead.painPoints
-      .map((pp) => `- ${pp.category} (${pp.severity}): ${pp.description}`)
+      .map(
+        (pp: { category: string; severity: string; description: string }) =>
+          `- ${pp.category} (${pp.severity}): ${pp.description}`,
+      )
       .join("\n");
 
     const prompt = `You are writing a short Reddit comment reply on behalf of DigiArt, a platform where digital artists offer subscription-based printed art booklets to their followers.
