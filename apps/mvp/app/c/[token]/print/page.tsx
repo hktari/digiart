@@ -24,13 +24,13 @@ export default async function PrintPage({ params }: Props) {
   const session = await auth();
   const isAuthed = Boolean(session?.user?.id);
   const covers = collection.groups.flatMap((g) => g.items).slice(0, 4);
-  // Price what will actually be printed, not what was collected — charging for
-  // pages that get dropped at the floor is the wrong number to show.
+  // Price what will actually be bound — after the resolution floor and the
+  // per-artist cap. Charging for pages that never reach paper is the wrong
+  // number to show, and uncapped this collection prices at nearly double.
   const readiness = await assessCollection(token);
-  const printableCount = readiness
-    ? readiness.ok + readiness.marginal
-    : collection.itemCount;
-  const price = formatEur(magazinePriceCents(printableCount));
+  const price = formatEur(
+    magazinePriceCents(readiness ? readiness.printing : collection.itemCount),
+  );
   const ship = claimCollection.bind(null, token);
   // Gated on the claim itself, not on the claim *and* being signed in:
   // claimCollection is a no-op once a collection has an owner, so the old

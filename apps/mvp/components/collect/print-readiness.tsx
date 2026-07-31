@@ -11,23 +11,31 @@ export function PrintReadiness({
 }: {
   readiness: CollectionReadiness;
 }) {
-  const { total, ok, marginal, rejected } = readiness;
-  const printable = ok + marginal;
+  const { total, marginal, rejected, printing, heldBack, perArtist, artists } =
+    readiness;
 
   if (total === 0) return null;
 
   return (
     <div className="rounded-md border border-border bg-card p-4 text-sm">
       <p className="font-medium text-foreground">
-        {printable} of {total} {total === 1 ? "piece" : "pieces"} will print.
+        {printing} of {total} {total === 1 ? "piece" : "pieces"} will print
+        {artists > 0 &&
+          `, from ${artists} ${artists === 1 ? "artist" : "artists"}`}
+        .
       </p>
-      {(marginal > 0 || rejected > 0) && (
+      {(heldBack > 0 || marginal > 0 || rejected > 0) && (
         <ul className="mt-2 space-y-1 text-muted-foreground">
+          {heldBack > 0 && perArtist > 0 && (
+            <li>
+              {heldBack} more are print-ready but held back — we cap it at{" "}
+              {perArtist} per artist so everyone you collected gets in.
+            </li>
+          )}
           {marginal > 0 && (
             <li>
-              {marginal} {marginal === 1 ? "will" : "will"} look soft at this
-              size — {marginal === 1 ? "it was" : "they were"} posted below
-              print resolution.
+              {marginal} would look soft at this size — posted below print
+              resolution.
             </li>
           )}
           {rejected > 0 && (

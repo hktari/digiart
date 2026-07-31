@@ -72,6 +72,71 @@ describe("assessCollection", () => {
     expect(await assessCollection("nope")).toBeNull();
   });
 
+  it("caps each artist so one prolific poster cannot take over the book", async () => {
+    vi.mocked(db.collection.findUnique).mockResolvedValue(
+      collectionWith([
+        item("p1", 1880, 2280, "prolific"),
+        item("p2", 1900, 2300, "prolific"),
+        item("p3", 1920, 2320, "prolific"),
+        item("p4", 1940, 2340, "prolific"),
+        item("q1", 1880, 2280, "quiet"),
+      ]),
+    );
+
+    const readiness = await assessCollection("tok", { perArtist: 2 });
+
+    expect(readiness).toMatchObject({
+      ok: 5,
+      printing: 3, // 2 from prolific + 1 from quiet
+      heldBack: 2,
+      artists: 2,
+      perArtist: 2,
+    });
+  });
+
+  it("keeps the sharpest plates when an artist is capped", async () => {
+    vi.mocked(db.collection.findUnique).mockResolvedValue(
+      collectionWith([
+        item("soft-ish", 1200, 1800, "a"), // ~248dpi -> MARGINAL
+        item("sharp", 3000, 4000, "a"),
+        item("mid", 1880, 2280, "a"),
+      ]),
+    );
+
+    const readiness = await assessCollection("tok", { perArtist: 2 });
+    const included = readiness?.plates
+      .filter((p) => p.included)
+      .map((p) => p.id);
+
+    expect(included).toEqual(["sharp", "mid"]);
+  });
+
+  it("counts a declined soft plate as declined, not held back by the cap", async () => {
+    vi.mocked(db.collection.findUnique).mockResolvedValue(
+      collectionWith([item("ok", 1880, 2280), item("soft", 1131, 1685)]),
+    );
+
+    const readiness = await assessCollection("tok", { perArtist: 2 });
+
+    // The soft plate was not kept, so it is not eligible — and therefore not
+    // "held back", which is reserved for the cap.
+    expect(readiness).toMatchObject({ printing: 1, heldBack: 0, marginal: 1 });
+  });
+
+  it("treats perArtist 0 as uncapped", async () => {
+    vi.mocked(db.collection.findUnique).mockResolvedValue(
+      collectionWith([
+        item("p1", 1880, 2280, "prolific"),
+        item("p2", 1900, 2300, "prolific"),
+        item("p3", 1920, 2320, "prolific"),
+      ]),
+    );
+
+    const readiness = await assessCollection("tok", { perArtist: 0 });
+
+    expect(readiness).toMatchObject({ printing: 3, heldBack: 0 });
+  });
+
   it("treats an item with no measured size as rejected", async () => {
     vi.mocked(db.collection.findUnique).mockResolvedValue(
       collectionWith([item("a", null, null)]),
@@ -138,6 +203,30 @@ describe("enqueueCollectionBooklet", () => {
 
     const [, payload] = mockQueueAdd.mock.calls[0];
     expect(payload.plates.map((p: { id: string }) => p.id)).toEqual(["ok"]);
+  });
+
+  it("enqueues the capped set, matching what the preview promised", async () => {
+    const items = [
+      item("p1", 1880, 2280, "prolific"),
+      item("p2", 1900, 2300, "prolific"),
+      item("p3", 1920, 2320, "prolific"),
+      item("q1", 1880, 2280, "quiet"),
+    ];
+    vi.mocked(db.collection.findUnique).mockResolvedValue(
+      collectionWith(items),
+    );
+
+    const readiness = await assessCollection("tok", { perArtist: 2 });
+    const result = await enqueueCollectionBooklet("tok", [], 2);
+
+    expect(result.plateCount).toBe(3);
+    expect(result.plateCount).toBe(readiness?.printing);
+    const [, payload] = mockQueueAdd.mock.calls[0];
+    expect(payload.plates.map((p: { id: string }) => p.id)).toEqual([
+      "p2",
+      "p3",
+      "q1",
+    ]);
   });
 
   it("credits each plate to the artist who posted it", async () => {
