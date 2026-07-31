@@ -29,10 +29,13 @@ export class DatabaseService {
     runId: string,
     stats: ScrapingRunStats,
   ): Promise<void> {
+    // A run that reached the end but lost most of its sources is not a
+    // success. Recording it as "completed" is how a scraper covering one
+    // subreddit out of seventeen went unnoticed for months.
     await this.prisma.scrapingRun.update({
       where: { id: runId },
       data: {
-        status: "completed",
+        status: stats.errors.length > 0 ? "partial" : "completed",
         completedAt: new Date(),
         totalPosts: stats.totalPosts,
         filteredPosts: stats.filteredPosts,
