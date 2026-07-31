@@ -77,7 +77,9 @@ export async function GET(
 
     return NextResponse.json({
       downloadUrl,
-      filename: `booklet-${printFile.cycle.label || cycleId}.pdf`,
+      // The relation is nullable now that a print file can belong to a
+      // collection instead; this route is keyed by cycle, so fall back to it.
+      filename: `booklet-${printFile.cycle?.label || cycleId}.pdf`,
       expiresInSeconds: DOWNLOAD_URL_EXPIRY_SECONDS,
     });
   } catch (error) {

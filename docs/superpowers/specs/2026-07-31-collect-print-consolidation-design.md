@@ -165,9 +165,13 @@ This is where the tiered floor becomes visible rather than a silent quality
 compromise. The CTA continues to reserve — no order, no charge.
 
 **Page count control:** 78 plates is roughly 80 pages. A per-artist cap
-(the demo script's `--per-artist`) defaults to 2, collector-adjustable. Peecho's
-perfect-bound page limit is still unverified and must be checked before the
-proof print is ordered.
+(the demo script's `--per-artist`) defaults to 2, collector-adjustable.
+
+**Peecho page limits, verified 2026-07-31:** magazines are perfect bound,
+**18–500 pages**, 115 gsm silk-coated. The 34-page proof and an ~89-page full
+collection both sit comfortably inside that, so page count is not a constraint
+on this design. The floor to watch is the *minimum* 18: a small collection
+needs padding or a different product.
 
 ### 6. The proof print
 
