@@ -1,16 +1,16 @@
 import { Processor, WorkerHost } from "@nestjs/bullmq";
 import { Logger } from "@nestjs/common";
+import { gradePlate, plateDpi } from "@printfeed/print-geometry";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 import * as Sentry from "@sentry/nestjs";
 import type { Job } from "bullmq";
-import type { BookletJobData, BookletJobResult } from "./booklet.types";
-import {
-  DEFAULT_PAGE_FORMAT,
-  MIN_HEIGHT_PX,
-  MIN_WIDTH_PX,
-  PAGE_DIMENSIONS,
+import type {
+  BookletJobData,
+  BookletJobResult,
+  SkippedPlate,
 } from "./booklet.types";
+import { DEFAULT_PAGE_FORMAT, PAGE_DIMENSIONS } from "./booklet.types";
 // Both of these are injected, so they must stay VALUE imports. `import type`
 // is erased at compile time, leaving emitDecoratorMetadata with no class
 // reference, and Nest then crashes at bootstrap with
@@ -86,18 +86,54 @@ export class BookletProcessor extends WorkerHost {
         );
       }
 
+      // A collection is 70+ pieces from strangers' phones; one under-floor
+      // image must not take the whole booklet down with it. Drop it, print the
+      // rest, and say exactly what fell out. An UNKNOWN orientation no longer
+      // fails anything either — layoutPlate treats anything that is not
+      // LANDSCAPE as portrait, which is the right fallback for an unknown.
+      const page = PAGE_DIMENSIONS[pageFormat];
+      const skipped: SkippedPlate[] = [];
+      const marginal: string[] = [];
+      const printable: typeof artworks = [];
+
       for (const artwork of artworks) {
-        if (
-          !artwork.width ||
-          !artwork.height ||
-          artwork.orientation === "UNKNOWN" ||
-          artwork.width < MIN_WIDTH_PX ||
-          artwork.height < MIN_HEIGHT_PX
-        ) {
-          throw new Error(
-            `Artwork "${artwork.title}" (${artwork.id}) failed validation: orientation=${artwork.orientation}, dims=${artwork.width}×${artwork.height}`,
-          );
+        if (!artwork.width || !artwork.height) {
+          skipped.push({
+            id: artwork.id,
+            title: artwork.title,
+            dpi: 0,
+            reason: "unmeasurable",
+          });
+          continue;
         }
+
+        const plate = {
+          imageWidthPx: artwork.width,
+          imageHeightPx: artwork.height,
+          orientation: artwork.orientation,
+          page,
+          hasCaption: true,
+        };
+        const grade = gradePlate(plate);
+
+        if (grade === "REJECT") {
+          skipped.push({
+            id: artwork.id,
+            title: artwork.title,
+            dpi: Math.round(plateDpi(plate)),
+            reason: "below-floor",
+          });
+          continue;
+        }
+
+        if (grade === "MARGINAL") marginal.push(artwork.id);
+        printable.push(artwork);
+      }
+
+      if (printable.length === 0) {
+        throw new Error(
+          `No plates met the print floor: ${skipped.length} of ${artworks.length} were below it`,
+        );
       }
 
       // Downloaded through the storage service, which signs the request. The
@@ -106,7 +142,7 @@ export class BookletProcessor extends WorkerHost {
       // to nothing at all — storage is Tigris via AWS_ENDPOINT_URL, and the
       // bucket is private besides. Every job died here.
       const imageBuffers = new Map<string, Buffer>();
-      for (const artwork of artworks) {
+      for (const artwork of printable) {
         try {
           imageBuffers.set(
             artwork.id,
@@ -131,7 +167,7 @@ export class BookletProcessor extends WorkerHost {
       ];
 
       const { bytes, pageCount } = await this.pdfBuilder.build(
-        artworks,
+        printable,
         imageBuffers,
         issueLabel,
         creatorNames,
@@ -161,7 +197,7 @@ export class BookletProcessor extends WorkerHost {
         },
       });
 
-      return { pdfUrl, pageCount };
+      return { pdfUrl, pageCount, skipped, marginal };
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
       this.logger.error(`Booklet job ${job.id} failed: ${message}`);

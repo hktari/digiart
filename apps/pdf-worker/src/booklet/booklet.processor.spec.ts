@@ -123,7 +123,9 @@ describe("BookletProcessor", () => {
     );
   });
 
-  it("should throw when artworks have UNKNOWN orientation", async () => {
+  it("prints a plate whose orientation is UNKNOWN", async () => {
+    // UNKNOWN used to fail the job. layoutPlate treats anything that is not
+    // LANDSCAPE as portrait, which is the right fallback, so the plate prints.
     mockFindMany.mockResolvedValue([
       {
         release: {
@@ -137,13 +139,124 @@ describe("BookletProcessor", () => {
         },
       },
     ]);
+    mockStorage.downloadObject.mockResolvedValue(Buffer.alloc(8));
+    mockPdfBuilder.build.mockResolvedValue({
+      bytes: new Uint8Array([1]),
+      pageCount: 2,
+    });
+    mockStorage.uploadPdf.mockResolvedValue("https://s3.example.com/x.pdf");
 
-    await expect(processor.process(makeJob(jobData))).rejects.toThrow(
-      "failed validation",
-    );
+    const result = await processor.process(makeJob(jobData));
+
+    expect(result.skipped).toEqual([]);
   });
 
-  it("should throw when artwork dimensions are too small", async () => {
+  it("drops an under-floor plate and prints the rest", async () => {
+    mockFindMany.mockResolvedValue([
+      {
+        release: {
+          artworks: [
+            { artwork: validArtwork, sortOrder: 0 },
+            {
+              artwork: {
+                ...validArtwork,
+                id: "tiny",
+                storageKey: "art/tiny.jpg",
+                width: 720,
+                height: 405,
+                orientation: "LANDSCAPE",
+              },
+              sortOrder: 1,
+            },
+          ],
+          creatorProfile: { displayName: "Artist" },
+        },
+      },
+    ]);
+    mockStorage.downloadObject.mockResolvedValue(Buffer.alloc(8));
+    mockPdfBuilder.build.mockResolvedValue({
+      bytes: new Uint8Array([1]),
+      pageCount: 2,
+    });
+    mockStorage.uploadPdf.mockResolvedValue("https://s3.example.com/x.pdf");
+
+    const result = await processor.process(makeJob(jobData));
+
+    expect(result.skipped).toEqual([
+      { id: "tiny", title: "Test Art", dpi: 96, reason: "below-floor" },
+    ]);
+    // The good plate still reached the builder; the bad one did not.
+    const plates = mockPdfBuilder.build.mock.calls[0][0] as { id: string }[];
+    expect(plates.map((p) => p.id)).toEqual(["art-1"]);
+  });
+
+  it("keeps a marginal plate but reports it", async () => {
+    mockFindMany.mockResolvedValue([
+      {
+        release: {
+          artworks: [
+            {
+              artwork: {
+                ...validArtwork,
+                id: "soft",
+                width: 1131,
+                height: 1685,
+              },
+              sortOrder: 0,
+            },
+          ],
+          creatorProfile: { displayName: "Artist" },
+        },
+      },
+    ]);
+    mockStorage.downloadObject.mockResolvedValue(Buffer.alloc(8));
+    mockPdfBuilder.build.mockResolvedValue({
+      bytes: new Uint8Array([1]),
+      pageCount: 2,
+    });
+    mockStorage.uploadPdf.mockResolvedValue("https://s3.example.com/x.pdf");
+
+    const result = await processor.process(makeJob(jobData));
+
+    expect(result.skipped).toEqual([]);
+    expect(result.marginal).toEqual(["soft"]);
+  });
+
+  it("reports a plate with no measured dimensions as unmeasurable", async () => {
+    mockFindMany.mockResolvedValue([
+      {
+        release: {
+          artworks: [
+            { artwork: validArtwork, sortOrder: 0 },
+            {
+              artwork: {
+                ...validArtwork,
+                id: "nodims",
+                width: null,
+                height: null,
+              },
+              sortOrder: 1,
+            },
+          ],
+          creatorProfile: { displayName: "Artist" },
+        },
+      },
+    ]);
+    mockStorage.downloadObject.mockResolvedValue(Buffer.alloc(8));
+    mockPdfBuilder.build.mockResolvedValue({
+      bytes: new Uint8Array([1]),
+      pageCount: 2,
+    });
+    mockStorage.uploadPdf.mockResolvedValue("https://s3.example.com/x.pdf");
+
+    const result = await processor.process(makeJob(jobData));
+
+    expect(result.skipped).toEqual([
+      { id: "nodims", title: "Test Art", dpi: 0, reason: "unmeasurable" },
+    ]);
+  });
+
+  it("fails the job only when nothing survives grading", async () => {
     mockFindMany.mockResolvedValue([
       {
         release: {
@@ -159,7 +272,7 @@ describe("BookletProcessor", () => {
     ]);
 
     await expect(processor.process(makeJob(jobData))).rejects.toThrow(
-      "failed validation",
+      /No plates met the print floor/,
     );
   });
 

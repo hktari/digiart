@@ -1,42 +1,14 @@
-export type PageFormat =
-  | "A5_PORTRAIT"
-  | "A5_LANDSCAPE"
-  | "A4_PORTRAIT"
-  | "A4_LANDSCAPE"
-  | "SQUARE_210"
-  | "SQUARE_148"
-  | "LETTER";
+import type { PageFormat } from "@printfeed/print-geometry";
 
-export const DEFAULT_PAGE_FORMAT: PageFormat = "A5_PORTRAIT";
-
-export interface PageDimensions {
-  widthPt: number;
-  heightPt: number;
-}
-
-const MM_TO_PT = 2.8346;
-
-function mm(value: number): number {
-  return value * MM_TO_PT;
-}
-
-export const PAGE_DIMENSIONS: Record<PageFormat, PageDimensions> = {
-  A5_PORTRAIT: { widthPt: mm(148), heightPt: mm(210) },
-  A5_LANDSCAPE: { widthPt: mm(210), heightPt: mm(148) },
-  A4_PORTRAIT: { widthPt: mm(210), heightPt: mm(297) },
-  A4_LANDSCAPE: { widthPt: mm(297), heightPt: mm(210) },
-  SQUARE_210: { widthPt: mm(210), heightPt: mm(210) },
-  SQUARE_148: { widthPt: mm(148), heightPt: mm(148) },
-  LETTER: { widthPt: mm(216), heightPt: mm(279) },
-};
-
-/**
- * Print floor for a full-bleed A5 plate at 300dpi. Anything smaller visibly
- * softens on paper, so the processor rejects the whole job rather than print
- * it. Exported so tooling can apply the same rule before enqueueing.
- */
-export const MIN_WIDTH_PX = 1696;
-export const MIN_HEIGHT_PX = 2528;
+// Page geometry and the resolution floor live in the shared package, because
+// the renderer and the gate must agree on what a page looks like. Re-exported
+// here so existing importers inside the worker keep their import path.
+export {
+  DEFAULT_PAGE_FORMAT,
+  PAGE_DIMENSIONS,
+  type PageDimensions,
+  type PageFormat,
+} from "@printfeed/print-geometry";
 
 export interface BookletJobData {
   collectorProfileId: string;
@@ -45,9 +17,25 @@ export interface BookletJobData {
   pageFormat?: PageFormat;
 }
 
+/**
+ * A plate that never made it into the booklet. Collections are assembled from
+ * strangers' phone uploads, so some fraction is always unprintable — but a
+ * silent drop reads as "everything was usable" when most of it was not.
+ */
+export interface SkippedPlate {
+  id: string;
+  title: string | null;
+  dpi: number;
+  reason: "below-floor" | "unmeasurable";
+}
+
 export interface BookletJobResult {
   pdfUrl: string;
   pageCount: number;
+  /** Dropped before building. Never silently discarded. */
+  skipped: SkippedPlate[];
+  /** Ids of plates that printed but will look soft. */
+  marginal: string[];
 }
 
 export interface ArtworkRecord {
