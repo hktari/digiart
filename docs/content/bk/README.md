@@ -22,12 +22,17 @@ search. That is the entire strategic premise.
 as "bo | ka" in the landing footer and links to bostjankamnik.com. Three renames
 in three months carried zero audience across; this deliberately isn't a fourth.
 
-**Publication name: `Paper Trail` (proposed, change freely).** Reads two ways —
-the money trail, and paper as the medium. It signals the subject without being a
-PrintFeed pitch, and it survives the day PrintFeed changes name again.
-Alternatives considered: *The Unflattering Number*, *Rates & Royalties*,
-*Attention Isn't Payment*. This is the one decision here that is purely the
-author's; nothing else in this directory depends on it.
+**Publication name: `Visual Tech Dispatch`.** Decided 2026-07-31. "Visual Tech"
+is the authority claim — the technical one in a room of visual creators —
+and it's deliberately broader than one monetisation model, so the series can
+cover tools and mechanics without renaming itself. Subtitle carries the money
+angle: *How creative work actually pays.*
+
+Two known costs, both accepted: in the wild "visual tech" usually means AV /
+display hardware, which is a mild search-discoverability tax (it matters little
+on Reddit, where distribution is by subreddit, not by name); and "Dispatch"
+says nothing about money on its own, so **the subtitle is load-bearing** — don't
+drop it from the Substack header or the Reddit profile.
 
 **Disclosure:** PrintFeed affiliation stated in the bio and in-line in any essay
 where PrintFeed appears. Non-negotiable — the whole funnel's value is credibility.
