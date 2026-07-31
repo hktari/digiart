@@ -37,6 +37,30 @@ drop it from the Substack header or the Reddit profile.
 **Disclosure:** PrintFeed affiliation stated in the bio and in-line in any essay
 where PrintFeed appears. Non-negotiable — the whole funnel's value is credibility.
 
+## Published
+
+**Home: [Visual Tech Dispatch](https://biik.substack.com/)** — `biik.substack.com`
+(the pipe in `b|k` isn't URL-safe, hence `biik`).
+
+| Date | Piece | Angle |
+| --- | --- | --- |
+| 2026-07-31 | [Three things that can happen to the same artwork post](https://biik.substack.com/p/three-things-that-can-happen-to-the) | `threads-vs-zora` — the anchor |
+
+### Known gaps on the live post
+
+- **No PrintFeed link, so stage 3 is unmeasurable from this piece.** The essay
+  names PrintFeed in the disclosure but never links it, so no reader can carry a
+  `utm_source=bk` parameter to the product and the PostHog dashboard has nothing
+  to register. Not a tracking bug — there is no path. Fix: link the disclosure
+  line to
+  `https://printfeed.btechhub.top/collect?utm_source=bk&utm_medium=substack&utm_campaign=threads-vs-zora`.
+  One link on a line that already discloses the interest is the tasteful
+  placement; anything more would cost the piece the credibility it's built on.
+- **Not yet distributed.** Reddit is the discovery channel and no post has gone
+  out, because the subreddit rules are still unverified — see
+  [reddit-targets.md](reddit-targets.md). Until then reach is whoever finds the
+  Substack directly, which is nobody.
+
 ## Editorial spine
 
 > Attention without ownership or payment is a broken deal.

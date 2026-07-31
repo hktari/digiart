@@ -1,12 +1,17 @@
 ---
 slug: threads-vs-zora
-title: "Three things that can happen to the same post"
+title: "Three things that can happen to the same artwork post"
 subtitle: "One image. Threads, Zora, or print — with the actual percentages, including the ones that don't flatter me."
 byline: b|k
-status: draft — awaiting Zora re-verification + publication setup
+status: PUBLISHED 2026-07-31
+url: https://biik.substack.com/p/three-things-that-can-happen-to-the
 facts_verified: 2026-07-31
 sources: docs/content/bk/research/zora-mechanics.md
 utm_campaign: threads-vs-zora
+note: >
+  Published without any printfeed.btechhub.top link, so stage 3 has no path
+  and the PostHog dashboard cannot register crossover from this piece. Fix is
+  a single UTM'd link on the disclosure line. See README "Known gaps".
 ---
 
 You make an image. You post it on Threads. From that moment there are, roughly,
