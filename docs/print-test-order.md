@@ -41,15 +41,44 @@ size, measured dpi and tier.
 Order all three **in the same product, paper and binding**, or the comparisons
 are worthless. One copy each.
 
-**Product:** A5 magazine, perfect bound, 115 gsm silk-coated — that is the stock
-Peecho lists for magazines. Silk sits between matt and gloss; if a true gloss or
-a heavier cover is offered in the configurator, note which you chose here,
-because "glossy + softcover" is one of the open questions and the answer depends
-on what they actually offer. Peecho magazines run **18–500 pages**, so all three
-are in range.
+**Product (confirmed against the live account, 2026-07-31):** offering
+**7011275** — *Magazine, glossy laminated cover, silk content, full colour, A5
+(148x210mm)*, **18-500 pages**. It is the only A5 offering on the account, which
+settles half the material question before anything is printed: the cover is
+glossy laminated, the interior is silk. All three books are in range.
 
-**Order by hand** through Peecho's web flow. Not via the API — live order
-integration is deliberately out of scope, and this is a purchase.
+**Cost, quoted live, shipping to SI in EUR:**
+
+| | Print | Shipping | VAT | Total |
+| --- | --- | --- | --- | --- |
+| **All three in one order** | 35.00 | 9.01 | 2.89 | **46.90** |
+| A + B only (colour test alone) | 21.72 | 6.93 | 1.79 | **30.44** |
+| Single 30pp book | 14.64 | 6.93 | 1.21 | 22.78 |
+| Single 60pp book | 18.56 | 6.93 | 1.53 | 27.02 |
+
+Order all three as **one** order: three separate orders cost 72.58, and a single
+press run is also what makes the comparisons fair.
+
+**Placing it:** `apps/mvp/scripts/order-print-test.ts` creates the order unpaid
+and stops. Paying is a separate Peecho call and a separate decision; the script
+will not make it.
+
+```bash
+pnpm --filter mvp exec tsx scripts/order-print-test.ts \
+  --env <path to env with PEECHO_MERCHANT_API_KEY> \
+  --address address.json --files files.json --live --dry-run
+```
+
+Drop `--dry-run` to create it. Without `--live` it hits Peecho's test endpoint,
+which is the right place to rehearse.
+
+**Two things the script cannot supply:**
+
+1. **A shipping address and email.** Required by Peecho, and not guessable.
+2. **A public HTTPS URL per PDF.** Peecho fetches the file itself, so a local
+   path is not enough, and there are no storage credentials alongside the Peecho
+   keys. Either host the three PDFs somewhere Peecho can GET them, or upload
+   them through Peecho's web checkout, which takes the file directly.
 
 ## What to check when they arrive
 
