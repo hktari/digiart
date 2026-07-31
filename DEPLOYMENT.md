@@ -348,9 +348,8 @@ Services `lead-scraper-web` and `lead-scraper-cron` in project `digiart-mvp`;
 cron runs `0 6 * * *`. Replaces the local crontab entry, which only ran when the
 laptop was awake.
 
-> **Both services deploy from the branch `worktree-bk-content-funnel`, not
-> `main`** — `Dockerfile.lead-scraper` does not exist on main yet. Repoint them
-> once the PR merges, or Railway will keep building an old branch.
+Both services build from `main` (repointed 2026-07-31 after PR #3 merged;
+verified deploying commit `c1227d6`).
 
 Built from the monorepo root via `Dockerfile.lead-scraper`, same pattern as
 `pdf-worker`. **One image, two services:**
