@@ -20,7 +20,11 @@ function layoutPlate(input) {
     const captionBandPt = hasCaption ? page_1.CAPTION_BAND_PT : 0;
     const isImageLandscape = orientation === "LANDSCAPE";
     const isPageLandscape = PAGE_WIDTH_PT > PAGE_HEIGHT_PT;
-    const needsRotation = isImageLandscape !== isPageLandscape;
+    // A square page fits both orientations equally well, so rotating buys nothing
+    // and costs the reader turning the book. Without this, every landscape plate
+    // in a square book comes out sideways.
+    const isSquarePage = Math.abs(PAGE_WIDTH_PT - PAGE_HEIGHT_PT) < 1;
+    const needsRotation = !isSquarePage && isImageLandscape !== isPageLandscape;
     const printW = PAGE_WIDTH_PT - page_1.MARGIN_PT * 2;
     const printH = PAGE_HEIGHT_PT - page_1.MARGIN_PT * 2;
     // The caption always runs along the plate's own bottom edge. On a rotated

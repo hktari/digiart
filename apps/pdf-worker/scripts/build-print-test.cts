@@ -24,6 +24,8 @@
  *   --source <dir>       collects folder (default ~/Downloads/art-collect)
  *   --out <file>         output PDF
  *   --issue <label>      cover issue label
+ *   --format <fmt>       page format (default A5_PORTRAIT; SQUARE_210 for the
+ *                        210x210 softcover photobook)
  */
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
@@ -37,7 +39,10 @@ import {
   type PlateGrade,
   plateDpi,
 } from "@printfeed/print-geometry";
-import { DEFAULT_PAGE_FORMAT } from "../src/booklet/booklet.types";
+import {
+  DEFAULT_PAGE_FORMAT,
+  type PageFormat,
+} from "../src/booklet/booklet.types";
 import { ArtworkPageService, toWinAnsi } from "../src/booklet/pdf/artwork-page.service";
 import { CoverPageService } from "../src/booklet/pdf/cover-page.service";
 import { PdfXProcessorService } from "../src/booklet/pdf/pdfx-processor.service";
@@ -52,7 +57,7 @@ import {
 const MM_TO_PT = 2.8346;
 const mm = (v: number) => v * MM_TO_PT;
 const IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp"]);
-const PAGE = PAGE_DIMENSIONS[DEFAULT_PAGE_FORMAT];
+let PAGE = PAGE_DIMENSIONS[DEFAULT_PAGE_FORMAT];
 
 interface Candidate {
   handle: string;
@@ -74,6 +79,7 @@ function parseArgs(argv: string[]) {
     source: join(homedir(), "Downloads", "art-collect"),
     out: resolve("print-test.pdf"),
     issue: "Print Test",
+    format: DEFAULT_PAGE_FORMAT as PageFormat,
   };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
@@ -91,6 +97,15 @@ function parseArgs(argv: string[]) {
     else if (arg === "--source") opts.source = resolve(next());
     else if (arg === "--out") opts.out = resolve(next());
     else if (arg === "--issue") opts.issue = next();
+    else if (arg === "--format") {
+      const v = next() as PageFormat;
+      if (!(v in PAGE_DIMENSIONS)) {
+        throw new Error(
+          `Unknown format "${v}". Known: ${Object.keys(PAGE_DIMENSIONS).join(", ")}`,
+        );
+      }
+      opts.format = v;
+    }
     else throw new Error(`Unknown option: ${arg}`);
   }
   return opts;
@@ -267,7 +282,8 @@ async function buildLadder(
 
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
-  console.log(`Scanning ${opts.source}…`);
+  PAGE = PAGE_DIMENSIONS[opts.format];
+  console.log(`Scanning ${opts.source}… (${opts.format})`);
 
   const candidates = await scan(opts.source);
   const selected = select(candidates, opts.perArtist, opts.plates);
@@ -367,6 +383,7 @@ async function main() {
     `${JSON.stringify(
       {
         issue: opts.issue,
+        format: opts.format,
         colour: opts.colour,
         pageCount,
         artists,

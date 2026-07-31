@@ -53,6 +53,27 @@ describe("layoutPlate", () => {
     expect(without.scale).toBeGreaterThan(withCaption.scale);
   });
 
+  it("never rotates on a square page, whatever the plate's orientation", () => {
+    // A square page fits both orientations equally, so rotating only forces the
+    // reader to turn the book. The old rule treated square as portrait.
+    const square = PAGE_DIMENSIONS.SQUARE_210;
+    for (const [w, h, orientation] of [
+      [3000, 2000, "LANDSCAPE"],
+      [2000, 3000, "PORTRAIT"],
+      [2000, 2000, "PORTRAIT"],
+    ] as const) {
+      expect(
+        layoutPlate({
+          imageWidthPx: w,
+          imageHeightPx: h,
+          orientation,
+          page: square,
+          hasCaption: true,
+        }).needsRotation,
+      ).toBe(false);
+    }
+  });
+
   it("rotates a landscape plate onto a portrait page and takes the band from the width", () => {
     const layout = layoutPlate({
       imageWidthPx: 2608,
