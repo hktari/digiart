@@ -1,5 +1,9 @@
 # Dependencies
-node_modules
+# The ** matters: a bare `node_modules` matches only the root directory, so the
+# workspace apps' own node_modules were being copied in from the host. Their
+# symlinks point at pnpm hash directories from the host's pnpm version, which do
+# not exist in the image's pnpm 9 install, and every binary resolved to nothing.
+**/node_modules
 .pnpm-store
 
 # Build outputs
