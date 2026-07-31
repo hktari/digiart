@@ -10,11 +10,17 @@ export {
   type PageFormat,
 } from "@printfeed/print-geometry";
 
+/**
+ * Self-contained: the caller resolves the artwork and hands over a plate list
+ * plus the row to update. The worker used to run the CollectorReleaseSelection
+ * query itself, which was the only reason a Collection could not use this same
+ * pipeline. Now cycles and collections are just two callers.
+ */
 export interface BookletJobData {
-  collectorProfileId: string;
-  cycleId: string;
+  printFileId: string;
   issueLabel: string;
   pageFormat?: PageFormat;
+  plates: ArtworkRecord[];
 }
 
 /**

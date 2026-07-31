@@ -60,10 +60,24 @@ export async function triggerPdfGenerationForCycle(
         continue;
       }
 
+      // Resolving artwork is the caller's job now. The worker used to run this
+      // query itself, which was the only thing stopping a Collection from
+      // using the same booklet pipeline.
       const selections = await db.collectorReleaseSelection.findMany({
         where: {
           collectorProfileId: collectorId,
           cycleId,
+        },
+        include: {
+          release: {
+            include: {
+              artworks: {
+                include: { artwork: true },
+                orderBy: { sortOrder: "asc" },
+              },
+              creatorProfile: { select: { displayName: true } },
+            },
+          },
         },
       });
 
@@ -71,6 +85,30 @@ export async function triggerPdfGenerationForCycle(
         result.skipped.push({
           collectorId,
           reason: "No selections",
+        });
+        continue;
+      }
+
+      // The creator lives on the release, not the artwork, so it is stamped
+      // onto each plate here — otherwise flattening loses which artist made
+      // what, and every plate in a multi-creator booklet goes uncredited.
+      const plates = selections.flatMap((selection) =>
+        selection.release.artworks.map(({ artwork }) => ({
+          id: artwork.id,
+          title: artwork.title,
+          storageKey: artwork.storageKey,
+          mimeType: artwork.mimeType,
+          width: artwork.width,
+          height: artwork.height,
+          orientation: artwork.orientation,
+          creatorName: selection.release.creatorProfile.displayName,
+        })),
+      );
+
+      if (plates.length === 0) {
+        result.skipped.push({
+          collectorId,
+          reason: "Selections contain no artwork",
         });
         continue;
       }
@@ -91,24 +129,24 @@ export async function triggerPdfGenerationForCycle(
         continue;
       }
 
-      if (existingFile) {
-        await db.generatedPrintFile.update({
-          where: { id: existingFile.id },
-          data: { status: "PENDING", errorMessage: null },
-        });
-      } else {
-        await db.generatedPrintFile.create({
-          data: {
-            collectorProfileId: collectorId,
-            cycleId,
-            status: "PENDING",
-          },
-        });
-      }
+      // The worker keys its status writes on the row id, so the row has to
+      // exist before the job is enqueued and its id has to travel with it.
+      const printFile = existingFile
+        ? await db.generatedPrintFile.update({
+            where: { id: existingFile.id },
+            data: { status: "PENDING", errorMessage: null },
+          })
+        : await db.generatedPrintFile.create({
+            data: {
+              collectorProfileId: collectorId,
+              cycleId,
+              status: "PENDING",
+            },
+          });
 
       await queue.add(
         "generate",
-        { collectorProfileId: collectorId, cycleId, issueLabel },
+        { printFileId: printFile.id, issueLabel, plates },
         { jobId: `booklet-${collectorId}-${cycleId}` },
       );
       result.enqueued += 1;

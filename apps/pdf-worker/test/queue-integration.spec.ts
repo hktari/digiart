@@ -70,18 +70,17 @@ async function makeArtworkJpeg(index: number): Promise<Buffer> {
 // ---------------------------------------------------------------------------
 // Mock Prisma — injected via jest.mock so BookletProcessor.prisma is replaced
 // ---------------------------------------------------------------------------
-const mockFindMany = jest.fn();
-const mockUpdateMany = jest.fn().mockResolvedValue({ count: 1 });
+const mockUpdate = jest.fn().mockResolvedValue({ id: "pf-integration" });
 jest.mock("@prisma/adapter-pg", () => ({
   PrismaPg: jest.fn().mockImplementation(() => ({})),
 }));
 jest.mock("@prisma/client", () => ({
   PrismaClient: jest.fn().mockImplementation(() => ({
-    collectorReleaseSelection: { findMany: mockFindMany },
     // The processor moves the print file through GENERATING → READY/FAILED on
     // every job, including the failure path, so this must be stubbed or the
-    // real error is masked by a TypeError on undefined.
-    generatedPrintFile: { updateMany: mockUpdateMany },
+    // real error is masked by a TypeError on undefined. Artwork no longer
+    // comes from Prisma at all — it arrives in the job payload.
+    generatedPrintFile: { update: mockUpdate },
   })),
 }));
 
@@ -107,6 +106,9 @@ describe("Queue Integration: MVP enqueue → BookletProcessor → Storage", () =
   // BullMQ producer (simulates MVP)
   let producerQueue: Queue<BookletJobData>;
 
+  // Resolved by the producer, carried in the payload.
+  let plates: BookletJobData["plates"];
+
   // Artwork buffers loaded from disk
   let artworkBuffers: Buffer[];
 
@@ -120,29 +122,18 @@ describe("Queue Integration: MVP enqueue → BookletProcessor → Storage", () =
       ARTWORK_FILES.map((_, i) => makeArtworkJpeg(i)),
     );
 
-    // 3. Configure mock Prisma to return 3 artwork selections
-    const selections = ARTWORK_FILES.map((file, i) => ({
-      release: {
-        artworks: [
-          {
-            artwork: {
-              id: `artwork-${i}`,
-              title: `Test Artwork ${i + 1}`,
-              storageKey: `test/${file}`,
-              mimeType: file.endsWith(".png") ? "image/png" : "image/jpeg",
-              width: 1800,
-              height: 2600,
-              orientation: "PORTRAIT",
-            },
-            sortOrder: i,
-          },
-        ],
-        creatorProfile: {
-          displayName: i === 0 ? "Creator Alpha" : "Creator Beta",
-        },
-      },
+    // 3. Build the plate list the producer will put in the job payload. This
+    //    is what the MVP side now resolves before enqueueing.
+    plates = ARTWORK_FILES.map((file, i) => ({
+      id: `artwork-${i}`,
+      title: `Test Artwork ${i + 1}`,
+      storageKey: `test/${file}`,
+      mimeType: file.endsWith(".png") ? "image/png" : "image/jpeg",
+      width: 1800,
+      height: 2600,
+      orientation: "PORTRAIT",
+      creatorName: i === 0 ? "Creator Alpha" : "Creator Beta",
     }));
-    mockFindMany.mockResolvedValue(selections);
 
     // 4. (see step 5 — artwork bytes are served by stubbing StorageService)
 
@@ -202,9 +193,9 @@ describe("Queue Integration: MVP enqueue → BookletProcessor → Storage", () =
 
   it("should process a booklet job end-to-end: queue → worker → PDF → storage", async () => {
     const jobData: BookletJobData = {
-      collectorProfileId: COLLECTOR_ID,
-      cycleId: CYCLE_ID,
+      printFileId: "pf-integration",
       issueLabel: ISSUE_LABEL,
+      plates,
     };
 
     // Enqueue the job (exactly as MVP route does)
@@ -245,27 +236,18 @@ describe("Queue Integration: MVP enqueue → BookletProcessor → Storage", () =
   }, 45_000);
 
   it("should fail a job with a descriptive error when no artworks exist", async () => {
-    mockFindMany.mockResolvedValueOnce([
-      {
-        release: {
-          artworks: [],
-          creatorProfile: { displayName: "Empty Creator" },
-        },
-      },
-    ]);
-
     const emptyJob = await producerQueue.add(
       "generate",
       {
-        collectorProfileId: "col-empty",
-        cycleId: "cycle-empty",
+        printFileId: "pf-empty",
         issueLabel: "Empty Issue",
+        plates: [],
       },
-      { jobId: `booklet-col-empty-cycle-empty-${Date.now()}` },
+      { jobId: `booklet-empty-${Date.now()}` },
     );
 
     const error = await waitForJobFailure(producerQueue, emptyJob.id!, 15_000);
-    expect(error).toMatch(/No artworks found/);
+    expect(error).toMatch(/carried no plates/);
 
     console.log(`✓ Integration failure: job=${emptyJob.id}, error="${error}"`);
   }, 30_000);

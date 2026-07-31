@@ -38,52 +38,25 @@ export class BookletProcessor extends WorkerHost {
 
   async process(job: Job<BookletJobData>): Promise<BookletJobResult> {
     const {
-      collectorProfileId,
-      cycleId,
+      printFileId,
       issueLabel,
       pageFormat = DEFAULT_PAGE_FORMAT,
+      plates,
     } = job.data;
     this.logger.log(
-      `Processing booklet job ${job.id} for collector=${collectorProfileId} cycle=${cycleId}`,
+      `Processing booklet job ${job.id} for printFile=${printFileId} (${plates.length} plates)`,
     );
 
-    await this.prisma.generatedPrintFile.updateMany({
-      where: { collectorProfileId, cycleId },
+    await this.prisma.generatedPrintFile.update({
+      where: { id: printFileId },
       data: { status: "GENERATING", errorMessage: null },
     });
 
     try {
-      const selections = await this.prisma.collectorReleaseSelection.findMany({
-        where: { collectorProfileId, cycleId },
-        include: {
-          release: {
-            include: {
-              artworks: {
-                include: { artwork: true },
-                orderBy: { sortOrder: "asc" },
-              },
-              creatorProfile: { select: { displayName: true } },
-            },
-          },
-        },
-      });
-
-      // The creator lives on the release, not the artwork, so it has to be
-      // stamped onto each piece here — otherwise flattening loses which artist
-      // made what, and every plate in a multi-creator booklet goes uncredited.
-      const artworks = selections.flatMap((sel: (typeof selections)[number]) =>
-        sel.release.artworks.map(
-          (ra: (typeof sel.release.artworks)[number]) => ({
-            ...ra.artwork,
-            creatorName: sel.release.creatorProfile.displayName,
-          }),
-        ),
-      );
+      const artworks = plates;
 
       if (artworks.length === 0) {
-        throw new Error(
-          "No artworks found for this collector/cycle combination",
-        );
+        throw new Error("Job payload carried no plates");
       }
 
       // A collection is 70+ pieces from strangers' phones; one under-floor
@@ -157,12 +130,14 @@ export class BookletProcessor extends WorkerHost {
         }
       }
 
+      // The cover byline comes from whoever is actually in the book, which is
+      // the printable set — an artist whose only plate was dropped should not
+      // be credited on a cover they do not appear inside.
       const creatorNames: string[] = [
-        ...new Set<string>(
-          selections.map(
-            (s: (typeof selections)[number]) =>
-              s.release.creatorProfile.displayName,
-          ),
+        ...new Set(
+          printable
+            .map((plate) => plate.creatorName)
+            .filter((name): name is string => Boolean(name)),
         ),
       ];
 
@@ -184,8 +159,8 @@ export class BookletProcessor extends WorkerHost {
       const widthMm = dims.widthPt * PT_TO_MM;
       const heightMm = dims.heightPt * PT_TO_MM;
 
-      await this.prisma.generatedPrintFile.updateMany({
-        where: { collectorProfileId, cycleId },
+      await this.prisma.generatedPrintFile.update({
+        where: { id: printFileId },
         data: {
           status: "READY",
           storageUrl: pdfUrl,
@@ -206,14 +181,14 @@ export class BookletProcessor extends WorkerHost {
         tags: { component: "booklet-processor" },
         extra: {
           jobId: job.id,
-          collectorProfileId,
-          cycleId,
+          printFileId,
           issueLabel,
+          plateCount: plates.length,
         },
       });
 
-      await this.prisma.generatedPrintFile.updateMany({
-        where: { collectorProfileId, cycleId },
+      await this.prisma.generatedPrintFile.update({
+        where: { id: printFileId },
         data: { status: "FAILED", errorMessage: message },
       });
 
