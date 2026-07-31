@@ -26,6 +26,9 @@
  *   --per-artist <n>     max plates per artist, 0 = unlimited (default 2)
  *   --format <fmt>       page format (default A5_PORTRAIT)
  *   --dry-run            report the selection without building
+ *   --tier-sample        take plates from every resolution band, not just the
+ *                        sharpest, so a proof print can settle where the floor
+ *                        belongs
  */
 
 import { readdir, readFile, writeFile } from "node:fs/promises";
@@ -33,10 +36,16 @@ import { homedir } from "node:os";
 import { basename, extname, join, resolve } from "node:path";
 import sharp from "sharp";
 import {
+  gradePlate,
+  orientationFromPixels,
+  type PlateGrade,
+  plateDpi,
+  PRINT_DPI_FLOOR,
+  PRINT_DPI_WARN,
+} from "@printfeed/print-geometry";
+import {
   type ArtworkRecord,
   DEFAULT_PAGE_FORMAT,
-  MIN_HEIGHT_PX,
-  MIN_WIDTH_PX,
   PAGE_DIMENSIONS,
   type PageFormat,
 } from "../src/booklet/booklet.types";
@@ -62,6 +71,8 @@ interface Candidate {
   height: number;
   format: string;
   title: string | null;
+  grade: PlateGrade;
+  dpi: number;
 }
 
 interface Rejected {
@@ -78,6 +89,7 @@ function parseArgs(argv: string[]) {
     perArtist: 2,
     format: DEFAULT_PAGE_FORMAT as PageFormat,
     dryRun: false,
+    tierSample: false,
   };
 
   for (let i = 0; i < argv.length; i++) {
@@ -95,6 +107,7 @@ function parseArgs(argv: string[]) {
       opts.perArtist = Number.parseInt(next(), 10);
     else if (arg === "--format") opts.format = next() as PageFormat;
     else if (arg === "--dry-run") opts.dryRun = true;
+    else if (arg === "--tier-sample") opts.tierSample = true;
     else throw new Error(`Unknown option: ${arg}`);
   }
 
@@ -123,7 +136,7 @@ function titleFromCaption(caption: string | undefined): string | null {
     : first;
 }
 
-async function scan(source: string) {
+async function scan(source: string, pageFormat: PageFormat) {
   const candidates: Candidate[] = [];
   const rejected: Rejected[] = [];
 
@@ -154,11 +167,21 @@ async function scan(source: string) {
         rejected.push({ handle, file, reason: "unreadable image" });
         continue;
       }
-      if (width < MIN_WIDTH_PX || height < MIN_HEIGHT_PX) {
+      const plate = {
+        imageWidthPx: width,
+        imageHeightPx: height,
+        orientation: orientationFromPixels(width, height),
+        page: PAGE_DIMENSIONS[pageFormat],
+        hasCaption: true,
+      };
+      const grade = gradePlate(plate);
+      const dpi = Math.round(plateDpi(plate));
+
+      if (grade === "REJECT") {
         rejected.push({
           handle,
           file,
-          reason: `${width}×${height} below the ${MIN_WIDTH_PX}×${MIN_HEIGHT_PX} print floor`,
+          reason: `${width}×${height} — ${dpi}dpi, under the ${PRINT_DPI_WARN}dpi floor`,
         });
         continue;
       }
@@ -171,6 +194,8 @@ async function scan(source: string) {
         height,
         format: format ?? "unknown",
         title,
+        grade,
+        dpi,
       });
     }
   }
@@ -178,8 +203,25 @@ async function scan(source: string) {
   return { candidates, rejected };
 }
 
-/** Round-robin across artists so no single handle dominates the front. */
-function select(candidates: Candidate[], perArtist: number): Candidate[] {
+/** Which resolution band a plate falls in, for the diagnostic sample. */
+function band(candidate: Candidate): "high" | "mid" | "soft" {
+  if (candidate.dpi >= 300) return "high";
+  return candidate.grade === "OK" ? "mid" : "soft";
+}
+
+/**
+ * Round-robin across artists so no single handle dominates the front.
+ *
+ * With `tierSample`, take from each resolution band instead of simply the
+ * first N. A proof print is only diagnostic if it actually contains plates
+ * that might be too soft — a booklet of the best images tells you nothing
+ * about where the floor belongs.
+ */
+function select(
+  candidates: Candidate[],
+  perArtist: number,
+  tierSample: boolean,
+): Candidate[] {
   const byHandle = new Map<string, Candidate[]>();
   for (const candidate of candidates) {
     const bucket = byHandle.get(candidate.handle) ?? [];
@@ -189,28 +231,37 @@ function select(candidates: Candidate[], perArtist: number): Candidate[] {
 
   return [...byHandle.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
-    .flatMap(([, items]) =>
-      perArtist > 0 ? items.slice(0, perArtist) : items,
-    );
+    .flatMap(([, items]) => {
+      if (!tierSample) return perArtist > 0 ? items.slice(0, perArtist) : items;
+      const take = perArtist > 0 ? perArtist : items.length;
+      return (["high", "mid", "soft"] as const).flatMap((b) =>
+        items.filter((item) => band(item) === b).slice(0, take),
+      );
+    });
 }
 
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
   console.log(`Scanning ${opts.source}…\n`);
 
-  const { candidates, rejected } = await scan(opts.source);
-  const selected = select(candidates, opts.perArtist);
+  const { candidates, rejected } = await scan(opts.source, opts.format);
+  const selected = select(candidates, opts.perArtist, opts.tierSample);
   const artists = new Set(selected.map((c) => c.handle));
 
   for (const candidate of selected) {
+    const flag = candidate.grade === "MARGINAL" ? "soft" : "";
     console.log(
-      `  ✓ @${candidate.handle.padEnd(28)} ${candidate.file.padEnd(24)} ${candidate.width}×${candidate.height}`,
+      `  ✓ @${candidate.handle.padEnd(28)} ${candidate.file.padEnd(24)} ${candidate.width}×${candidate.height}  ${String(candidate.dpi).padStart(4)}dpi ${flag}`,
     );
   }
 
   // Never report a selection without saying what fell out of it — a silent cap
   // reads as "everything was usable" when most of it was not.
-  console.log(`\n  ${selected.length} plates from ${artists.size} artists`);
+  const soft = selected.filter((c) => c.grade === "MARGINAL").length;
+  console.log(
+    `\n  ${selected.length} plates from ${artists.size} artists` +
+      ` (${selected.length - soft} at ${PRINT_DPI_FLOOR}dpi+, ${soft} soft)`,
+  );
   const dropped = candidates.length - selected.length;
   if (dropped > 0) {
     console.log(`  ${dropped} held back by --per-artist ${opts.perArtist}`);
@@ -269,10 +320,36 @@ async function main() {
   );
 
   await writeFile(opts.out, bytes);
+
+  // A printed proof can only settle where the floor belongs if you can read a
+  // page back to the numbers that produced it.
+  await writeFile(
+    `${opts.out}.manifest.json`,
+    `${JSON.stringify(
+      {
+        issue: opts.issue,
+        format: opts.format,
+        floor: { print: PRINT_DPI_FLOOR, warn: PRINT_DPI_WARN },
+        plates: selected.map((c, index) => ({
+          page: index + 2, // page 1 is the cover
+          handle: c.handle,
+          file: c.file,
+          pixels: `${c.width}×${c.height}`,
+          dpi: c.dpi,
+          grade: c.grade,
+        })),
+        rejected,
+      },
+      null,
+      2,
+    )}\n`,
+  );
+
   const { widthPt, heightPt } = PAGE_DIMENSIONS[opts.format];
   const PT_TO_MM = 1 / 2.8346;
   console.log(
-    `\n✓ ${opts.out}\n  ${pageCount} pages, ${(widthPt * PT_TO_MM).toFixed(0)}×${(heightPt * PT_TO_MM).toFixed(0)}mm, ${(bytes.length / 1024 / 1024).toFixed(1)}MB`,
+    `\n✓ ${opts.out}\n  ${pageCount} pages, ${(widthPt * PT_TO_MM).toFixed(0)}×${(heightPt * PT_TO_MM).toFixed(0)}mm, ${(bytes.length / 1024 / 1024).toFixed(1)}MB` +
+      `\n  manifest → ${opts.out}.manifest.json`,
   );
 }
 
