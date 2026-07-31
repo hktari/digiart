@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PrintReadiness } from "@/components/collect/print-readiness";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/auth";
 import { claimCollection } from "@/lib/collect/actions";
 import { getCollectionView } from "@/lib/collect/ingest-service";
 import { formatEur, magazinePriceCents } from "@/lib/collect/pricing";
+import { assessCollection } from "@/lib/collect/print-service";
 
 type Props = { params: Promise<{ token: string }> };
 
@@ -22,7 +24,13 @@ export default async function PrintPage({ params }: Props) {
   const session = await auth();
   const isAuthed = Boolean(session?.user?.id);
   const covers = collection.groups.flatMap((g) => g.items).slice(0, 4);
-  const price = formatEur(magazinePriceCents(collection.itemCount));
+  // Price what will actually be printed, not what was collected — charging for
+  // pages that get dropped at the floor is the wrong number to show.
+  const readiness = await assessCollection(token);
+  const printableCount = readiness
+    ? readiness.ok + readiness.marginal
+    : collection.itemCount;
+  const price = formatEur(magazinePriceCents(printableCount));
   const ship = claimCollection.bind(null, token);
   // Gated on the claim itself, not on the claim *and* being signed in:
   // claimCollection is a no-op once a collection has an owner, so the old
@@ -82,6 +90,12 @@ export default async function PrintPage({ params }: Props) {
               estimated, incl. printing &amp; shipping
             </span>
           </div>
+
+          {readiness && (
+            <div className="mt-4">
+              <PrintReadiness readiness={readiness} />
+            </div>
+          )}
 
           {/*
             Reserving is all this page can do: there is no order path from a

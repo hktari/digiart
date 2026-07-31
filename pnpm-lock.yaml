@@ -87,6 +87,9 @@ importers:
       '@aws-sdk/s3-request-presigner':
         specifier: ^3.1038.0
         version: 3.1038.0
+      '@printfeed/print-geometry':
+        specifier: workspace:*
+        version: link:../../packages/print-geometry
       '@prisma/adapter-neon':
         specifier: ^7.8.0
         version: 7.8.0
