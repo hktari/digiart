@@ -44,12 +44,23 @@ export async function submitFulfillmentOrder(
     return { success: false, error: "Print file has no storage URL" };
   }
 
+  // Fulfilment is cycle-shaped — orders, quotes and payouts are all keyed on
+  // (collector, cycle). A collection print file has neither and never reaches
+  // this path, so narrow here rather than asserting further down.
+  const { collectorProfileId, cycleId } = printFile;
+  if (!collectorProfileId || !cycleId) {
+    return {
+      success: false,
+      error: "Print file is not tied to a subscription cycle",
+    };
+  }
+
   // Look up the checkout intent to get the Peecho order ID
   const checkoutIntent = await db.checkoutIntent.findUnique({
     where: {
       collectorProfileId_cycleId: {
-        collectorProfileId: printFile.collectorProfileId,
-        cycleId: printFile.cycleId,
+        collectorProfileId: collectorProfileId,
+        cycleId: cycleId,
       },
     },
   });
@@ -61,8 +72,8 @@ export async function submitFulfillmentOrder(
   const existingOrder = await db.fulfillmentOrder.findUnique({
     where: {
       collectorProfileId_cycleId: {
-        collectorProfileId: printFile.collectorProfileId,
-        cycleId: printFile.cycleId,
+        collectorProfileId: collectorProfileId,
+        cycleId: cycleId,
       },
     },
   });
@@ -83,8 +94,8 @@ export async function submitFulfillmentOrder(
   // Get quote snapshot for reference (required for fulfillment order)
   const quoteSnapshot = await db.pricingQuoteSnapshot.findFirst({
     where: {
-      collectorProfileId: printFile.collectorProfileId,
-      cycleId: printFile.cycleId,
+      collectorProfileId: collectorProfileId,
+      cycleId: cycleId,
       isFrozen: true,
     },
     orderBy: { quotedAt: "desc" },
@@ -118,8 +129,8 @@ export async function submitFulfillmentOrder(
         })
       : await db.fulfillmentOrder.create({
           data: {
-            collectorProfileId: printFile.collectorProfileId,
-            cycleId: printFile.cycleId,
+            collectorProfileId: collectorProfileId,
+            cycleId: cycleId,
             generatedPrintFileId: printFile.id,
             quoteSnapshotId: quoteSnapshot.id,
             status: "SUBMITTED",
@@ -147,8 +158,8 @@ export async function submitFulfillmentOrder(
     } else {
       await db.fulfillmentOrder.create({
         data: {
-          collectorProfileId: printFile.collectorProfileId,
-          cycleId: printFile.cycleId,
+          collectorProfileId: collectorProfileId,
+          cycleId: cycleId,
           generatedPrintFileId: printFile.id,
           quoteSnapshotId: quoteSnapshot.id,
           status: "FAILED",

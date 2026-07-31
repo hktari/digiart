@@ -462,24 +462,32 @@ enum PrintFileStatus {
 }
 
 model GeneratedPrintFile {
-  id                 String          @id @default(cuid())
-  collectorProfileId String
-  cycleId            String
-  storageUrl         String?
-  pageCount          Int?
-  widthMm            Float?
-  heightMm           Float?
-  status             PrintFileStatus @default(PENDING)
-  errorMessage       String?
-  generatedAt        DateTime?
-  createdAt          DateTime        @default(now())
-  updatedAt          DateTime        @updatedAt
+  id String @id @default(cuid())
+  // Null for a collection booklet — a collection has no profile and no cycle.
+  collectorProfileId String?
+  cycleId            String?
+  // Null for a cycle booklet. Postgres treats NULLs as distinct in a unique
+  // index, so collection rows never collide with the cycle constraint below.
+  collectionId String?
+  storageUrl   String?
+  pageCount    Int?
+  widthMm      Float?
+  heightMm     Float?
+  status       PrintFileStatus @default(PENDING)
+  errorMessage String?
+  generatedAt  DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
 
-  collectorProfile CollectorProfile  @relation(fields: [collectorProfileId], references: [id], onDelete: Cascade)
-  cycle            SubscriptionCycle @relation(fields: [cycleId], references: [id])
+  collectorProfile CollectorProfile?  @relation(fields: [collectorProfileId], references: [id], onDelete: Cascade)
+  // Restrict is explicit because an optional relation would otherwise default
+  // to SetNull, quietly changing what happens when a cycle is deleted.
+  cycle            SubscriptionCycle? @relation(fields: [cycleId], references: [id], onDelete: Restrict)
+  collection       Collection?        @relation(fields: [collectionId], references: [id], onDelete: Cascade)
   fulfillmentOrder FulfillmentOrder?
 
   @@unique([collectorProfileId, cycleId])
+  @@unique([collectionId])
 }
 
 // ---------------------------------------------------------------------------
@@ -848,9 +856,10 @@ model Collection {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  collectorLead Lead?           @relation("CollectionCollectorLead", fields: [collectorLeadId], references: [id])
-  ownerUser     User?           @relation(fields: [ownerUserId], references: [id])
+  collectorLead Lead?                @relation("CollectionCollectorLead", fields: [collectorLeadId], references: [id])
+  ownerUser     User?                @relation(fields: [ownerUserId], references: [id])
   items         CollectedItem[]
+  printFiles    GeneratedPrintFile[]
 
   @@index([ownerUserId])
 }

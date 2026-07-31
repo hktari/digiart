@@ -2,7 +2,7 @@ import { getQueueToken } from "@nestjs/bullmq";
 import { Test, TestingModule } from "@nestjs/testing";
 import type { Job } from "bullmq";
 import { BookletProcessor } from "./booklet.processor";
-import type { BookletJobData } from "./booklet.types";
+import type { ArtworkRecord, BookletJobData } from "./booklet.types";
 import { DEFAULT_PAGE_FORMAT } from "./booklet.types";
 import { PdfBuilderService } from "./pdf/pdf-builder.service";
 import { StorageService } from "./storage/storage.service";
@@ -11,17 +11,17 @@ jest.mock("@prisma/adapter-pg", () => ({
   PrismaPg: jest.fn().mockImplementation(() => ({})),
 }));
 
-const mockFindMany = jest.fn();
-const mockUpdateMany = jest.fn().mockResolvedValue({ count: 1 });
+// The worker no longer queries for artwork — the caller resolves it and puts
+// it in the payload — so the only Prisma surface left is the status row.
+const mockUpdate = jest.fn().mockResolvedValue({ id: "pf-1" });
 jest.mock("@prisma/client", () => ({
   PrismaClient: jest.fn().mockImplementation(() => ({
-    collectorReleaseSelection: { findMany: mockFindMany },
-    generatedPrintFile: { updateMany: mockUpdateMany },
+    generatedPrintFile: { update: mockUpdate },
   })),
 }));
 
-// Artwork now comes through StorageService.downloadObject (signed S3 GET),
-// not an unauthenticated fetch of a hand-built URL, so that is the seam.
+// Artwork comes through StorageService.downloadObject (signed S3 GET), not an
+// unauthenticated fetch of a hand-built URL, so that is the seam.
 
 const mockPdfBuilder = {
   build: jest.fn(),
@@ -36,7 +36,7 @@ function makeJob(data: BookletJobData): Job<BookletJobData> {
   return { id: "job-1", data } as unknown as Job<BookletJobData>;
 }
 
-const validArtwork = {
+const validArtwork: ArtworkRecord = {
   id: "art-1",
   title: "Test Art",
   storageKey: "art/test.jpg",
@@ -44,20 +44,28 @@ const validArtwork = {
   width: 2000,
   height: 2800,
   orientation: "PORTRAIT",
-};
-
-const baseSelection = {
-  release: {
-    artworks: [{ artwork: validArtwork, sortOrder: 0 }],
-    creatorProfile: { displayName: "Artist Name" },
-  },
+  creatorName: "Artist Name",
 };
 
 const jobData: BookletJobData = {
-  collectorProfileId: "col-1",
-  cycleId: "cycle-1",
+  printFileId: "pf-1",
   issueLabel: "March 2025",
+  plates: [validArtwork],
 };
+
+/** Same job, different plate list. */
+function withPlates(plates: ArtworkRecord[]): BookletJobData {
+  return { ...jobData, plates };
+}
+
+function expectBuilt(pageCount = 2) {
+  mockStorage.downloadObject.mockResolvedValue(Buffer.alloc(8));
+  mockPdfBuilder.build.mockResolvedValue({
+    bytes: new Uint8Array([1]),
+    pageCount,
+  });
+  mockStorage.uploadPdf.mockResolvedValue("https://s3.example.com/x.pdf");
+}
 
 describe("BookletProcessor", () => {
   let processor: BookletProcessor;
@@ -82,8 +90,7 @@ describe("BookletProcessor", () => {
     processor = module.get<BookletProcessor>(BookletProcessor);
   });
 
-  it("should process a booklet job successfully", async () => {
-    mockFindMany.mockResolvedValue([baseSelection]);
+  it("builds a booklet from the plates in the payload", async () => {
     mockStorage.downloadObject.mockResolvedValue(Buffer.alloc(8));
     mockPdfBuilder.build.mockResolvedValue({
       bytes: new Uint8Array([1, 2, 3]),
@@ -98,9 +105,7 @@ describe("BookletProcessor", () => {
     expect(result.pdfUrl).toBe("https://s3.example.com/booklets/x.pdf");
     expect(result.pageCount).toBe(4);
     expect(mockPdfBuilder.build).toHaveBeenCalledWith(
-      // The release's creator is stamped onto each piece so the builder can
-      // credit individual plates, not just the cover.
-      [{ ...validArtwork, creatorName: "Artist Name" }],
+      [validArtwork],
       expect.any(Map),
       "March 2025",
       ["Artist Name"],
@@ -108,63 +113,106 @@ describe("BookletProcessor", () => {
     );
   });
 
-  it("should throw when no artworks are found", async () => {
-    mockFindMany.mockResolvedValue([
-      {
-        release: {
-          artworks: [],
-          creatorProfile: { displayName: "Artist" },
-        },
-      },
-    ]);
+  it("keys the status row by printFileId, not by collector and cycle", async () => {
+    expectBuilt();
 
-    await expect(processor.process(makeJob(jobData))).rejects.toThrow(
-      "No artworks found for this collector/cycle combination",
+    await processor.process(makeJob(jobData));
+
+    expect(mockUpdate).toHaveBeenCalledWith({
+      where: { id: "pf-1" },
+      data: { status: "GENERATING", errorMessage: null },
+    });
+    expect(mockUpdate).toHaveBeenLastCalledWith(
+      expect.objectContaining({ where: { id: "pf-1" } }),
     );
   });
 
-  it("should throw when artworks have UNKNOWN orientation", async () => {
-    mockFindMany.mockResolvedValue([
-      {
-        release: {
-          artworks: [
-            {
-              artwork: { ...validArtwork, orientation: "UNKNOWN" },
-              sortOrder: 0,
-            },
-          ],
-          creatorProfile: { displayName: "Artist" },
-        },
-      },
-    ]);
-
-    await expect(processor.process(makeJob(jobData))).rejects.toThrow(
-      "failed validation",
+  it("throws when the payload carries no plates", async () => {
+    await expect(processor.process(makeJob(withPlates([])))).rejects.toThrow(
+      "Job payload carried no plates",
     );
   });
 
-  it("should throw when artwork dimensions are too small", async () => {
-    mockFindMany.mockResolvedValue([
-      {
-        release: {
-          artworks: [
-            {
-              artwork: { ...validArtwork, width: 500, height: 600 },
-              sortOrder: 0,
-            },
-          ],
-          creatorProfile: { displayName: "Artist" },
-        },
-      },
-    ]);
+  it("prints a plate whose orientation is UNKNOWN", async () => {
+    // UNKNOWN used to fail the job. layoutPlate treats anything that is not
+    // LANDSCAPE as portrait, which is the right fallback, so the plate prints.
+    expectBuilt();
 
-    await expect(processor.process(makeJob(jobData))).rejects.toThrow(
-      "failed validation",
+    const result = await processor.process(
+      makeJob(withPlates([{ ...validArtwork, orientation: "UNKNOWN" }])),
     );
+
+    expect(result.skipped).toEqual([]);
   });
 
-  it("should throw when artwork download fails", async () => {
-    mockFindMany.mockResolvedValue([baseSelection]);
+  it("drops an under-floor plate and prints the rest", async () => {
+    expectBuilt();
+
+    const result = await processor.process(
+      makeJob(
+        withPlates([
+          validArtwork,
+          {
+            ...validArtwork,
+            id: "tiny",
+            storageKey: "art/tiny.jpg",
+            width: 720,
+            height: 405,
+            orientation: "LANDSCAPE",
+          },
+        ]),
+      ),
+    );
+
+    expect(result.skipped).toEqual([
+      { id: "tiny", title: "Test Art", dpi: 96, reason: "below-floor" },
+    ]);
+    // The good plate still reached the builder; the bad one did not.
+    const plates = mockPdfBuilder.build.mock.calls[0][0] as { id: string }[];
+    expect(plates.map((p) => p.id)).toEqual(["art-1"]);
+  });
+
+  it("keeps a marginal plate but reports it", async () => {
+    expectBuilt();
+
+    const result = await processor.process(
+      makeJob(
+        withPlates([
+          { ...validArtwork, id: "soft", width: 1131, height: 1685 },
+        ]),
+      ),
+    );
+
+    expect(result.skipped).toEqual([]);
+    expect(result.marginal).toEqual(["soft"]);
+  });
+
+  it("reports a plate with no measured dimensions as unmeasurable", async () => {
+    expectBuilt();
+
+    const result = await processor.process(
+      makeJob(
+        withPlates([
+          validArtwork,
+          { ...validArtwork, id: "nodims", width: null, height: null },
+        ]),
+      ),
+    );
+
+    expect(result.skipped).toEqual([
+      { id: "nodims", title: "Test Art", dpi: 0, reason: "unmeasurable" },
+    ]);
+  });
+
+  it("fails the job only when nothing survives grading", async () => {
+    await expect(
+      processor.process(
+        makeJob(withPlates([{ ...validArtwork, width: 500, height: 600 }])),
+      ),
+    ).rejects.toThrow(/No plates met the print floor/);
+  });
+
+  it("throws when artwork download fails", async () => {
     mockStorage.downloadObject.mockRejectedValue(new Error("NoSuchKey"));
 
     await expect(processor.process(makeJob(jobData))).rejects.toThrow(
@@ -172,41 +220,29 @@ describe("BookletProcessor", () => {
     );
   });
 
-  it("should deduplicate creator names", async () => {
-    mockFindMany.mockResolvedValue([
-      {
-        release: {
-          artworks: [{ artwork: validArtwork, sortOrder: 0 }],
-          creatorProfile: { displayName: "Same Artist" },
-        },
-      },
-      {
-        release: {
-          artworks: [
-            {
-              artwork: {
-                ...validArtwork,
-                id: "art-2",
-                storageKey: "art/2.jpg",
-              },
-              sortOrder: 0,
-            },
-          ],
-          creatorProfile: { displayName: "Same Artist" },
-        },
-      },
-    ]);
-    mockStorage.downloadObject.mockResolvedValue(Buffer.alloc(8));
-    mockPdfBuilder.build.mockResolvedValue({
-      bytes: new Uint8Array([1]),
-      pageCount: 4,
-    });
-    mockStorage.uploadPdf.mockResolvedValue("https://s3.example.com/x.pdf");
+  it("credits each artist once, and only those actually in the book", async () => {
+    expectBuilt();
 
-    await processor.process(makeJob(jobData));
+    await processor.process(
+      makeJob(
+        withPlates([
+          validArtwork,
+          { ...validArtwork, id: "art-2", storageKey: "art/2.jpg" },
+          // Dropped: its artist must not appear on the cover of a book they
+          // are not inside.
+          {
+            ...validArtwork,
+            id: "art-3",
+            storageKey: "art/3.jpg",
+            width: 500,
+            height: 600,
+            creatorName: "Dropped Artist",
+          },
+        ]),
+      ),
+    );
 
     const creatorNames = mockPdfBuilder.build.mock.calls[0][3] as string[];
-    expect(creatorNames).toEqual(["Same Artist"]);
-    expect(creatorNames.length).toBe(1);
+    expect(creatorNames).toEqual(["Artist Name"]);
   });
 });

@@ -17,6 +17,7 @@ WORKDIR /app
 COPY pnpm-workspace.yaml package.json pnpm-approved-builds.json pnpm-lock.yaml ./
 COPY apps/pdf-worker/package.json ./apps/pdf-worker/
 COPY apps/mvp/package.json ./apps/mvp/
+COPY packages/print-geometry/package.json ./packages/print-geometry/
 RUN pnpm install --frozen-lockfile
 
 # Build the application
@@ -24,11 +25,15 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/pdf-worker/node_modules ./apps/pdf-worker/node_modules
+COPY --from=deps /app/packages/print-geometry/node_modules ./packages/print-geometry/node_modules
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY apps/pdf-worker ./apps/pdf-worker
+COPY packages ./packages
 COPY tsconfig.base.json ./
 RUN cd apps/pdf-worker && npx prisma generate
-RUN pnpm --filter pdf-worker build
+# print-geometry first: pdf-worker imports its compiled dist, so the workspace
+# dependency has to exist before nest build resolves it.
+RUN pnpm --filter @printfeed/print-geometry build && pnpm --filter pdf-worker build
 
 # Production image
 FROM base AS runner
@@ -45,6 +50,9 @@ COPY --from=builder --chown=nestjs:nodejs /app/apps/pdf-worker/dist ./apps/pdf-w
 COPY --from=builder --chown=nestjs:nodejs /app/apps/pdf-worker/package.json ./apps/pdf-worker/
 COPY --from=builder --chown=nestjs:nodejs /app/apps/pdf-worker/prisma ./apps/pdf-worker/prisma
 COPY --from=builder --chown=nestjs:nodejs /app/apps/pdf-worker/profiles ./apps/pdf-worker/profiles
+# node_modules carries a symlink into this path; without it the link dangles
+# and the worker cannot resolve @printfeed/print-geometry at runtime.
+COPY --from=builder --chown=nestjs:nodejs /app/packages ./packages
 
 # Copy production dependencies (from builder to include generated Prisma client)
 COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
