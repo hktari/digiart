@@ -64,10 +64,49 @@ split like this:
 So: **you earn 0.5% of the value of every trade in your coin**, paid in $ZORA,
 for as long as people keep trading it.
 
-Read that sentence again, because the important word is *trade*, not *view*. On
-Zora you are not paid for attention. You are paid for **turnover**. A post that
-a hundred thousand people love and nobody trades earns you nothing. A post that
-four people flip back and forth all afternoon earns you more than that.
+The important word there is *trade*, not *view*. This part of your income isn't
+paid for attention, it's paid for **turnover**. A post that a hundred thousand
+people love and nobody trades pays you nothing here. A post that four people
+flip back and forth all afternoon pays you more.
+
+But the fee stream is the smaller half of the story, and stopping there gets the
+whole model wrong.
+
+### You are also issued a stake in yourself
+
+The larger mechanism is that you **hold coins**.
+
+- On a **content coin** — a post — you receive **10 million of the 1 billion
+  supply, 1%**, at launch.
+- On your **Creator Coin** — your profile — you receive **500 million of 1
+  billion, 50%**, vesting linearly over five years. That's roughly **273,973
+  coins a day**, every day, for five years.
+
+This is the part that scales. Fees pay you a slice of other people's trading;
+the allocation makes you **long your own coin**. If the market decides your work
+is worth more, the stake you already hold is worth more, and you didn't have to
+sell anything for that to happen.
+
+Which corrects the picture I gave a moment ago. You are not a toll booth
+collecting 0.5% on strangers' speculation. You are a participant in it, holding
+a position, with most of your upside in the price rather than the fees.
+
+### You do not get to set the price
+
+This is the sharpest difference from every other option on this list, and it's
+easy to miss: **you cannot price your own work.**
+
+There's no opening price you choose. At launch 990 million coins go into a
+Uniswap V4 pool, the curve shape comes from Zora's own tooling rather than from
+you, and the market discovers the price from the first trade onward. Your input
+is the work. The number is somebody else's decision, permanently.
+
+The closest analogy is a company listing on an exchange with **no book-building
+and no set opening share price** — you're floated, and whatever the first buyers
+pay is what you're worth that day. But the analogy flatters it. A share is a
+legal claim on a company with rights attached: a dividend, a vote, a residual
+claim on assets. A coin is none of those things. It's a stake in sentiment about
+you, and nothing else. (Zora says as much itself — I'll come back to it.)
 
 Now the parts that don't make the marketing page.
 
@@ -82,6 +121,27 @@ essay. My sources are linked at the bottom.
 **Your earnings are denominated in a volatile token.** You earn $ZORA. What that
 is worth in rent is not a fixed quantity, and no honest person can tell you what
 it will be.
+
+**"Market cap" is not money you can get.** This is the one I'd most want a
+first-time creator to understand. Market cap is price × supply, and the price
+comes from a pool with far less depth than the supply implies. Your 500 million
+coins cannot be sold into that pool at the quoted price — selling that much
+*is* the thing that collapses the price. Paper value and realisable value are
+different numbers, and the gap is widest exactly when the coin looks most
+successful.
+
+The arithmetic is slipperier still. Take a coin at a $6 million market cap.
+Divide by the full 1 billion supply and your daily vested 273,973 coins are
+worth about **$1,644**. Divide by the 500 million actually circulating — which
+is how these numbers are usually quoted — and the same day is worth about
+**$3,288**. Same coin, same day, two answers, one of them double the other.
+Before you believe any figure like this, ask which supply it divided by.
+
+**Selling your own allocation is a public act.** Your holders can see it. A
+creator steadily selling into their own pool reads to the people holding their
+coin exactly the way founder share sales read to shareholders. So the stake is
+not just illiquid in the mechanical sense — it's socially expensive to realise,
+in a way a print royalty or an invoice simply isn't.
 
 **The first ten seconds of your coin are a war zone.** The pool applies a 99%
 sniper tax that decays over ten seconds, specifically because bots would
@@ -99,8 +159,8 @@ better engineered now. If you found that distasteful in 2021 on principle, the
 principle hasn't changed. If your objection was that the tooling was clunky and
 the fees were absurd, that part genuinely has changed.
 
-**Unflattering number: 0.5% of turnover you don't control, in a token you can't
-price.**
+**Unflattering number: a stake you can't price, can't exit quickly and can't
+fully realise — plus 0.5% of turnover.**
 
 ## Option three: the post becomes an object
 
@@ -146,29 +206,47 @@ nobody.**
 Strip the branding off and the three options differ on one question: **what is
 being sold?**
 
-- On Threads, your attention is sold, to advertisers, by Meta.
-- On Zora, *belief about* your work is sold, to speculators, by the market.
-- In print, an object is sold, to a person who wanted it, by you.
+- On Threads, **your attention** is sold, to advertisers, by Meta. You are not
+  party to the transaction and receive none of it.
+- On Zora, **a stake in you** is sold, to speculators, by an automated pool, at
+  a price you don't set — and you are holding some of that stake yourself.
+- In print, **an object** is sold, to a person who wanted it, by you, at a price
+  you do set.
 
-Each one has a failure mode that follows directly from that. Threads fails you by
-never paying. Zora fails you when nobody trades — and pays you best when your
-work is churned rather than kept. Print fails you on volume: physical objects
-sell in the dozens, not the millions, and no amount of good design changes that.
+That middle one is worth sitting with, because it's the genuinely novel thing
+here and it's not what it first looks like. Zora doesn't sell your *work*. It
+sells claims on your future desirability, and it hands you a block of those
+claims so your interests point the same way as the buyers'. Whether that's
+alignment or a conflict of interest depends entirely on where you're standing.
+
+Each has a failure mode that follows directly. Threads fails you by never
+paying. Print fails you on volume — physical objects sell in the dozens, not the
+millions, and no amount of good design changes that.
+
+Zora's failure mode is subtler, because its two payment mechanisms **pull in
+opposite directions**. The fee stream rewards churn: it pays best when your coin
+is flipped constantly. The allocation rewards the opposite: it pays best when
+people buy and *hold*, pushing the price up. So the model simultaneously wants
+your work traded and hoarded, and which one you get is not yours to choose. It
+fails you completely when neither happens — when a piece is simply admired.
 
 None of these is a scam and none of them is a solution. They're three different
 answers to a question most platforms don't even ask out loud, which is whether
 the person who made the thing has any economic relationship to it at all.
 
-My own position, for whatever it's worth: I think the speculative model is a real
-answer and I think it selects for the wrong work — it rewards the pieces that get
-flipped, not the pieces that get kept. I'd rather build the one where somebody
-pays for a thing because they want to keep it. That's a preference, not an
-argument, and the volume ceiling on it is brutal.
+My own position, for whatever it's worth: the speculative model is a real answer,
+and a more serious one than I gave it credit for before I read the contracts
+properly. Handing creators a stake rather than only a commission is a genuine
+idea, and "you can't set your own price" is a real cost that a lot of enthusiastic
+coverage never mentions. What I'd rather build is the one where somebody pays for
+a thing because they want to keep it, and where the artist names the number.
+That's a preference, not an argument, and the volume ceiling on it is brutal.
 
-What I'd actually suggest, if you're on Threads and wondering: don't migrate.
-Test. Mint a few posts on Zora and watch whether *anyone trades them* — not
-whether they get likes, whether they trade. That's the only number that pays. If
-they don't trade, you have your answer in a fortnight and it cost you nothing.
+What I'd actually suggest, if you're on Threads and wondering: don't migrate,
+test. Mint a few posts and watch two things — whether anyone **trades** them, and
+whether anyone **buys and holds**. Those are the two different ways this pays,
+and likes predict neither. If both stay flat you have your answer in a fortnight,
+and it cost you nothing but the posts you were making anyway.
 
 ---
 

@@ -32,6 +32,54 @@ Sources, in order of authority:
 | Reward payout currency | **$ZORA**, via multi-hop swaps | 2, 3 |
 | Claim mechanism | `claimVesting()` | 2 |
 
+## The allocation is the main event, not the fees
+
+Added 2026-07-31 after the fee-first draft was challenged and found wanting.
+
+A creator's return has **two components**, and the fee stream is the smaller one:
+
+| | Content coin (a post) | Creator Coin (a profile) |
+| --- | --- | --- |
+| Creator allocation | 10M of 1B (**1%**) at launch | 500M of 1B (**50%**) |
+| Vesting | at launch | **linear over 5 years** ≈ 273,973 coins/day |
+| Source | 2 | 3, plus <https://support.zora.co/en/articles/6338497> |
+
+Framing Zora purely as "0.5% of turnover" **understates the model** and gets the
+creator's incentives wrong. The allocation makes the creator *long their own
+coin*: upside comes from the price of the stake they hold, not mainly from the
+toll on other people's trades.
+
+Note the two mechanisms point in **opposite directions** — fees reward churn,
+the allocation rewards buy-and-hold. That tension is real and worth writing about.
+
+## The creator cannot set the price
+
+Verified against <https://docs.zora.co/coins/contracts/creating-a-coin> and
+<https://docs.zora.co/coins/contracts/architecture>.
+
+990M coins are deployed into a Uniswap V4 pool at launch. The curve shape comes
+from the `poolConfig` parameter and Doppler multi-curve positions — Zora's
+tooling, not the creator. There is **no creator-set opening price**; price is
+discovered from the first trade.
+
+The fair analogy is an exchange listing with **no book-building and no set
+opening share price**. Its limit: a share carries legal rights (dividend, vote,
+residual claim); a coin carries none. Do not let the analogy imply otherwise.
+
+## ⚠️ "Market cap" is not realisable, and is quoted inconsistently
+
+Two separate traps:
+
+1. **Depth ≠ supply.** A 500M holding cannot be sold into the pool at the quoted
+   price; selling it is what moves the price. Paper value ≠ exit value.
+2. **Which supply was it divided by?** At a $6M market cap, a daily vest of
+   273,973 coins is worth **$1,644** against the full 1B supply, or **$3,288**
+   against the 500M circulating. Secondary coverage generally uses circulating
+   without saying so, which doubles the headline. Always ask.
+
+Use these as **illustrative arithmetic only** — never quote a named creator's
+live market cap, it dates within hours.
+
 ## ⚠️ Zora's own sources disagree
 
 The help centre article (source 3) says: *"You earn 1% of every trade in $ZORA
