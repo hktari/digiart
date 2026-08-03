@@ -59,6 +59,83 @@ test("looksLikeVideoCover detects video cover frames via efg tag", () => {
   assert.equal(TC.looksLikeVideoCover("https://cdn/x.jpg"), false);
 });
 
+// Real URLs from the collect that produced a 14-page book. Same asset id, two
+// variants: the fullscreen img and the carousel thumbnail beside it.
+const FULL_URL =
+  "https://scontent-bru2-1.cdninstagram.com/v/t51.82787-15/755422329_17977169313118422_8729933730871860257_n.jpg" +
+  "?stp=dst-jpg_e35_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6IkNBUk9VU0VMX0lURU0ueHBpZHMuMjk1OC5zZHIucmVndWxhcl9waG90by5DMyJ9";
+const THUMB_URL =
+  "https://scontent-bru2-1.cdninstagram.com/v/t51.82787-15/755422329_17977169313118422_8729933730871860257_n.jpg" +
+  "?stp=dst-jpg_e35_p320x320_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6IkNBUk9VU0VMX0lURU0ueHBpZHMuMjk1OC5zZHIucmVndWxhcl9waG90by5DMyJ9";
+const SQUARE_THUMB_URL =
+  "https://scontent-bru2-1.cdninstagram.com/v/t51.82787-15/763262817_17961691218159072_2670769876789355654_n.jpg" +
+  "?stp=dst-jpg_e35_s480x480_tt6&efg=eyJ2ZW5jb2RlX3RhZyI6IkNBUk9VU0VMX0lURU0ueHBpZHMuMjA0OC5zZHIucmVndWxhcl9waG90by5DMyJ9";
+
+test("resizeTokenOf reads the CDN's server-side resize box", () => {
+  assert.deepEqual(TC.resizeTokenOf(THUMB_URL), { w: 320, h: 320 });
+  assert.deepEqual(TC.resizeTokenOf(SQUARE_THUMB_URL), { w: 480, h: 480 });
+  assert.equal(TC.resizeTokenOf(FULL_URL), null);
+});
+
+test("sourceWidthFromUrl recovers the true source width from the efg tag", () => {
+  // Both variants describe the same 2958px original.
+  assert.equal(TC.sourceWidthFromUrl(FULL_URL), 2958);
+  assert.equal(TC.sourceWidthFromUrl(THUMB_URL), 2958);
+  assert.equal(TC.sourceWidthFromUrl(SQUARE_THUMB_URL), 2048);
+  assert.equal(TC.sourceWidthFromUrl("https://cdn/a.jpg"), null);
+});
+
+test("betterUrl prefers the untransformed variant over any resize", () => {
+  assert.equal(TC.betterUrl(THUMB_URL, FULL_URL), FULL_URL);
+  assert.equal(TC.betterUrl(FULL_URL, THUMB_URL), FULL_URL);
+  assert.equal(TC.betterUrl(null, THUMB_URL), THUMB_URL);
+  assert.equal(TC.betterUrl(THUMB_URL, null), THUMB_URL);
+});
+
+test("betterUrl takes the larger box when both are resized", () => {
+  assert.equal(TC.betterUrl(THUMB_URL, SQUARE_THUMB_URL), SQUARE_THUMB_URL);
+});
+
+test("both variants of one asset share an imageId, so they can be grouped", () => {
+  assert.equal(TC.imageId(THUMB_URL), TC.imageId(FULL_URL));
+});
+
+test("printShortfall rejects a thumbnail crop of a large original", () => {
+  // Exactly the case that reached the PDF: 320x443 of a 2958px source.
+  const msg = TC.printShortfall(320, 443, THUMB_URL);
+  assert.match(msg, /320px crop of a 2958px original/);
+});
+
+test("printShortfall accepts the full-size variant of the same asset", () => {
+  assert.equal(TC.printShortfall(2958, 4096, FULL_URL), null);
+});
+
+test("printShortfall accepts a modest original the print gate should judge", () => {
+  // 1440x1803 grades MARGINAL at 210x210. That call belongs to
+  // print-geometry, not to the extension, so it must pass through here.
+  const url = "https://cdn/a.jpg?stp=dst-jpg_e35_tt6";
+  assert.equal(TC.printShortfall(1440, 1803, url), null);
+});
+
+test("printShortfall rejects a small original even with no resize token", () => {
+  const msg = TC.printShortfall(480, 480, "https://cdn/a.jpg?stp=dst-jpg_e35_tt6");
+  assert.match(msg, /too small to print/);
+});
+
+test("looksLikeVideoCover survives unpadded base64", () => {
+  // atob() throws on a length that is not a multiple of 4; the old bare call
+  // fell into the catch and answered "not a video".
+  const tag = Buffer.from('{"vencode_tag":"CAROUSEL_ITEM.video_default_cover_frame"}')
+    .toString("base64")
+    .replace(/=+$/, "");
+  assert.equal(TC.looksLikeVideoCover(`https://cdn/a.jpg?efg=${tag}`), true);
+});
+
+test("srcsetUrls returns every candidate", () => {
+  const urls = TC.srcsetUrls("https://cdn/a.jpg 320w, https://cdn/b.jpg 1080w");
+  assert.deepEqual(urls.map((u) => u.url), ["https://cdn/a.jpg", "https://cdn/b.jpg"]);
+});
+
 test("extFromUrl reads a safe image extension", () => {
   assert.equal(TC.extFromUrl("https://cdn/a_n.webp?x=1"), "webp");
   assert.equal(TC.extFromUrl("https://cdn/a_n.jpg?x=1"), "jpg");
