@@ -1,5 +1,16 @@
 import { Bot } from "grammy";
 import type { QualifiedPost } from "../qualifiers/llm-qualifier.js";
+import {
+  buildCardKeyboard,
+  type CardLead,
+  escapeHtml,
+  formatCardText,
+} from "./lead-card.js";
+
+export interface TelegramTopics {
+  leads?: number;
+  status?: number;
+}
 
 export interface NotificationStats {
   totalPosts: number;
@@ -9,13 +20,52 @@ export interface NotificationStats {
   errors: number;
 }
 
+/**
+ * Messages are sent with parse_mode "HTML" rather than Markdown.
+ *
+ * Telegram's Markdown dialects require every one of `_*[]()~`>#+-=|{}.!` to be
+ * escaped in literal text, so a single unescaped character anywhere in a lead
+ * title or a Reddit URL (which are full of underscores) makes the whole
+ * sendMessage call fail with "can't parse entities". HTML only reserves three
+ * characters, and only inside interpolated values — literal punctuation in the
+ * templates below needs no escaping at all.
+ */
 export class TelegramNotifier {
   private bot: Bot;
   private chatId: string;
 
-  constructor(botToken: string, chatId: string) {
+  constructor(
+    botToken: string,
+    chatId: string,
+    private topics: TelegramTopics = {},
+  ) {
     this.bot = new Bot(botToken);
     this.chatId = chatId;
+  }
+
+  /**
+   * Forum supergroups route by message_thread_id. Omitting it entirely lands
+   * the message in General, which is the correct degradation when a topic is
+   * not configured - Telegram rejects an explicit thread id of 1.
+   */
+  private threadFor(destination: "leads" | "status") {
+    const id = this.topics[destination];
+    return id === undefined ? {} : { message_thread_id: id };
+  }
+
+  /** Posts an actionable card and returns its message id. */
+  async sendLeadCard(lead: CardLead): Promise<number> {
+    const message = await this.bot.api.sendMessage(
+      this.chatId,
+      formatCardText(lead),
+      {
+        parse_mode: "HTML",
+        link_preview_options: { is_disabled: true },
+        reply_markup: buildCardKeyboard(lead),
+        ...this.threadFor("leads"),
+      },
+    );
+    return message.message_id;
   }
 
   async sendHotLeadAlert(post: QualifiedPost): Promise<void> {
@@ -26,8 +76,9 @@ export class TelegramNotifier {
     const message = this.formatHotLeadMessage(post);
 
     await this.bot.api.sendMessage(this.chatId, message, {
-      parse_mode: "Markdown",
+      parse_mode: "HTML",
       link_preview_options: { is_disabled: false },
+      ...this.threadFor("status"),
     });
   }
 
@@ -38,25 +89,25 @@ export class TelegramNotifier {
     const message = this.formatDailySummaryMessage(posts, stats);
 
     await this.bot.api.sendMessage(this.chatId, message, {
-      parse_mode: "Markdown",
+      parse_mode: "HTML",
       link_preview_options: { is_disabled: true },
+      ...this.threadFor("status"),
     });
   }
 
   async sendErrorAlert(error: Error, context?: string): Promise<void> {
-    const message = `🚨 *Lead Scraper Error*
+    const message = `🚨 <b>Lead Scraper Error</b>
 
-${context ? `*Context:* ${this.escapeMarkdown(context)}\n\n` : ""}*Error:* ${this.escapeMarkdown(error.message)}
+${context ? `<b>Context:</b> ${escapeHtml(context)}\n\n` : ""}<b>Error:</b> ${escapeHtml(error.message)}
 
-*Stack:*
-\`\`\`
-${error.stack?.substring(0, 500) || "No stack trace"}
-\`\`\`
+<b>Stack:</b>
+<pre>${escapeHtml(error.stack?.substring(0, 500) || "No stack trace")}</pre>
 
-*Time:* ${this.formatDate(new Date())}`;
+<b>Time:</b> ${this.formatDate(new Date())}`;
 
     await this.bot.api.sendMessage(this.chatId, message, {
-      parse_mode: "Markdown",
+      parse_mode: "HTML",
+      ...this.threadFor("status"),
     });
   }
 
@@ -66,30 +117,30 @@ ${error.stack?.substring(0, 500) || "No stack trace"}
     const painPointsList = qual.painPoints
       .map(
         (pp) =>
-          `  • ${pp.category} (${pp.severity}): ${this.escapeMarkdown(pp.description)}`,
+          `  • ${escapeHtml(pp.category)} (${escapeHtml(pp.severity)}): ${escapeHtml(pp.description)}`,
       )
       .join("\n");
 
-    return `🔥 *HOT LEAD DETECTED* 🔥
+    return `🔥 <b>HOT LEAD DETECTED</b> 🔥
 
-*Score:* ${qual.score}/100
+<b>Score:</b> ${qual.score}/100
 
-*Subreddit:* r/${post.subreddit}
-*Author:* u/${this.escapeMarkdown(post.author)}
-*Posted:* ${this.formatDate(post.publishedAt)}
+<b>Subreddit:</b> r/${escapeHtml(post.subreddit)}
+<b>Author:</b> u/${escapeHtml(post.author)}
+<b>Posted:</b> ${this.formatDate(post.publishedAt)}
 
-*Title:* ${this.escapeMarkdown(post.title)}
+<b>Title:</b> ${escapeHtml(post.title)}
 
-*Reasoning:*
-${this.escapeMarkdown(qual.reasoning)}
+<b>Reasoning:</b>
+${escapeHtml(qual.reasoning)}
 
-*Pain Points:*
+<b>Pain Points:</b>
 ${painPointsList}
 
-*Post URL:* ${post.url}
+<b>Post URL:</b> ${escapeHtml(post.url)}
 
 ---
-⚡ *Action Required:* Review and reach out within 24 hours`;
+⚡ <b>Action Required:</b> Review and reach out within 24 hours`;
   }
 
   private formatDailySummaryMessage(
@@ -114,9 +165,9 @@ ${painPointsList}
       )
       .slice(0, 5); // Top 5 warm leads
 
-    let message = `📊 *Daily Lead Scraping Summary*
+    let message = `📊 <b>Daily Lead Scraping Summary</b>
 
-*Stats:*
+<b>Stats:</b>
 • Total Posts Scraped: ${stats.totalPosts}
 • Passed Keyword Filter: ${stats.filteredPosts}
 • Qualified Leads: ${stats.qualifiedLeads}
@@ -126,7 +177,7 @@ ${stats.errors > 0 ? `• Errors: ${stats.errors}` : ""}
 `;
 
     if (hotLeads.length > 0) {
-      message += `*🔥 Hot Leads (${hotLeads.length}):*\n`;
+      message += `<b>🔥 Hot Leads (${hotLeads.length}):</b>\n`;
       for (const lead of hotLeads) {
         message += this.formatLeadSummaryLine(lead);
       }
@@ -134,7 +185,7 @@ ${stats.errors > 0 ? `• Errors: ${stats.errors}` : ""}
     }
 
     if (warmLeads.length > 0) {
-      message += `*🌡️ Top Warm Leads (${warmLeads.length}):*\n`;
+      message += `<b>🌡️ Top Warm Leads (${warmLeads.length}):</b>\n`;
       for (const lead of warmLeads) {
         message += this.formatLeadSummaryLine(lead);
       }
@@ -145,19 +196,19 @@ ${stats.errors > 0 ? `• Errors: ${stats.errors}` : ""}
       message += "No high-quality leads found today.\n";
     }
 
-    message += `\n_Scraped at: ${this.formatDate(new Date())}_`;
+    message += `\n<i>Scraped at: ${this.formatDate(new Date())}</i>`;
 
     return message;
   }
 
   private formatLeadSummaryLine(post: QualifiedPost): string {
     const score = post.qualification?.score || 0;
-    const subreddit = post.subreddit;
-    const title = this.escapeMarkdown(
+    const subreddit = escapeHtml(post.subreddit);
+    const title = escapeHtml(
       post.title.length > 60 ? `${post.title.slice(0, 60)}...` : post.title,
     );
 
-    return `• [${score}] r/${subreddit}: ${title}\n  ${post.url}\n`;
+    return `• [${score}] r/${subreddit}: ${title}\n  ${escapeHtml(post.url)}\n`;
   }
 
   private formatDate(date: Date): string {
@@ -168,13 +219,5 @@ ${stats.errors > 0 ? `• Errors: ${stats.errors}` : ""}
       hour: "2-digit",
       minute: "2-digit",
     });
-  }
-
-  private escapeMarkdown(text: string): string {
-    // Escape Telegram markdown special characters
-    // Need to escape backslash first, then other special chars
-    return text
-      .replace(/\\/g, "\\\\")
-      .replace(/([_*[\]()~`>#+\-=|{}.!])/g, "\\$1");
   }
 }

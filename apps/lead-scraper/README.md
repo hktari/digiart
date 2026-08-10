@@ -62,6 +62,34 @@ TELEGRAM_CHAT_ID="your-chat-id"
 DEBUG=false  # optional
 ```
 
+### Telegram triage
+
+Leads scoring at least `LEAD_CARD_MIN_SCORE` (default 60) post as cards with
+inline buttons — draft outreach, contacted, irrelevant — into the **Leads**
+topic, capped at `LEAD_CARD_DAILY_CAP` (default 10) per run. The digest and any
+failures go to **Status**.
+
+| Variable | Default | Notes |
+| --- | --- | --- |
+| `TELEGRAM_TOPIC_LEADS` | unset | Forum thread ID for cards. Unset = General. |
+| `TELEGRAM_TOPIC_STATUS` | unset | Forum thread ID for the digest and errors. |
+| `TELEGRAM_WEBHOOK_SECRET` | unset | `lead-scraper-web` only; mounts the webhook. |
+| `LEAD_CARD_MIN_SCORE` | `60` | Score at or above which a lead gets a card. |
+| `LEAD_CARD_DAILY_CAP` | `10` | Max cards per run; the rest wait for the next. |
+
+Telegram rejects an explicit `message_thread_id` of `1`, so address the General
+topic by leaving the variable unset rather than setting it to 1.
+
+Button presses need a long-lived listener, which the cron is not. In production
+`lead-scraper-web` serves them at `POST /telegram/webhook` (register once with
+`pnpm telegram:webhook <url>`). Locally, use `pnpm bot:dev` — but only with a
+**separate test bot token**, because long polling deletes any registered
+webhook.
+
+Cards are idempotent: a lead is carded only while `notifiedAt` is null, and the
+stamp is written only after the send succeeds. A failed card retries next run;
+a re-run never duplicates one.
+
 ### Database Setup
 
 ```bash

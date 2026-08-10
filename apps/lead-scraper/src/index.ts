@@ -27,6 +27,14 @@ async function main() {
     config.FIREWORKS_API_KEY,
     config.TELEGRAM_BOT_TOKEN,
     config.TELEGRAM_CHAT_ID,
+    {
+      topics: {
+        leads: config.TELEGRAM_TOPIC_LEADS,
+        status: config.TELEGRAM_TOPIC_STATUS,
+      },
+      minScore: config.LEAD_CARD_MIN_SCORE,
+      cardCap: config.LEAD_CARD_DAILY_CAP,
+    },
   );
 
   try {
@@ -50,6 +58,7 @@ async function main() {
       const notifier = new TelegramNotifier(
         config.TELEGRAM_BOT_TOKEN,
         config.TELEGRAM_CHAT_ID,
+        { status: config.TELEGRAM_TOPIC_STATUS },
       );
       await notifier.sendErrorAlert(
         error instanceof Error ? error : new Error(String(error)),

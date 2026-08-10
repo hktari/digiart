@@ -1,10 +1,24 @@
 import { END, StateGraph } from "@langchain/langgraph";
 import { DatabaseService } from "../database/database-service.js";
 import { KeywordFilter } from "../filters/keyword-filter.js";
-import { TelegramNotifier } from "../notifiers/telegram-notifier.js";
+import {
+  countUncardedAboveScore,
+  markCarded,
+  selectLeadsForCards,
+} from "../lib/lead-actions.js";
+import {
+  TelegramNotifier,
+  type TelegramTopics,
+} from "../notifiers/telegram-notifier.js";
 import { LLMQualifier } from "../qualifiers/llm-qualifier.js";
 import { RedditRSSFetcher } from "../scrapers/rss-fetcher.js";
 import { GraphState, type GraphStateType } from "./state.js";
+
+export interface OrchestratorOptions {
+  topics?: TelegramTopics;
+  minScore?: number;
+  cardCap?: number;
+}
 
 export class LeadScraperOrchestrator {
   private fetcher: RedditRSSFetcher;
@@ -12,17 +26,26 @@ export class LeadScraperOrchestrator {
   private qualifier: LLMQualifier;
   private db: DatabaseService;
   private notifier: TelegramNotifier;
+  private minScore: number;
+  private cardCap: number;
 
   constructor(
     fireworksApiKey: string,
     telegramBotToken: string,
     telegramChatId: string,
+    options: OrchestratorOptions = {},
   ) {
     this.fetcher = new RedditRSSFetcher();
     this.filter = new KeywordFilter();
     this.qualifier = new LLMQualifier(fireworksApiKey);
     this.db = new DatabaseService();
-    this.notifier = new TelegramNotifier(telegramBotToken, telegramChatId);
+    this.notifier = new TelegramNotifier(
+      telegramBotToken,
+      telegramChatId,
+      options.topics ?? {},
+    );
+    this.minScore = options.minScore ?? 60;
+    this.cardCap = options.cardCap ?? 10;
   }
 
   async scrapeNode(state: GraphStateType): Promise<Partial<GraphStateType>> {
@@ -148,11 +171,28 @@ export class LeadScraperOrchestrator {
   async notifyNode(state: GraphStateType): Promise<Partial<GraphStateType>> {
     console.log("📲 Sending notifications...");
 
+    // Leads are already committed by the time we get here, so a notification
+    // failure must never fail the run - it would exit non-zero (and page us via
+    // Railway's crash alert) for work that actually succeeded.
+    const errors: string[] = [];
+
+    const send = async (label: string, fn: () => Promise<void>) => {
+      try {
+        await fn();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(`⚠️  Notification failed (${label}): ${message}`);
+        errors.push(`notification:${label}: ${message}`);
+      }
+    };
+
     // Send daily summary
-    await this.notifier.sendDailySummary(state.qualifiedPosts, {
-      ...state.stats,
-      errors: state.errors.length,
-    });
+    await send("daily-summary", () =>
+      this.notifier.sendDailySummary(state.qualifiedPosts, {
+        ...state.stats,
+        errors: state.errors.length,
+      }),
+    );
 
     // Send hot lead alerts
     const hotLeads = state.qualifiedPosts.filter(
@@ -160,12 +200,41 @@ export class LeadScraperOrchestrator {
     );
 
     for (const lead of hotLeads) {
-      await this.notifier.sendHotLeadAlert(lead);
+      await send(`hot-lead:${lead.id}`, () =>
+        this.notifier.sendHotLeadAlert(lead),
+      );
     }
 
-    console.log(`✓ Sent daily summary + ${hotLeads.length} hot lead alerts`);
+    const sent = 1 + hotLeads.length - errors.length;
+    console.log(
+      `✓ Sent ${sent}/${1 + hotLeads.length} notifications (daily summary + ${hotLeads.length} hot lead alerts)`,
+    );
 
-    return {};
+    // Actionable cards for the operator to triage from Telegram.
+    const db = this.db.client;
+    const eligible = await countUncardedAboveScore(db, this.minScore);
+    const cardLeads = await selectLeadsForCards(db, {
+      minScore: this.minScore,
+      limit: this.cardCap,
+    });
+
+    for (const lead of cardLeads) {
+      // markCarded runs only after a successful send, so a failed card is
+      // retried on the next run rather than silently lost.
+      await send(`card:${lead.id}`, async () => {
+        await this.notifier.sendLeadCard(lead);
+        await markCarded(db, lead.id);
+      });
+    }
+
+    console.log(`✓ Posted ${cardLeads.length} lead cards`);
+    if (eligible > cardLeads.length) {
+      console.log(
+        `ℹ️  ${eligible - cardLeads.length} more leads ≥ ${this.minScore} left uncarded (daily cap ${this.cardCap})`,
+      );
+    }
+
+    return { errors };
   }
 
   buildGraph() {
