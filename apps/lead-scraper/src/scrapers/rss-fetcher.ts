@@ -48,7 +48,11 @@ export class RedditRSSFetcher {
       // rest, so a 429 says "too fast", not "no". Back off and re-ask rather
       // than recording an error for a subreddit that would have answered.
       let response!: Response;
-      for (let attempt = 0; attempt <= RedditRSSFetcher.MAX_RETRIES; attempt++) {
+      for (
+        let attempt = 0;
+        attempt <= RedditRSSFetcher.MAX_RETRIES;
+        attempt++
+      ) {
         response = await fetch(url, {
           headers: { "User-Agent": this.userAgent },
         });

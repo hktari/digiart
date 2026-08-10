@@ -324,7 +324,33 @@ Built from the monorepo root via `Dockerfile.lead-scraper`, the same pattern as
 | `DATABASE_URL` | Postgres (Neon). **Production** is the DB the local cron has been writing to. |
 | `FIREWORKS_API_KEY` | LLM qualifier |
 | `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` | run summaries + hot-lead alerts |
+| `TELEGRAM_TOPIC_LEADS` / `TELEGRAM_TOPIC_STATUS` | forum topic thread IDs; unset = General |
+| `TELEGRAM_WEBHOOK_SECRET` | **`lead-scraper-web` only** — mounts `POST /telegram/webhook` |
+| `LEAD_CARD_MIN_SCORE` / `LEAD_CARD_DAILY_CAP` | card threshold (60) and per-run cap (10) |
 | `USE_REACT` | already `true` in the image |
+
+### Telegram lead triage
+
+Leads scoring ≥ `LEAD_CARD_MIN_SCORE` post as cards with inline buttons (draft
+outreach, contacted, irrelevant) into the **Leads** topic; the digest and
+failures go to **Status**. Button presses are handled by a grammy webhook inside
+`lead-scraper-web` — the cron exits after each run and cannot serve callbacks.
+
+The chat is the forum supergroup **PrintFeed** (`-1003966791760`). Telegram
+rejects an explicit `message_thread_id` of `1`, so the General topic is
+addressed by leaving the topic variable **unset**, not by setting it to 1.
+
+Register the webhook once per environment after deploying:
+
+```bash
+TELEGRAM_BOT_TOKEN=... TELEGRAM_WEBHOOK_SECRET=... \
+  pnpm --filter lead-scraper telegram:webhook \
+  https://lead-scraper-web-production.up.railway.app/telegram/webhook
+```
+
+Verify with `getWebhookInfo`: `pending_update_count` should be 0 with no
+`last_error_message`. Never run `pnpm --filter lead-scraper bot:dev` against the
+production token — long polling deletes the registered webhook.
 
 ### Notes
 

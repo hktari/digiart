@@ -3,6 +3,8 @@ import { fileURLToPath } from "node:url";
 import { PrismaClient } from "@prisma/client";
 import cors from "cors";
 import express from "express";
+import { webhookCallback } from "grammy";
+import { createLeadBot } from "../bot/lead-bot.js";
 import {
   archiveLead,
   draftOutreach,
@@ -318,6 +320,26 @@ app.post("/api/leads/:id/draft-outreach", async (req, res) => {
     res.status(500).json({ error: "Failed to draft outreach message" });
   }
 });
+
+// Telegram callback queries from lead cards. Mounted only when configured, so
+// an environment without the secret still boots.
+if (process.env.TELEGRAM_WEBHOOK_SECRET && process.env.TELEGRAM_BOT_TOKEN) {
+  const bot = createLeadBot({
+    token: process.env.TELEGRAM_BOT_TOKEN,
+    prisma,
+    fireworksApiKey: process.env.FIREWORKS_API_KEY ?? "",
+  });
+
+  app.post(
+    "/telegram/webhook",
+    webhookCallback(bot, "express", {
+      secretToken: process.env.TELEGRAM_WEBHOOK_SECRET,
+    }),
+  );
+  console.log("✓ Telegram webhook mounted at /telegram/webhook");
+} else {
+  console.log("ℹ️  Telegram webhook disabled (no TELEGRAM_WEBHOOK_SECRET)");
+}
 
 // Health check
 app.get("/api/health", (req, res) => {
