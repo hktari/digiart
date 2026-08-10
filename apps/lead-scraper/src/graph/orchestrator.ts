@@ -148,11 +148,28 @@ export class LeadScraperOrchestrator {
   async notifyNode(state: GraphStateType): Promise<Partial<GraphStateType>> {
     console.log("📲 Sending notifications...");
 
+    // Leads are already committed by the time we get here, so a notification
+    // failure must never fail the run - it would exit non-zero (and page us via
+    // Railway's crash alert) for work that actually succeeded.
+    const errors: string[] = [];
+
+    const send = async (label: string, fn: () => Promise<void>) => {
+      try {
+        await fn();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(`⚠️  Notification failed (${label}): ${message}`);
+        errors.push(`notification:${label}: ${message}`);
+      }
+    };
+
     // Send daily summary
-    await this.notifier.sendDailySummary(state.qualifiedPosts, {
-      ...state.stats,
-      errors: state.errors.length,
-    });
+    await send("daily-summary", () =>
+      this.notifier.sendDailySummary(state.qualifiedPosts, {
+        ...state.stats,
+        errors: state.errors.length,
+      }),
+    );
 
     // Send hot lead alerts
     const hotLeads = state.qualifiedPosts.filter(
@@ -160,12 +177,17 @@ export class LeadScraperOrchestrator {
     );
 
     for (const lead of hotLeads) {
-      await this.notifier.sendHotLeadAlert(lead);
+      await send(`hot-lead:${lead.id}`, () =>
+        this.notifier.sendHotLeadAlert(lead),
+      );
     }
 
-    console.log(`✓ Sent daily summary + ${hotLeads.length} hot lead alerts`);
+    const sent = 1 + hotLeads.length - errors.length;
+    console.log(
+      `✓ Sent ${sent}/${1 + hotLeads.length} notifications (daily summary + ${hotLeads.length} hot lead alerts)`,
+    );
 
-    return {};
+    return { errors };
   }
 
   buildGraph() {
