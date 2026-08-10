@@ -73,6 +73,16 @@ describe("selectLeadsForCards", () => {
     expect(where.archived).toBe(false);
   });
 
+  it("excludes leads already reached out to", async () => {
+    // notifiedAt was never written before cards existed, so every historical
+    // lead reads as uncarded - including ones contacted from the web UI.
+    const prisma = stubPrisma();
+    await selectLeadsForCards(prisma, { minScore: 60, limit: 10 });
+
+    const { where } = prisma.lead.findMany.mock.calls[0][0];
+    expect(where.reachedOut).toBe(false);
+  });
+
   it("orders by score descending and applies the cap", async () => {
     const prisma = stubPrisma();
     await selectLeadsForCards(prisma, { minScore: 60, limit: 10 });

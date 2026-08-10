@@ -174,11 +174,17 @@ export async function draftOutreach(
 
 /**
  * Leads eligible for an actionable Telegram card: above the score threshold,
- * never carded before (notifiedAt), and not already dismissed.
+ * never carded before (notifiedAt), and still awaiting action.
+ *
+ * reachedOut matters because notifiedAt was never written before cards
+ * existed, so the whole back catalogue reads as uncarded. Without this the
+ * first runs would re-surface leads that were already contacted from the web
+ * UI as though they were new.
  */
 const cardWhere = (minScore: number) => ({
   score: { gte: minScore },
   notifiedAt: null,
+  reachedOut: false,
   isIrrelevant: false,
   archived: false,
 });
