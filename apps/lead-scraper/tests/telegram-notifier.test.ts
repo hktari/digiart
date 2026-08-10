@@ -7,17 +7,21 @@ import type { QualifiedPost } from "../src/qualifiers/llm-qualifier.js";
 
 interface SentMessage {
   text: string;
-  options: { parse_mode?: string };
+  options: {
+    parse_mode?: string;
+    message_thread_id?: number;
+    reply_markup?: unknown;
+  };
 }
 
 /**
  * Captures what would have been sent instead of hitting the Telegram API.
  */
-function createNotifier(): {
+function createNotifier(topics: { leads?: number; status?: number } = {}): {
   notifier: TelegramNotifier;
   sent: SentMessage[];
 } {
-  const notifier = new TelegramNotifier("123456:test-token", "-100");
+  const notifier = new TelegramNotifier("123456:test-token", "-100", topics);
   const sent: SentMessage[] = [];
 
   // biome-ignore lint/suspicious/noExplicitAny: reaching into grammy's api stub
@@ -25,13 +29,24 @@ function createNotifier(): {
   bot.api.sendMessage = async (
     _chatId: string,
     text: string,
-    options: { parse_mode?: string },
+    options: SentMessage["options"],
   ) => {
     sent.push({ text, options });
+    return { message_id: 555 };
   };
 
   return { notifier, sent };
 }
+
+const cardLead = {
+  id: "clx1",
+  score: 78,
+  subreddit: "artbusiness",
+  title: "Etsy fees are eating my print margins",
+  author: "some_artist",
+  postUrl: "https://www.reddit.com/r/artbusiness/comments/abc/etsy_fees/",
+  painPoints: [{ category: "print_physical", severity: "high" }],
+};
 
 const stats: NotificationStats = {
   totalPosts: 327,
@@ -162,6 +177,39 @@ describe("TelegramNotifier", () => {
     expect(text).toContain("Lead scraper failed &lt;hard&gt;");
     expect(text).toContain("at &lt;anonymous&gt;");
     expect(countUnescapedTags(text)).toBe(0);
+  });
+});
+
+describe("topic routing", () => {
+  it("sends the daily summary to the status topic", async () => {
+    const { notifier, sent } = createNotifier({ leads: 12, status: 7 });
+    await notifier.sendDailySummary([], stats);
+    expect(sent[0].options.message_thread_id).toBe(7);
+  });
+
+  it("sends error alerts to the status topic", async () => {
+    const { notifier, sent } = createNotifier({ leads: 12, status: 7 });
+    await notifier.sendErrorAlert(new Error("boom"));
+    expect(sent[0].options.message_thread_id).toBe(7);
+  });
+
+  it("sends lead cards to the leads topic with a keyboard", async () => {
+    const { notifier, sent } = createNotifier({ leads: 12, status: 7 });
+    const messageId = await notifier.sendLeadCard(cardLead);
+
+    expect(sent[0].options.message_thread_id).toBe(12);
+    expect(sent[0].options.reply_markup).toBeDefined();
+    expect(messageId).toBe(555);
+  });
+
+  it("omits the thread id entirely when topics are unconfigured", async () => {
+    // Telegram rejects an explicit thread id of 1, so General means "omit".
+    const { notifier, sent } = createNotifier();
+    await notifier.sendDailySummary([], stats);
+    expect(sent[0].options.message_thread_id).toBeUndefined();
+
+    await notifier.sendLeadCard(cardLead);
+    expect(sent[1].options.message_thread_id).toBeUndefined();
   });
 });
 

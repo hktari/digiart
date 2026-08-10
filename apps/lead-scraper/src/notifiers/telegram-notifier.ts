@@ -1,5 +1,16 @@
 import { Bot } from "grammy";
 import type { QualifiedPost } from "../qualifiers/llm-qualifier.js";
+import {
+  buildCardKeyboard,
+  type CardLead,
+  escapeHtml,
+  formatCardText,
+} from "./lead-card.js";
+
+export interface TelegramTopics {
+  leads?: number;
+  status?: number;
+}
 
 export interface NotificationStats {
   totalPosts: number;
@@ -23,9 +34,38 @@ export class TelegramNotifier {
   private bot: Bot;
   private chatId: string;
 
-  constructor(botToken: string, chatId: string) {
+  constructor(
+    botToken: string,
+    chatId: string,
+    private topics: TelegramTopics = {},
+  ) {
     this.bot = new Bot(botToken);
     this.chatId = chatId;
+  }
+
+  /**
+   * Forum supergroups route by message_thread_id. Omitting it entirely lands
+   * the message in General, which is the correct degradation when a topic is
+   * not configured - Telegram rejects an explicit thread id of 1.
+   */
+  private threadFor(destination: "leads" | "status") {
+    const id = this.topics[destination];
+    return id === undefined ? {} : { message_thread_id: id };
+  }
+
+  /** Posts an actionable card and returns its message id. */
+  async sendLeadCard(lead: CardLead): Promise<number> {
+    const message = await this.bot.api.sendMessage(
+      this.chatId,
+      formatCardText(lead),
+      {
+        parse_mode: "HTML",
+        link_preview_options: { is_disabled: true },
+        reply_markup: buildCardKeyboard(lead),
+        ...this.threadFor("leads"),
+      },
+    );
+    return message.message_id;
   }
 
   async sendHotLeadAlert(post: QualifiedPost): Promise<void> {
@@ -38,6 +78,7 @@ export class TelegramNotifier {
     await this.bot.api.sendMessage(this.chatId, message, {
       parse_mode: "HTML",
       link_preview_options: { is_disabled: false },
+      ...this.threadFor("status"),
     });
   }
 
@@ -50,21 +91,23 @@ export class TelegramNotifier {
     await this.bot.api.sendMessage(this.chatId, message, {
       parse_mode: "HTML",
       link_preview_options: { is_disabled: true },
+      ...this.threadFor("status"),
     });
   }
 
   async sendErrorAlert(error: Error, context?: string): Promise<void> {
     const message = `🚨 <b>Lead Scraper Error</b>
 
-${context ? `<b>Context:</b> ${this.escapeHtml(context)}\n\n` : ""}<b>Error:</b> ${this.escapeHtml(error.message)}
+${context ? `<b>Context:</b> ${escapeHtml(context)}\n\n` : ""}<b>Error:</b> ${escapeHtml(error.message)}
 
 <b>Stack:</b>
-<pre>${this.escapeHtml(error.stack?.substring(0, 500) || "No stack trace")}</pre>
+<pre>${escapeHtml(error.stack?.substring(0, 500) || "No stack trace")}</pre>
 
 <b>Time:</b> ${this.formatDate(new Date())}`;
 
     await this.bot.api.sendMessage(this.chatId, message, {
       parse_mode: "HTML",
+      ...this.threadFor("status"),
     });
   }
 
@@ -74,7 +117,7 @@ ${context ? `<b>Context:</b> ${this.escapeHtml(context)}\n\n` : ""}<b>Error:</b>
     const painPointsList = qual.painPoints
       .map(
         (pp) =>
-          `  • ${this.escapeHtml(pp.category)} (${this.escapeHtml(pp.severity)}): ${this.escapeHtml(pp.description)}`,
+          `  • ${escapeHtml(pp.category)} (${escapeHtml(pp.severity)}): ${escapeHtml(pp.description)}`,
       )
       .join("\n");
 
@@ -82,19 +125,19 @@ ${context ? `<b>Context:</b> ${this.escapeHtml(context)}\n\n` : ""}<b>Error:</b>
 
 <b>Score:</b> ${qual.score}/100
 
-<b>Subreddit:</b> r/${this.escapeHtml(post.subreddit)}
-<b>Author:</b> u/${this.escapeHtml(post.author)}
+<b>Subreddit:</b> r/${escapeHtml(post.subreddit)}
+<b>Author:</b> u/${escapeHtml(post.author)}
 <b>Posted:</b> ${this.formatDate(post.publishedAt)}
 
-<b>Title:</b> ${this.escapeHtml(post.title)}
+<b>Title:</b> ${escapeHtml(post.title)}
 
 <b>Reasoning:</b>
-${this.escapeHtml(qual.reasoning)}
+${escapeHtml(qual.reasoning)}
 
 <b>Pain Points:</b>
 ${painPointsList}
 
-<b>Post URL:</b> ${this.escapeHtml(post.url)}
+<b>Post URL:</b> ${escapeHtml(post.url)}
 
 ---
 ⚡ <b>Action Required:</b> Review and reach out within 24 hours`;
@@ -160,12 +203,12 @@ ${stats.errors > 0 ? `• Errors: ${stats.errors}` : ""}
 
   private formatLeadSummaryLine(post: QualifiedPost): string {
     const score = post.qualification?.score || 0;
-    const subreddit = this.escapeHtml(post.subreddit);
-    const title = this.escapeHtml(
+    const subreddit = escapeHtml(post.subreddit);
+    const title = escapeHtml(
       post.title.length > 60 ? `${post.title.slice(0, 60)}...` : post.title,
     );
 
-    return `• [${score}] r/${subreddit}: ${title}\n  ${this.escapeHtml(post.url)}\n`;
+    return `• [${score}] r/${subreddit}: ${title}\n  ${escapeHtml(post.url)}\n`;
   }
 
   private formatDate(date: Date): string {
@@ -176,16 +219,5 @@ ${stats.errors > 0 ? `• Errors: ${stats.errors}` : ""}
       hour: "2-digit",
       minute: "2-digit",
     });
-  }
-
-  /**
-   * Escape the only three characters Telegram's HTML parse mode reserves.
-   * `&` must be replaced first so the ampersands it introduces survive.
-   */
-  private escapeHtml(text: string): string {
-    return text
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
   }
 }

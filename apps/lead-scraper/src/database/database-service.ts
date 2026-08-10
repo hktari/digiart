@@ -12,6 +12,11 @@ export interface ScrapingRunStats {
 export class DatabaseService {
   private prisma: PrismaClient;
 
+  /** Read-only access for callers needing queries this service does not wrap. */
+  get client(): PrismaClient {
+    return this.prisma;
+  }
+
   constructor() {
     this.prisma = new PrismaClient();
   }
