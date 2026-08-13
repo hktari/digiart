@@ -10,8 +10,9 @@ const env = process.env.VERCEL_ENV || process.env.NODE_ENV;
 Sentry.init({
   dsn: "https://8e7ae13fc786fdb25c93ec75133e9855@o4511117015515136.ingest.de.sentry.io/4511336834793552",
 
-  // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
-  tracesSampleRate: 1,
+  // Matches sentry.server.config.ts — see the note there on why 100% sampling
+  // is expensive to hold in memory.
+  tracesSampleRate: 0.1,
 
   // Enable logs to be sent to Sentry
   enableLogs: true,
