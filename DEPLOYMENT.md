@@ -1,5 +1,28 @@
 # Deployment Guide
 
+> ## Shut down 2026-10-13
+>
+> **Nothing in this guide is running any more.** All six Railway services in the
+> `digiart-mvp` project (`mvp`, `pdf-worker`, `Redis`, `landing`,
+> `lead-scraper-web`, `lead-scraper-cron`) were deleted, releasing
+> `app.printfeed.btechhub.top`, `app.digiart.btechhub.top`,
+> `printfeed.btechhub.top`, `elsewhere.btechhub.top` and
+> `lead-scraper-web-production.up.railway.app`.
+>
+> **Kept as the restart path:** the Neon Postgres projects `digiart`
+> (`dry-breeze-93650460`) and `lead-scraper` (`lucky-mud-00407818`), and the
+> Railway/Tigris bucket `digiart-storage` (`digiart-storage-8hmoduhhx`,
+> 437 objects / 360 MB) — all untouched and still live.
+>
+> **Backup** (DB dumps, every storage object, every env var with values, and the
+> per-service build/start/cron/domain config) is at
+> `~/backups/printfeed-2026-10-13/`, with step-by-step restart instructions in
+> its `RESTORE.md`. Code at shutdown: `c1227d6` on `main`.
+>
+> Rotate every secret in that backup before bringing anything back up.
+>
+> The rest of this file is the original deploy guide, kept for the restart.
+
 This guide covers deploying the Art Subscription Platform MVP to Railway and the PDF worker to Railway.
 
 ## Prerequisites
