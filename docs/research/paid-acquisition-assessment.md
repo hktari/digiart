@@ -1,16 +1,24 @@
 # Paid Acquisition Assessment — Should PrintFeed Run Meta Ads?
 
-**Status:** research / decision input
-**Date:** 2026-09-03
+**Status:** parked — potential future strategy. Not being executed.
+**Date:** 2026-10-13
 **Question:** Is it true that most e-commerce and digital-service customers arrive
 through paid ads, and if so, should this project be running Meta ads?
 
 **Short answer:** The hypothesis is half true — paid is the largest *purchasable*
-channel but not the majority channel — and it is the wrong lever for this project
-right now. Two hard blockers (no live purchase event, €2.34 B2C contribution
-margin) make a Meta acquisition campaign structurally unable to pay for itself.
-There is a narrow, cheap, legitimate use of paid: as a **demand test**, not as an
-acquisition channel. Budget €200–300, expect information, not customers.
+channel but not the majority channel — and it was the wrong lever for this
+project. Two hard blockers (no live purchase event, €2.34 B2C contribution
+margin) made a Meta acquisition campaign structurally unable to pay for itself.
+The one narrow, legitimate use of paid was as a **demand test**, not an
+acquisition channel: ~€200–300 to buy information, not customers.
+
+> **Shutdown note (2026-10-13).** The project is being wound down, so none of
+> this is being executed. It is recorded here as a **potential future strategy**
+> — for a revival of PrintFeed, or for the next product where the same question
+> comes up. The analysis in §1–§6 is channel economics and applies to any
+> low-margin physical-goods funnel, not just this one; §7 is what we would have
+> done, and §8 is the set of conditions that would have to be true before paid
+> acquisition is worth opening at all.
 
 ---
 
@@ -121,11 +129,12 @@ Threads art. The corpus contains no evidence either way, because it never reache
 enough people to test the question. That is precisely the gap paid traffic *can*
 fill — as an instrument, not a channel.
 
-## 7. Recommendation
+## 7. The strategy, if this is ever picked up again
 
-**Do not open a Meta acquisition campaign.** Do the following instead, in order.
+The conclusion was **do not open a Meta acquisition campaign**, and instead do
+the following, in order. Recorded as the plan that was never run.
 
-### A. Spend €200–300 on paid as a demand test (worth doing)
+### A. Spend €200–300 on paid as a demand test (the one defensible use of paid)
 
 Not to acquire customers — to buy an answer to "does anyone want this?" in two
 weeks instead of two years.
@@ -180,9 +189,10 @@ the same premise the `bk` funnel was built on. Ads run ~$2–5 CPM and organic p
 keep working for months. For art prints it is a structurally better fit than a
 Facebook page with zero followers.
 
-## 8. What would change this answer
+## 8. Preconditions for revisiting this
 
-Revisit paid acquisition when **all three** hold:
+Whoever picks this up — this product or the next one — paid acquisition is worth
+opening only when **all three** hold:
 
 1. Live payments — a real Stripe charge fires a real purchase event.
 2. Contribution margin per order above ~€15, via price, bundle size, or
@@ -191,6 +201,13 @@ Revisit paid acquisition when **all three** hold:
    non-friend customers.
 
 Until then, ads are a way to find out faster that the funnel isn't finished.
+
+That is the transferable lesson from this project, and the reason this document
+is worth keeping past the shutdown: the traffic problem was never a messaging
+problem or a budget problem. It was a funnel that could not yet take money, sat
+on a €2.34 margin, and had no evidence of demand to amplify. Buying traffic into
+that would have been paying to learn something three cheap experiments would have
+told us for free.
 
 ---
 
