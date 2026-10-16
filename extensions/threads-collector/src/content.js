@@ -57,6 +57,31 @@
     return TC.pickLargestSrcset(img.getAttribute("srcset"), img.currentSrc || img.src);
   }
 
+  function candidateUrls(img) {
+    const urls = TC.srcsetUrls(img.getAttribute("srcset")).map((c) => c.url);
+    if (img.currentSrc) urls.push(img.currentSrc);
+    if (img.src) urls.push(img.src);
+    return urls;
+  }
+
+  // Threads mounts the same artwork more than once: a resize-tokened carousel
+  // thumbnail (`_p320x320`) and the full-size fullscreen img (`_e35_tt6`) share
+  // one asset id. Which of them wins on screen area depends on viewport, DPR and
+  // how far the carousel has been dragged, so choosing an ELEMENT and trusting
+  // its URL is a coin flip — that is how 320px crops of 2958px originals ended
+  // up in the collection. Choose the asset, then take the best URL the whole
+  // document offers for it.
+  function bestUrlForAsset(assetId) {
+    let best = null;
+    for (const img of document.querySelectorAll("img")) {
+      for (const url of candidateUrls(img)) {
+        if (TC.imageId(url) !== assetId) continue;
+        best = TC.betterUrl(best, url);
+      }
+    }
+    return best;
+  }
+
   // naturalWidth/naturalHeight describe the variant the browser chose to render
   // in the feed, which is usually NOT the largest srcset candidate we collect —
   // in one sample 58 of 84 records understated the file that was downloaded,
@@ -112,12 +137,12 @@
     const found = [];
     for (const img of root.querySelectorAll("img")) {
       if (!isContentImg(img)) continue;
-      const url = bestUrl(img);
-      if (!url || TC.looksLikeVideoCover(url)) continue;
-      const id = TC.imageId(url);
+      const seed = bestUrl(img);
+      if (!seed || TC.looksLikeVideoCover(seed)) continue;
+      const id = TC.imageId(seed);
       if (seen.has(id)) continue;
       seen.add(id);
-      found.push({ url, img });
+      found.push({ url: bestUrlForAsset(id) || seed, img });
     }
     return Promise.all(
       found.map(async ({ url, img }) => ({ url, ...(await measure(url, img)) })),
@@ -174,10 +199,18 @@
         filename: filenames[i],
       })),
     });
+    // The folder is keyed on the shortcode, so every collect from one post lands
+    // in it. A single-image collect writing metadata.json would overwrite the
+    // post's own record — that is how a 10-image post ended up on disk described
+    // as `{"mode":"single","imageCount":1}`. Singles get their own sidecar.
+    const metaFile =
+      mode === "single"
+        ? `${dir}/${filenames[0].replace(/\.[a-z0-9]+$/i, "")}.json`
+        : `${dir}/metadata.json`;
     return {
       dir,
       metadata,
-      metaFile: `${dir}/metadata.json`,
+      metaFile,
       files: images.map((img, i) => ({ url: img.url, filename: `${dir}/${filenames[i]}` })),
     };
   }
@@ -195,22 +228,43 @@
     const root = mainPostRoot(page.shortcode) || document.body;
     const images = await collectImagesFromRoot(root);
     if (!images.length) return flash("No images found in this post");
+
+    // A carousel with one unprintable slide should still yield the rest.
+    const usable = [];
+    let tooSmall = 0;
+    for (const img of images) {
+      if (TC.printShortfall(img.width, img.height, img.url)) tooSmall++;
+      else usable.push(img);
+    }
+    if (!usable.length) {
+      return flash(`Nothing printable here - all ${images.length} image(s) too small`);
+    }
+
     const caption = captionFor(root);
-    const filenames = images.map((img, i) => TC.buildFilename(i + 1, img.url));
+    const filenames = usable.map((img, i) => TC.buildFilename(i + 1, img.url));
     send(
-      buildPayload("post", page, caption, images, filenames),
-      `Collected ${images.length} image(s) from @${page.handle}`,
-      buildIngest(page, caption, images)
+      buildPayload("post", page, caption, usable, filenames),
+      `Collected ${usable.length} image(s) from @${page.handle}` +
+        (tooSmall ? ` - skipped ${tooSmall} too small` : ""),
+      buildIngest(page, caption, usable)
     );
   }
 
   async function collectImage(page) {
-    const img = largestVisibleImage();
-    const url = img && bestUrl(img);
-    if (!url) return flash("No image found on this page");
+    const el = largestVisibleImage();
+    const seed = el && bestUrl(el);
+    if (!seed) return flash("No image found on this page");
+    const url = bestUrlForAsset(TC.imageId(seed)) || seed;
+    const item = { url, ...(await measure(url, el)) };
+
+    // We already know the true size here. Saying so now is the difference
+    // between re-collecting in five seconds and discovering at print time,
+    // weeks later, that the plate was a 320px thumbnail.
+    const shortfall = TC.printShortfall(item.width, item.height, item.url);
+    if (shortfall) return flash(`Not collected - ${shortfall}`);
+
     const idNum = (TC.imageId(url).match(/\d+/) || ["img"])[0];
     const filename = `single_${idNum}.${TC.extFromUrl(url)}`;
-    const item = { url, ...(await measure(url, img)) };
     const root = mainPostRoot(page.shortcode) || document.body;
     const caption = captionFor(root);
     send(
