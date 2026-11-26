@@ -1,0 +1,5 @@
+# Long Green 02 — see README.md for why these points
+# name                      in    out   vfade_in afade_in
+ep2_clip1_stones_wake       13.1  30.0  0.2      0.2
+ep2_clip2_the_presence      51.2  70.9  0        0.15
+ep2_clip3_the_scale         71.8  89.1  0.15     0.05
