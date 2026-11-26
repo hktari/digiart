@@ -225,3 +225,14 @@ Boštjan chose 768P + upscale (over 2K native). Keyframes 11 and 12 edited so Ta
 - Ambient beds 25 % down (`BED_TRIM = 0.75` in `rough_cut.py`): the water sat too loud.
 - End card line changed to "The rain falls on everyone, those who notice hold out their cup." (`make_cards.py` now takes `|` as a forced line break; the card breaks after "everyone," and "notice").
 - Final: `final/ep02-reference-v3-mastered.mp4` (−14.3 LUFS). Release folder `../long-green-02/` with `episode_2.mp4`, three clips, beats and caption drafts. Spend: $0.
+
+## Final spend (Replicate dashboard prices, 2026-11-26)
+
+| What | Runs | Unit price | Cost |
+| --- | --- | --- | --- |
+| Stills, nano-banana-2.1 2K | 77 | $0.05 | $3.85 |
+| Drafts, H3 Lite 480P | 24 | ~$0.08 avg | ~$1.92 |
+| Finals, H3 768P (124 s) | 18 | $0.08/s | $9.92 |
+| **Total** | **119** | | **≈ $15.69** |
+
+Replaces the earlier $21–27.50 range, which assumed $0.10–0.15 per image and $0.15–0.25 per draft. Against the brief's $14–16 estimate: inside it. The finals are 63 % of the spend. 15 1K images from 25 Nov 21:12–21:30 (+07) are not in the episode log and are not counted.
