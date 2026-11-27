@@ -46,7 +46,7 @@ Prompts: `keyframes/prompts/s34-all.txt`.
 | 3-4 | `s3-4-night-v1.jpg` | Night: pixels run down the cables into the Sleeping Town |
 | 4-1 | `s4-1-lane-v1.jpg` | Lane into town past a white spire and a guardian lion, cyan doorway |
 | 4-2 | `s4-2-room-v2.jpg` | Tac on the threshold; three Dreamers placed irregularly (v2); none reacts; rack camera turns |
-| 4-3 | `s4-3-cable-v2.jpg` | A pixel races up a neck cable into a helmet; Tac beside it; extra arm removed (v2) |
+| 4-3 | `s4-3-cable-v3.jpg` | A pixel races up a neck cable into the helmet of a lime Dreamer in full work gear (v3); Tac beside it |
 
 Contact sheet: `keyframes-clip3-4-contact-sheet.jpg`.
 
