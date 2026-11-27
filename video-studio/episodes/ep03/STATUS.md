@@ -30,12 +30,28 @@ Plates: `world/pa-khiao-refs-r2/03-naga-heads-v2`, `02-banner-poles-v1`, `07-pea
 | 2-2 | `s2-2-poles-v2.jpg` | Enters the clearing; old Mosskin at the left pole; camera removed (v2) |
 | 2-3 | `s2-3-cable-v1.jpg` | Pixel crawls along a cable; Tac follows below |
 | 2-4 | `s2-4-door-v2.jpg` | Tac, back to camera, pushes the Peacock Door; a gecko walks out (v2) |
-| 2-5 | `s2-5-wai-v1.jpg` | Old Mosskin points the way; Tac's wai unclear (paws not together) |
+| 2-5 | `s2-5-wai-v2.jpg` | Old Mosskin points the way; wai v2, still only loosely readable |
 
 Contact sheet: `keyframes-clip2-contact-sheet.jpg`.
+
+## 2026-11-27 — keyframes, clips 3 and 4 (waiting for approval)
+
+Prompts: `keyframes/prompts/s34-all.txt`.
+
+| Shot | File | Notes |
+| --- | --- | --- |
+| 3-1 | `s3-1-temple-v1.jpg` | Naga stair to the Sleeping Temple, Tiered Tower behind |
+| 3-2 | `s3-2-cable-v1.jpg` | Tac climbs a cable alone; the camera above turns to him |
+| 3-3 | `s3-3-window-v1.jpg` | From a round tower window: the Spire Array, tip blinking |
+| 3-4 | `s3-4-night-v1.jpg` | Night: pixels run down the cables into the Sleeping Town |
+| 4-1 | `s4-1-lane-v1.jpg` | Lane into town past a white spire and a guardian lion, cyan doorway |
+| 4-2 | `s4-2-room-v1.jpg` | Tac on the threshold; Dreamers don't react; rack camera turns |
+| 4-3 | `s4-3-cable-v1.jpg` | A pixel races up a neck cable into a helmet; Tac beside it |
+
+Contact sheet: `keyframes-clip3-4-contact-sheet.jpg`.
 
 ## Spend
 
 | Date | Model | Runs | Cost |
 | --- | --- | --- | --- |
-| 2026-11-27 | nano-banana-2.1, 2K | 17 keyframes (clip 1: 11, clip 2: 5, birds: 1) | est. $1.70–2.55 |
+| 2026-11-27 | nano-banana-2.1, 2K | 29 keyframes (clips 1–4 incl. fixes) | est. $2.90–4.35 |
