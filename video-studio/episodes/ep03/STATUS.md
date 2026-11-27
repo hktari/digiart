@@ -26,8 +26,8 @@ Plates: `world/pa-khiao-refs-r2/03-naga-heads-v2`, `02-banner-poles-v1`, `07-pea
 
 | Shot | File | Notes |
 | --- | --- | --- |
-| 2-1 | `s2-1-naga-v2.jpg` | Tac climbs past the serpent head; niche removed, the stair leads up to the banner-pole clearing (v2) |
-| 2-2 | `s2-2-poles-v1.jpg` | Enters the clearing; camera on the right pole aims at him; old Mosskin at the left pole |
+| 2-1 | `s2-1-naga-v3.jpg` | Fewer bowls (v3);  Tac climbs past the serpent head; niche removed, the stair leads up to the banner-pole clearing (v2) |
+| 2-2 | `s2-2-poles-v2.jpg` | Enters the clearing; old Mosskin at the left pole; camera removed (v2) |
 | 2-3 | `s2-3-cable-v1.jpg` | Pixel crawls along a cable; Tac follows below |
 | 2-4 | `s2-4-door-v1.jpg` | Tac pushes the Peacock Door; a gecko walks out |
 | 2-5 | `s2-5-wai-v1.jpg` | Old Mosskin points the way; Tac's wai unclear (paws not together) |
