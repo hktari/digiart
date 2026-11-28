@@ -1,0 +1,1 @@
+Refs for every clip-1 keyframe: plate = world/pa-khiao-refs-r2/01-still-water-v3.jpg; Tac = Canva DAHbpWLgEjM pages 1-2 (hero + turnaround). Model google/nano-banana-2.1, 2K, 9:16.
