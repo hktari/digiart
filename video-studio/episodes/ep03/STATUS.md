@@ -54,7 +54,7 @@ Contact sheet: `keyframes-clip3-4-contact-sheet.jpg`.
 
 Model `minimax/h3-lite`, 480P, 5 s, first frame = the current keyframe (passed as raw GitHub URLs from the session branch). One motion per shot; shared opening line in `drafts/prompts/_head.txt`, per-shot prompts in `drafts/prompts/`. Run IDs in `drafts/ids.txt`. H3 Lite returns an audio track; it is stripped (`drafts/silent/`). Contact strips (1 frame/s) in `drafts/strips/`. `drafts/fetch.sh` downloads, strips audio and makes the strip.
 
-Review reel: `drafts/ep03-drafts-v1.mp4` (108 s, 480×864, silent, hard cuts, story order). Not committed (video files stay out of git, as in ep 2).
+Review reel: `drafts/ep03-drafts-v1.mp4` (108 s, 480×864, silent, hard cuts, story order). Silent drafts and the reel are committed; `raw/` (with the model audio) is git-ignored.
 
 First look from the strips (to confirm in the reel):
 - s01: Tac barely walks; may need a stronger walk prompt.
