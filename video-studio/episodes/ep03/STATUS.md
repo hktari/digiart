@@ -50,8 +50,21 @@ Prompts: `keyframes/prompts/s34-all.txt`.
 
 Contact sheet: `keyframes-clip3-4-contact-sheet.jpg`.
 
+## 2026-11-28 — motion drafts, all 21 shots (waiting for review)
+
+Model `minimax/h3-lite`, 480P, 5 s, first frame = the current keyframe (passed as raw GitHub URLs from the session branch). One motion per shot; shared opening line in `drafts/prompts/_head.txt`, per-shot prompts in `drafts/prompts/`. Run IDs in `drafts/ids.txt`. H3 Lite returns an audio track; it is stripped (`drafts/silent/`). Contact strips (1 frame/s) in `drafts/strips/`. `drafts/fetch.sh` downloads, strips audio and makes the strip.
+
+Review reel: `drafts/ep03-drafts-v1.mp4` (108 s, 480×864, silent, hard cuts, story order). Not committed (video files stay out of git, as in ep 2).
+
+First look from the strips (to confirm in the reel):
+- s01: Tac barely walks; may need a stronger walk prompt.
+- s2-2: the old Mosskin seems to fade out at the foot of the pole.
+- s1b-4: the peafowl walks off into the bushes rather than shimmering in place (could work).
+- s4-2: check that the rack camera actually turns.
+
 ## Spend
 
 | Date | Model | Runs | Cost |
 | --- | --- | --- | --- |
-| 2026-11-27 | nano-banana-2.1, 2K | 29 keyframes (clips 1–4 incl. fixes) | est. $2.90–4.35 |
+| 2026-11-27/28 | nano-banana-2.1, 2K | 33 keyframes (clips 1–4 incl. fixes) | ~$1.65 at $0.05 each |
+| 2026-11-28 | minimax/h3-lite, 480P, 5 s | 21 drafts (105 s) | ~$1.70 at ~$0.08 each (ep 2 dashboard rate) |
